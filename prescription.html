@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Prescription Médicamenteuse - Google Sheets</title>
+<style>
+  body { font-family: Arial, sans-serif; background: #f7f7f7; padding: 20px; }
+  .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 8px #ccc;}
+  input[type=text] { width: 100%; padding: 10px; font-size: 1rem; margin-bottom: 10px; }
+  ul { list-style: none; padding: 0; max-height: 200px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px; }
+  li { padding: 8px; border-bottom: 1px solid #eee; cursor: pointer; }
+  li:hover { background-color: #f0f0f0; }
+  label { font-weight: bold; margin-top: 10px; display: block; }
+  input[readonly] { background-color: #eee; }
+</style>
+</head>
+<body>
+  <div class="container">
+    <h1>Prescription Médicamenteuse</h1>
+
+    <label for="search">Rechercher un médicament :</label>
+    <input type="text" id="search" placeholder="Tapez un nom..." autocomplete="off" />
+
+    <ul id="results"></ul>
+
+    <form id="prescriptionForm" style="margin-top:20px;">
+      <label for="medName">Nom du médicament :</label>
+      <input type="text" id="medName" readonly />
+
+      <label for="forme">Forme :</label>
+      <input type="text" id="forme" readonly />
+
+      <label for="voie">Voie d'administration :</label>
+      <input type="text" id="voie" readonly />
+
+      <label for="dose">Dose :</label>
+      <input type="text" id="dose" placeholder="Ex : 500 mg" required />
+
+      <label for="frequence">Fréquence :</label>
+      <input type="text" id="frequence" placeholder="Ex : 3 fois par jour" required />
+
+      <label for="duree">Durée :</label>
+      <input type="text" id="duree" placeholder="Ex : 5 jours" required />
+
+      <button type="submit" style="margin-top: 10px;">Ajouter la prescription</button>
+    </form>
+
+    <h2 style="margin-top:30px;">Prescriptions ajoutées :</h2>
+    <table border="1" width="100%" id="prescriptionsTable" style="border-collapse: collapse;">
+      <thead>
+        <tr>
+          <th>Nom</th>
+          <th>Forme</th>
+          <th>Voie</th>
+          <th>Dose</th>
+          <th>Fréquence</th>
+          <th>Durée</th>
+          <th>Supprimer</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+<script>
+  const sheetId = "1ds1sUUgetSGtQaa-ZhsKnBUSTW4L2b47";
+  const url = `https://docs.google.com/spreadsheets/d/${Feuil1}/gviz/tq?tqx=out:json`;
+
+  let medicaments = [];
+
+  // Charger les données Google Sheet
+  async function loadMedicaments() {
+    try {
+      const res = await fetch(url);
+      const text = await res.text();
+
+      // Google Sheets JSON est enveloppé, il faut nettoyer la réponse
+      const jsonText = text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1);
+      const data = JSON.parse(jsonText);
+
+      // Extraire lignes et colonnes
+      medicaments = data.table.rows.map(row => {
+        return {
+          nom: row.c[0] ? row.c[0].v : "",
+          forme: row.c[1] ? row.c[1].v : "",
+          voie: row.c[2] ? row.c[2].v : ""
+        };
+      });
+    } catch (error) {
+      console.error("Erreur chargement Google Sheets :", error);
+    }
+  }
+
+  // Afficher résultats de recherche
+  function showResults(filtered) {
+    const results = document.getElementById("results");
+    results.innerHTML = "";
+    if (filtered.length === 0) {
+      results.innerHTML = "<li>Aucun résultat</li>";
+      return;
+    }
+    filtered.forEach(med => {
+      const li = document.createElement("li");
+      li.textContent = `${med.nom} — ${med.forme} — ${med.voie}`;
+      li.onclick = () => {
+        document.getElementById("medName").value = med.nom;
+        document.getElementById("forme").value = med.forme;
+        document.getElementById("voie").value = med.voie;
+        results.innerHTML = "";
+        document.getElementById("search").value = "";
+      };
+      results.appendChild(li);
+    });
+  }
+
+  // Recherche en direct
+  document.getElementById("search").addEventListener("input", (e) => {
+    const val = e.target.value.trim().toLowerCase();
+    if (val.length < 2) {
+      document.getElementById("results").innerHTML = "";
+      return;
+    }
+    const filtered = medicaments.filter(med => med.nom.toLowerCase().includes(val));
+    showResults(filtered.slice(0, 10));
+  });
+
+  // Gestion formulaire et ajout dans tableau
+  const form = document.getElementById("prescriptionForm");
+  const tableBody = document.querySelector("#prescriptionsTable tbody");
+
+  form.addEventListener("submit", e => {
+    e.preventDefault();
+
+    const medName = document.getElementById("medName").value;
+    const forme = document.getElementById("forme").value;
+    const voie = document.getElementById("voie").value;
+    const dose = document.getElementById("dose").value;
+    const frequence = document.getElementById("frequence").value;
+    const duree = document.getElementById("duree").value;
+
+    if(!medName) {
+      alert("Merci de sélectionner un médicament dans la liste.");
+      return;
+    }
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${medName}</td>
+      <td>${forme}</td>
+      <td>${voie}</td>
+      <td>${dose}</td>
+      <td>${frequence}</td>
+      <td>${duree}</td>
+      <td><button class="delete-btn">Supprimer</button></td>
+    `;
+
+    tr.querySelector(".delete-btn").addEventListener("click", () => {
+      tr.remove();
+    });
+
+    tableBody.appendChild(tr);
+
+    form.reset();
+    // Effacer les champs en lecture seule (rempli par la sélection)
+    document.getElementById("medName").value = "";
+    document.getElementById("forme").value = "";
+    document.getElementById("voie").value = "";
+  });
+
+  // Charger au lancement
+  loadMedicaments();
+</script>
+</body>
+</html>

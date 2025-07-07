@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/jpeg" href="logo.jpg">
+
+  <title>⚙️ Paramètres</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 40px;
+      background: #f7f9fc;
+      color: #2c3e50;
+    }
+    h1 {
+      text-align: center;
+    }
+    .section {
+      background: white;
+      padding: 20px;
+      margin-bottom: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .section h2 {
+      margin-top: 0;
+    }
+    input[type="text"] {
+      padding: 8px;
+      margin: 5px 0 10px;
+      width: 100%;
+      max-width: 400px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    ul {
+      padding-left: 20px;
+    }
+    li {
+      margin-bottom: 8px;
+    }
+    .btn {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .btn-add {
+      background: #2ecc71;
+      color: white;
+    }
+    .btn-del {
+      background: #e74c3c;
+      color: white;
+      margin-left: 8px;
+    }
+
+    /* Modale */
+    .modal {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.4);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+    }
+    .modal-content {
+      background: white;
+      padding: 20px 30px;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+      min-width: 300px;
+      max-width: 90%;
+    }
+    .modal-content h3 {
+      margin-top: 0;
+    }
+    .modal-actions {
+      text-align: right;
+      margin-top: 20px;
+    }
+    .modal-actions button {
+      margin-left: 10px;
+    }
+	#bubble-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 9999;
+  align-items: flex-end;
+}
+	.bubble {
+  max-width: 300px;
+  padding: 10px 15px;
+  border-radius: 8px;
+  color: white;
+  font-family: sans-serif;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  animation: fadeout 0.5s ease-in-out 1.5s forwards;
+  word-wrap: break-word;
+  text-align: left;
+}
+
+.administratif {
+  background-color: #2196F3; /* bleu */
+}
+
+.alerte {
+  background-color: #f44336; /* rouge */
+}
+
+@keyframes fadeout {
+  to {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+}
+.blur {
+  filter: blur(10px);
+  pointer-events: none;
+  user-select: none;
+}
+
+#passwordModal {
+  display: flex;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+#passwordModal .modal-content {
+  max-width: 400px;
+}
+  </style>
+</head>
+<body>
+<div id="passwordModal">
+  <div class="modal-content">
+    <h3>🔒 Mot de passe requis</h3>
+    <input type="password" id="passwordInput" placeholder="Entrez le mot de passe" />
+    <div class="modal-actions">
+      <button class="btn btn-add" id="validerMotDePasse">✅ Valider</button>
+    </div>
+  </div>
+</div>
+<div id="content" class="blur">
+
+  <h1>⚙️ Paramètres</h1>
+<button style="padding: 10px 20px; font-size: 16px; cursor: pointer;" onclick="window.location.href='admin.html'">
+  Gestion des comptes
+</button>
+
+  <div class="section">
+    <h2>🩺 Actes <button class="btn btn-add" onclick="openModal('actes')">➕ Ajouter</button></h2>
+    <ul id="actesList"></ul>
+  </div>
+
+  <div class="section">
+    <h2>👨‍⚕️ Personnel <button class="btn btn-add" onclick="openModal('personnel')">➕ Ajouter</button></h2>
+    <ul id="personnelList"></ul>
+  </div>
+<div class="section">
+    <h2>Services <button class="btn btn-add" onclick="openModal('spécialités')">➕ Ajouter</button></h2>
+    <ul id="spécialitésList"></ul>
+  </div>
+  <!-- MODALE -->
+  <div class="modal" id="modal">
+    <div class="modal-content">
+      <h3 id="modalTitle">➕Ajouter</h3>
+      <input type="text" id="modalInput" placeholder="Nom..." />
+      <div class="modal-actions">
+        <button class="btn" onclick="cancelModal()">❌ Annuler</button>
+        <button class="btn btn-add" onclick="confirmModal()">✅ Valider</button>
+      </div>
+    </div>
+  </div>
+</div>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-app.js";
+import {
+  getFirestore, doc, getDoc, setDoc
+} from "https://www.gstatic.com/firebasejs/10.3.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBKp5-7NNy0Gyl0tNbDgD-BxucYdg8ArWo",
+  authDomain: "urgences-a8ed4.firebaseapp.com",
+  projectId: "urgences-a8ed4"
+};
+const passwordModal = document.getElementById("passwordModal");
+const passwordInput = document.getElementById("passwordInput");
+const content = document.getElementById("content");
+
+async function verifyPassword() {
+  try {
+    const docRef = doc(db, "patients", "QhwMJ0mjmUnS8MTNBCFU");
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      const truePassword = docSnap.data()["QhwMJ0mjmUnS8MTNBCFU"];
+      if (passwordInput.value === truePassword) {
+        content.classList.remove("blur");
+        passwordModal.style.display = "none";
+		afficherBulle("✅ Mot de passe correct !","administratif")
+      } else {
+        afficherBulle("❌ Mot de passe incorrect", "alerte");
+      }
+    } else {
+      afficherBulle("❌ Mot de passe introuvable", "alerte");
+    }
+  } catch (error) {
+    console.error("Erreur récupération mot de passe:", error);
+    afficherBulle("❌ Erreur de vérification", "alerte");
+  }
+}
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+
+
+const actesListEl = document.getElementById('actesList');
+const personnelListEl = document.getElementById('personnelList');
+let actes = [];
+let personnel = [];
+let spécialités = [];
+let currentType = null;
+
+async function saveToFirestore() {
+  try {
+
+    await setDoc(doc(db, "référentiels", "actes"), { liste: actes });
+    await setDoc(doc(db, "référentiels", "personnel"), { liste: personnel });
+    await setDoc(doc(db, "référentiels", "spécialités"), { spécialités });
+
+
+    afficherBulle("✅ Données enregistrées avec succès", "administratif");
+  } catch (error) {
+    console.error("Erreur lors de l'enregistrement :", error);
+    afficherBulle("❌ Échec de l'enregistrement", "alerte");
+  }
+}
+
+async function loadData() {
+  
+
+  const actesSnap = await getDoc(doc(db, "référentiels", "actes"));
+  actes = actesSnap.exists() ? actesSnap.data().liste || [] : [];
+  renderList("actes", actes);
+
+  const persSnap = await getDoc(doc(db, "référentiels", "personnel"));
+  personnel = persSnap.exists() ? persSnap.data().liste || [] : [];
+  renderList("personnel", personnel);
+  
+  const spécialitésSnap = await getDoc(doc(db, "référentiels", "spécialités"));
+spécialités = spécialitésSnap.exists() ? spécialitésSnap.data().spécialités || [] : [];
+  renderList("spécialités", spécialités);
+}
+
+function renderList(type, array) {
+const container = type === "actes" ? actesListEl : type === "spécialités" ? document.getElementById("spécialitésList") : personnelListEl;
+  container.innerHTML = "";
+  array.forEach((item, index) => {
+    const li = document.createElement("li");
+    li.innerHTML = `<input value="${item.replace(/"/g, '&quot;')}" onchange="updateItem('${type}', ${index}, this.value)" />
+                    <button class="btn btn-del" onclick="removeItem('${type}', ${index})">❌</button>`;
+    container.appendChild(li);
+  });
+}
+
+window.updateItem = async (type, index, newValue) => {
+  if (type === "actes") actes[index] = newValue;
+  if (type === "personnel") personnel[index] = newValue;
+  if (type === "spécialités") spécialités[index] = newValue;
+
+  await saveToFirestore();
+};
+
+window.removeItem = async (type, index) => {
+  if (type === "actes") actes.splice(index, 1);
+  if (type === "personnel") personnel.splice(index, 1);
+  if (type === "spécialités") spécialités.splice(index, 1);
+  renderList(type, type === "actes" ? actes : type === "spécialités" ? spécialités : personnel);
+  await saveToFirestore();
+};
+
+window.openModal = (type) => {
+  currentType = type;
+  document.getElementById("modalTitle").textContent = `➕ Ajouter à ${type}`;
+  document.getElementById("modalInput").value = "";
+  document.getElementById("modal").style.display = "flex";
+};
+
+window.confirmModal = async () => {
+  const val = document.getElementById("modalInput").value.trim();
+  if (!val) return;
+  if (currentType === "actes") actes.push(val);
+  if (currentType === "personnel") personnel.push(val);
+    if (currentType === "spécialités") spécialités.push(val);
+  renderList(currentType, currentType === "actes" ? actes : currentType === "spécialités" ? spécialités : personnel);
+  document.getElementById("modal").style.display = "none";
+  await saveToFirestore();
+};
+
+window.cancelModal = async () => {
+  document.getElementById("modal").style.display = "none";
+  await saveToFirestore();
+};
+
+function afficherBulle(texte, type) {
+  let container = document.getElementById('bubble-container');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'bubble-container';
+    container.style.position = "fixed";
+    container.style.top = "20px";
+    container.style.right = "20px";
+    container.style.zIndex = "9999";
+    document.body.appendChild(container);
+  }
+  const bulle = document.createElement('div');
+  bulle.className = `bubble ${type}`;
+  bulle.textContent = texte;
+  bulle.style.backgroundColor = type === "administratif" ? "#3498db" : "#e74c3c";
+  bulle.style.color = "white";
+  bulle.style.padding = "10px 15px";
+  bulle.style.marginBottom = "10px";
+  bulle.style.borderRadius = "6px";
+  bulle.style.boxShadow = "0 2px 6px rgba(0,0,0,0.2)";
+  bulle.style.transition = "opacity 0.4s ease";
+  container.appendChild(bulle);
+  setTimeout(() => {
+    bulle.style.opacity = "0";
+    setTimeout(() => bulle.remove(), 400);
+  }, 2500);
+}
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") {
+    cancelModal();
+  }
+});
+
+loadData();
+document.getElementById("validerMotDePasse").addEventListener("click", verifyPassword);
+
+  </script>
+  <script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBKp5-7NNy0Gyl0tNbDgD-BxucYdg8ArWo",
+    authDomain: "urgences-a8ed4.firebaseapp.com",
+    projectId: "urgences-a8ed4"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      window.location.href = "accueil.html";
+    } else {
+      const docSnap = await getDoc(doc(db, "medecins", user.uid));
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        document.getElementById("nom-medecin").textContent = data.nom || "Médecin";
+        document.getElementById("specialite").textContent = data.specialite || "";
+      }
+    }
+  });
+  
+let medecinNom = "";
+  let medecinSpecialite = "";
+  let medecinLieu = "";
+
+  onAuthStateChanged(auth, async (user) => {
+  if (!user) {
+    window.location.href = "accueil.html";
+  } else {
+    try {
+      const docRef = doc(db, "medecins", user.uid);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        const medecinNom = data.nom || "";
+        const medecinSpecialite = data.specialite || "";
+        const medecinLieu = data.lieu || "";
+
+        // Met à jour aussi les variables globales sur window
+        window.medecinNom = medecinNom;
+        window.medecinSpecialite = medecinSpecialite;
+        window.medecinLieu = medecinLieu;
+
+        // Mise à jour des éléments HTML si présents
+        const nomElem = document.getElementById("nom-medecin");
+        if (nomElem) nomElem.textContent = medecinNom;
+
+        const specElem = document.getElementById("specialite");
+        if (specElem) specElem.textContent = medecinSpecialite;
+
+        const lieuElem = document.getElementById("lieu-medecin");
+        if (lieuElem) lieuElem.textContent = medecinLieu;
+
+        // --- Vérification d'accès à la page ---
+        const pages = data.pages || {};
+        const currentPath = window.location.pathname;
+        const currentPage = currentPath.substring(currentPath.lastIndexOf("/") + 1).replace(".html", "");
+
+        if (!pages[currentPage]) {
+          alert("⛔️ Vous n’avez pas accès à cette page.");
+          window.location.href = "accueil.html";
+          return; // Stoppe le script ici
+        }
+      } else {
+        // Document inexistant — redirection
+        alert("Utilisateur non trouvé, veuillez vous reconnecter.");
+        window.location.href = "accueil.html";
+      }
+    } catch (error) {
+      console.error("Erreur chargement médecin :", error);
+      alert("Une erreur est survenue, veuillez réessayer plus tard.");
+    }
+  }
+});
+
+</script>
+</body>
+</html>

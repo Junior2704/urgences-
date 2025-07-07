@@ -1,0 +1,151 @@
+<!-- inscription.html -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Créer un compte</title>
+  <link rel="icon" type="image/jpeg" href="logo.jpg" />
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBKp5-7NNy0Gyl0tNbDgD-BxucYdg8ArWo",
+      authDomain: "urgences-a8ed4.firebaseapp.com",
+      projectId: "urgences-a8ed4"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    window.creerCompte = async function () {
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+      const nom = document.getElementById("nom").value.trim();
+      const specialite = document.getElementById("specialite").value.trim();
+      const lieu = document.getElementById("lieu").value.trim();
+      const type = document.getElementById("type").value;
+
+      const message = document.getElementById("message");
+      message.style.color = "red";
+      message.textContent = "";
+
+      if (!email || !password || !nom || !type) {
+        message.textContent = "Veuillez remplir tous les champs obligatoires.";
+        return;
+      }
+      if (password.length < 6) {
+        message.textContent = "Le mot de passe doit faire au moins 6 caractères.";
+        return;
+      }
+
+      try {
+        // Crée l'utilisateur Firebase Auth
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+
+        // Crée le document Firestore dans la collection 'medecins' (ou 'utilisateurs')
+        await setDoc(doc(db, "medecins", user.uid), {
+  nom: nom,
+  specialite: specialite,
+  lieu: lieu,
+  type: type,
+  email: email,
+  createdAt: new Date(),
+  pages: {
+    urgences: true,
+    accueil: true,
+    certificat_medical: false,
+    facturation: false,
+    fiche: false,
+    fiche_conseil: false,
+    gestionnaire_radiologie: false,
+    ordonnancier: false,
+    parametres: false,
+    prescriptions_examens: false,
+    rapport_hospitalisation: false,
+    admin: false
+  }
+});
+
+
+
+        message.style.color = "green";
+        message.textContent = "Compte créé avec succès ! Redirection...";
+
+        // Redirection vers la page de connexion ou page principale
+        setTimeout(() => {
+          window.location.href = "accueil.html";
+        }, 1500);
+
+      } catch (error) {
+        message.textContent = "Erreur création compte : " + error.message;
+      }
+    };
+  </script>
+  <style>
+    body {
+      font-family: sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: #f4f4f4;
+    }
+    #registerBox {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+      width: 350px;
+      text-align: center;
+    }
+    input, select {
+      padding: 10px;
+      width: 100%;
+      margin-bottom: 12px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+      font-size: 1rem;
+    }
+    button {
+      padding: 10px 20px;
+      background: #0078d4;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1.1rem;
+    }
+    button:hover {
+      background: #005ea1;
+    }
+    #message {
+      margin-top: 15px;
+      min-height: 24px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div id="registerBox">
+    <h2>📝 Créer un compte</h2>
+    <input type="email" id="email" placeholder="Email *" required />
+    <input type="password" id="password" placeholder="Mot de passe * (6 caractères min)" required />
+    <input type="text" id="nom" placeholder="Nom complet *" required />
+    <input type="text" id="specialite" placeholder="Spécialité" />
+    <input type="text" id="lieu" placeholder="Lieu d'exercice" />
+    <select id="type" required>
+      <option value="">-- Type --</option>
+      <option value="doc">Médecin</option>
+      <option value="infirmier">Infirmier</option>
+      <option value="AS">Aide Soignant</option>
+    </select>
+    <button onclick="creerCompte()">Créer mon compte</button>
+    <div id="message"></div>
+  </div>
+</body>
+</html>

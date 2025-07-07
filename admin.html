@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin - Gestion des comptes</title>
+  <link rel="icon" href="logo.jpg" type="image/jpeg">
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+      background: #f4f4f4;
+    }
+    h1 {
+      text-align: center;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      background: white;
+    }
+    th, td {
+      padding: 10px;
+      border: 1px solid #ccc;
+      text-align: center;
+    }
+    th {
+      background: #0078d4;
+      color: white;
+    }
+    button {
+      background: red;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: darkred;
+    }
+    input[type="checkbox"] {
+      transform: scale(1.2);
+    }
+  </style>
+</head>
+<body>
+  <h1>🔐 Panneau d’administration</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>Nom</th>
+        <th>Email</th>
+        <th>Type</th>
+        <th>Spécialité</th>
+        <th>Lieu</th>
+        <th>Urgences</th>
+        <th>Accueil</th>
+        <th>Certificat Médical</th>
+		<th>Facturation</th>
+		<th>Fiche</th>
+        <th>Fiches Conseil</th>
+        <th>Gestionnaire Radiologie</th>
+        <th>Ordonnancier</th>
+        <th>Paramètres</th>
+        <th>Prescription Examens</th>
+        <th>Rapport Hospitalisation</th>
+        <th>Admin</th>
+
+      </tr>
+    </thead>
+    <tbody id="usersTable"></tbody>
+  </table>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import {
+      getAuth,
+      onAuthStateChanged,
+      deleteUser,
+      getIdTokenResult
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import {
+      getFirestore,
+      collection,
+      getDocs,
+      updateDoc,
+      deleteDoc,
+      doc
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBKp5-7NNy0Gyl0tNbDgD-BxucYdg8ArWo",
+      authDomain: "urgences-a8ed4.firebaseapp.com",
+      projectId: "urgences-a8ed4"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // 🔐 Vérifie si l'utilisateur est admin (par exemple via son email)
+
+
+    async function chargerUtilisateurs() {
+      const snapshot = await getDocs(collection(db, "medecins"));
+      const tbody = document.getElementById("usersTable");
+      tbody.innerHTML = "";
+
+      snapshot.forEach(docSnap => {
+        const data = docSnap.data();
+        const id = docSnap.id;
+        const pages = data.pages || {};
+
+        const tr = document.createElement("tr");
+tr.innerHTML = `
+  <td>${data.nom || ""}</td>
+  <td>${data.email || ""}</td>
+  <td>${data.type || ""}</td>
+  <td>${data.specialite || ""}</td>
+  <td>${data.lieu || ""}</td>
+  <td><input type="checkbox" ${pages.urgences ? "checked" : ""} onchange="toggleAccess('${id}', 'urgences', this.checked)"></td>
+  <td><input type="checkbox" ${pages.accueil ? "checked" : ""} onchange="toggleAccess('${id}', 'accueil', this.checked)"></td>
+  <td><input type="checkbox" ${pages.Certificatmedical ? "checked" : ""} onchange="toggleAccess('${id}', 'Certificatmedical', this.checked)"></td>
+  <td><input type="checkbox" ${pages.Facturation ? "checked" : ""} onchange="toggleAccess('${id}', 'Facturation', this.checked)"></td>
+  <td><input type="checkbox" ${pages.fiche ? "checked" : ""} onchange="toggleAccess('${id}', 'fiche', this.checked)"></td>
+  <td><input type="checkbox" ${pages.ficheconseil ? "checked" : ""} onchange="toggleAccess('${id}', 'ficheconseil', this.checked)"></td>
+  <td><input type="checkbox" ${pages.gestionnaireradiologie ? "checked" : ""} onchange="toggleAccess('${id}', 'gestionnaireradiologie', this.checked)"></td>
+  <td><input type="checkbox" ${pages.Ordonnancier ? "checked" : ""} onchange="toggleAccess('${id}', 'Ordonnancier', this.checked)"></td>
+  <td><input type="checkbox" ${pages.parametres ? "checked" : ""} onchange="toggleAccess('${id}', 'parametres', this.checked)"></td>
+  <td><input type="checkbox" ${pages.prescriptionexamens ? "checked" : ""} onchange="toggleAccess('${id}', 'prescriptionexamens', this.checked)"></td>
+  <td><input type="checkbox" ${pages.rapporthospitalisation ? "checked" : ""} onchange="toggleAccess('${id}', 'rapporthospitalisation', this.checked)"></td>
+  <td><input type="checkbox" ${pages.admin ? "checked" : ""} onchange="toggleAccess('${id}', 'admin', this.checked)"></td>
+`;
+tbody.appendChild(tr);
+
+      });
+    }
+
+    // 🔁 Met à jour l'accès à une page pour un utilisateur
+    window.toggleAccess = async (uid, page, hasAccess) => {
+      const userRef = doc(db, "medecins", uid);
+      const userSnap = await getDocs(collection(db, "medecins"));
+      const currentUser = (await getDocs(collection(db, "medecins"))).docs.find(d => d.id === uid);
+      const data = currentUser.data();
+      const pages = data.pages || {};
+      pages[page] = hasAccess;
+      await updateDoc(userRef, { pages });
+    };
+
+    // ❌ Supprime un utilisateur (Firestore uniquement ici)
+    window.supprimerUtilisateur = async (uid, email) => {
+      const confirmation = confirm(`Voulez-vous vraiment supprimer le compte de ${email} ?`);
+      if (!confirmation) return;
+
+      try {
+        await deleteDoc(doc(db, "medecins", uid));
+        alert("Utilisateur supprimé de Firestore.");
+        chargerUtilisateurs();
+        // ⚠️ Suppression dans Firebase Auth non possible ici (doit être faite côté serveur ou connecté en tant qu'utilisateur cible).
+      } catch (err) {
+        console.error(err);
+        alert("Erreur lors de la suppression.");
+      }
+    };
+	
+	chargerUtilisateurs();
+	
+	
+	
+  </script>
+</body>
+</html>

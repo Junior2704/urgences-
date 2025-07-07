@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<link rel="icon" type="image/jpeg" href="logo.jpg">
+
+  <meta charset="UTF-8" />
+  <title>☢️Gestionnaire des examens</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: #f7f9fc;
+      margin: 20px;
+      color: #333;
+    }
+
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-top: 25px;
+    }
+
+    thead {
+      background: #2980b9;
+      color: white;
+    }
+
+    th, td {
+      padding: 14px 20px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+
+    tbody tr:hover {
+      background-color: #dbe9f4;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    #detailPanel, #editModal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(4px);
+      z-index: 10000;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    #detailContent, #editModalContent {
+      background: white;
+      border-radius: 12px;
+      max-width: 90vw;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 30px 40px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      position: relative;
+    }
+
+    #detailContent h2 {
+      margin-top: 0;
+      color: #2980b9;
+    }
+
+    .examen-encart {
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 15px;
+      background-color: #f5faff;
+    }
+
+    .examen-encart button {
+      background-color: #27ae60;
+      color: white;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .examen-encart button:hover {
+      background-color: #219150;
+    }
+
+    #closeBtnDetail, #closeEditModal {
+      position: absolute;
+      top: 15px;
+      right: 20px;
+      background: none;
+      border: none;
+      font-size: 28px;
+      font-weight: bold;
+      color: #555;
+      cursor: pointer;
+      transition: color 0.3s ease;
+    }
+
+    #closeBtnDetail:hover, #closeEditModal:hover {
+      color: #e74c3c;
+    }
+	#editModalContent {
+  background: #ffffff;
+  border-radius: 16px;
+  max-width: 500px;
+  width: 100%;
+  padding: 30px 40px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+  position: relative;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #2c3e50;
+}
+
+#editModalContent h3 {
+  margin-top: 0;
+  font-size: 22px;
+  font-weight: 600;
+  color: #2d4059;
+}
+
+#compteRenduInput {
+  width: 100%;
+  height: 150px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  font-size: 15px;
+  resize: vertical;
+  font-family: inherit;
+  background: #f9fafb;
+  transition: border 0.3s ease, background 0.3s ease;
+}
+
+#compteRenduInput:focus {
+  outline: none;
+  border-color: #3498db;
+  background: #ffffff;
+}
+
+#validerBtn {
+  background: #3498db;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  margin-top: 20px;
+  display: inline-block;
+}
+
+#validerBtn:hover {
+  background: #2d80c6;
+}
+
+#closeEditModal {
+  position: absolute;
+  top: 18px;
+  right: 24px;
+  background: none;
+  border: none;
+  font-size: 26px;
+  font-weight: 600;
+  color: #aaa;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+#closeEditModal:hover {
+  color: #e74c3c;
+}
+#bubble-container {
+    top: 10px;
+    right: 20px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .bubble {
+    padding: 10px 15px;
+    border-radius: 8px;
+    color: white;
+    font-family: sans-serif;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    animation: fadeout 0.5s ease-in-out 1.5s forwards;
+  }
+
+  .administratif {
+    background-color: #2196F3; /* bleu */
+  }
+
+  .alerte {
+    background-color: #f44336; /* rouge */
+  }
+
+  @keyframes fadeout {
+    to {
+      opacity: 0;
+      transform: translateX(-20px);
+    }
+  }
+  #bubble-container {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  #bubble-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 9999;
+  align-items: flex-end;
+}
+
+.bubble {
+  max-width: 300px;
+  padding: 10px 15px;
+  border-radius: 8px;
+  color: white;
+  font-family: sans-serif;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  animation: fadeout 0.5s ease-in-out 1.5s forwards;
+  word-wrap: break-word;
+  text-align: left;
+}
+
+.administratif {
+  background-color: #2196F3; /* bleu */
+}
+
+.alerte {
+  background-color: #f44336; /* rouge */
+}
+
+@keyframes fadeout {
+  to {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+}
+
+  </style>
+</head>
+<body>
+
+<h1>☢️Gestionnaire des examens</h1>
+<table>
+  <thead>
+    <tr>
+      <th>Nom</th>
+      <th>Prénom</th>
+      <th>Date de naissance</th>
+      <th>Examens non réalisés</th>
+      <th>Position</th>
+    </tr>
+  </thead>
+  <tbody id="patientsBody"></tbody>
+</table>
+
+
+<div id="detailPanel">
+  <div id="detailContent">
+    <button id="closeBtnDetail">&times;</button>
+    <div id="detailData"></div>
+  </div>
+</div>
+
+<div id="editModal">
+  <div id="editModalContent">
+    <button id="closeEditModal">&times;</button>
+    <h3>💬Compte-rendu
+		
+</h3>
+    <textarea id="compteRenduInput" rows="5" style="width: 100%;"></textarea>
+    <br><br>
+    <button id="validerBtn">✔️Valider</button>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-app.js";
+  import { getFirestore, collection, getDocs, getDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBKp5-7NNy0Gyl0tNbDgD-BxucYdg8ArWo",
+    authDomain: "urgences-a8ed4.firebaseapp.com",
+    projectId: "urgences-a8ed4",
+    storageBucket: "urgences-a8ed4.appspot.com",  
+    messagingSenderId: "392921498200",
+    appId: "1:392921498200:web:7ccce767332c67c697c02d",
+    measurementId: "G-C74MK2KYDL"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+document.addEventListener("DOMContentLoaded", async () => {
+  const tableBody = document.getElementById("patientsBody");
+  const detailPanel = document.getElementById("detailPanel");
+  const detailContent = document.getElementById("detailData");
+  const closeBtnDetail = document.getElementById("closeBtnDetail");
+  const editModal = document.getElementById("editModal");
+  const closeEditModal = document.getElementById("closeEditModal");
+  const compteRenduInput = document.getElementById("compteRenduInput");
+  const validerBtn = document.getElementById("validerBtn");
+
+  let currentEdit = null;
+
+  closeBtnDetail.onclick = () => detailPanel.style.display = "none";
+  closeEditModal.onclick = () => {
+    editModal.style.display = "none";
+    currentEdit = null;
+  };
+
+  async function loadPatients() {
+    const patientsCol = collection(db, "patients");
+    const snapshot = await getDocs(patientsCol);
+    const filtered = [];
+
+    snapshot.forEach(docSnap => {
+      const data = docSnap.data();
+      if (!data.hospitalisationActive) return;
+
+      const idx = data.hospitalisationIndex;
+      const hosps = data.hospitalisations;
+      if (!Array.isArray(hosps) || !hosps[idx]) return;
+
+      const current = hosps[idx];
+const exams = [];
+(current.examens || []).forEach((ex, i) => {
+  if (!ex.realise) {
+    exams.push({ ...ex, realIndex: i });
+  }
+});      if (exams.length === 0) return;
+
+      filtered.push({
+        id: docSnap.id,
+        nom: data.nom,
+        prenom: data.prenom,
+        dateNaissance: data.dateNaissance,
+        examensNonRealises: exams,
+        hospIndex: idx,
+        fullData: data
+      });
+    });
+
+    return filtered;
+  }
+
+  function renderTable(patients) {
+    tableBody.innerHTML = "";
+    patients.forEach(patient => {
+      const examensList = patient.examensNonRealises.map(e => e.type || "Examen").join(", ");
+const tr = document.createElement("tr");
+tr.innerHTML = `
+  <td>${patient.nom}</td>
+  <td>${patient.prenom}</td>
+  <td>${formaterDate(patient.dateNaissance)}</td>
+  <td>${examensList}</td>
+  <td>${patient.fullData.position || "N/A"}</td>
+
+`;
+
+      tr.ondblclick = () => showDetails(patient);
+      tableBody.appendChild(tr);
+    });
+  }
+function calculerAge(dateNaissance) {
+  const date = new Date(dateNaissance);
+  const today = new Date();
+  let age = today.getFullYear() - date.getFullYear();
+  const m = today.getMonth() - date.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < date.getDate())) {
+    age--;
+  }
+  return age;
+}
+function formaterDate(dateStr) {
+  const date = new Date(dateStr);
+  const jour = String(date.getDate()).padStart(2, '0');
+  const mois = String(date.getMonth() + 1).padStart(2, '0'); // les mois commencent à 0
+  const annee = date.getFullYear();
+  return `${jour}/${mois}/${annee}`;
+}
+
+  function showDetails(patient) {
+  const examensNonRealisesHTML = patient.examensNonRealises.map((e, i) => `
+    <div class="examen-encart">
+      <p><b>☢️Type:</b> ${e.type || "N/A"}</p>
+      <p><b>💬Commentaire:</b> ${e.commentaire || ""}</p>
+      <p><b>📄Compte rendu:</b> ${e.compteRendu || ""}</p>
+      <p><b>📅Date demande:</b> ${e.dateDemande || "N/A"}</p>
+      <button onclick="window.openEditModal('${patient.id}', ${patient.hospIndex}, ${e.realIndex})">Réaliser l'examen</button>
+    </div>
+  `).join("");
+
+  const examensRealises = (patient.fullData.hospitalisations?.[patient.hospIndex]?.examens || [])
+    .filter(ex => ex.realise)
+    .map(ex => `
+      <div class="examen-encart" style="background-color: #eaf9ea; border-color: #9ccc65;">
+        <p><b>☢️Type:</b> ${ex.type || "N/A"}</p>
+        <p><b>💬Commentaire:</b> ${ex.commentaire || ""}</p>
+        <p><b>📄Compte rendu:</b> ${ex.compteRendu || ""}</p>
+        <p><b>📅Date demande:</b> ${formatDateHeure(ex.dateDemande) || "N/A"}</p>
+        <p><b>✅Réalisé le:</b> ${ex.dateRealisation ? formatDateHeure(ex.dateRealisation) : "?"}</p>
+      </div>
+    `).join("");
+
+  detailContent.innerHTML = `
+    <h2>👤${patient.prenom} ${patient.nom}</h2>
+    <p><b>Sexe :</b> ${patient.fullData.sexe || "Non renseigné"}</p>
+    <p><b>Date de naissance :</b> ${formaterDate(patient.dateNaissance)}</p>
+    <p><b>Âge :</b> ${calculerAge(patient.dateNaissance)} ans</p>
+
+    <h3>☢️Examens non réalisés :</h3>
+    ${examensNonRealisesHTML || "<p>Aucun examen en attente.</p>"}
+
+    <h3>🗂️Historique des examens réalisés :</h3>
+    ${examensRealises || "<p>Aucun examen réalisé.</p>"}
+
+    <h3>Données brutes :</h3>
+    <pre>${JSON.stringify(patient.fullData, null, 2)}</pre>
+  `;
+
+  detailPanel.style.display = "flex";
+}
+
+  window.openEditModal = (patientId, hospIndex, examIndex) => {
+    currentEdit = { patientId, hospIndex, examIndex };
+    compteRenduInput.value = "";
+    editModal.style.display = "flex";
+  };
+function formatDateHeure(dateString) {
+  const date = new Date(dateString);
+  const pad = (n) => n.toString().padStart(2, '0');
+  const jour = pad(date.getDate());
+  const mois = pad(date.getMonth() + 1);
+  const annee = date.getFullYear();
+  const heures = pad(date.getHours());
+  const minutes = pad(date.getMinutes());
+  const secondes = pad(date.getSeconds());
+  return `${jour}/${mois}/${annee} ${heures}:${minutes}:${secondes}`;
+}
+validerBtn.onclick = async () => {
+console.log("currentEdit =", currentEdit);
+  if (!currentEdit) return;
+
+  const { patientId, hospIndex, examIndex } = currentEdit;
+  const docRef = doc(db, "patients", patientId);
+
+  try {
+    const docSnap = await getDoc(docRef);
+    if (!docSnap.exists()) {
+    afficherBulle("❌Patient introuvable","alerte");
+      return;
+    }
+    const patientData = docSnap.data();
+
+    // Sécurité : vérifier que la structure existe avant d’accéder et modifier
+    if (
+      !patientData.hospitalisations ||
+      !patientData.hospitalisations[hospIndex] ||
+      !patientData.hospitalisations[hospIndex].examens ||
+      !patientData.hospitalisations[hospIndex].examens[examIndex]
+    ) {
+    afficherBulle("❌Structure des examens incorrecte","alerte");
+      return;
+    }
+
+    const compteRendu = compteRenduInput.value.trim();
+    if (compteRendu === "") {
+    afficherBulle("❌Veuillez saisir un compte-rendu avant de valider","alerte");
+      return;
+    }
+
+    const now = new Date().toISOString(); // format ISO préférable pour stockage
+
+    // Mise à jour des données locales
+    patientData.hospitalisations[hospIndex].examens[examIndex].compteRendu = compteRendu;
+    patientData.hospitalisations[hospIndex].examens[examIndex].realise = true;
+    patientData.hospitalisations[hospIndex].examens[examIndex].dateRealisation = formatDateHeure(now);
+
+    // Mise à jour Firestore
+    await updateDoc(docRef, { hospitalisations: patientData.hospitalisations });
+
+    afficherBulle("✔️Examen enregitré","administratif");
+
+    editModal.style.display = "none";
+    detailPanel.style.display = "none";
+
+    const refreshed = await loadPatients();
+    renderTable(refreshed);
+
+  } catch (error) {
+    console.error("Erreur lors de l'enregistrement :", error);
+    afficherBulle("❌Une erreur est survenue lors de l'enregistrement. Voir console.","alerte");
+  }
+};
+
+function afficherBulle(texte, type) {
+    let container = document.getElementById('bubble-container');
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'bubble-container';
+      document.body.appendChild(container);
+    }
+    const bulle = document.createElement('div');
+    bulle.className = `bubble ${type}`;
+    bulle.textContent = texte;
+    container.appendChild(bulle);
+    setTimeout(() => {
+      bulle.remove();
+    }, 10000);
+  }
+
+  (async () => {
+    const patients = await loadPatients();
+    renderTable(patients);
+  })();
+  
+  function ajouterHorodatage() {
+  const textarea = document.getElementById("compteRenduInput");
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('fr-FR');
+  const timeStr = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  const horodatage = `${dateStr} ${timeStr} : `;
+
+  textarea.value += textarea.value && !textarea.value.endsWith('\n') ? '\n' + horodatage : horodatage;
+  textarea.focus();
+}
+  
+  });
+</script>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBKp5-7NNy0Gyl0tNbDgD-BxucYdg8ArWo",
+    authDomain: "urgences-a8ed4.firebaseapp.com",
+    projectId: "urgences-a8ed4"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      window.location.href = "accueil.html";
+    } else {
+      const docSnap = await getDoc(doc(db, "medecins", user.uid));
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        document.getElementById("nom-medecin").textContent = data.nom || "Médecin";
+        document.getElementById("specialite").textContent = data.specialite || "";
+      }
+    }
+  });
+  
+et medecinNom = "";
+  let medecinSpecialite = "";
+  let medecinLieu = "";
+
+  onAuthStateChanged(auth, async (user) => {
+  if (!user) {
+    window.location.href = "accueil.html";
+  } else {
+    try {
+      const docRef = doc(db, "medecins", user.uid);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        const medecinNom = data.nom || "";
+        const medecinSpecialite = data.specialite || "";
+        const medecinLieu = data.lieu || "";
+
+        // Met à jour aussi les variables globales sur window
+        window.medecinNom = medecinNom;
+        window.medecinSpecialite = medecinSpecialite;
+        window.medecinLieu = medecinLieu;
+
+        // Mise à jour des éléments HTML si présents
+        const nomElem = document.getElementById("nom-medecin");
+        if (nomElem) nomElem.textContent = medecinNom;
+
+        const specElem = document.getElementById("specialite");
+        if (specElem) specElem.textContent = medecinSpecialite;
+
+        const lieuElem = document.getElementById("lieu-medecin");
+        if (lieuElem) lieuElem.textContent = medecinLieu;
+
+        // --- Vérification d'accès à la page ---
+        const pages = data.pages || {};
+        const currentPath = window.location.pathname;
+        const currentPage = currentPath.substring(currentPath.lastIndexOf("/") + 1).replace(".html", "");
+
+        if (!pages[currentPage]) {
+          alert("⛔️ Vous n’avez pas accès à cette page.");
+          window.location.href = "accueil.html";
+          return; // Stoppe le script ici
+        }
+      } else {
+        // Document inexistant — redirection
+        alert("Utilisateur non trouvé, veuillez vous reconnecter.");
+        window.location.href = "accueil.html";
+      }
+    } catch (error) {
+      console.error("Erreur chargement médecin :", error);
+      alert("Une erreur est survenue, veuillez réessayer plus tard.");
+    }
+  }
+});
+</script>
+</body>
+</html>

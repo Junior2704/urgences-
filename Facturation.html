@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<link rel="icon" type="image/jpeg" href="logo.jpg">
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>💰 Facturation</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #f4f6f8, #e9ecef);
+      margin: 0;
+      padding: 20px;
+      color: #333;
+    }
+
+    h1 {
+      text-align: center;
+      color: #1a1a1a;
+      margin-bottom: 30px;
+    }
+
+    form {
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 25px 30px;
+      max-width: 800px;
+      margin: auto;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: 600;
+      color: #444;
+    }
+
+    input[type="text"],
+    input[type="date"],
+    input[type="number"],
+    select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 6px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+      font-size: 15px;
+    }
+
+    input:focus, select:focus {
+      border-color: #007bff;
+      outline: none;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 10px;
+      text-align: center;
+    }
+
+    th {
+      background-color: #f1f1f1;
+      font-weight: 600;
+    }
+
+    .price, .lineTotal, #grandTotal {
+      font-weight: bold;
+      color: #1a1a1a;
+    }
+
+    .button {
+      margin-top: 20px;
+      padding: 12px 25px;
+      font-size: 16px;
+      font-weight: 600;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background-color 0.3s ease;
+      display: inline-block;
+      color: white;
+      background-color: #28a745;
+    }
+
+    .button:hover {
+      background-color: #218838;
+    }
+
+    #resetBtn {
+      background-color: #dc3545;
+    }
+
+    #resetBtn:hover {
+      background-color: #a71d2a;
+    }
+
+    .removeBtn {
+      background-color: #ffc107;
+      color: #000;
+    }
+
+    .removeBtn:hover {
+      background-color: #e0a800;
+    }
+
+    #addItemBtn {
+      background-color: #28a745;
+      color: white;
+    }
+
+    #addItemBtn:hover {
+      background-color: #218838;
+    }
+
+    .btn-container {
+      display: flex;
+      justify-content: flex-start;
+      gap: 10px;
+      margin-top: 25px;
+    }
+
+    #ageDisplay {
+      margin-top: 5px;
+      font-size: 14px;
+      color: #666;
+    }
+
+    @media (max-width: 600px) {
+      form {
+        padding: 20px;
+      }
+      .btn-container {
+        flex-direction: column;
+      }
+    }
+	
+	#bubble-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 9999;
+  align-items: flex-end;
+}
+	.bubble {
+  max-width: 300px;
+  padding: 10px 15px;
+  border-radius: 8px;
+  color: white;
+  font-family: sans-serif;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  animation: fadeout 0.5s ease-in-out 1.5s forwards;
+  word-wrap: break-word;
+  text-align: left;
+}
+
+.administratif {
+  background-color: #2196F3; 
+}
+
+.alerte {
+  background-color: #f44336;
+}
+
+@keyframes fadeout {
+  to {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+}
+  </style>
+</head>
+<body>
+
+<h1>💰 Facturation des Patients</h1>
+
+<form id="invoiceForm">
+  <div class="btn-container">
+    <a href="urgences.html" class="button" aria-label="Retour à l'accueil">↩️ Retour Urgences</a>
+    <button type="button" id="resetBtn" class="button" aria-label="Réinitialiser le formulaire">❌ Réinitialiser</button>
+  </div>
+
+  <label for="lastName">Nom :</label>
+  <input type="text" id="lastName" name="lastName" required />
+
+  <label for="firstName">Prénom :</label>
+  <input type="text" id="firstName" name="firstName" required />
+
+  <label for="birthDate">Date de naissance :</label>
+  <input type="date" id="birthDate" name="birthDate" required />
+  <div id="ageDisplay"></div>
+
+  <h2 style="margin-top: 30px;">🩺 Prestations</h2>
+  <table id="itemsTable">
+    <thead>
+      <tr>
+        <th>Prestation</th>
+        <th>Quantité</th>
+        <th>Prix Unitaire (€)</th>
+        <th>Total (€)</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>
+          <select class="serviceSelect" required>
+            <option value="" data-price="0">-- Choisir --</option>
+            <option value="Forfait urgences" data-price="29">Forfait urgences - 29€</option>
+			<option value="Forfait urgences mineur" data-price="19">Forfait urgences mineur - 19€</option>
+            <option value="Analyse sanguine" data-price="45">Analyse sanguine - 45€</option>
+            <option value="Radiographie" data-price="1">Examen de radiologie - x*1€</option>
+          </select>
+        </td>
+        <td><input type="number" class="qty" min="1" value="1" required /></td>
+        <td class="price">0.00</td>
+        <td class="lineTotal">0.00</td>
+        <td><button type="button" class="removeBtn" aria-label="Supprimer cette prestation">🗑️</button></td>
+      </tr>
+    </tbody>
+    <tfoot>
+      <tr>
+        <td colspan="3" style="text-align:right">Total Général (€) :</td>
+        <td id="grandTotal">0.00</td>
+        <td></td>
+      </tr>
+    </tfoot>
+  </table>
+
+  <button type="button" id="addItemBtn" class="button" aria-label="Ajouter une prestation">➕ Ajouter une prestation</button>
+
+
+
+  <label for="paymentMode">Mode de paiement :</label>
+  <select id="paymentMode" name="paymentMode" required>
+    <option value="">-- Choisir --</option>
+    <option value="Espèces">💶 Espèces</option>
+    <option value="Carte bancaire">💳 Carte bancaire</option>
+    <option value="Chèque">✍️ Chèque</option>
+	    <option value="Hospitalisation">Hospitalisation - transfert sur dossier</option>
+    <option value="Carte Vitale">Carte Vitale</option>
+
+  </select>
+
+  <div class="btn-container">
+    <button type="submit" class="button" style="background-color: #17a2b8;" aria-label="Générer la facture">🧾 Facturer</button>
+    <button type="button" id="readVitaleBtn" class="button" style="background-color: #28a745; color: white;">🆔 Lecture Carte Vitale</button>
+
+  </div>
+</form>
+
+<div id="vitaleModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:10000; justify-content:center; align-items:center;">
+  <div style="background:white; padding:30px; border-radius:12px; text-align:center; box-shadow:0 5px 15px rgba(0,0,0,0.3);">
+    <div class="spinner" style="margin-bottom:15px;"></div>
+    <div style="font-size:18px; font-weight:600;">Lecture Carte Vitale en cours...</div>
+  </div>
+</div>
+
+<style>
+.spinner {
+  border: 6px solid #f3f3f3;
+  border-top: 6px solid #007bff;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+  margin: auto;
+}
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+</style>
+
+<script>
+  const itemsTable = document.querySelector('#itemsTable tbody');
+  const grandTotalElem = document.getElementById('grandTotal');
+  const addItemBtn = document.getElementById('addItemBtn');
+  const ageDisplay = document.getElementById('ageDisplay');
+  const birthDateInput = document.getElementById('birthDate');
+  const resetBtn = document.getElementById('resetBtn');
+
+  function calculateAge(birthDate) {
+    const today = new Date();
+    const birth = new Date(birthDate);
+    let age = today.getFullYear() - birth.getFullYear();
+    const m = today.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+    return age;
+  }
+
+  birthDateInput.addEventListener('change', () => {
+    ageDisplay.textContent = birthDateInput.value ? `Âge : ${calculateAge(birthDateInput.value)} ans` : '';
+  });
+
+  // Pré-remplissage des champs avec localStorage (optionnel)
+  window.addEventListener('DOMContentLoaded', async () => {
+  const id = getIdFromUrl();
+
+  if (id) {
+    await chargerDepuisFirestore(id);
+  } else {
+    const patient = JSON.parse(localStorage.getItem('facturationData'));
+    if (patient) {
+      document.getElementById('lastName').value = patient.nom || '';
+      document.getElementById('firstName').value = patient.prenom || '';
+      document.getElementById('birthDate').value = patient.dateNaissance || '';
+      if (patient.dateNaissance) {
+        ageDisplay.textContent = `Âge : ${calculateAge(patient.dateNaissance)} ans`;
+      }
+      localStorage.removeItem('facturationData');
+    }
+  }
+});
+
+
+  function updateLine(row) {
+    const select = row.querySelector('.serviceSelect');
+    const qty = parseInt(row.querySelector('.qty').value) || 0;
+    const price = parseFloat(select.selectedOptions[0].dataset.price) || 0;
+    row.querySelector('.price').textContent = price.toFixed(2);
+    row.querySelector('.lineTotal').textContent = (qty * price).toFixed(2);
+  }
+
+  function updateTotals() {
+    let total = 0;
+    itemsTable.querySelectorAll('tr').forEach(row => {
+      updateLine(row);
+      total += parseFloat(row.querySelector('.lineTotal').textContent) || 0;
+    });
+    grandTotalElem.textContent = total.toFixed(2);
+  }
+
+  function addListeners(row) {
+    row.querySelector('.serviceSelect').addEventListener('change', () => {
+      updateLine(row);
+      updateTotals();
+    });
+    row.querySelector('.qty').addEventListener('input', () => {
+      updateLine(row);
+      updateTotals();
+    });
+    row.querySelector('.removeBtn').addEventListener('click', () => {
+      row.remove();
+      updateTotals();
+    });
+  }
+
+  addItemBtn.addEventListener('click', () => {
+    const row = itemsTable.insertRow();
+    row.innerHTML = `
+      <td>
+        <select class="serviceSelect" required>
+          <option value="" data-price="0">-- Choisir --</option>
+            <option value="Forfait urgences" data-price="29">Forfait urgences - 29€</option>
+			<option value="Forfait urgences mineur" data-price="19">Forfait urgences mineur - 19€</option>
+            <option value="Analyse sanguine" data-price="45">Analyse sanguine - 45€</option>
+            <option value="Radiographie" data-price="1">Examen de radiologie - x*1€</option>
+        </select>
+      </td>
+      <td><input type="number" class="qty" min="1" value="1" required /></td>
+      <td class="price">0.00</td>
+      <td class="lineTotal">0.00</td>
+      <td><button type="button" class="removeBtn">🗑️</button></td>
+    `;
+    addListeners(row);
+    updateTotals();
+  });
+
+  itemsTable.querySelectorAll('tr').forEach(addListeners);
+  document.getElementById('invoiceForm').addEventListener('input', updateTotals);
+
+  // Initialiser Firebase
+  const firebaseConfig = {
+    apiKey: "AIzaSyBKp5-7NNy0Gyl0tNbDgD-BxucYdg8ArWo",
+    authDomain: "urgences-a8ed4.firebaseapp.com",
+    projectId: "urgences-a8ed4",
+    storageBucket: "urgences-a8ed4.appspot.com",  
+    messagingSenderId: "392921498200",
+    appId: "1:392921498200:web:7ccce767332c67c697c02d",
+    measurementId: "G-C74MK2KYDL"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  function getIdFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('id');
+  }
+
+  async function chargerDepuisFirestore(id) {
+    try {
+      const docRef = db.collection("patients").doc(id);
+      const docSnap = await docRef.get();
+      if (docSnap.exists) {
+        const data = docSnap.data();
+        document.getElementById('lastName').value = data.nom || "";
+        document.getElementById('firstName').value = data.prenom || "";
+        if (data.dateNaissance) {
+          const date = data.dateNaissance.toDate ? data.dateNaissance.toDate() : new Date(data.dateNaissance);
+          document.getElementById('birthDate').value = date.toISOString().split("T")[0];
+          ageDisplay.textContent = `Âge : ${calculateAge(date.toISOString().split("T")[0])} ans`;
+        }
+      }
+    } catch (e) {
+      console.error("Erreur Firestore :", e);
+    }
+  }
+
+  document.getElementById('invoiceForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    updateTotals();
+
+    const patient = {
+      nom: document.getElementById('lastName').value.trim(),
+      prenom: document.getElementById('firstName').value.trim(),
+      dateNaissance: birthDateInput.value,
+      age: calculateAge(birthDateInput.value),
+    };
+
+    const prestations = [...itemsTable.querySelectorAll('tr')].map(row => {
+      const select = row.querySelector('.serviceSelect');
+      return {
+        description: select.value,
+        quantity: parseInt(row.querySelector('.qty').value),
+        priceUnit: parseFloat(select.selectedOptions[0].dataset.price),
+        total: parseFloat(row.querySelector('.lineTotal').textContent),
+      };
+    }).filter(p => p.description);
+
+    if (!birthDateInput.value || prestations.length === 0 || !document.getElementById('paymentMode').value) {
+      alert('Veuillez compléter tous les champs requis.');
+      return;
+    }
+
+    const facture = {
+      patient,
+      prestations,
+      modePaiement: document.getElementById('paymentMode').value,
+      totalFacture: parseFloat(grandTotalElem.textContent),
+      dateFacturation: new Date().toISOString(),
+    };
+
+    // 🔥 Enregistrement dans Firestore
+    try {
+      await db.collection('factures').add(facture);
+    } catch (err) {
+      console.error("Erreur lors de l'enregistrement dans Firestore :", err);
+      alert("Erreur lors de l'enregistrement.");
+      return;
+    }
+
+    // Animation + reset
+    const popup = document.getElementById('processingPopup');
+    const progressBar = document.getElementById('progressBar');
+    popup.style.display = 'block';
+    progressBar.style.width = '0%';
+    setTimeout(() => progressBar.style.width = '100%', 50);
+
+    setTimeout(() => {
+      popup.style.display = 'none';
+      alert(`✅ Facture enregistrée pour ${patient.prenom} ${patient.nom}.\n💶 Montant total : ${facture.totalFacture.toFixed(2)} €`);
+      e.target.reset();
+      ageDisplay.textContent = '';
+      itemsTable.innerHTML = '';
+      addItemBtn.click();
+    }, 5000);
+  });
+
+  resetBtn.addEventListener('click', () => {
+    document.getElementById('invoiceForm').reset();
+    ageDisplay.textContent = '';
+    itemsTable.innerHTML = '';
+    addItemBtn.click();
+  });
+  document.getElementById('readVitaleBtn').addEventListener('click', () => {
+  const modal = document.getElementById('vitaleModal');
+  modal.style.display = 'flex';
+
+  const duration = 3000 + Math.random() * 7000; // entre 3 et 10 secondes
+
+  setTimeout(() => {
+    modal.style.display = 'none';
+
+    const isSuccess = Math.random() < 0.8; // 80% ok-20%erreur
+
+    if (isSuccess) {
+      afficherBulle("✅ Lecture Carte Vitale terminée !", "administratif");
+    } else {
+      afficherBulle("❌ Erreur lecture Carte Vitale - Veuillez ressayer", "alerte");
+    }
+  }, duration);
+});
+function afficherBulle(texte, type) {
+    // Créer le conteneur s’il n’existe pas
+    let container = document.getElementById('bubble-container');
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'bubble-container';
+      document.body.appendChild(container);
+    }
+
+    // Créer la bulle
+    const bulle = document.createElement('div');
+    bulle.className = `bubble ${type}`;
+    bulle.textContent = texte;
+
+    // Ajouter au DOM
+    container.appendChild(bulle);
+
+    // Retirer après 2 secondes
+    setTimeout(() => {
+      bulle.remove();
+    }, 3000);
+  }
+  document.getElementById('exportPdfBtn').addEventListener('click', () => {
+  const element = document.getElementById('invoiceForm');
+  
+  const opt = {
+    margin:       0.5,
+    filename:     `facture_${document.getElementById('lastName').value || 'patient'}.pdf`,
+    image:        { type: 'jpeg', quality: 0.98 },
+    html2canvas:  { scale: 2 },
+    jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+  };
+
+  html2pdf().set(opt).from(element).save();
+});
+
+</script>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBKp5-7NNy0Gyl0tNbDgD-BxucYdg8ArWo",
+    authDomain: "urgences-a8ed4.firebaseapp.com",
+    projectId: "urgences-a8ed4"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      window.location.href = "accueil.html";
+    } else {
+      const docSnap = await getDoc(doc(db, "medecins", user.uid));
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        document.getElementById("nom-medecin").textContent = data.nom || "Médecin";
+        document.getElementById("specialite").textContent = data.specialite || "";
+      }
+    }
+  });
+let medecinNom = "";
+  let medecinSpecialite = "";
+  let medecinLieu = "";
+
+  onAuthStateChanged(auth, async (user) => {
+  if (!user) {
+    window.location.href = "accueil.html";
+  } else {
+    try {
+      const docRef = doc(db, "medecins", user.uid);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        const medecinNom = data.nom || "";
+        const medecinSpecialite = data.specialite || "";
+        const medecinLieu = data.lieu || "";
+
+        // Met à jour aussi les variables globales sur window
+        window.medecinNom = medecinNom;
+        window.medecinSpecialite = medecinSpecialite;
+        window.medecinLieu = medecinLieu;
+
+        // Mise à jour des éléments HTML si présents
+        const nomElem = document.getElementById("nom-medecin");
+        if (nomElem) nomElem.textContent = medecinNom;
+
+        const specElem = document.getElementById("specialite");
+        if (specElem) specElem.textContent = medecinSpecialite;
+
+        const lieuElem = document.getElementById("lieu-medecin");
+        if (lieuElem) lieuElem.textContent = medecinLieu;
+
+        // --- Vérification d'accès à la page ---
+        const pages = data.pages || {};
+        const currentPath = window.location.pathname;
+        const currentPage = currentPath.substring(currentPath.lastIndexOf("/") + 1).replace(".html", "");
+
+        if (!pages[currentPage]) {
+          alert("⛔️ Vous n’avez pas accès à cette page.");
+          window.location.href = "accueil.html";
+          return; // Stoppe le script ici
+        }
+      } else {
+        // Document inexistant — redirection
+        alert("Utilisateur non trouvé, veuillez vous reconnecter.");
+        window.location.href = "accueil.html";
+      }
+    } catch (error) {
+      console.error("Erreur chargement médecin :", error);
+      alert("Une erreur est survenue, veuillez réessayer plus tard.");
+    }
+  }
+});
+
+</script>
+<div id="processingPopup" style="display:none; position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+  background-color: #007bff; color: white; padding: 20px 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.3); z-index: 9999; text-align: center;">
+  <div>⏳ Facturation en cours...</div>
+  <div style="margin-top: 10px; background: rgba(255,255,255,0.3); height: 8px; border-radius: 4px; overflow: hidden;">
+    <div id="progressBar" style="height: 100%; width: 0%; background: white; transition: width 5s linear;"></div>
+  </div>
+</div>
+</body>
+</html>
