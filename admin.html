@@ -166,7 +166,25 @@ tbody.appendChild(tr);
 	
 	chargerUtilisateurs();
 	
-	
+  alert("⛔️ Vous n’avez pas accès à cette page.");
+          window.location.href = "index.html";
+          return; // Stoppe le script ici
+        }
+      } else {
+        // Document inexistant — redirection
+        alert("Utilisateur non trouvé, veuillez vous reconnecter.");
+        window.location.href = "accueil.html";
+      }
+    } catch (error) {
+      console.error("Erreur chargement médecin :", error);
+      alert("Une erreur est survenue, veuillez réessayer plus tard.");
+    }
+  }
+});
+</script>
+
+</body>
+</html>	
 	
   </script>
 </body>
