@@ -26,14 +26,11 @@
       try {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
-
-        // Redirection vers la page principale avec l'ID utilisateur
         window.location.href = `urgences.html?uid=${user.uid}`;
       } catch (error) {
         message.textContent = "Connexion échouée : " + error.message;
       }
     };
-
   </script>
   <style>
     body {
@@ -50,6 +47,7 @@
       border-radius: 10px;
       box-shadow: 0 0 15px rgba(0,0,0,0.1);
       text-align: center;
+      width: 300px;
     }
     input {
       padding: 10px;
@@ -65,10 +63,18 @@
       border: none;
       border-radius: 8px;
       cursor: pointer;
+      width: 100%;
+      margin-bottom: 10px;
+    }
+    #createAccountBtn {
+      background: #6c757d;
     }
     #message {
       color: red;
       margin-top: 10px;
+    }
+    img {
+      margin-top: 15px;
     }
   </style>
 </head>
@@ -78,10 +84,9 @@
     <input type="email" id="email" placeholder="Email" />
     <input type="password" id="password" placeholder="Mot de passe" />
     <button onclick="seConnecter()">Se connecter</button>
+    <button id="createAccountBtn" onclick="window.location.href='inscription.html'">Créer mon compte</button>
     <div id="message"></div>
-	  <img src="logo.jpg" alt="Logo" width="200">
-
+    <img src="logo.jpg" alt="Logo" width="200">
   </div>
-
 </body>
 </html>
