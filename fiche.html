@@ -1172,7 +1172,7 @@ function rafraichirChampsSortie() {
 
   containerDynamique.innerHTML = "";
 
-  if (typeSortie === "transfert") {
+  if (typeSortie === "Transfert") {
     const label = document.createElement("label");
     label.textContent = "Destination du transfert";
     const input = document.createElement("input");
@@ -1183,7 +1183,7 @@ function rafraichirChampsSortie() {
     containerDynamique.appendChild(input);
   }
 
-  if (typeSortie === "hospitalisation") {
+  if (typeSortie === "Hospitalisation") {
     const label = document.createElement("label");
     label.textContent = "Service hospitalisation";
     const select = document.createElement("select");
@@ -1203,7 +1203,7 @@ function rafraichirChampsSortie() {
     containerDynamique.appendChild(select);
   }
 
-  if (optionsSortie.includes("avis specialiste")) {
+  if (optionsSortie.includes("Avis specialiste")) {
     const label = document.createElement("label");
     label.textContent = "Spécialiste consulté";
     const input = document.createElement("input");
