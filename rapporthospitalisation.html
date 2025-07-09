@@ -248,7 +248,8 @@ if (!hospi.sortie) {
   // Si rapport existant, on le charge pour modification ou affichage readonly
 if (hospi.rapport) {
   const modal = document.getElementById("choixRapportModal");
-  modal.style.display = "flex";
+if (modal) modal.style.display = "flex";
+
 
   // Bouton "ouvrir rapport existant"
   document.getElementById("btnOuvrir").onclick = () => {
