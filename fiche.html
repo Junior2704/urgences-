@@ -565,6 +565,7 @@ header {
 </header>
 
 <main>
+<div id="contenu"></div>
 
 <div class="card">
   <div>
@@ -2518,8 +2519,11 @@ async function remplirDepuisAncienneHospi(champ) {
 
 document.getElementById("btnRapportHospi").addEventListener("click", () => {
   const url = `rapporthospitalisation.html?id=${patientId}`;
-  window.open(url, "_blank");
+  document.getElementById("contenu").innerHTML = `
+    <iframe src="${url}" style="width:100%;height:100vh;border:none;"></iframe>
+  `;
 });
+
 
 loadPatient();
 // Ligne de test de fin
