@@ -239,25 +239,26 @@ if (!hospi.sortie) {
 
   // Si rapport existant, on le charge pour modification ou affichage readonly
 if (hospi.rapport) {
-  const choix = confirm(
-    "📄 Un rapport existe déjà.\n\nSouhaitez-vous :\n- OK → Ouvrir et modifier le rapport existant\n- Annuler → Écraser et créer un nouveau rapport"
-  );
+  const modal = document.getElementById("choixRapportModal");
+  modal.style.display = "flex";
 
-  if (choix) {
-    // Charger le rapport existant (modifiable)
+  // Bouton "ouvrir rapport existant"
+  document.getElementById("btnOuvrir").onclick = () => {
     champs.forEach(c => {
       document.getElementById(c).value = hospi.rapport[c] || "";
     });
-    setRapportValide(false); // autorise modification
-  } else {
-    // Écraser : réinitialiser avec les données cliniques actuelles
-    afficherBulle("✏️ Nouveau rapport initialisé", "administratif");
-    // rien à faire : les champs sont déjà remplis par les données actuelles
     setRapportValide(false);
-  }
-} else {
-  // Pas de rapport existant, continue normal
-  setRapportValide(false);
+    modal.style.display = "none";
+  };
+
+  // Bouton "écraser et créer un nouveau"
+  document.getElementById("btnEcraser").onclick = () => {
+    afficherBulle("✏️ Nouveau rapport initialisé", "administratif");
+    setRapportValide(false);
+    modal.style.display = "none";
+  };
+
+  return; // attend que l'utilisateur choisisse
 }
 
   // Ajuste hauteur textarea
