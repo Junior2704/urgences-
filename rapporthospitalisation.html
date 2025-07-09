@@ -106,14 +106,6 @@
 <body>
 
 <h1>📋 Rapport d'hospitalisation</h1>
-<div id="choixRapportModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.4); z-index:10000; align-items:center; justify-content:center;">
-  <div style="background:white; padding:30px; border-radius:10px; width:90%; max-width:500px; box-shadow:0 5px 15px rgba(0,0,0,0.3); text-align:center;">
-    <h2 style="color:#1a73e8;">Un rapport existe déjà</h2>
-    <p>Souhaitez-vous :</p>
-    <button id="btnOuvrir" style="background-color:#28a745; color:white; padding:10px 20px; margin:10px; border:none; border-radius:6px; font-size:1rem;">🔁 Ouvrir le rapport existant</button>
-    <button id="btnEcraser" style="background-color:#dc3545; color:white; padding:10px 20px; margin:10px; border:none; border-radius:6px; font-size:1rem;">🆕 Créer un nouveau rapport</button>
-  </div>
-</div>
 
 <form id="formRapport">
   <label for="identite">Identité</label>
@@ -245,29 +237,28 @@ if (!hospi.sortie) {
   document.getElementById("sortie").value = texte.trim();
 }
 
- if (hospi.rapport) {
-  const modal = document.getElementById("choixRapportModal");
-  modal.style.display = "flex";
+  // Si rapport existant, on le charge pour modification ou affichage readonly
+if (hospi.rapport) {
+  const choix = confirm(
+    "📄 Un rapport existe déjà.\n\nSouhaitez-vous :\n- OK → Ouvrir et modifier le rapport existant\n- Annuler → Écraser et créer un nouveau rapport"
+  );
 
-  // Bouton "ouvrir rapport existant"
-  document.getElementById("btnOuvrir").onclick = () => {
+  if (choix) {
+    // Charger le rapport existant (modifiable)
     champs.forEach(c => {
       document.getElementById(c).value = hospi.rapport[c] || "";
     });
-    setRapportValide(false);
-    modal.style.display = "none";
-  };
-
-  // Bouton "écraser et créer un nouveau"
-  document.getElementById("btnEcraser").onclick = () => {
+    setRapportValide(false); // autorise modification
+  } else {
+    // Écraser : réinitialiser avec les données cliniques actuelles
     afficherBulle("✏️ Nouveau rapport initialisé", "administratif");
+    // rien à faire : les champs sont déjà remplis par les données actuelles
     setRapportValide(false);
-    modal.style.display = "none";
-  };
-
-  return; // attend que l'utilisateur choisisse
+  }
+} else {
+  // Pas de rapport existant, continue normal
+  setRapportValide(false);
 }
-
 
   // Ajuste hauteur textarea
   champs.forEach(id => autoResizeTextarea(document.getElementById(id)));
