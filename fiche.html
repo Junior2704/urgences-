@@ -9,6 +9,32 @@
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
   <style>
+	  .tabs {
+  display: flex;
+  border-bottom: 2px solid #ccc;
+  margin-bottom: 15px;
+}
+.tablink {
+  background: #f5f5f5;
+  border: none;
+  padding: 10px 20px;
+  cursor: pointer;
+  flex: 1;
+  text-align: center;
+  font-weight: bold;
+  transition: background 0.3s;
+}
+.tablink:hover {
+  background: #e0e0e0;
+}
+.tablink.active {
+  background: #0078d4;
+  color: white;
+}
+.tab-content {
+  display: none;
+}
+
     body {
       font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
       background: #f4f6f8;
@@ -566,7 +592,15 @@ header {
 
 <main>
 <div id="contenu"></div>
-
+<div class="tabs">
+  <button class="tablink active" onclick="openTab('tab-patient')">👤 Patient</button>
+  <button class="tablink" onclick="openTab('tab-constantes')">🩺 Constantes</button>
+  <button class="tablink" onclick="openTab('tab-historique')">📜 Historique</button>
+  <button class="tablink" onclick="openTab('tab-dossier')">📋 Dossier Médical</button>
+	<button class="tablink" onclick="openTab('tab-exam-actes', event)">💉 Actes / Examens</button>
+  <button class="tablink" onclick="openTab('tab-sortie', event)">🚪 Sortie / Documents</button>
+</div>
+<div id="tab-patient" class="tab-content" style="display:block;">
 <div class="card">
   <div>
   <h3>👤 Patient</h3>
@@ -630,10 +664,11 @@ header {
     <pre id="rawDataContent" style="white-space:pre-wrap; word-break:break-word; background:#f9f9f9; padding:10px; border-radius:8px; border:1px solid #ddd;"></pre>
   </div>
 </div>
-
-
+</div>
+	<button id="btnRetour" style="background-color:#e74c3c; transition:background-color 0.3s;" onmouseover="this.style.backgroundColor='#c0392b'" onmouseout="this.style.backgroundColor='#e74c3c'">❌Fermer</button>
 </div>
 
+<div id="tab-constantes" class="tab-content" style="display:block;">
 <div class="card" style="max-height: 300px; overflow-y: auto;">
   <h3>🩺 Constantes</h3>
 
@@ -668,7 +703,6 @@ header {
 <br><br>
   <button id="btnSaveConst">💾Enregistrer constantes</button>
 
-</div>
 <div class="card">
   <h3>Poids / Taille / IMC</h3>
   <div class="inline-fields">
@@ -690,14 +724,19 @@ header {
 
   <button id="btnSavePoids">💾Enregistrer poids/taille</button>
 </div>
+</div>
+	<button id="btnRetour" style="background-color:#e74c3c; transition:background-color 0.3s;" onmouseover="this.style.backgroundColor='#c0392b'" onmouseout="this.style.backgroundColor='#e74c3c'">❌Fermer</button>
+</div>
 
 
+<div id="tab-historique" class="tab-content" style="display:block;">
 <div class="card">
   <h3>Historique de l'hospitalisation en cours</h3>
   <div id="historique"></div>
 </div>
+</div>
 
-
+<div id="tab-dossier" class="tab-content" style="display:block;">
 <div class="card" id="dossierMedical">
   <h3>📋 Dossier Médical</h3>
   <div class="contenu-dossier-medical">
@@ -744,66 +783,55 @@ header {
   <br>
   <button onclick="enregistrerEvolution()">💾 Enregistrer</button>
 </div>
-
-
-
-
-
-<div class="card" style="display:flex; flex-wrap: wrap; gap: 15px;">
-  <button id="btnDemandeExamen" style="flex:1; background-color:#f1c40f; transition: background-color 0.3s;" onmouseover="this.style.backgroundColor='#d4ac0d'" onmouseout="this.style.backgroundColor='#f1c40f'">☢️ Examens</button>
-
-<button id="btnActe" style="background-color:#16a085; transition: background-color 0.3s;" onmouseover="this.style.backgroundColor='#117a65'" onmouseout="this.style.backgroundColor='#16a085'">💉 Actes</button>
-
-<button id="btnSortie" style="flex:1; background-color:#5cb85c; transition: background-color 0.3s;" onmouseover="this.style.backgroundColor='#449d44'" onmouseout="this.style.backgroundColor='#5cb85c'">🚪 Sortie</button>
-
-<button id="btnEnregistrerModifs" style="flex:1; background-color:#3498db; transition: background-color 0.3s;" onmouseover="this.style.backgroundColor='#2e86c1'" onmouseout="this.style.backgroundColor='#3498db'">📄 Documents</button>
-
+	<button id="btnRetour" style="background-color:#e74c3c; transition:background-color 0.3s;" onmouseover="this.style.backgroundColor='#c0392b'" onmouseout="this.style.backgroundColor='#e74c3c'">❌Fermer</button>
 </div>
 
-<button id="btnRetour" style="background-color:#e74c3c; transition:background-color 0.3s;" onmouseover="this.style.backgroundColor='#c0392b'" onmouseout="this.style.backgroundColor='#e74c3c'">❌Fermer</button>
-
-
-
-<!-- Fenêtre modale cachée au départ -->
-<div id="popupNavigation" style="
-  display: none;
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  background-color: rgba(0,0,0,0.8);
-  z-index: 9999;
-  justify-content: center;
-  align-items: center;
-">
-  <div style="
-    background: white;
-    padding: 30px;
-    border-radius: 10px;
-    text-align: center;
-    max-width: 400px;
-    width: 90%;
-  ">
-    <h2>Liste des documents disponibles</h2>
-	<button id="btnRapportHospi" style="margin:10px; padding:10px 20px;">📃 Rapport d'hospitalisation</button>
-    <button id="btnVersFiche" style="margin:10px; padding:10px 20px;">📄 Ordonnancier</button>
-	<button id="btnVersExs" style="margin:10px; padding:10px 20px;">📄 Prescripteur d'examens</button>
-    <button id="btnVersSynthese" style="margin:10px; padding:10px 20px;">📄 Certificat médical</button><br/>
-	<button id="btnVersFiches" style="margin:10px; padding:10px 20px;">📄 Fiches Conseils</button><br/>
-	<button style="margin:10px; padding:10px 20px;" onclick="window.open('https://eduscol.education.fr/1207/poursuite-de-la-scolarite-avec-des-traitements-medicaux-particuliers', '_blank')">
-  📄 PAI (lien externe)
-</button><br/>
-    <button onclick="document.getElementById('popupNavigation').style.display='none'" style="margin-top:20px;">❌ Fermer</button>
+<div id="tab-exam-actes" class="tab-content">
+  <div style="display:flex; justify-content:space-between; align-items:center;">
+    <h3>☢️ Examens & 💉 Actes</h3>
+   
   </div>
-</div>
-<div id="fenetreExamens" class="modal-overlay" style="display:none;">
-  <div class="modal" style="width: 600px; max-height: 80vh; overflow-y: auto;">
-    <h3>📋 Examens du patient</h3>
-    <div id="listeExamens"></div>
-    <hr>
-    <button id="btnOuvrirModaleDemande" style="margin-top:10px;">➕ Nouvelle demande d’examen</button>
-    <button id="btnFermerFenetreExamens" style="float:right; margin-top:10px;">❌ Fermer</button>
+
+  <!-- === Partie Examens (contenu de la modale Examens) === -->
+  <h4>📋 Examens</h4>
+  <div id="listeExamens"></div>
+  <button id="btnOuvrirModaleDemande" style="margin-top:10px;">➕ Nouvelle demande d’examen</button>
+
+  <h4>Examens sélectionnés :</h4>
+  <div id="examensSelectionnes" style="margin-bottom: 10px;"></div>
+  <label for="commentaireExamen">💬 Commentaire</label>
+  <textarea id="commentaireExamen"></textarea>
+  <div class="modal-buttons">
+    <button id="btnCancelExamen">❌ Annuler</button>
+    <button id="btnSaveExamen">✅ Valider</button>
   </div>
+
+  <hr>
+
+  <!-- === Partie Actes (contenu de la modale Actes) === -->
+  <h4>💉 Actes</h4>
+  <label>Type d’acte</label>
+  <input type="text" id="rechercherActe" placeholder="Rechercher un acte..." autocomplete="off" />
+  <ul id="suggestionsActes"></ul>
+
+  <label>👨‍⚕️ Réalisé par</label>
+  <select id="selectRealisateur"><option>⏳Chargement...</option></select>
+
+  <label>💬 Remarques</label>
+  <textarea id="remarqueActe"></textarea>
+
+  <h4>Actes réalisés :</h4>
+  <input type="text" id="rechercheActe" placeholder="🔍 Rechercher un acte..." />
+  <div id="listeActesRealises"></div>
+
+  <div class="modal-buttons">
+    <button id="btnFermerActe">❌ Fermer</button>
+    <button id="btnEnregistrerActe" class="success">✔️ Enregistrer</button>
+  </div>
+	<button id="btnRetour" style="background-color:#e74c3c; transition:background-color 0.3s;" onmouseover="this.style.backgroundColor='#c0392b'" onmouseout="this.style.backgroundColor='#e74c3c'">❌Fermer</button>
 </div>
+
+
 <div class="modal-overlay" id="modalExamen" style="display:none;">
   <div class="modal">
     <h3>Demande d’examen</h3>
@@ -910,10 +938,77 @@ header {
 
     <label for="commentaireExamen">💬 Commentaire</label>
     <textarea id="commentaireExamen" placeholder="Détails supplémentaires..."></textarea>
-    <div class="modal-buttons">
-      <button id="btnCancelExamen">❌ Annuler</button>
+    
       <button id="btnSaveExamen">✅ Valider</button>
     </div>
+
+<div id="tab-sortie-docs" class="tab-content">
+  <div style="display:flex; justify-content:space-between; align-items:center;">
+    <h3>🚪 Sortie & 📄 Documents</h3>
+    
+  </div>
+
+  <!-- === Partie Sortie (contenu de la modale Sortie) === -->
+  <h4>🚪 Sortie</h4>
+  <label><input type="radio" name="typeSortie" value="Retour à domicile" /> 🏡 Domicile</label><br/>
+  <label><input type="radio" name="typeSortie" value="Hospitalisation" /> 🏥 Hospitalisation</label><br/>
+  <label><input type="radio" name="typeSortie" value="Transfert" /> ↔️ Transfert</label><br/>
+  <label><input type="radio" name="typeSortie" value="Décès" /> ⚰️ Décès</label><br/>
+
+  <textarea id="champTraitementSortie"></textarea>
+  <div id="sortieListe"></div>
+  <div class="modal-buttons">
+    <button id="btnAnnulerSortie">❌ Annuler</button>
+    <button id="btnValiderSortie">✅ Valider</button>
+  </div>
+
+  <hr>
+
+  <!-- === Partie Documents (contenu du popupNavigation) === -->
+  <h4>📄 Documents</h4>
+  <button id="btnRapportHospi">📃 Rapport d'hospitalisation</button>
+  <button id="btnVersFiche">📄 Ordonnancier</button>
+  <button id="btnVersExs">📄 Prescripteur d'examens</button>
+  <button id="btnVersSynthese">📄 Certificat médical</button>
+  <button id="btnVersFiches">📄 Fiches Conseils</button>
+	<button id="btnRetour" style="background-color:#e74c3c; transition:background-color 0.3s;" onmouseover="this.style.backgroundColor='#c0392b'" onmouseout="this.style.backgroundColor='#e74c3c'">❌Fermer</button>
+</div>
+
+
+
+<button id="btnRetour" style="background-color:#e74c3c; transition:background-color 0.3s;" onmouseover="this.style.backgroundColor='#c0392b'" onmouseout="this.style.backgroundColor='#e74c3c'">❌Fermer</button>
+
+
+
+<!-- Fenêtre modale cachée au départ -->
+<div id="popupNavigation" style="
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background-color: rgba(0,0,0,0.8);
+  z-index: 9999;
+  justify-content: center;
+  align-items: center;
+">
+  <div style="
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+  ">
+    <h2>Liste des documents disponibles</h2>
+	<button id="btnRapportHospi" style="margin:10px; padding:10px 20px;">📃 Rapport d'hospitalisation</button>
+    <button id="btnVersFiche" style="margin:10px; padding:10px 20px;">📄 Ordonnancier</button>
+	<button id="btnVersExs" style="margin:10px; padding:10px 20px;">📄 Prescripteur d'examens</button>
+    <button id="btnVersSynthese" style="margin:10px; padding:10px 20px;">📄 Certificat médical</button><br/>
+	<button id="btnVersFiches" style="margin:10px; padding:10px 20px;">📄 Fiches Conseils</button><br/>
+	<button style="margin:10px; padding:10px 20px;" onclick="window.open('https://eduscol.education.fr/1207/poursuite-de-la-scolarite-avec-des-traitements-medicaux-particuliers', '_blank')">
+  📄 PAI (lien externe)
+</button><br/>
+    <button onclick="document.getElementById('popupNavigation').style.display='none'" style="margin-top:20px;">❌ Fermer</button>
   </div>
 </div>
 
@@ -2599,8 +2694,17 @@ console.log("Script terminé correctement ✅");
     }
   }
 });
+<script>
+function openTab(tabId) {
+  document.querySelectorAll(".tab-content").forEach(el => el.style.display = "none");
+  document.querySelectorAll(".tablink").forEach(el => el.classList.remove("active"));
+  document.getElementById(tabId).style.display = "block";
+  event.currentTarget.classList.add("active");
+}
+</script>
 
 
 </script>
 </body>
 </html>
+
