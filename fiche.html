@@ -1261,7 +1261,8 @@ const champAutreOption = document.getElementById("champAutreOption");
 // Container dynamique pour les champs spécifiques
 const containerDynamique = document.createElement("div");
 containerDynamique.id = "optionsSpecifiques";
-document.querySelector("#modalSortie .modal").insertBefore(containerDynamique, sortieListe);
+document.querySelector("#tab-sortie-docs").insertBefore(containerDynamique, sortieListe);
+
 
 function rafraichirChampsSortie() {
   const typeSortie = document.querySelector('input[name="typeSortie"]:checked')?.value;
@@ -2695,6 +2696,7 @@ console.log("Script terminé correctement ✅");
     }
   }
 });
+	
 function openTab(tabId, evt) {
   document.querySelectorAll(".tab-content").forEach(el => el.style.display = "none");
   document.querySelectorAll(".tablink").forEach(el => el.classList.remove("active"));
@@ -2708,6 +2710,7 @@ function openTab(tabId, evt) {
 </script>
 </body>
 </html>
+
 
 
 
