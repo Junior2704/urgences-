@@ -600,6 +600,7 @@ header {
 	<button class="tablink" onclick="openTab('tab-exam-actes', event)">💉 Actes / Examens</button>
   <button class="tablink" onclick="openTab('tab-sortie', event)">🚪 Sortie / Documents</button>
 </div>
+	
 <div id="tab-patient" class="tab-content" style="display:block;">
 <div class="card">
   <div>
@@ -1251,6 +1252,18 @@ header {
     }
     return age;
   }
+async function chargerServices() {
+  const servicesSelect = document.getElementById("service");
+  servicesSelect.innerHTML = "";
+  const doc = await db.collection("référentiels").doc("spécialités").get();
+  const data = doc.data();
+  (data?.spécialités || []).forEach(service => {
+    const option = document.createElement("option");
+    option.value = service;
+    option.textContent = service;
+    servicesSelect.appendChild(option);
+  });
+}
 
   // ===================== GESTION DES ONGLETS =====================
   function openTab(tabId, event) {
@@ -1584,6 +1597,7 @@ header {
 
 </body>
 </html>
+
 
 
 
