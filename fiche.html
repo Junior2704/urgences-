@@ -1317,6 +1317,7 @@ async function chargerPatient() {
 
     // Services possibles (si besoin)
     chargerServices();
+	  chargerRealisateurs();
 // --- Examens ---
 const examens = hospi.examens || {};
 const examensListe = document.getElementById("examensListe"); // <div> où tu veux afficher
@@ -1518,6 +1519,50 @@ function formaterDate(dateStr) {
   return "";
 }
     
+// --- Recherche et suggestions d'actes ---
+const inputActe = document.getElementById("rechercherActe");
+const suggestionsActes = document.getElementById("suggestionsActes");
+
+inputActe.addEventListener("input", async (e) => {
+  const recherche = e.target.value.trim().toLowerCase();
+  suggestionsActes.innerHTML = "";
+
+  // attendre au moins 2 caractères
+  if (recherche.length < 2) return;
+
+  try {
+    // 🔹 Récupère la liste des actes depuis Firestore
+    const doc = await db.collection("référentiels").doc("actes").get();
+    const data = doc.data();
+    const actes = data?.liste || [];
+
+    // 🔹 Filtrage des résultats
+    const filtres = actes.filter(a => a.toLowerCase().includes(recherche));
+
+    if (filtres.length === 0) {
+      suggestionsActes.innerHTML = "<li style='color:#999;'>Aucun résultat</li>";
+      return;
+    }
+
+    // 🔹 Affichage des suggestions
+    filtres.forEach(acte => {
+      const li = document.createElement("li");
+      li.textContent = acte;
+      li.style.cursor = "pointer";
+      li.style.padding = "5px";
+      li.addEventListener("mouseover", () => li.style.background = "#eee");
+      li.addEventListener("mouseout", () => li.style.background = "transparent");
+      li.addEventListener("click", () => {
+        inputActe.value = acte;      // remplir la barre avec l’acte choisi
+        suggestionsActes.innerHTML = ""; // vider les suggestions
+      });
+      suggestionsActes.appendChild(li);
+    });
+  } catch (err) {
+    console.error("Erreur recherche actes :", err);
+    suggestionsActes.innerHTML = "<li style='color:red;'>⚠️ Erreur de chargement</li>";
+  }
+});
 
 
 document.getElementById("gravite").addEventListener("change", e => {
@@ -2379,6 +2424,24 @@ async function enregistrerEvolution() {
   }
 }
 
+async function chargerRealisateurs() {
+  const select = document.getElementById("selectRealisateur");
+  select.innerHTML = "<option>⏳Chargement...</option>";
+  try {
+    const snapshot = await db.collection("référentiels").doc("réalisateurs").get();
+    const data = snapshot.data();
+    select.innerHTML = "";
+    (data?.liste || []).forEach(realisateur => {
+      const option = document.createElement("option");
+      option.value = realisateur;
+      option.textContent = realisateur;
+      select.appendChild(option);
+    });
+  } catch (e) {
+    console.error("Erreur chargement réalisateurs :", e);
+    select.innerHTML = "<option>⚠️ Erreur chargement</option>";
+  }
+}
 
 
 document.getElementById("btnVoirRawData").addEventListener("click", async () => {
@@ -2541,6 +2604,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
