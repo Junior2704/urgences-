@@ -795,7 +795,8 @@ header {
     <button class="close-tab" onclick="window.location.href='urgences.html'">❌</button>
   </div>
   <h4>📋 Examens</h4>
-  <div id="listeExamens"></div>
+<div id="examensListe" class="mt-2 p-2 border rounded bg-gray-50"></div>
+
   <button id="btnOuvrirModaleDemande" style="margin-top:10px;">➕ Nouvelle demande d’examen</button>
   <h4>Examens sélectionnés :</h4>
   <div id="examensSelectionnes" style="margin-bottom: 10px;"></div>
@@ -816,7 +817,7 @@ header {
   <textarea id="remarqueActe"></textarea>
   <h4>Actes réalisés :</h4>
   <input type="text" id="rechercheActe" placeholder="🔍 Rechercher un acte..." />
-  <div id="listeActesRealises"></div>
+  <div id="actesListe"></div>
   <div class="modal-buttons">
     <button id="btnFermerActe">❌ Fermer</button>
     <button id="btnEnregistrerActe" class="success">✔️ Enregistrer</button>
@@ -1332,6 +1333,47 @@ async function chargerPatient() {
 
     // Services possibles (si besoin)
     chargerServices();
+// --- Examens ---
+const examens = hospi.examens || {};
+const examensListe = document.getElementById("examensListe"); // <div> où tu veux afficher
+if (examensListe) {
+  examensListe.innerHTML = "";
+  if (examens.examens && examens.examens.length > 0) {
+    examens.examens.forEach(ex => {
+      const li = document.createElement("li");
+      li.textContent = `🔬 ${ex}`;
+      examensListe.appendChild(li);
+    });
+    if (examens.commentaire) {
+      const p = document.createElement("p");
+      p.textContent = `📝 ${examens.commentaire}`;
+      examensListe.appendChild(p);
+    }
+  } else {
+    examensListe.innerHTML = "<p>Aucun examen enregistré.</p>";
+  }
+}
+// --- Actes ---
+const actes = hospi.actes || [];
+const actesListe = document.getElementById("actesListe");
+if (actesListe) {
+  actesListe.innerHTML = "";
+  if (actes.length > 0) {
+    actes.forEach(acte => {
+      const div = document.createElement("div");
+      div.className = "p-2 mb-2 border rounded bg-gray-50";
+      div.innerHTML = `
+        <strong>⚕️ ${acte.type}</strong><br>
+        Réalisateur: ${acte.realisateur || "—"}<br>
+        ${acte.remarque ? "📝 " + acte.remarque : ""}<br>
+        <small>📅 ${new Date(acte.date).toLocaleString()}</small>
+      `;
+      actesListe.appendChild(div);
+    });
+  } else {
+    actesListe.innerHTML = "<p>Aucun acte enregistré.</p>";
+  }
+}
 
   } catch (error) {
     console.error("Erreur chargement patient :", error);
@@ -2510,6 +2552,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
