@@ -572,12 +572,12 @@ header {
 }
 .tabs {
   display: flex;
-  overflow-x: auto;   /* défilement si trop d’onglets */
+  overflow-x: auto;      /* Scroll horizontal si trop d’onglets */
   border-bottom: 2px solid #ccc;
   margin-bottom: 15px;
 }
 .tablink {
-  flex-shrink: 0;     /* évite que les onglets se réduisent trop */
+  flex-shrink: 0;
   background: #f5f5f5;
   border: none;
   padding: 10px 20px;
@@ -589,21 +589,30 @@ header {
   background: #0078d4;
   color: white;
 }
+.tab-content {
+  display: none;
+}
 .tab-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 10px;
+}
+.tab-header h3 {
+  margin: 0;
+  color: #0078d4;
 }
 .close-tab {
   background: transparent;
   border: none;
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   color: #c0392b;
   cursor: pointer;
 }
 .close-tab:hover {
   color: #e74c3c;
 }
+
 
   </style>
 </head>
@@ -636,203 +645,144 @@ header {
 </div>
 	
 <div id="tab-patient" class="tab-content" style="display:block;">
-<div class="card">
-  <div>
-  <h3>👤 Patient</h3>
+  <div class="tab-header">
+    <h3>👤 Patient</h3>
+    <button class="close-tab" onclick="window.location.href='urgences.html'">❌</button>
+  </div>
+  <div class="card">
     <div>
-      <label>Nom</label> 
-      <span id="nom"></span>
+      <label>Nom</label> <span id="nom"></span>
     </div>
     <div>
-      <label>Prénom</label> 
-      <span id="prenom"></span>
+      <label>Prénom</label> <span id="prenom"></span>
     </div>
     <div>
-      <label>Sexe</label>
-      <span id="sexe"></span>
+      <label>Sexe</label> <span id="sexe"></span>
     </div>
     <div>
-      <label>Âge</label>
-      <span id="age"></span>
+      <label>Âge</label> <span id="age"></span>
     </div>
-  </div>
-
-  <div class="field-group">
-    <label for="gravite">🚨Gravité</label>
-    <select id="gravite">
-      <option value="P0">P0</option>
-      <option value="P1">P1</option>
-      <option value="P2">P2</option>
-      <option value="P3">P3</option>
-      <option value="Urgences_Vitales">Urgences Vitales</option>
-      <option value="Administratif">Administratif</option>
-    </select>
-  </div>
-<div class="field-group">
-  <label for="service">🏥 Service idéal</label>
-  <select id="service">
-    <option value="">Chargement...</option>
-  </select>
-</div>
-
-  <div class="field-group">
-    <label for="motif">🤕Motif d'entrée</label>
-    <input type="text" id="motif" placeholder="Motif d'entrée" />
-  </div>
-  <div class="field-group">
-    <label for="motif">🚑Moyen d'entrée</label>
-    <input type="text" id="moyen" placeholder="Moyen d'entrée" />
-  </div>
-<button id="btnAdmin" class="btn-admin">🛠 Gestion Administrative</button>
-<button id="btnVoirRawData" style="margin-top: 10px;">🧾 Données brutes</button>
-
-<div id="modalRawData" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
-<div style="background:white; padding:20px; border-radius:12px; width:80%; max-width:700px; max-height:90%; overflow:auto; position:relative; box-shadow:0 5px 20px rgba(0,0,0,0.3);">
-
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-  <h3 style="margin: 0;">Données brutes du patient</h3>
-  <button id="closeRawData" title="Fermer">✖</button>
-</div>
-<br>
-<pre id="rawDataContent" style="white-space:pre-wrap; word-break:break-word; background:#f9f9f9; padding:10px; border-radius:8px; border:1px solid #ddd;"></pre>
-	
-    <pre id="rawDataContent" style="white-space:pre-wrap; word-break:break-word; background:#f9f9f9; padding:10px; border-radius:8px; border:1px solid #ddd;"></pre>
+    <div class="field-group">
+      <label for="gravite">🚨 Gravité</label>
+      <select id="gravite">
+        <option value="P0">P0</option>
+        <option value="P1">P1</option>
+        <option value="P2">P2</option>
+        <option value="P3">P3</option>
+        <option value="Urgences_Vitales">Urgences Vitales</option>
+        <option value="Administratif">Administratif</option>
+      </select>
+    </div>
+    <div class="field-group">
+      <label for="service">🏥 Service idéal</label>
+      <select id="service"><option value="">Chargement...</option></select>
+    </div>
+    <div class="field-group">
+      <label for="motif">🤕 Motif d'entrée</label>
+      <input type="text" id="motif" placeholder="Motif d'entrée" />
+    </div>
+    <div class="field-group">
+      <label for="moyen">🚑 Moyen d'entrée</label>
+      <input type="text" id="moyen" placeholder="Moyen d'entrée" />
+    </div>
+    <button id="btnAdmin" class="btn-admin">🛠 Gestion Administrative</button>
+    <button id="btnVoirRawData" style="margin-top:10px;">🧾 Données brutes</button>
   </div>
 </div>
-</div>
-	<button id="btnRetour" style="background-color:#e74c3c; transition:background-color 0.3s;" onmouseover="this.style.backgroundColor='#c0392b'" onmouseout="this.style.backgroundColor='#e74c3c'">❌Fermer</button>
-</div>
 
-<div id="tab-constantes" class="tab-content" style="display:block;">
-<div class="card" style="max-height: 300px; overflow-y: auto;">
-  <h3>🩺 Constantes</h3>
-
-  <div class="field-group">
+<div id="tab-constantes" class="tab-content">
+  <div class="tab-header">
+    <h3>🩺 Constantes</h3>
+    <button class="close-tab" onclick="window.location.href='urgences.html'">❌</button>
+  </div>
+  <div class="card">
     <label for="temperature">🌡 Température (°C)</label>
     <input type="number" id="temperature" step="0.1" />
-  </div>
-
-  <div class="field-group">
     <label for="fc">❤️ Fréquence cardiaque (bpm)</label>
     <input type="number" id="fc" />
-  </div>
-
-  <div class="field-group">
     <label for="ta">💓 Tension artérielle</label>
     <input type="text" id="ta" />
-  </div>
-
-  <div class="field-group">
     <label for="saturation">💨 Saturation (%)</label>
     <input type="number" id="saturation" min="0" max="100" step="1" />
-  </div>
-  <div class="field-group">
     <label for="fr">😮💨 FR</label>
     <input type="number" id="fr" min="0" max="100" step="1" />
-  </div>
-  <div class="field-group">
     <label for="douleur">😖 Douleur /10</label>
     <input type="number" id="douleur" min="0" max="10" step="1" />
+    <button id="btnGlasgow" style="margin-top:10px; background-color:#9b59b6;">🧠 Score de Glasgow</button>
+    <br><br>
+    <button id="btnSaveConst">💾 Enregistrer constantes</button>
   </div>
-  <button id="btnGlasgow" style="margin-top:10px; background-color:#9b59b6;">🧠 Score de Glasgow</button>
-<br><br>
-  <button id="btnSaveConst">💾Enregistrer constantes</button>
-
-<div class="card">
-  <h3>Poids / Taille / IMC</h3>
-  <div class="inline-fields">
-    <div class="field-group">
-      <label for="poids">Poids (kg)</label>
-      <input type="number" id="poids" step="0.1" />
+  <div class="card">
+    <h3>Poids / Taille / IMC</h3>
+    <div class="inline-fields">
+      <div class="field-group">
+        <label for="poids">Poids (kg)</label>
+        <input type="number" id="poids" step="0.1" />
+      </div>
+      <div class="field-group">
+        <label for="taille">Taille (cm)</label>
+        <input type="number" id="taille" step="1" />
+      </div>
+      <div class="field-group">
+        <label>IMC</label>
+        <span id="imc"></span>
+      </div>
     </div>
-
-    <div class="field-group">
-      <label for="taille">Taille (cm)</label>
-      <input type="number" id="taille" step="1" />
-    </div>
-
-    <div class="field-group">
-      <label>IMC</label>
-      <span id="imc"></span>
-    </div>
-  </div>
-
-  <button id="btnSavePoids">💾Enregistrer poids/taille</button>
-</div>
-</div>
-	<button id="btnRetour" style="background-color:#e74c3c; transition:background-color 0.3s;" onmouseover="this.style.backgroundColor='#c0392b'" onmouseout="this.style.backgroundColor='#e74c3c'">❌Fermer</button>
-</div>
-
-
-<div id="tab-historique" class="tab-content" style="display:block;">
-<div class="card">
-  <h3>Historique de l'hospitalisation en cours</h3>
-  <div id="historique"></div>
-</div>
-	<button id="btnRetour" style="background-color:#e74c3c; transition:background-color 0.3s;" onmouseover="this.style.backgroundColor='#c0392b'" onmouseout="this.style.backgroundColor='#e74c3c'">❌Fermer</button>
-</div>
-
-<div id="tab-dossier" class="tab-content" style="display:block;">
-<div class="card" id="dossierMedical">
-  <h3>📋 Dossier Médical</h3>
-  <div class="contenu-dossier-medical">
-<label>Questionnaire IAO 
-  <button class="bouton-horloge" onclick="ajouterHorodatageDans('questionnaire')">⏰</button>
-</label>
-<textarea id="questionnaire" style="height:80px;"></textarea>
-
-    <label>Antécédents 
-  <button class="bouton-horloge" onclick="ajouterHorodatageDans('antecedents')">⏰</button>
-  <button class="bouton-horloge" onclick="remplirDepuisAncienneHospi('antecedents')" title="Reprendre antécédents dossier">📁</button>
-</label>
-<textarea id="antecedents" style="height:80px;"></textarea>
-
-<label>Traitements en cours 
-  <button class="bouton-horloge" onclick="ajouterHorodatageDans('traitements')">⏰</button>
-  <button class="bouton-horloge" onclick="remplirDepuisAncienneHospi('traitements')" title="Reprendre traitements dossier">📁</button>
-</label>
-<textarea id="traitements" style="height:80px;"></textarea>
-
-
-    <label>Histoire de la maladie 
-      <button class="bouton-horloge" onclick="ajouterHorodatageDans('histoire')">⏰</button>
-    </label>
-    <textarea id="histoire"style="height:150px;"></textarea>
-
-    <label>CR Auscultation 
-      <button class="bouton-horloge" onclick="ajouterHorodatageDans('auscultation')">⏰</button>
-    </label>
-    <textarea id="auscultation" style="height:300px;"></textarea>
-
-
-
-    <button onclick="enregistrerDossierMedical()">💾 Enregistrer</button>
+    <button id="btnSavePoids">💾 Enregistrer poids/taille</button>
   </div>
 </div>
 
 
-<div class="card" id="evolutionUrgences">
-  <h3>📈 Évolution aux urgences
-    <button class="bouton-horloge" onclick="ajouterHorodatageDans('evolutionTexte')">⏰</button>
-</h3>
-  <textarea id="evolutionTexte"></textarea>
-  <br>
-  <button onclick="enregistrerEvolution()">💾 Enregistrer</button>
-</div>
-	<button id="btnRetour" style="background-color:#e74c3c; transition:background-color 0.3s;" onmouseover="this.style.backgroundColor='#c0392b'" onmouseout="this.style.backgroundColor='#e74c3c'">❌Fermer</button>
+<div id="tab-historique" class="tab-content">
+  <div class="tab-header">
+    <h3>📜 Historique</h3>
+    <button class="close-tab" onclick="window.location.href='urgences.html'">❌</button>
+  </div>
+  <div class="card">
+    <h3>Historique de l'hospitalisation en cours</h3>
+    <div id="historique"></div>
+  </div>
 </div>
 
-<div id="tab-exam-actes" class="tab-content">
-  <div style="display:flex; justify-content:space-between; align-items:center;">
+
+
+<div id="tab-dossier" class="tab-content">
+  <div class="tab-header">
+    <h3>📋 Dossier Médical</h3>
+    <button class="close-tab" onclick="window.location.href='urgences.html'">❌</button>
+  </div>
+  <div class="card" id="dossierMedical">
+    <div class="contenu-dossier-medical">
+      <label>Questionnaire IAO <button class="bouton-horloge" onclick="ajouterHorodatageDans('questionnaire')">⏰</button></label>
+      <textarea id="questionnaire" style="height:80px;"></textarea>
+      <label>Antécédents <button class="bouton-horloge" onclick="ajouterHorodatageDans('antecedents')">⏰</button></label>
+      <textarea id="antecedents" style="height:80px;"></textarea>
+      <label>Traitements en cours <button class="bouton-horloge" onclick="ajouterHorodatageDans('traitements')">⏰</button></label>
+      <textarea id="traitements" style="height:80px;"></textarea>
+      <label>Histoire de la maladie <button class="bouton-horloge" onclick="ajouterHorodatageDans('histoire')">⏰</button></label>
+      <textarea id="histoire" style="height:150px;"></textarea>
+      <label>CR Auscultation <button class="bouton-horloge" onclick="ajouterHorodatageDans('auscultation')">⏰</button></label>
+      <textarea id="auscultation" style="height:300px;"></textarea>
+      <button onclick="enregistrerDossierMedical()">💾 Enregistrer</button>
+    </div>
+  </div>
+  <div class="card" id="evolutionUrgences">
+    <h3>📈 Évolution aux urgences <button class="bouton-horloge" onclick="ajouterHorodatageDans('evolutionTexte')">⏰</button></h3>
+    <textarea id="evolutionTexte"></textarea>
+    <br>
+    <button onclick="enregistrerEvolution()">💾 Enregistrer</button>
+  </div>
+</div>
+
+
+<<div id="tab-exam-actes" class="tab-content">
+  <div class="tab-header">
     <h3>☢️ Examens & 💉 Actes</h3>
-   
+    <button class="close-tab" onclick="window.location.href='urgences.html'">❌</button>
   </div>
-
-  <!-- === Partie Examens (contenu de la modale Examens) === -->
   <h4>📋 Examens</h4>
   <div id="listeExamens"></div>
   <button id="btnOuvrirModaleDemande" style="margin-top:10px;">➕ Nouvelle demande d’examen</button>
-
   <h4>Examens sélectionnés :</h4>
   <div id="examensSelectionnes" style="margin-bottom: 10px;"></div>
   <label for="commentaireExamen">💬 Commentaire</label>
@@ -841,31 +791,24 @@ header {
     <button id="btnCancelExamen">❌ Annuler</button>
     <button id="btnSaveExamen">✅ Valider</button>
   </div>
-
   <hr>
-
-  <!-- === Partie Actes (contenu de la modale Actes) === -->
   <h4>💉 Actes</h4>
   <label>Type d’acte</label>
   <input type="text" id="rechercherActe" placeholder="Rechercher un acte..." autocomplete="off" />
   <ul id="suggestionsActes"></ul>
-
   <label>👨‍⚕️ Réalisé par</label>
   <select id="selectRealisateur"><option>⏳Chargement...</option></select>
-
   <label>💬 Remarques</label>
   <textarea id="remarqueActe"></textarea>
-
   <h4>Actes réalisés :</h4>
   <input type="text" id="rechercheActe" placeholder="🔍 Rechercher un acte..." />
   <div id="listeActesRealises"></div>
-
   <div class="modal-buttons">
     <button id="btnFermerActe">❌ Fermer</button>
     <button id="btnEnregistrerActe" class="success">✔️ Enregistrer</button>
   </div>
-	<button id="btnRetour" style="background-color:#e74c3c; transition:background-color 0.3s;" onmouseover="this.style.backgroundColor='#c0392b'" onmouseout="this.style.backgroundColor='#e74c3c'">❌Fermer</button>
 </div>
+
 
 
 <div class="modal-overlay" id="modalExamen" style="display:none;">
@@ -979,41 +922,29 @@ header {
     </div>
 
 <div id="tab-sortie-docs" class="tab-content">
-  <div style="display:flex; justify-content:space-between; align-items:center;">
+  <div class="tab-header">
     <h3>🚪 Sortie & 📄 Documents</h3>
-    
+    <button class="close-tab" onclick="window.location.href='urgences.html'">❌</button>
   </div>
-
-  <!-- === Partie Sortie (contenu de la modale Sortie) === -->
   <h4>🚪 Sortie</h4>
   <label><input type="radio" name="typeSortie" value="Retour à domicile" /> 🏡 Domicile</label><br/>
   <label><input type="radio" name="typeSortie" value="Hospitalisation" /> 🏥 Hospitalisation</label><br/>
   <label><input type="radio" name="typeSortie" value="Transfert" /> ↔️ Transfert</label><br/>
   <label><input type="radio" name="typeSortie" value="Décès" /> ⚰️ Décès</label><br/>
-
   <textarea id="champTraitementSortie"></textarea>
   <div id="sortieListe"></div>
   <div class="modal-buttons">
     <button id="btnAnnulerSortie">❌ Annuler</button>
     <button id="btnValiderSortie">✅ Valider</button>
   </div>
-
   <hr>
-
-  <!-- === Partie Documents (contenu du popupNavigation) === -->
   <h4>📄 Documents</h4>
   <button id="btnRapportHospi">📃 Rapport d'hospitalisation</button>
   <button id="btnVersFiche">📄 Ordonnancier</button>
   <button id="btnVersExs">📄 Prescripteur d'examens</button>
   <button id="btnVersSynthese">📄 Certificat médical</button>
   <button id="btnVersFiches">📄 Fiches Conseils</button>
-	<button id="btnRetour" style="background-color:#e74c3c; transition:background-color 0.3s;" onmouseover="this.style.backgroundColor='#c0392b'" onmouseout="this.style.backgroundColor='#e74c3c'">❌Fermer</button>
 </div>
-
-
-
-<button id="btnRetour" style="background-color:#e74c3c; transition:background-color 0.3s;" onmouseover="this.style.backgroundColor='#c0392b'" onmouseout="this.style.backgroundColor='#e74c3c'">❌Fermer</button>
-
 
 
 <!-- Fenêtre modale cachée au départ -->
@@ -1631,6 +1562,7 @@ async function chargerServices() {
 
 </body>
 </html>
+
 
 
 
