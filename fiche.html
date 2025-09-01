@@ -1182,6 +1182,13 @@ header {
   };
 	 firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
+	// Récupérer l'ID du patient depuis l'URL
+const urlParams = new URLSearchParams(window.location.search);
+const patientId = urlParams.get("id");
+
+// Créer la référence au document patient
+const patientRef = db.collection("patients").doc(patientId);
+
   function afficherBulle(texte, type) {
     let container = document.getElementById('bubble-container');
     if (!container) {
@@ -1594,7 +1601,7 @@ async function ajouterEntreeHistorique(texte) {
 
 
 
-ddocument.getElementById("btnSaveConst").addEventListener("click", async () => {
+document.getElementById("btnSaveConst").addEventListener("click", async () => {
   const constantes = {
     temperature: document.getElementById("temperature").value.trim() || "",
     fc: document.getElementById("fc").value.trim() || "",
@@ -2554,6 +2561,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
