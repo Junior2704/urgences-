@@ -1196,6 +1196,12 @@ header {
       bulle.remove();
     }, 3000);
   }
+function openTab(tabId, event) {
+  document.querySelectorAll(".tab-content").forEach(tab => tab.style.display = "none");
+  document.querySelectorAll(".tablink").forEach(btn => btn.classList.remove("active"));
+  document.getElementById(tabId).style.display = "block";
+  if (event) event.currentTarget.classList.add("active");
+}
 
   function calculerAge(dateNaissance) {
     const birth = new Date(dateNaissance);
@@ -1221,6 +1227,87 @@ if (!containerDynamique) {
   containerDynamique = document.createElement("div");
   containerDynamique.id = "optionsSpecifiques";
   document.querySelector("#tab-sortie-docs").insertBefore(containerDynamique, sortieListe);
+}
+async function chargerPatient() {
+  const overlay = document.getElementById("loadingOverlay");
+  if (overlay) overlay.style.display = "flex";
+
+  try {
+    const doc = await patientRef.get();
+    if (!doc.exists) {
+      afficherBulle("❌ Patient introuvable", "alerte");
+      return;
+    }
+
+    const data = doc.data();
+    const index = data.hospitalisationIndex ?? 0;
+    const hospi = data.hospitalisations?.[index] || {};
+
+    // --- Infos patient ---
+    document.getElementById("nom").textContent = data.nom || "";
+    document.getElementById("prenom").textContent = data.prenom || "";
+    document.getElementById("sexe").textContent = data.sexe || "";
+    document.getElementById("poids").value = data.poids || "";
+    document.getElementById("taille").value = data.taille || "";
+
+    // Calcul IMC
+    const poids = parseFloat(data.poids);
+    const taille = parseFloat(data.taille);
+    const elImc = document.getElementById("imc");
+    if (!isNaN(poids) && !isNaN(taille) && taille > 0) {
+      const imc = poids / ((taille / 100) ** 2);
+      elImc.textContent = imc.toFixed(1);
+    } else {
+      elImc.textContent = "–";
+    }
+
+    // Calcul âge
+    if (data.dateNaissance) {
+      const age = calculerAge(data.dateNaissance);
+      document.getElementById("age").textContent = !isNaN(age) ? `${age} ans` : "Inconnu";
+    }
+
+    // --- Infos hospitalisation ---
+    document.getElementById("gravite").value = hospi.gravite || "";
+    document.getElementById("motif").value = hospi.motif || "";
+    document.getElementById("moyen").value = hospi.moyen || "";
+
+    // Constantes vitales
+    const consts = hospi.constantes || {};
+    document.getElementById("temperature").value = consts.temperature || "";
+    document.getElementById("fc").value = consts.fc || "";
+    document.getElementById("ta").value = consts.ta || "";
+    document.getElementById("saturation").value = consts.saturation || "";
+    document.getElementById("fr").value = consts.fr || "";
+    document.getElementById("douleur").value = consts.douleur || "";
+
+    // Dossier médical
+    const dm = hospi.dossierMedical || {};
+    document.getElementById("questionnaire").value = dm.questionnaire || "";
+    document.getElementById("antecedents").value = dm.antecedents || "";
+    document.getElementById("traitements").value = dm.traitements || "";
+    document.getElementById("histoire").value = dm.histoire || "";
+    document.getElementById("auscultation").value = dm.auscultation || "";
+
+    // Évolution
+    document.getElementById("evolutionTexte").value = hospi.evolution || "";
+
+    // Historique
+    clearHistorique();
+    await chargerHistorique();
+
+    // Sortie
+    afficherSortieListe(hospi.sortie);
+
+    // Services possibles (si besoin)
+    chargerServices();
+
+  } catch (error) {
+    console.error("Erreur chargement patient :", error);
+    afficherBulle("❌ Erreur de chargement", "alerte");
+  } finally {
+    if (overlay) overlay.style.display = "none";
+  }
 }
 
 // --- Rafraîchissement des champs dynamiques ---
@@ -1327,9 +1414,10 @@ function afficherSortieListe(sortie) {
 
 // --- Initialisation au chargement de l'onglet ---
 document.addEventListener("DOMContentLoaded", () => {
-  // Détecte le type déjà sélectionné et met à jour dynamiquement
+
   rafraichirChampsSortie();
   champAutreSortie.style.display = document.querySelector('input[name="typeSortie"][value="autre"]')?.checked ? "block" : "none";
+	chargerPatient();
 });
 
 
@@ -1345,79 +1433,6 @@ function formaterDate(dateStr) {
   }
   return "";
 }
-
-
-
-
-
-    const data = doc.data();
-    const index = data.hospitalisationIndex ?? 0;
-    const hospi = data.hospitalisations?.[index];
-
-    // 🔹 Informations patient
-    document.getElementById("nom").textContent = data.nom || "";
-    document.getElementById("prenom").textContent = data.prenom || "";
-    document.getElementById("sexe").textContent = data.sexe || "";
-    document.getElementById("poids").value = data.poids || "";
-    document.getElementById("taille").value = data.taille || "";
-
-    // 🔹 Calcul IMC
-    const elImc = document.getElementById("imc");
-    const poids = parseFloat(data.poids);
-    const taille = parseFloat(data.taille);
-    if (!isNaN(poids) && !isNaN(taille) && taille > 0) {
-      const imc = poids / ((taille / 100) ** 2);
-      elImc.textContent = imc.toFixed(1);
-    } else {
-      elImc.textContent = "–";
-    }
-
-    // 🔹 Calcul âge
-    const elAge = document.getElementById("age");
-    if (elAge && data.dateNaissance) {
-      const age = calculerAge(data.dateNaissance);
-      elAge.textContent = !isNaN(age) ? `${age} ans` : "Inconnu";
-    }
-
-    if (hospi) {
-      // 🔹 Informations d’hospitalisation
-      document.getElementById("gravite").value = hospi.gravite || "";
-      document.getElementById("motif").value = hospi.motif || "";
-      document.getElementById("moyen").value = hospi.moyen || "";
-
-      // 🔹 Constantes vitales
-      document.getElementById("temperature").value = hospi.constantes?.temperature || "";
-      document.getElementById("fc").value = hospi.constantes?.fc || "";
-      document.getElementById("ta").value = hospi.constantes?.ta || "";
-      document.getElementById("saturation").value = hospi.constantes?.saturation || "";
-	  document.getElementById("fr").value = hospi.constantes?.fr || "";
-      document.getElementById("douleur").value = hospi.constantes?.douleur || "";
-
-      // 🔹 Dossier médical (nouvelle section)
-      const dm = hospi.dossierMedical || {};
-	  document.getElementById("questionnaire").value = dm.questionnaire || "";
-      document.getElementById("antecedents").value = dm.antecedents || "";
-      document.getElementById("traitements").value = dm.traitements || "";
-      document.getElementById("histoire").value = dm.histoire || "";
-      document.getElementById("auscultation").value = dm.auscultation || "";
-
-      // 🔹 Évolution aux urgences
-      document.getElementById("evolutionTexte").value = hospi.evolution || "";
-
-      // 🔹 Services / historique
-      chargerServices();
-      clearHistorique();
-      await chargerHistorique();
-    }
-
-  } catch (error) {
-    console.error("Erreur chargement patient :", error);
-    afficherBulle("❌ Erreur de chargement", "alerte");
-  } finally {
-    if (overlay) overlay.style.display = "none"; // 👈 Très important pour débloquer l'écran
-  }
-}
-
     
 
 
@@ -2520,6 +2535,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
