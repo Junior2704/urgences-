@@ -1390,6 +1390,7 @@ btnSortie.addEventListener("click", async () => {
   const data = doc.data();
   const index = data.hospitalisationIndex ?? 0;
   const sortie = data.hospitalisations?.[index]?.sortie || {};
+	const btnSortie = document.getElementById("btnSortie");
   document.getElementById("champTraitementSortie").value = sortie.traitementSortie || "";
 
 
@@ -2667,6 +2668,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
