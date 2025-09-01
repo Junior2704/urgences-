@@ -1554,7 +1554,554 @@ async function chargerServices() {
       if (overlay) overlay.style.display = "none";
     }
   }
+document.getElementById("btnSaveConst").addEventListener("click", async () => {
+  const constantes = {
+    temperature: document.getElementById("temperature").value.trim() || "",
+    fc: document.getElementById("fc").value.trim() || "",
+    ta: document.getElementById("ta").value.trim() || "",
+    saturation: document.getElementById("saturation").value.trim() || "",
+	fr: document.getElementById("fr").value.trim() || "",
+    douleur: document.getElementById("douleur").value.trim() || ""
+  };
 
+ 
+ 
+
+  const historiqueContainer = document.getElementById("historique");
+
+// Fonction pour charger tout l'historique de l'hospitalisation en cours
+async function chargerHistorique() {
+  try {
+    const doc = await patientRef.get();
+    const data = doc.data();
+
+    const index = data.hospitalisationIndex ?? 0;
+    const hospi = data.hospitalisations?.[index];
+
+    if (!hospi || !hospi.historique || hospi.historique.length === 0) {
+      historiqueContainer.innerHTML = "<p>Aucune entrée dans l'historique.</p>";
+      return;
+    }
+
+    historiqueContainer.innerHTML = ""; // on vide avant d'afficher
+
+    hospi.historique.forEach(entry => {
+      afficherHistorique(entry);
+    });
+  } catch (error) {
+    console.error("Erreur chargement historique :", error);
+  }
+}
+document.getElementById("btnGlasgow").addEventListener("click", () => {
+  document.getElementById("modalGlasgow").style.display = "flex";
+});
+	document.getElementById("btnFermerGlasgow").addEventListener("click", () => {
+  document.getElementById("modalGlasgow").style.display = "none";
+});
+	["glasgowYeux", "glasgowVerbal", "glasgowMoteur"].forEach(id => {
+  document.getElementById(id).addEventListener("input", () => {
+    const yeux = parseInt(document.getElementById("glasgowYeux").value) || 0;
+    const verbal = parseInt(document.getElementById("glasgowVerbal").value) || 0;
+    const moteur = parseInt(document.getElementById("glasgowMoteur").value) || 0;
+    const total = yeux + verbal + moteur;
+    document.getElementById("glasgowTotal").value = total;
+
+    const pronostic = document.getElementById("glasgowPronostic");
+    if (total <= 4) pronostic.innerText = " 7 % de bonne récupération et 87 % de mortalité.";
+    else if (total <= 7) pronostic.innerText = "34 % de bonne récupération et 53 % de mortalité.";
+    else if (total <= 10) pronostic.innerText = " 68 % de bonne récupération et 27 % de mortalité.";
+    else pronostic.innerText = " 82 % de bonne récupération et 12 % de mortalité.";
+  
+  const pronostic2 = document.getElementById("glasgowPronostic2");
+    if (total <= 6) pronostic.innerText = "Coma Profond";
+    else if (total <= 9) pronostic.innerText = "Coma Lourd";
+    else if (total <= 14) pronostic.innerText = "Somnoloence / Coma Léger";
+    else pronostic.innerText = "Conscience Normale";
+});
+});
+function toggleSublist(id) {
+    const list = document.getElementById(id);
+    list.style.display = list.style.display === "block" ? "none" : "block";
+  }
+
+  function toggleExam(checkbox) {
+    if (checkbox.checked) {
+      const item = document.createElement('div');
+      item.className = 'prescription-item';
+      item.textContent = checkbox.value;
+      item.dataset.exam = checkbox.value;
+      const del = document.createElement('button');
+      del.textContent = "✖";
+      del.className = "btn-delete";
+      del.onclick = () => {
+        item.remove();
+        checkbox.checked = false;
+      };
+      item.appendChild(del);
+      document.getElementById('prescription-list').appendChild(item);
+    }
+  }
+document.getElementById("btnEnregistrerGlasgow").addEventListener("click", async () => {
+  const yeux = parseInt(document.getElementById("glasgowYeux").value) || 0;
+  const verbal = parseInt(document.getElementById("glasgowVerbal").value) || 0;
+  const moteur = parseInt(document.getElementById("glasgowMoteur").value) || 0;
+  const total = yeux + verbal + moteur;
+  const texte = `Score de Glasgow enregistré : ${total} (Yeux ${yeux}, Verbal ${verbal}, Moteur ${moteur})`;
+
+  try {
+    const doc = await patientRef.get();
+    const data = doc.data();
+    const index = data.hospitalisationIndex ?? 0;
+    const hospitalisations = [...(data.hospitalisations || [])];
+    hospitalisations[index].glasgow = { yeux, verbal, moteur, total, date: new Date().toISOString() };
+
+    await patientRef.update({ hospitalisations });
+
+    await ajouterEntreeHistorique(texte);
+    afficherBulle("✔️ Score de Glasgow enregistré", "administratif");
+    document.getElementById("modalGlasgow").style.display = "none";
+  } catch (e) {
+    console.error("Erreur enregistrement Glasgow :", e);
+    afficherBulle("❌ Erreur enregistrement", "alerte");
+  }
+});
+function ajouterHorodatage() {
+  const textarea = document.getElementById("texteRemarque");
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('fr-FR');
+  const timeStr = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  const horodatage = `${dateStr} ${timeStr} - ${medecinNom} : `;
+
+  textarea.value += textarea.value && !textarea.value.endsWith('\n') ? '\n' + horodatage : horodatage;
+  textarea.focus();
+}
+
+function ajouterHorodatageDans(id) {
+  const textarea = document.getElementById(id);
+  if (!textarea) return;
+
+  const horodatage = new Date().toLocaleString("fr-FR");
+const insertion = `${horodatage} - ${window.medecinNom}\n`;
+
+  const start = textarea.selectionStart;
+  const end = textarea.selectionEnd;
+
+  const texteAvant = textarea.value.substring(0, start);
+  const texteApres = textarea.value.substring(end);
+
+  textarea.value = texteAvant + insertion + texteApres;
+
+  const nouvellePosition = start + insertion.length;
+  textarea.selectionStart = textarea.selectionEnd = nouvellePosition;
+  textarea.focus();
+}
+async function enregistrerDossierMedical() {
+const questionnaire = document.getElementById("questionnaire").value.trim();
+  const antecedents = document.getElementById("antecedents").value.trim();
+  const traitements = document.getElementById("traitements").value.trim();
+  const histoire = document.getElementById("histoire").value.trim();
+  const auscultation = document.getElementById("auscultation").value.trim();
+
+  try {
+    const doc = await patientRef.get();
+    const data = doc.data();
+    const index = data.hospitalisationIndex ?? 0;
+    const hospitalisations = [...(data.hospitalisations || [])];
+
+    hospitalisations[index].dossierMedical = {
+	questionnaire,
+      antecedents,
+      traitements,
+      histoire,
+      auscultation
+    };
+
+    await patientRef.update({ hospitalisations });
+    afficherBulle("💾 Dossier médical enregistré", "administratif");
+    ajouterEntreeHistorique("📝 Dossier médical mis à jour");
+  } catch (err) {
+    console.error("Erreur enregistrement dossier médical :", err);
+    afficherBulle("❌ Erreur lors de l'enregistrement", "alerte");
+  }
+}
+
+async function enregistrerEvolution() {
+  const texte = document.getElementById("evolutionTexte").value.trim();
+
+  try {
+    const doc = await patientRef.get();
+    const data = doc.data();
+    const index = data.hospitalisationIndex ?? 0;
+    const hospitalisations = [...(data.hospitalisations || [])];
+
+    hospitalisations[index].evolution = texte;
+
+    await patientRef.update({ hospitalisations });
+    afficherBulle("💾 Évolution enregistrée", "administratif");
+    ajouterEntreeHistorique("📈 Évolution mise à jour");
+  } catch (err) {
+    console.error("Erreur enregistrement évolution :", err);
+    afficherBulle("❌ Erreur lors de l'enregistrement", "alerte");
+  }
+}
+
+document.getElementById("btnVoirRawData").addEventListener("click", async () => {
+const params = new URLSearchParams(window.location.search);
+const id = params.get("id");
+
+  const modal = document.getElementById("modalRawData");
+  const content = document.getElementById("rawDataContent");
+
+  try {
+    const docRef = db.collection("patients").doc(id); // 🔁 Assure-toi que `id` est bien défini
+    const docSnap = await docRef.get();
+
+    if (docSnap.exists) {
+      content.textContent = JSON.stringify(docSnap.data(), null, 2); // Beautified JSON
+      modal.style.display = "flex";
+    } else {
+      content.textContent = "⚠️ Patient introuvable.";
+      modal.style.display = "flex";
+    }
+  } catch (e) {
+    content.textContent = "❌ Erreur lors de la récupération des données.";
+    modal.style.display = "flex";
+  }
+});
+
+document.getElementById("closeRawData").addEventListener("click", () => {
+  document.getElementById("modalRawData").style.display = "none";
+});
+
+async function remplirDepuisAncienneHospi(champ) {
+  try {
+    const doc = await patientRef.get();
+    const data = doc.data();
+    const index = data.hospitalisationIndex ?? 0;
+
+    if (index <= 0) {
+      afficherBulle("❌ Aucune hospitalisation antérieure", "alerte");
+      return;
+    }
+
+    const ancienne = data.hospitalisations?.[index - 1]?.dossierMedical;
+    if (!ancienne || !ancienne[champ]) {
+      afficherBulle(`❌ Pas d'ancien contenu pour ${champ}`, "alerte");
+      return;
+    }
+
+    const contenu = ancienne[champ].trim();
+    const textarea = document.getElementById(champ);
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+
+    const avant = textarea.value.substring(0, start);
+    const apres = textarea.value.substring(end);
+    const insertion = contenu + "\n";
+
+    textarea.value = avant + insertion + apres;
+
+    const nouvellePosition = start + insertion.length;
+    textarea.selectionStart = textarea.selectionEnd = nouvellePosition;
+    textarea.focus();
+
+    afficherBulle(`📁 Ancien ${champ} inséré`, "administratif");
+
+  } catch (err) {
+    console.error("Erreur récupération données précédentes :", err);
+    afficherBulle("❌ Erreur de récupération", "alerte");
+  }
+}
+
+document.getElementById("btnRapportHospi").addEventListener("click", () => {
+  const url = `rapporthospitalisation.html?id=${patientId}`;
+  document.getElementById("contenu").innerHTML = `
+    <iframe src="${url}" style="width:100%;height:100vh;border:none;"></iframe>
+  `;
+});
+const modalAdmin = document.getElementById("modalAdmin");
+const btnAdmin = document.getElementById("btnAdmin");
+const btnFermerAdmin = document.getElementById("btnFermerAdmin");
+const btnEnregistrerAdmin = document.getElementById("btnEnregistrerAdmin");
+const btnFacturer = document.getElementById("btnFacturer");
+
+btnAdmin.addEventListener("click", async () => {
+  try {
+    const doc = await patientRef.get();
+    const data = doc.data();
+    document.getElementById("adminId").value = patientId;
+	document.getElementById("adminNom").value = data.nom || "";
+    document.getElementById("adminPrenom").value = data.prenom || "";
+    document.getElementById("adminSexe").value = data.sexe || "";
+document.getElementById("adminNaissance").value = data.dateNaissance || "";
+    document.getElementById("adminAdresse").value = data.adresse || "";
+    document.getElementById("adminTelephone").value = data.telephone || "";
+    document.getElementById("adminEmail").value = data.email || "";
+    modalAdmin.style.display = "flex";
+  } catch (e) {
+    console.error("Erreur ouverture admin :", e);
+    afficherBulle("❌Erreur chargement gestion dministrative", "alerte");
+  }
+});
+
+btnFermerAdmin.addEventListener("click", () => {
+  modalAdmin.style.display = "none";
+});
+
+btnEnregistrerAdmin.addEventListener("click", async () => {
+  const adresse = document.getElementById("adminAdresse").value.trim();
+  const telephone = document.getElementById("adminTelephone").value.trim();
+  const email = document.getElementById("adminEmail").value.trim();
+  const sexe = document.getElementById("adminSexe").value;
+const dateNaissance = document.getElementById("adminNaissance").value.trim();
+
+
+
+
+  try {
+    await patientRef.update({ adresse, telephone, email, sexe, dateNaissance });
+    afficherBulle("✔️ Coordonnées mises à jour", "administratif");
+    modalAdmin.style.display = "none";
+  } catch (e) {
+    console.error("Erreur maj admin :", e);
+    afficherBulle("❌Erreur enregistrement admin", "alerte");
+  }
+});
+
+btnFacturer.addEventListener("click", () => {
+const modal = document.getElementById('facturationModale');
+  modal.style.display = 'flex';
+
+  const duration = 3000 ; 
+
+  setTimeout(() => {
+    modal.style.display = 'none';
+	});
+  window.open(`Facturation.html?id=${patientId}`, "_blank");
+});	
+
+let tousLesActesRealises = [];
+
+const btnActe = document.getElementById("btnActe");
+const modalActe = document.getElementById("modalActe");
+const btnFermerActe = document.getElementById("btnFermerActe");
+const btnEnregistrerActe = document.getElementById("btnEnregistrerActe");
+const selectActe = document.getElementById("selectActe");
+const champAutreActe = document.createElement("input");
+champAutreActe.type = "text";
+champAutreActe.id = "champAutreActe";
+champAutreActe.placeholder = "Préciser le type d’acte";
+champAutreActe.style.display = "none";
+champAutreActe.style.marginTop = "8px";
+
+btnFermerActe.addEventListener("click", () => {
+  modalActe.style.display = "none";
+  reinitialiserFormulaireActe();
+});
+
+btnActe.addEventListener("click", async () => {
+  modalActe.style.display = "flex";
+  await chargerEtInitialiserRechercheActe();
+  await chargerRealisateurs();
+  await afficherActesRealises();
+  setTimeout(() => {
+    if (!document.getElementById("filtreTypeActe")) ajouterFiltreTypeActe();
+  }, 300);
+});
+
+let tousLesActesDispos = [];
+
+async function chargerEtInitialiserRechercheActe() {
+  try {
+    const doc = await db.collection("référentiels").doc("actes").get();
+    const data = doc.data();
+    tousLesActesDispos = Array.isArray(data?.liste) ? data.liste : [];
+  } catch (e) {
+    console.error("Erreur chargement actes :", e);
+    tousLesActesDispos = [];
+  }
+
+  const champ = document.getElementById("rechercherActe");
+  const suggestions = document.getElementById("suggestionsActes");
+
+  champ.addEventListener("input", () => {
+    const texte = champ.value.toLowerCase().trim();
+    suggestions.innerHTML = "";
+
+    if (!texte) {
+      suggestions.style.display = "none";
+      return;
+    }
+
+    const filtres = tousLesActesDispos.filter(nom =>
+      nom.toLowerCase().includes(texte)
+    );
+
+    filtres.forEach(nom => {
+      const li = document.createElement("li");
+      li.textContent = nom;
+      li.style.padding = "6px 10px";
+      li.style.cursor = "pointer";
+      li.addEventListener("click", () => {
+        champ.value = nom;
+        suggestions.style.display = "none";
+      });
+      suggestions.appendChild(li);
+    });
+
+    suggestions.style.display = filtres.length ? "block" : "none";
+  });
+
+  document.addEventListener("click", e => {
+    if (!champ.contains(e.target) && !suggestions.contains(e.target)) {
+      suggestions.style.display = "none";
+    }
+  });
+}
+
+
+function mettreAJourListeActes(filtre) {
+  const selectActe = document.getElementById("selectActe");
+  selectActe.innerHTML = "";
+
+  const actesFiltres = tousLesActesDisponibles.filter(acte =>
+    acte.toLowerCase().includes(filtre)
+  );
+
+  actesFiltres.forEach(nom => {
+    const opt = document.createElement("option");
+    opt.value = nom;
+    opt.textContent = nom;
+    selectActe.appendChild(opt);
+  });
+
+  const optAutre = document.createElement("option");
+  optAutre.value = "autre";
+  optAutre.textContent = "🔤 Autre (à préciser)";
+  selectActe.appendChild(optAutre);
+}
+
+async function chargerRealisateurs() {
+  const select = document.getElementById("selectRealisateur");
+  const doc = await db.collection("référentiels").doc("personnel").get();
+  const data = doc.data();
+
+  select.innerHTML = "";
+
+  if (data && Array.isArray(data.liste)) {
+    data.liste.forEach(nom => {
+      const opt = document.createElement("option");
+      opt.value = nom;
+      opt.textContent = nom;
+      select.appendChild(opt);
+    });
+  }
+}
+
+
+async function afficherActesRealises(filtreType = "tous") {
+  const doc = await patientRef.get();
+  const data = doc.data();
+  const index = data.hospitalisationIndex ?? 0;
+  const actes = data.hospitalisations?.[index]?.actes_realises || [];
+  tousLesActesRealises = actes;
+
+  const container = document.getElementById("listeActesRealises");
+  const liste = filtreType === "tous" ? actes : actes.filter(a => a.type === filtreType);
+
+  if (liste.length === 0) {
+    container.innerHTML = `
+      <p style="color:#999; font-style:italic;">
+        Aucun acte enregistré pour ce patient.
+      </p>`;
+    return;
+  }
+
+  container.innerHTML = "";
+
+  liste.forEach((a, i) => {
+    const div = document.createElement("div");
+    div.style.marginBottom = "10px";
+    div.innerHTML = `
+      <strong>${a.date}</strong> <br>
+	  <span style="color:#0078d4">💉Acte : ${a.type}</span><br>
+      👨‍⚕️ Réalisé par : <strong>${a.realisateur}</strong><br>
+      💬 Remarque : <em>${a.remarque || "–"}</em><br>
+      <button class="bouton-supprimer" onclick="supprimerActeRealise(${i})">🗑 Supprimer</button>
+      <hr/>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function ajouterFiltreTypeActe() {
+  const select = document.createElement("select");
+  select.id = "filtreTypeActe";
+  select.innerHTML = `<option value="tous">Tous les types</option>`;
+  document.getElementById("listeActesRealises").before(select);
+
+  const typesUniques = [...new Set(tousLesActesRealises.map(a => a.type))];
+  typesUniques.forEach(type => {
+    const opt = document.createElement("option");
+    opt.value = type;
+    opt.textContent = type;
+    select.appendChild(opt);
+  });
+
+  select.addEventListener("change", (e) => {
+    afficherActesRealises(e.target.value);
+  });
+}
+
+async function supprimerActeRealise(index) {
+  if (!confirm("Supprimer cet acte ?")) return;
+
+  const doc = await patientRef.get();
+  const data = doc.data();
+  const iHospi = data.hospitalisationIndex ?? 0;
+  const hospitalisations = [...(data.hospitalisations || [])];
+  const actes = [...(hospitalisations[iHospi].actes_realises || [])];
+  const acteSupprimé = actes[index];
+
+  actes.splice(index, 1);
+  hospitalisations[iHospi].actes_realises = actes;
+
+  await patientRef.update({ hospitalisations });
+
+  ajouterEntreeHistorique(`❌ Acte supprimé : ${acteSupprimé.type} (par ${acteSupprimé.realisateur})`);
+  afficherActesRealises(document.getElementById("filtreTypeActe")?.value || "tous");
+  afficherBulle("🗑️ Acte supprimé", "administratif");
+}
+
+btnEnregistrerActe.addEventListener("click", async () => {
+  const acte = document.getElementById("rechercherActe").value.trim();
+  const realisateur = document.getElementById("selectRealisateur").value;
+  const remarque = document.getElementById("remarqueActe").value.trim();
+  const date = new Date().toLocaleString();
+
+  if (!acte || !realisateur) {
+    afficherBulle("❌ Remplissez les champs obligatoires", "alerte");
+    return;
+  }
+
+  const doc = await patientRef.get();
+  const data = doc.data();
+  const index = data.hospitalisationIndex ?? 0;
+  const hospitalisations = [...(data.hospitalisations || [])];
+
+  hospitalisations[index].actes_realises = hospitalisations[index].actes_realises || [];
+  const nouvelActe = { type: acte, realisateur, remarque, date };
+  hospitalisations[index].actes_realises.push(nouvelActe);
+
+  await patientRef.update({ hospitalisations });
+
+  ajouterEntreeHistorique(`➕ Acte ajouté : ${acte} par ${realisateur} (${remarque || "–"})`);
+  afficherBulle("✔️ Acte enregistré", "administratif");
+
+  modalActe.style.display = "none";
+  reinitialiserFormulaireActe();
+  await afficherActesRealises();
+});	
   // ===================== AUTRES FONCTIONS EXISTANTES =====================
   // Ici tu gardes toutes tes autres fonctions : 
   // - sauvegarde des constantes
@@ -1565,10 +2112,7 @@ async function chargerServices() {
   // - services
   // - gestion administrative
   // - etc.
-  //
-  // ⚠️ Rien n’a été supprimé, on a seulement retiré
-  // les anciens listeners de boutons pour "ouvrir modale sortie/examens/actes/documents".
-  // Leur logique est désormais appelée dans openTab() automatiquement.
+
 
   // ===================== LANCEMENT =====================
   loadPatient();
@@ -1576,6 +2120,7 @@ async function chargerServices() {
 
 </body>
 </html>
+
 
 
 
