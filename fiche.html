@@ -583,7 +583,10 @@ select {
   appearance: none; /* pour uniformiser certains navigateurs */
   background-color: #fff;
 }
-
+input.text1 {
+  width: 120px;   /* largeur fixe, tu peux changer */
+  display: inline-block;
+}
 input[type="date"]::-webkit-inner-spin-button,
 input[type="date"]::-webkit-calendar-picker-indicator {
   filter: invert(0.5); /* optionnel : améliore l'intégration dans les thèmes clairs/foncés */
@@ -669,7 +672,7 @@ header {
   </div>
 
   <label for="gravite">🚨 Gravité</label>
-  <select id="gravite">
+  <select id="gravite" class = text1>
     <option value="P0">P0</option>
     <option value="P1">P1</option>
     <option value="P2">P2</option>
@@ -679,13 +682,13 @@ header {
   </select>
 
   <label for="service">🏥 Service idéal</label>
-  <select id="service"><option value="">Chargement...</option></select>
+  <select id="service" class = text1><option value="">Chargement...</option></select>
 
   <label for="motif">🤕 Motif d'entrée</label>
-  <input type="text" id="motif" placeholder="Motif d'entrée" />
+  <input type="text" id="motif" placeholder="Motif d'entrée" class = text1 />
 
   <label for="moyen">🚑 Moyen d'entrée</label>
-  <input type="text" id="moyen" placeholder="Moyen d'entrée" />
+  <input type="text" id="moyen" placeholder="Moyen d'entrée" class = text1 />
 
   <br><br>
   <button id="btnAdmin" class="btn-admin">🛠 Gestion Administrative</button>
@@ -704,7 +707,7 @@ header {
     <label for="fc">❤️ Fréquence cardiaque (bpm)</label>
     <input type="number" id="fc" />
     <label for="ta">💓 Tension artérielle</label>
-    <input type="text" id="ta" />
+    <input type="text" id="ta" class = text1 />
     <label for="saturation">💨 Saturation (%)</label>
     <input type="number" id="saturation" min="0" max="100" step="1" />
     <label for="fr">😮💨 FR</label>
@@ -2604,6 +2607,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
