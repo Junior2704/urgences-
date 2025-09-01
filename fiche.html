@@ -709,7 +709,7 @@ header {
     <h3>🩺 Constantes</h3>
     <button class="close-tab" onclick="window.location.href='urgences.html'">❌</button>
   </div>
-  <div class="card">
+ 
     <label for="temperature">🌡 Température (°C)</label>
     <input type="number" id="temperature" step="0.1" />
     <label for="fc">❤️ Fréquence cardiaque (bpm)</label>
@@ -725,7 +725,7 @@ header {
     <button id="btnGlasgow" style="margin-top:10px; background-color:#9b59b6;">🧠 Score de Glasgow</button>
     <br><br>
     <button id="btnSaveConst">💾 Enregistrer constantes</button>
-  </div>
+ 
   <div class="card">
     <h3>Poids / Taille / IMC</h3>
     <div class="inline-fields">
@@ -765,7 +765,7 @@ header {
     <h3>📋 Dossier Médical</h3>
     <button class="close-tab" onclick="window.location.href='urgences.html'">❌</button>
   </div>
-  <div class="card" id="dossierMedical">
+
     <div class="contenu-dossier-medical">
       <label>Questionnaire IAO <button class="bouton-horloge" onclick="ajouterHorodatageDans('questionnaire')">⏰</button></label>
       <textarea id="questionnaire" style="height:80px;"></textarea>
@@ -779,13 +779,13 @@ header {
       <textarea id="auscultation" style="height:300px;"></textarea>
       <button onclick="enregistrerDossierMedical()">💾 Enregistrer</button>
     </div>
-  </div>
-  <div class="card" id="evolutionUrgences">
+  
+  
     <h3>📈 Évolution aux urgences <button class="bouton-horloge" onclick="ajouterHorodatageDans('evolutionTexte')">⏰</button></h3>
     <textarea id="evolutionTexte"></textarea>
     <br>
     <button onclick="enregistrerEvolution()">💾 Enregistrer</button>
-  </div>
+ 
 </div>
 
 
@@ -2552,6 +2552,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
