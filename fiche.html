@@ -587,6 +587,10 @@ input.text1 {
   width: 120px;   /* largeur fixe, tu peux changer */
   display: inline-block;
 }
+	  input.text {
+  width: 200px;   /* largeur fixe, tu peux changer */
+  display: inline-block;
+}
 input[type="date"]::-webkit-inner-spin-button,
 input[type="date"]::-webkit-calendar-picker-indicator {
   filter: invert(0.5); /* optionnel : améliore l'intégration dans les thèmes clairs/foncés */
@@ -671,8 +675,8 @@ header {
     <span id="age"></span>
   </div>
 
-  <label for="gravite">🚨 Gravité</label>
-  <select id="gravite" class = text1>
+  <label for="gravite" class = text2>🚨 Gravité</label>
+  <select id="gravite" >
     <option value="P0">P0</option>
     <option value="P1">P1</option>
     <option value="P2">P2</option>
@@ -681,14 +685,14 @@ header {
     <option value="Administratif">Administratif</option>
   </select>
 
-  <label for="service">🏥 Service idéal</label>
-  <select id="service" class = text1><option value="">Chargement...</option></select>
+  <label for="service" class = text2>🏥 Service idéal</label>
+  <select id="service" ><option value="">Chargement...</option></select>
 
   <label for="motif">🤕 Motif d'entrée</label>
   <input type="text" id="motif" placeholder="Motif d'entrée" class = text1 />
 
   <label for="moyen">🚑 Moyen d'entrée</label>
-  <input type="text" id="moyen" placeholder="Moyen d'entrée" class = text1 />
+  <input type="text" id="moyen" placeholder="Moyen d'entrée" class = text2 />
 
   <br><br>
   <button id="btnAdmin" class="btn-admin">🛠 Gestion Administrative</button>
@@ -703,17 +707,17 @@ header {
   </div>
  
     <label for="temperature">🌡 Température (°C)</label>
-    <input type="number" id="temperature" step="0.1" />
+    <input type="number" id="temperature" step="0.1" class = text1/>
     <label for="fc">❤️ Fréquence cardiaque (bpm)</label>
-    <input type="number" id="fc" />
+    <input type="number" id="fc"class = text1 />
     <label for="ta">💓 Tension artérielle</label>
     <input type="text" id="ta" class = text1 />
     <label for="saturation">💨 Saturation (%)</label>
-    <input type="number" id="saturation" min="0" max="100" step="1" />
+    <input type="number" id="saturation" min="0" max="100" step="1" class = text1/>
     <label for="fr">😮💨 FR</label>
-    <input type="number" id="fr" min="0" max="100" step="1" />
+    <input type="number" id="fr" min="0" max="50" step="1" class = text1/>
     <label for="douleur">😖 Douleur /10</label>
-    <input type="number" id="douleur" min="0" max="10" step="1" />
+    <input type="number" id="douleur" min="0" max="10" step="1" class = text1/>
 	<br>
     <button id="btnGlasgow" style="margin-top:10px; background-color:#9b59b6;">🧠 Score de Glasgow</button>
     <br><br>
@@ -792,13 +796,10 @@ header {
    
   </div>
   <h4>📋 Examens</h4>
+	<label>Examens demandés / réalisés</label>
 <div id="examensListe" class="mt-2 p-2 border rounded bg-gray-50"></div>
-
   <button id="btnOuvrirModaleDemande" style="margin-top:10px;">➕ Nouvelle demande d’examen</button>
-  <h4>Examens sélectionnés :</h4>
-  <div id="examensSelectionnes" style="margin-bottom: 10px;"></div>
-  <label for="commentaireExamen">💬 Commentaire</label>
-  <textarea id="commentaireExamen"></textarea>
+ 
   
 	<br>
   <hr>
@@ -2604,6 +2605,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
