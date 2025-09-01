@@ -1854,8 +1854,7 @@ btnFacturer.addEventListener("click", () => {
 
 let tousLesActesRealises = [];
 
-const btnActe = document.getElementById("btnActe");
-const modalActe = document.getElementById("modalActe");
+
 const btnFermerActe = document.getElementById("btnFermerActe");
 const btnEnregistrerActe = document.getElementById("btnEnregistrerActe");
 const selectActe = document.getElementById("selectActe");
@@ -1871,15 +1870,6 @@ document.getElementById("btnFermerActe").addEventListener("click", () => {
 });
 
 
-btnActe.addEventListener("click", async () => {
-  modalActe.style.display = "flex";
-  await chargerEtInitialiserRechercheActe();
-  await chargerRealisateurs();
-  await afficherActesRealises();
-  setTimeout(() => {
-    if (!document.getElementById("filtreTypeActe")) ajouterFiltreTypeActe();
-  }, 300);
-});
 
 let tousLesActesDispos = [];
 
@@ -2549,6 +2539,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
