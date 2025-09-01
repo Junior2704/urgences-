@@ -572,18 +572,22 @@ header {
 }
 .tabs {
   display: flex;
-  overflow-x: auto;      /* Scroll horizontal si trop d’onglets */
+  overflow-x: auto;
   border-bottom: 2px solid #ccc;
-  margin-bottom: 15px;
+  background: #f5f5f5;
 }
 .tablink {
   flex-shrink: 0;
-  background: #f5f5f5;
+  background: transparent;
   border: none;
-  padding: 10px 20px;
+  padding: 14px 24px;
   cursor: pointer;
   font-weight: bold;
+  font-size: 1rem;
   transition: background 0.3s;
+}
+.tablink:hover {
+  background: #e0e0e0;
 }
 .tablink.active {
   background: #0078d4;
@@ -591,21 +595,28 @@ header {
 }
 .tab-content {
   display: none;
+  padding: 20px;
+  background: white;
+  border-radius: 0 0 12px 12px;
+  margin-top: 0;
+  min-height: calc(100vh - 120px); /* occupe l’espace sous la barre */
+  box-sizing: border-box;
 }
 .tab-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 20px;
 }
 .tab-header h3 {
   margin: 0;
+  font-size: 1.4rem;
   color: #0078d4;
 }
 .close-tab {
   background: transparent;
   border: none;
-  font-size: 1.4rem;
+  font-size: 1.6rem;
   color: #c0392b;
   cursor: pointer;
 }
@@ -643,6 +654,7 @@ header {
   <button class="tablink" onclick="openTab('tab-exam-actes', event)">💉 Actes / Examens</button>
   <button class="tablink" onclick="openTab('tab-sortie-docs', event)">🚪 Sortie / Documents</button>
 </div>
+
 	
 <div id="tab-patient" class="tab-content" style="display:block;">
   <div class="tab-header">
@@ -1562,6 +1574,7 @@ async function chargerServices() {
 
 </body>
 </html>
+
 
 
 
