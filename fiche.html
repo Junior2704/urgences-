@@ -704,6 +704,7 @@ header {
         <span id="imc"></span>
       </div>
     </div>
+		<br>
     <button id="btnSavePoids">💾 Enregistrer poids/taille</button>
   </div>
 </div>
@@ -728,7 +729,7 @@ header {
     <button class="close-tab" onclick="window.location.href='urgences.html'">❌</button>
   </div>
 
-    <div class="contenu-dossier-medical">
+   
       <label>Questionnaire IAO <button class="bouton-horloge" onclick="ajouterHorodatageDans('questionnaire')">⏰</button></label>
       <textarea id="questionnaire" style="height:80px;"></textarea>
       <label>Antécédents <button class="bouton-horloge" onclick="ajouterHorodatageDans('antecedents')">⏰</button></label>
@@ -740,7 +741,7 @@ header {
       <label>CR Auscultation <button class="bouton-horloge" onclick="ajouterHorodatageDans('auscultation')">⏰</button></label>
       <textarea id="auscultation" style="height:300px;"></textarea>
       <button onclick="enregistrerDossierMedical()">💾 Enregistrer</button>
-    </div>
+     
     	<br>
   <hr>
 	<br>
@@ -785,7 +786,7 @@ header {
   <input type="text" id="rechercheActe" placeholder="🔍 Rechercher un acte..." />
   <div id="actesListe"></div>
   <div class="modal-buttons">
-    <button id="btnFermerActe">❌ Fermer</button>
+    <button id="btnFermerActe">❌ Annuler</button>
     <button id="btnEnregistrerActe" class="success">✔️ Enregistrer</button>
   </div>
 </div>
@@ -940,10 +941,15 @@ header {
     </div>
   <hr>
   <h4>📄 Documents</h4>
+	<br>
   <button id="btnRapportHospi">📃 Rapport d'hospitalisation</button>
+	<br>
   <button id="btnVersFiche">📄 Ordonnancier</button>
+	<br>
   <button id="btnVersExs">📄 Prescripteur d'examens</button>
+	<br>
   <button id="btnVersSynthese">📄 Certificat médical</button>
+	<br>
   <button id="btnVersFiches">📄 Fiches Conseils</button>
 </div>
 
@@ -2527,6 +2533,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
