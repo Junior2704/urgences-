@@ -29,6 +29,20 @@
   max-width: none;   /* enlève la limite de largeur */
   box-sizing: border-box;
 }
+.close-tab {
+  all: unset;                /* enlève tous les styles par défaut */
+  cursor: pointer;
+  color: #c62828;            /* rouge vif */
+  font-size: 20px;           /* taille de base */
+  font-weight: bold;
+  line-height: 1;
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.close-tab:hover {
+  transform: scale(1.3);     /* grossit au survol */
+  color: #e53935;            /* rouge un peu plus clair au hover */
+}
 
 .tab-content .card,
 #historique,
@@ -634,7 +648,7 @@ header {
 <div id="tab-patient" class="tab-content" style="display:block;">
   <div class="tab-header">
     <h3>👤 Patient</h3>
-    <button class="close-tab" onclick="window.location.href='urgences.html'">❌</button>
+    
   </div>
   
   <div>
@@ -682,7 +696,7 @@ header {
 <div id="tab-constantes" class="tab-content">
   <div class="tab-header">
     <h3>🩺 Constantes</h3>
-    <button class="close-tab" onclick="window.location.href='urgences.html'">❌</button>
+ 
   </div>
  
     <label for="temperature">🌡 Température (°C)</label>
@@ -729,7 +743,7 @@ header {
 <div id="tab-historique" class="tab-content">
   <div class="tab-header">
     <h3>📜 Historique</h3>
-    <button class="close-tab" onclick="window.location.href='urgences.html'">❌</button>
+    
   </div>
   <div class="card">
     <h3>Historique de l'hospitalisation en cours</h3>
@@ -774,7 +788,7 @@ header {
 <div id="tab-exam-actes" class="tab-content">
   <div class="tab-header">
     <h3>☢️ Examens & 💉 Actes</h3>
-    <button class="close-tab" onclick="window.location.href='urgences.html'">❌</button>
+   
   </div>
   <h4>📋 Examens</h4>
 <div id="examensListe" class="mt-2 p-2 border rounded bg-gray-50"></div>
@@ -923,7 +937,7 @@ header {
 <div id="tab-sortie-docs" class="tab-content">
   <div class="tab-header">
     <h3>🚪 Sortie & 📄 Documents</h3>
-    <button class="close-tab" onclick="window.location.href='urgences.html'">❌</button>
+
   </div>
 <h3>Type de sortie</h3>
     <label><input type="radio" name="typeSortie" value="Retour à domicile" /> 🏡 Domicile</label><br/>
@@ -2553,6 +2567,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
