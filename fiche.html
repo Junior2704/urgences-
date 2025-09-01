@@ -1813,6 +1813,18 @@ window.location.href = "urgences.html?id=QhwMJ0mjmUnS8MTNBCFU";
  document.getElementById("btnEnregistrerModifs").addEventListener("click", () => {
     document.getElementById("popupNavigation").style.display = "flex";
   });
+document.getElementById("btnGlasgow").addEventListener("click", () => {
+  document.getElementById("glasgowModal").style.display = "block";
+});
+document.querySelector("#glasgowModal .close-tab").addEventListener("click", () => {
+  document.getElementById("glasgowModal").style.display = "none";
+});
+document.getElementById("btnAdmin").addEventListener("click", () => {
+  document.getElementById("modalAdmin").style.display = "block";
+});
+document.querySelector("#modalAdmin .close-tab").addEventListener("click", () => {
+  document.getElementById("modalAdmin").style.display = "none";
+});
 
   document.getElementById("btnVersFiche").addEventListener("click", () => {
     window.open(`Ordonnancier.html?id=${patientId}`, '_blank');
@@ -2549,6 +2561,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
