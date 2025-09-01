@@ -940,27 +940,37 @@ header {
     <h3>🚪 Sortie & 📄 Documents</h3>
     <button class="close-tab" onclick="window.location.href='urgences.html'">❌</button>
   </div>
-  <h4>🚪 Sortie</h4>
-  <label><input type="radio" name="typeSortie" value="Retour à domicile" /> 🏡 Domicile</label><br/>
-  <label><input type="radio" name="typeSortie" value="Hospitalisation" /> 🏥 Hospitalisation</label><br/>
-  <label><input type="radio" name="typeSortie" value="Transfert" /> ↔️ Transfert</label><br/>
-  <label><input type="radio" name="typeSortie" value="Décès" /> ⚰️ Décès</label><br/>
-	<label>
-  <input type="radio" name="typeSortie" value="autre" /> 🔤 Autre
-  <input type="text" id="champAutreSortie" placeholder="Précisez..." style="display:none;" />
-</label>
-	<label>
-  <input type="checkbox" name="optionsSortie" value="autreOption" /> 🔤 Autre option
-  <input type="text" id="champAutreOption" placeholder="Précisez..." style="display:none;" />
-</label>
+<h3>Type de sortie</h3>
+    <label><input type="radio" name="typeSortie" value="Retour à domicile" /> 🏡 Domicile</label><br/>
+    <label><input type="radio" name="typeSortie" value="Hospitalisation" /> 🏥 Hospitalisation</label><br/>
+    <label><input type="radio" name="typeSortie" value="Transfert" /> ↔️ Transfert</label><br/>
+	    <label><input type="radio" name="typeSortie" value="Décès" />⚰️ Décès</label><br/>
+    <label>
+      <input type="radio" name="typeSortie" value="autre" /> 🔤 Autre
+      <input type="text" id="champAutreSortie" placeholder="Précisez..." style="margin-top: 8px; display:none;" />
+    </label>
 
+    <hr/>
 
-  <textarea id="champTraitementSortie"></textarea>
-  <div id="sortieListe"></div>
-  <div class="modal-buttons">
-    <button id="btnAnnulerSortie">❌ Annuler</button>
-    <button id="btnValiderSortie">✅ Valider</button>
-  </div>
+    <h3>Options supplémentaires</h3>
+    <label><input type="checkbox" name="optionsSortie" value="Suivi a domicile" /> 📋 Suivi à domicile</label><br/>
+    <label><input type="checkbox" name="optionsSortie" value="Avis specialiste" /> 👩‍⚕️ Avis spécialiste</label><br/>
+    <label><input type="checkbox" name="optionsSortie" value="Transport  en ambulance" /> 🚑 Transport ambulance</label><br/>
+    <label>
+      <input type="checkbox" name="optionsSortie" value="autreOption" /> 🔤 Autre option
+      <input type="text" id="champAutreOption" placeholder="Précisez..." style="margin-top: 8px; display:none;" />
+    </label>
+	<hr/>
+<h3>💊 Traitement de sortie</h3>
+<textarea id="champTraitementSortie"	 rows="3" style="width:100%; margin-bottom: 10px;"></textarea>
+
+    <hr/>
+
+    <div id="sortieListe"></div> 
+    <div class="modal-buttons">
+      <button id="btnAnnulerSortie">❌ Annuler</button>
+      <button id="btnValiderSortie">✅ Valider</button>
+    </div>
   <hr>
   <h4>📄 Documents</h4>
   <button id="btnRapportHospi">📃 Rapport d'hospitalisation</button>
@@ -1003,42 +1013,6 @@ header {
   </div>
 </div>
 
-<!-- Modal Sortie -->
-<div class="modal-overlay" id="modalSortie">
-  <div class="modal">
-    <h3>Type de sortie</h3>
-    <label><input type="radio" name="typeSortie" value="Retour à domicile" /> 🏡 Domicile</label><br/>
-    <label><input type="radio" name="typeSortie" value="Hospitalisation" /> 🏥 Hospitalisation</label><br/>
-    <label><input type="radio" name="typeSortie" value="Transfert" /> ↔️ Transfert</label><br/>
-	    <label><input type="radio" name="typeSortie" value="Décès" />⚰️ Décès</label><br/>
-    <label>
-      <input type="radio" name="typeSortie" value="autre" /> 🔤 Autre
-      <input type="text" id="champAutreSortie" placeholder="Précisez..." style="margin-top: 8px; display:none;" />
-    </label>
-
-    <hr/>
-
-    <h3>Options supplémentaires</h3>
-    <label><input type="checkbox" name="optionsSortie" value="Suivi a domicile" /> 📋 Suivi à domicile</label><br/>
-    <label><input type="checkbox" name="optionsSortie" value="Avis specialiste" /> 👩‍⚕️ Avis spécialiste</label><br/>
-    <label><input type="checkbox" name="optionsSortie" value="Transport  en ambulance" /> 🚑 Transport ambulance</label><br/>
-    <label>
-      <input type="checkbox" name="optionsSortie" value="autreOption" /> 🔤 Autre option
-      <input type="text" id="champAutreOption" placeholder="Précisez..." style="margin-top: 8px; display:none;" />
-    </label>
-	<hr/>
-<h3>💊 Traitement de sortie</h3>
-<textarea id="champTraitementSortie"	 rows="3" style="width:100%; margin-bottom: 10px;"></textarea>
-
-    <hr/>
-
-    <div id="sortieListe"></div> 
-    <div class="modal-buttons">
-      <button id="btnAnnulerSortie">❌ Annuler</button>
-      <button id="btnValiderSortie">✅ Valider</button>
-    </div>
-  </div>
-</div>
 
 <!-- Modal Clôture -->
 <div class="modal-overlay" id="modalCloture">
@@ -1235,18 +1209,21 @@ header {
     }
     return age;
   }
-const modalSortie = document.getElementById("modalSortie");
-const btnAnnulerSortie = document.getElementById("btnAnnulerSortie");
-const btnValiderSortie = document.getElementById("btnValiderSortie");
+// --- Références aux éléments ---
 const sortieListe = document.getElementById("sortieListe");
 const champAutreSortie = document.getElementById("champAutreSortie");
 const champAutreOption = document.getElementById("champAutreOption");
+const champTraitementSortie = document.getElementById("champTraitementSortie");
+
 // Container dynamique pour les champs spécifiques
-const containerDynamique = document.createElement("div");
-containerDynamique.id = "optionsSpecifiques";
-document.querySelector("#modalSortie .modal").appendChild(containerDynamique);
+let containerDynamique = document.getElementById("optionsSpecifiques");
+if (!containerDynamique) {
+  containerDynamique = document.createElement("div");
+  containerDynamique.id = "optionsSpecifiques";
+  document.querySelector("#tab-sortie-docs").insertBefore(containerDynamique, sortieListe);
+}
 
-
+// --- Rafraîchissement des champs dynamiques ---
 function rafraichirChampsSortie() {
   const typeSortie = document.querySelector('input[name="typeSortie"]:checked')?.value;
   const optionsSortie = Array.from(document.querySelectorAll('input[name="optionsSortie"]:checked')).map(cb => cb.value);
@@ -1270,6 +1247,7 @@ function rafraichirChampsSortie() {
     const select = document.createElement("select");
     select.id = "champServiceHospitalisation";
 
+    // Récupération dynamique depuis Firestore
     db.collection("référentiels").doc("spécialités").get().then(doc => {
       const data = doc.data();
       (data?.spécialités || []).forEach(service => {
@@ -1294,79 +1272,66 @@ function rafraichirChampsSortie() {
     containerDynamique.appendChild(label);
     containerDynamique.appendChild(input);
   }
+
+  // Affichage du champ "autre option"
+  champAutreOption.style.display = optionsSortie.includes("autreOption") ? "block" : "none";
 }
 
-// Affichage du champ "autre"
-document.querySelector('input[name="typeSortie"][value="autre"]').addEventListener("change", () => {
-  champAutreSortie.style.display = "block";
+// --- Gestion champ "autre sortie" ---
+document.querySelectorAll('input[name="typeSortie"]').forEach(radio => {
+  radio.addEventListener("change", () => {
+    champAutreSortie.style.display = document.querySelector('input[name="typeSortie"][value="autre"]')?.checked ? "block" : "none";
+    rafraichirChampsSortie();
+  });
 });
 
-// Rafraîchit les champs à chaque changement
-document.querySelectorAll('input[name="typeSortie"], input[name="optionsSortie"]').forEach(el =>
-  el.addEventListener("change", rafraichirChampsSortie)
-);
-
-document.querySelector('input[name="typeSortie"][value="autre"]').addEventListener("change", () => {
-  champAutreSortie.style.display = document.querySelector('input[name="typeSortie"][value="autre"]').checked ? "block" : "none";
+document.querySelectorAll('input[name="optionsSortie"]').forEach(cb => {
+  cb.addEventListener("change", rafraichirChampsSortie);
 });
 
+// --- Affichage sortie ---
 function afficherSortieListe(sortie) {
   if (!sortie || !sortie.type) {
     sortieListe.innerHTML = "<p>Aucune sortie enregistrée.</p>";
     return;
   }
 
-
   let html = `
     <p><strong>Type de sortie :</strong> ${sortie.type}</p>
     <p><strong>Options :</strong> ${sortie.options?.join(", ") || "Aucune"}</p>
   `;
 
-  if (sortie.destinationTransfert) {
-    html += `<p><strong>↔️ Destination :</strong> ${sortie.destinationTransfert}</p>`;
-  }
+  if (sortie.destinationTransfert) html += `<p><strong>↔️ Destination :</strong> ${sortie.destinationTransfert}</p>`;
+  if (sortie.serviceHospitalisation) html += `<p><strong>🏥 Service :</strong> ${sortie.serviceHospitalisation}</p>`;
+  if (sortie.avisSpecialiste) html += `<p><strong>👨‍⚕️ Spécialiste :</strong> ${sortie.avisSpecialiste}</p>`;
+  if (sortie.autreOptionTexte) html += `<p><strong>🔤 Autre option :</strong> ${sortie.autreOptionTexte}</p>`;
+  if (sortie.traitementSortie) html += `<p><strong>💊 Traitement de sortie :</strong> ${sortie.traitementSortie}</p>`;
 
-  if (sortie.serviceHospitalisation) {
-    html += `<p><strong>🏥 Service :</strong> ${sortie.serviceHospitalisation}</p>`;
-  }
-
-  if (sortie.avisSpecialiste) {
-    html += `<p><strong>👨‍⚕️ Spécialiste :</strong> ${sortie.avisSpecialiste}</p>`;
-  }
-
-  if (sortie.autreOptionTexte) {
-    html += `<p><strong>🔤 Autre option :</strong> ${sortie.autreOptionTexte}</p>`;
-  }
-if (sortie.traitementSortie) {
-  html += `<p><strong>💊 Traitement de sortie :</strong> ${sortie.traitementSortie}</p>`;
-}
-  html += `
-    <button id="btnSupprimerSortie" class="danger" style="margin-top:10px;">🗑 Supprimer</button>
-  `;
-
+  html += `<button id="btnSupprimerSortie" class="danger" style="margin-top:10px;">🗑 Supprimer</button>`;
   sortieListe.innerHTML = html;
 
   document.getElementById("btnSupprimerSortie").addEventListener("click", async () => {
-  const doc = await patientRef.get();
-  const data = doc.data();
-  const index = data.hospitalisationIndex ?? 0;
-  const hospitalisations = [...(data.hospitalisations || [])];
+    const doc = await patientRef.get();
+    const data = doc.data();
+    const index = data.hospitalisationIndex ?? 0;
+    const hospitalisations = [...(data.hospitalisations || [])];
 
-  // Supprimer la sortie
-  delete hospitalisations[index].sortie;
+    delete hospitalisations[index].sortie;
+    if (hospitalisations[index].traitementSortie) hospitalisations[index].traitementSortie = "";
 
-  // Vider le champ traitementSortie s'il est en dehors de "sortie"
-  if (hospitalisations[index].traitementSortie) {
-    hospitalisations[index].traitementSortie = "";
-  }
+    await patientRef.update({ hospitalisations });
+    sortieListe.innerHTML = "<p>Sortie supprimée.</p>";
+    afficherBulle("🗑️ Sortie supprimée", "administratif");
+  });
+}
 
-  await patientRef.update({ hospitalisations });
-
-  sortieListe.innerHTML = "<p>Sortie supprimée.</p>";
-  afficherBulle("🗑️ Sortie supprimée", "administratif");
+// --- Initialisation au chargement de l'onglet ---
+document.addEventListener("DOMContentLoaded", () => {
+  // Détecte le type déjà sélectionné et met à jour dynamiquement
+  rafraichirChampsSortie();
+  champAutreSortie.style.display = document.querySelector('input[name="typeSortie"][value="autre"]')?.checked ? "block" : "none";
 });
 
-}
 
 function formaterDate(dateStr) {
   if (!dateStr) return "";
@@ -2668,6 +2633,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
