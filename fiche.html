@@ -95,6 +95,11 @@
       padding: 20px;
       color: #333;
     }
+	  #dossierMedical input[type="text"],
+#dossierMedical input[type="number"] {
+  width: 100%;
+}
+	
 	.bouton-horloge {
   all: unset;
   cursor: pointer;
@@ -1301,6 +1306,8 @@ async function chargerPatient() {
     // Services possibles (si besoin)
     chargerServices();
 	  chargerRealisateurs();
+	  chargerExamens(patientId, hospi);
+
 // --- Examens ---
 const examens = hospi.examens || {};
 const examensListe = document.getElementById("examensListe"); // <div> où tu veux afficher
@@ -1832,6 +1839,13 @@ document.getElementById("btnVersExs").addEventListener("click", () => {
   document.getElementById("btnVersFiches").addEventListener("click", () => {
     window.open(`fichesconseil.html`, '_blank');
   });
+document.getElementById("btnGlasgow").addEventListener("click", () => {
+  document.getElementById("glasgowModal").style.display = "block";
+});
+
+document.querySelector("#glasgowModal .close-tab").addEventListener("click", () => {
+  document.getElementById("glasgowModal").style.display = "none";
+});
 
 // Gestion Administrative
 const modalAdmin = document.getElementById("modalAdmin");
@@ -2258,6 +2272,43 @@ function toggleSublist(id) {
     const list = document.getElementById(id);
     list.style.display = list.style.display === "block" ? "none" : "block";
   }
+async function chargerExamens(patientId, hospIndex) {
+  const examensListe = document.getElementById("examensListe");
+  examensListe.innerHTML = "<p>⏳ Chargement...</p>";
+
+  try {
+    const snapshot = await db.collection("patients")
+      .doc(patientId)
+      .collection("hospitalisation")
+      .doc(hospIndex)
+      .collection("examens")
+      .get();
+
+    examensListe.innerHTML = "";
+
+    if (snapshot.empty) {
+      examensListe.innerHTML = "<p>Aucun examen enregistré.</p>";
+      return;
+    }
+
+    snapshot.forEach(doc => {
+      const examen = doc.data();
+      const div = document.createElement("div");
+      div.className = "p-2 mb-2 border rounded bg-gray-50";
+      div.innerHTML = `
+        <strong>🧪 ${examen.type}</strong><br>
+        📅 Demande : ${examen.dateDemande ? new Date(examen.dateDemande).toLocaleString() : "—"}<br>
+        📅 Réalisation : ${examen.dateRealisation ? new Date(examen.dateRealisation).toLocaleString() : "—"}<br>
+        ${examen["compte-rendu"] ? "📄 CR : " + examen["compte-rendu"] + "<br>" : ""}
+        ${examen.commentaire ? "📝 " + examen.commentaire : ""}
+      `;
+      examensListe.appendChild(div);
+    });
+  } catch (e) {
+    console.error("Erreur chargement examens :", e);
+    examensListe.innerHTML = "<p>⚠️ Erreur lors du chargement</p>";
+  }
+}
 
   function toggleExam(checkbox) {
     if (checkbox.checked) {
@@ -2547,6 +2598,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
