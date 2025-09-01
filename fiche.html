@@ -2540,6 +2540,33 @@ async function supprimerActe(patientId, hospiId, acteId) {
     afficherBulle("❌ Erreur lors de la suppression", "alerte");
   }
 }
+async function chargerRealisateurs() {
+  const select = document.getElementById("selectRealisateur");
+  select.innerHTML = "<option>⏳ Chargement...</option>";
+
+  try {
+    // On suppose que tu stockes les réalisateurs dans "référentiels/realisateurs"
+    const doc = await db.collection("référentiels").doc("realisateurs").get();
+    const data = doc.data();
+    const liste = data?.liste || [];
+
+    if (liste.length === 0) {
+      select.innerHTML = "<option>Aucun disponible</option>";
+      return;
+    }
+
+    select.innerHTML = "";
+    liste.forEach(r => {
+      const opt = document.createElement("option");
+      opt.value = r;
+      opt.textContent = r;
+      select.appendChild(opt);
+    });
+  } catch (err) {
+    console.error("Erreur chargement réalisateurs :", err);
+    select.innerHTML = "<option>⚠️ Erreur de chargement</option>";
+  }
+}
 
 async function remplirDepuisAncienneHospi(champ) {
   try {
@@ -2683,6 +2710,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
