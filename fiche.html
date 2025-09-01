@@ -941,7 +941,7 @@ header {
 
     <label for="commentaireExamen">💬 Commentaire</label>
     <textarea id="commentaireExamen" placeholder="Détails supplémentaires..."></textarea>
-     <button id="btnCloseExamen" class="secondary">❌ Fermer</button>
+     <button id="btnCancelExamen" class="secondary">❌ Fermer</button>
       <button id="btnSaveExamen">✅ Valider</button>
     </div>
 </div>
@@ -1719,37 +1719,7 @@ const commentaireExamen = document.getElementById("commentaireExamen");
 const btnSaveExamen = document.getElementById("btnSaveExamen");
 
 
-btnDemandeExamen.addEventListener("click", async () => {
-  listeExamens.innerHTML = "<em>Chargement...</em>";
-  fenetreExamens.style.display = "flex";
 
-  try {
-    const doc = await patientRef.get();
-    if (!doc.exists) return;
-    const data = doc.data();
-    const index = data.hospitalisationIndex ?? 0;
-    const examens = data.hospitalisations?.[index]?.examens || [];
-
-    if (examens.length === 0) {
-      listeExamens.innerHTML = "<p>Aucun examen demandé.</p>";
-      return;
-    }
-
-    listeExamens.innerHTML = examens
-      .map((examen, i) => `
-        <div style="border:1px solid #ccc; padding:5px; margin-bottom:5px;">
-          <strong>${examen.type.toUpperCase()}</strong> - demandé le ${examen.dateDemande}
-          <br>
-          ${examen.commentaire ? "💬 " + examen.commentaire + "<br>" : ""}
-          ${examen.realise ? `✅ Réalisé le ${examen.dateRealisation}<br>📝 CR : ${examen.compteRendu}` : "⏳ En attente de réalisation"}
-        </div>
-      `)
-      .join("");
-  } catch (e) {
-    console.error("Erreur récupération examens :", e);
-    listeExamens.innerHTML = "<p style='color:red;'>Erreur de chargement</p>";
-  }
-});
 
 btnFermerFenetreExamens.addEventListener("click", () => {
   fenetreExamens.style.display = "none";
@@ -2617,6 +2587,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
