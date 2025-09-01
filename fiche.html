@@ -1348,120 +1348,7 @@ function formaterDate(dateStr) {
 
 
 
-btnSortie.addEventListener("click", async () => {
-  modalSortie.style.display = "flex";
 
-  const doc = await patientRef.get();
-  const data = doc.data();
-  const index = data.hospitalisationIndex ?? 0;
-  const sortie = data.hospitalisations?.[index]?.sortie || {};
-	const btnSortie = document.getElementById("btnSortie");
-  document.getElementById("champTraitementSortie").value = sortie.traitementSortie || "";
-
-
-  // Sélection du type
-  document.querySelectorAll('input[name="typeSortie"]').forEach(r => {
-    r.checked = (r.value === sortie.type);
-  });
-
-  // Champ 'autre'
-  if (sortie.type && !["Retour à domicile", "Hospitalisation", "Transfert"].includes(sortie.type)) {
-    document.querySelector('input[name="typeSortie"][value="autre"]').checked = true;
-    champAutreSortie.value = sortie.type;
-    champAutreSortie.style.display = "block";
-  } else {
-    champAutreSortie.value = "";
-    champAutreSortie.style.display = "none";
-  }
-
-  // Options cochées
-  document.querySelectorAll('input[name="optionsSortie"]').forEach(cb => {
-    cb.checked = sortie.options?.includes(cb.value);
-  });
-
-  champAutreOption.style.display = sortie.options?.includes("autreOption") ? "block" : "none";
-  champAutreOption.value = sortie.autreOptionTexte || "";
-
-  // Rafraîchir les champs spécifiques (transfert, service, spécialiste)
-  setTimeout(() => {
-    rafraichirChampsSortie();
-    if (sortie.destinationTransfert)
-      document.getElementById("champDestinationTransfert").value = sortie.destinationTransfert;
-    if (sortie.serviceHospitalisation)
-      document.getElementById("champServiceHospitalisation").value = sortie.serviceHospitalisation;
-    if (sortie.avisSpecialiste)
-      document.getElementById("champAvisSpecialiste").value = sortie.avisSpecialiste;
-  }, 300);
-
-  afficherSortieListe(sortie);
-});
-
-btnValiderSortie.addEventListener("click", async () => {
-  const checked = document.querySelector('input[name="typeSortie"]:checked');
-  const traitementSortie = document.getElementById("champTraitementSortie").value.trim();
-
-  if (!checked) return alert("Veuillez sélectionner un type de sortie.");
-
-  let type = checked.value;
-  if (type === "autre") {
-    type = champAutreSortie.value.trim();
-    if (!type) return afficherBulle("❌ Précisez le type de sortie", "alerte");
-  }
-
-  const options = Array.from(document.querySelectorAll('input[name="optionsSortie"]:checked')).map(cb => cb.value);
-  const autreOptionTexte = options.includes("autreOption") ? champAutreOption.value.trim() : "";
-
-  const destinationTransfert = document.getElementById("champDestinationTransfert")?.value || "";
-  const serviceHospitalisation = document.getElementById("champServiceHospitalisation")?.value || "";
-  const avisSpecialiste = document.getElementById("champAvisSpecialiste")?.value || "";
-
-  const sortie = {
-  type,
-  options,
-  autreOptionTexte,
-  destinationTransfert,
-  serviceHospitalisation,
-  avisSpecialiste,
-  traitementSortie,
-  date: new Date().toLocaleString()
-};
-	
-
-  try {
-    const doc = await patientRef.get();
-    const data = doc.data();
-    const index = data.hospitalisationIndex ?? 0;
-    const hospitalisations = [...(data.hospitalisations || [])];
-    hospitalisations[index] = {
-      ...hospitalisations[index],
-      sortie
-    };
-
-    await patientRef.update({ hospitalisations });
-    afficherBulle("✔️ Sortie enregistrée", "administratif");
-    ajouterEntreeHistorique(`Sortie : ${type} (${options.join(", ")})`);
-    afficherSortieListe(sortie);
-    modalSortie.style.display = "none";
-  } catch (err) {
-    console.error("Erreur enregistrement sortie :", err);
-    afficherBulle("❌ Erreur enregistrement", "alerte");
-  }
-});
-
-btnAnnulerSortie.addEventListener("click", () => {
-  modalSortie.style.display = "none";
-});
-
-async function loadPatient() {
-  const overlay = document.getElementById("loadingOverlay");
-  if (overlay) overlay.style.display = "flex";
-
-  try {
-    const doc = await patientRef.get();
-    if (!doc.exists) {
-      afficherBulle("❌ Patient introuvable", "alerte");
-      return;
-    }
 
     const data = doc.data();
     const index = data.hospitalisationIndex ?? 0;
@@ -2633,6 +2520,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
