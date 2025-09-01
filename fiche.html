@@ -655,7 +655,7 @@ header {
 <main>
 <div id="contenu"></div>
 <div class="tabs">
-  <button class="tablink active" onclick="openTab('tab-patient', event)">👤 Patient</button>
+  <button class="tablink active" onclick="openTab('tab-patient', event)">👤 Identité Patient</button>
   <button class="tablink" onclick="openTab('tab-constantes', event)">🩺 Constantes</button>
   <button class="tablink" onclick="openTab('tab-historique', event)">📜 Historique</button>
   <button class="tablink" onclick="openTab('tab-dossier', event)">📋 Dossier Médical</button>
@@ -1818,9 +1818,7 @@ document.getElementById("btnGlasgow").addEventListener("click", () => {
 document.getElementById("btnAdmin").addEventListener("click", () => {
   document.getElementById("modalAdmin").style.display = "block";
 });
-document.querySelector("#modalAdmin .close-tab").addEventListener("click", () => {
-  document.getElementById("modalAdmin").style.display = "none";
-});
+
 
   document.getElementById("btnVersFiche").addEventListener("click", () => {
     window.open(`Ordonnancier.html?id=${patientId}`, '_blank');
@@ -2557,6 +2555,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
