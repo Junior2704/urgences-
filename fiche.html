@@ -95,7 +95,35 @@
   width: 100% !important;      /* étire les blocs */
 }
 
+#modalRawData {
+  display: none; /* masqué par défaut */
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 4000;
+  justify-content: center;
+  align-items: center;
+}
 
+#modalRawData .modal-content {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  max-width: 800px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+#tab-dossier textarea {
+  width: 100% !important;
+  box-sizing: border-box;
+  min-height: 120px;
+}
+
+#tab-dossier .card {
+  max-width: none !important;
+  width: 100% !important;
+}
 
     body {
       font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
@@ -793,9 +821,13 @@ header {
   </div>
       <label>Questionnaire IAO <button class="bouton-horloge" onclick="ajouterHorodatageDans('questionnaire')">⏰</button></label>
       <textarea id="questionnaire"></textarea>
-      <label>Antécédents <button class="bouton-horloge" onclick="ajouterHorodatageDans('antecedents')">⏰</button></label>
+      <label>Antécédents <button class="bouton-horloge" onclick="ajouterHorodatageDans('antecedents')">⏰</button>
+	  <button class="bouton-ancienne" onclick="remplirDepuisAncienneHospi('antecedents')">📂</button>
+</label>
       <textarea id="antecedents" ></textarea>
-      <label>Traitements en cours <button class="bouton-horloge" onclick="ajouterHorodatageDans('traitements')">⏰</button></label>
+      <label>Traitements en cours <button class="bouton-horloge" onclick="ajouterHorodatageDans('traitements')">⏰</button>
+	  <button class="bouton-ancienne" onclick="remplirDepuisAncienneHospi('traitements')">📂</button>
+</label>
       <textarea id="traitements" ></textarea>
       <label>Histoire de la maladie <button class="bouton-horloge" onclick="ajouterHorodatageDans('histoire')">⏰</button></label>
       <textarea id="histoire" style=></textarea>
@@ -2470,7 +2502,17 @@ document.getElementById("btnRapportHospi").addEventListener("click", () => {
 });
 
 
-loadPatient();
+document.addEventListener("DOMContentLoaded", () => {
+  rafraichirChampsSortie();
+  champAutreSortie.style.display = document.querySelector('input[name="typeSortie"][value="autre"]')?.checked ? "block" : "none";
+
+  if (patientId) {
+    chargerPatient(patientId);   // ✅ passer l’ID
+  } else {
+    afficherBulle("❌ Aucun patientId fourni dans l’URL", "alerte");
+  }
+});
+
 // Ligne de test de fin
 console.log("Script terminé correctement ✅");
 </script>
@@ -2554,6 +2596,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
