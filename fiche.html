@@ -1220,6 +1220,37 @@ const sortieListe = document.getElementById("sortieListe");
 const champAutreSortie = document.getElementById("champAutreSortie");
 const champAutreOption = document.getElementById("champAutreOption");
 const champTraitementSortie = document.getElementById("champTraitementSortie");
+document.getElementById("btnValiderSortie").addEventListener("click", async () => {
+  const type = document.querySelector('input[name="typeSortie"]:checked')?.value || "";
+  const options = Array.from(document.querySelectorAll('input[name="optionsSortie"]:checked')).map(cb => cb.value);
+
+  const sortie = {
+    type,
+    options,
+    autreSortieTexte: type === "autre" ? champAutreSortie.value.trim() : "",
+    autreOptionTexte: options.includes("autreOption") ? champAutreOption.value.trim() : "",
+    destinationTransfert: document.getElementById("champDestinationTransfert")?.value || "",
+    serviceHospitalisation: document.getElementById("champServiceHospitalisation")?.value || "",
+    avisSpecialiste: document.getElementById("champAvisSpecialiste")?.value || "",
+    traitementSortie: champTraitementSortie.value.trim()
+  };
+
+  try {
+    await updateHospitalisationField("sortie", sortie);
+    afficherSortieListe(sortie);
+    afficherBulle("✔️ Sortie enregistrée", "administratif");
+  } catch (err) {
+    console.error("Erreur enregistrement sortie :", err);
+    afficherBulle("❌ Erreur lors de l’enregistrement de la sortie", "alerte");
+  }
+});
+
+document.getElementById("btnAnnulerSortie").addEventListener("click", () => {
+  champAutreSortie.value = "";
+  champAutreOption.value = "";
+  champTraitementSortie.value = "";
+  sortieListe.innerHTML = "<p>Aucune sortie enregistrée.</p>";
+});
 
 // Container dynamique pour les champs spécifiques
 let containerDynamique = document.getElementById("optionsSpecifiques");
@@ -1508,17 +1539,18 @@ async function ajouterEntreeHistorique(texte) {
     await patientRef.update({ poids, taille });
     ajouterEntreeHistorique(`Poids/Taille/IMC enregistrés: ${poids}kg / ${taille}cm`);
     afficherBulle("✔️ Poids et taille enregistrés", "administratif");
-    chargerPatient(); // 🔄 recharge pour recalculer IMC
+    chargerPatient(); // 🔄 recalcul IMC
   } catch (err) {
     console.error("Erreur enregistrement poids/taille :", err);
-    afficherBulle("❌ Erreur enregistrement", "alerte");
+    afficherBulle("❌ Erreur lors de l’enregistrement du poids/taille", "alerte");
   }
 });
 
 
 
 
-document.getElementById("btnSaveConst").addEventListener("click", () => {
+
+ddocument.getElementById("btnSaveConst").addEventListener("click", async () => {
   const constantes = {
     temperature: document.getElementById("temperature").value.trim() || "",
     fc: document.getElementById("fc").value.trim() || "",
@@ -1527,8 +1559,16 @@ document.getElementById("btnSaveConst").addEventListener("click", () => {
     fr: document.getElementById("fr").value.trim() || "",
     douleur: document.getElementById("douleur").value.trim() || ""
   };
-  updateHospitalisationField("constantes", constantes);
+
+  try {
+    await updateHospitalisationField("constantes", constantes);
+    afficherBulle("✔️ Constantes enregistrées", "administratif");
+  } catch (err) {
+    console.error("Erreur enregistrement constantes :", err);
+    afficherBulle("❌ Erreur lors de l’enregistrement des constantes", "alerte");
+  }
 });
+
 
 
  
@@ -1845,10 +1885,10 @@ champAutreActe.placeholder = "Préciser le type d’acte";
 champAutreActe.style.display = "none";
 champAutreActe.style.marginTop = "8px";
 
-btnFermerActe.addEventListener("click", () => {
-  modalActe.style.display = "none";
-  reinitialiserFormulaireActe();
+document.getElementById("btnFermerActe").addEventListener("click", () => {
+  afficherBulle("ℹ️ Fermeture sans enregistrement", "administratif");
 });
+
 
 btnActe.addEventListener("click", async () => {
   modalActe.style.display = "flex";
@@ -2024,35 +2064,43 @@ async function supprimerActeRealise(index) {
   afficherBulle("🗑️ Acte supprimé", "administratif");
 }
 
-btnEnregistrerActe.addEventListener("click", async () => {
-  const acte = document.getElementById("rechercherActe").value.trim();
+document.getElementById("btnEnregistrerActe").addEventListener("click", async () => {
+  const type = document.getElementById("rechercherActe").value.trim();
   const realisateur = document.getElementById("selectRealisateur").value;
   const remarque = document.getElementById("remarqueActe").value.trim();
-  const date = new Date().toLocaleString();
 
-  if (!acte || !realisateur) {
-    afficherBulle("❌ Remplissez les champs obligatoires", "alerte");
+  if (!type) {
+    afficherBulle("❌ Veuillez saisir un type d’acte", "alerte");
     return;
   }
 
-  const doc = await patientRef.get();
-  const data = doc.data();
-  const index = data.hospitalisationIndex ?? 0;
-  const hospitalisations = [...(data.hospitalisations || [])];
+  const acte = {
+    type,
+    realisateur,
+    remarque,
+    date: new Date().toISOString()
+  };
 
-  hospitalisations[index].actes_realises = hospitalisations[index].actes_realises || [];
-  const nouvelActe = { type: acte, realisateur, remarque, date };
-  hospitalisations[index].actes_realises.push(nouvelActe);
+  try {
+    const doc = await patientRef.get();
+    const data = doc.data();
+    const index = data.hospitalisationIndex ?? 0;
+    const hospitalisations = Array.isArray(data.hospitalisations) ? [...data.hospitalisations] : [];
+    hospitalisations[index] = hospitalisations[index] || {};
+    hospitalisations[index].actes = hospitalisations[index].actes || [];
+    hospitalisations[index].actes.push(acte);
 
-  await patientRef.update({ hospitalisations });
+    await patientRef.update({ hospitalisations });
 
-  ajouterEntreeHistorique(`➕ Acte ajouté : ${acte} par ${realisateur} (${remarque || "–"})`);
-  afficherBulle("✔️ Acte enregistré", "administratif");
-
-  modalActe.style.display = "none";
-  reinitialiserFormulaireActe();
-  await afficherActesRealises();
+    afficherBulle("✔️ Acte enregistré", "administratif");
+    document.getElementById("rechercherActe").value = "";
+    document.getElementById("remarqueActe").value = "";
+  } catch (err) {
+    console.error("Erreur enregistrement acte :", err);
+    afficherBulle("❌ Erreur lors de l’enregistrement de l’acte", "alerte");
+  }
 });
+
 async function chargerServices() {
   try {
     const doc = await db.collection("référentiels").doc("spécialités").get();
@@ -2269,54 +2317,38 @@ const insertion = `${horodatage} - ${window.medecinNom}\n`;
 
 
 async function enregistrerDossierMedical() {
-const questionnaire = document.getElementById("questionnaire").value.trim();
-  const antecedents = document.getElementById("antecedents").value.trim();
-  const traitements = document.getElementById("traitements").value.trim();
-  const histoire = document.getElementById("histoire").value.trim();
-  const auscultation = document.getElementById("auscultation").value.trim();
+  const dossierMedical = {
+    questionnaire: document.getElementById("questionnaire").value.trim(),
+    antecedents: document.getElementById("antecedents").value.trim(),
+    traitements: document.getElementById("traitements").value.trim(),
+    histoire: document.getElementById("histoire").value.trim(),
+    auscultation: document.getElementById("auscultation").value.trim()
+  };
 
   try {
-    const doc = await patientRef.get();
-    const data = doc.data();
-    const index = data.hospitalisationIndex ?? 0;
-    const hospitalisations = [...(data.hospitalisations || [])];
-
-    hospitalisations[index].dossierMedical = {
-	questionnaire,
-      antecedents,
-      traitements,
-      histoire,
-      auscultation
-    };
-
-    await patientRef.update({ hospitalisations });
-    afficherBulle("💾 Dossier médical enregistré", "administratif");
-    ajouterEntreeHistorique("📝 Dossier médical mis à jour");
+    await updateHospitalisationField("dossierMedical", dossierMedical);
+    afficherBulle("✔️ Dossier médical enregistré", "administratif");
   } catch (err) {
     console.error("Erreur enregistrement dossier médical :", err);
-    afficherBulle("❌ Erreur lors de l'enregistrement", "alerte");
+    afficherBulle("❌ Erreur lors de l’enregistrement du dossier médical", "alerte");
   }
 }
+
+
 
 async function enregistrerEvolution() {
-  const texte = document.getElementById("evolutionTexte").value.trim();
+  const evolution = document.getElementById("evolutionTexte").value.trim();
 
   try {
-    const doc = await patientRef.get();
-    const data = doc.data();
-    const index = data.hospitalisationIndex ?? 0;
-    const hospitalisations = [...(data.hospitalisations || [])];
-
-    hospitalisations[index].evolution = texte;
-
-    await patientRef.update({ hospitalisations });
-    afficherBulle("💾 Évolution enregistrée", "administratif");
-    ajouterEntreeHistorique("📈 Évolution mise à jour");
+    await updateHospitalisationField("evolution", evolution);
+    afficherBulle("✔️ Évolution enregistrée", "administratif");
   } catch (err) {
     console.error("Erreur enregistrement évolution :", err);
-    afficherBulle("❌ Erreur lors de l'enregistrement", "alerte");
+    afficherBulle("❌ Erreur lors de l’enregistrement de l’évolution", "alerte");
   }
 }
+
+
 
 document.getElementById("btnVoirRawData").addEventListener("click", async () => {
 const params = new URLSearchParams(window.location.search);
@@ -2478,6 +2510,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
