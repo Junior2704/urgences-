@@ -1232,20 +1232,18 @@ if (!containerDynamique) {
   containerDynamique.id = "optionsSpecifiques";
   document.querySelector("#tab-sortie-docs").insertBefore(containerDynamique, sortieListe);
 }
-async function chargerPatient() {
+async function chargerPatient(patientId) {
   const overlay = document.getElementById("loadingOverlay");
   if (overlay) overlay.style.display = "flex";
 
   try {
-    const doc = await patientRef.get();
+    const doc = await db.collection("patients").doc(patientId).get();
     if (!doc.exists) {
       afficherBulle("❌ Patient introuvable", "alerte");
       return;
     }
 
     const data = doc.data();
-    const index = data.hospitalisationIndex ?? 0;
-    const hospi = data.hospitalisations?.[index] || {};
 
     // --- Infos patient ---
     document.getElementById("nom").textContent = data.nom || "";
@@ -1254,104 +1252,70 @@ async function chargerPatient() {
     document.getElementById("poids").value = data.poids || "";
     document.getElementById("taille").value = data.taille || "";
 
-    // Calcul IMC
+    // IMC
     const poids = parseFloat(data.poids);
     const taille = parseFloat(data.taille);
     const elImc = document.getElementById("imc");
     if (!isNaN(poids) && !isNaN(taille) && taille > 0) {
-      const imc = poids / ((taille / 100) ** 2);
-      elImc.textContent = imc.toFixed(1);
+      elImc.textContent = (poids / ((taille / 100) ** 2)).toFixed(1);
     } else {
       elImc.textContent = "–";
     }
 
-    // Calcul âge
+    // Âge
     if (data.dateNaissance) {
       const age = calculerAge(data.dateNaissance);
       document.getElementById("age").textContent = !isNaN(age) ? `${age} ans` : "Inconnu";
     }
 
-    // --- Infos hospitalisation ---
-    document.getElementById("gravite").value = hospi.gravite || "";
-    document.getElementById("motif").value = hospi.motif || "";
-    document.getElementById("moyen").value = hospi.moyen || "";
+    // --- Hospitalisation courante ---
+    const hospiSnap = await db.collection("patients")
+      .doc(patientId)
+      .collection("hospitalisation")
+      .orderBy("dateAdmission", "desc") // ou autre critère
+      .limit(1)
+      .get();
 
-    // Constantes vitales
-    const consts = hospi.constantes || {};
-    document.getElementById("temperature").value = consts.temperature || "";
-    document.getElementById("fc").value = consts.fc || "";
-    document.getElementById("ta").value = consts.ta || "";
-    document.getElementById("saturation").value = consts.saturation || "";
-    document.getElementById("fr").value = consts.fr || "";
-    document.getElementById("douleur").value = consts.douleur || "";
+    if (!hospiSnap.empty) {
+      const hospiDoc = hospiSnap.docs[0];   // dernier séjour
+      const hospi = hospiDoc.data();
 
-    // Dossier médical
-    const dm = hospi.dossierMedical || {};
-    document.getElementById("questionnaire").value = dm.questionnaire || "";
-    document.getElementById("antecedents").value = dm.antecedents || "";
-    document.getElementById("traitements").value = dm.traitements || "";
-    document.getElementById("histoire").value = dm.histoire || "";
-    document.getElementById("auscultation").value = dm.auscultation || "";
+      // Affiche les champs hospitalisation
+      document.getElementById("gravite").value = hospi.gravite || "";
+      document.getElementById("motif").value = hospi.motif || "";
+      document.getElementById("moyen").value = hospi.moyen || "";
 
-    // Évolution
-    document.getElementById("evolutionTexte").value = hospi.evolution || "";
+      // Constantes
+      const consts = hospi.constantes || {};
+      document.getElementById("temperature").value = consts.temperature || "";
+      document.getElementById("fc").value = consts.fc || "";
+      document.getElementById("ta").value = consts.ta || "";
+      document.getElementById("saturation").value = consts.saturation || "";
+      document.getElementById("fr").value = consts.fr || "";
+      document.getElementById("douleur").value = consts.douleur || "";
 
-    // Historique
-    clearHistorique();
-    await chargerHistorique();
+      // Dossier médical
+      const dm = hospi.dossierMedical || {};
+      document.getElementById("questionnaire").value = dm.questionnaire || "";
+      document.getElementById("antecedents").value = dm.antecedents || "";
+      document.getElementById("traitements").value = dm.traitements || "";
+      document.getElementById("histoire").value = dm.histoire || "";
+      document.getElementById("auscultation").value = dm.auscultation || "";
 
-    // Sortie
-    afficherSortieListe(hospi.sortie);
+      // Evolution
+      document.getElementById("evolutionTexte").value = hospi.evolution || "";
 
-    // Services possibles (si besoin)
-    chargerServices();
-	  chargerRealisateurs();
-	  chargerExamens(patientId, hospi);
-
-// --- Examens ---
-const examens = hospi.examens || {};
-const examensListe = document.getElementById("examensListe"); // <div> où tu veux afficher
-if (examensListe) {
-  examensListe.innerHTML = "";
-  if (examens.examens && examens.examens.length > 0) {
-    examens.examens.forEach(ex => {
-      const li = document.createElement("li");
-      li.textContent = `🔬 ${ex}`;
-      examensListe.appendChild(li);
-    });
-    if (examens.commentaire) {
-      const p = document.createElement("p");
-      p.textContent = `📝 ${examens.commentaire}`;
-      examensListe.appendChild(p);
+      // --- Charger actes & examens depuis les sous-collections ---
+      await chargerActes(patientId, hospiDoc.id);
+      await chargerExamens(patientId, hospiDoc.id);
     }
-  } else {
-    examensListe.innerHTML = "<p>Aucun examen enregistré.</p>";
-  }
-}
-// --- Actes ---
-const actes = hospi.actes || [];
-const actesListe = document.getElementById("actesListe");
-if (actesListe) {
-  actesListe.innerHTML = "";
-  if (actes.length > 0) {
-    actes.forEach(acte => {
-      const div = document.createElement("div");
-      div.className = "p-2 mb-2 border rounded bg-gray-50";
-      div.innerHTML = `
-        <strong>⚕️ ${acte.type}</strong><br>
-        Réalisateur: ${acte.realisateur || "—"}<br>
-        ${acte.remarque ? "📝 " + acte.remarque : ""}<br>
-        <small>📅 ${new Date(acte.date).toLocaleString()}</small>
-      `;
-      actesListe.appendChild(div);
-    });
-  } else {
-    actesListe.innerHTML = "<p>Aucun acte enregistré.</p>";
-  }
-}
 
-  } catch (error) {
-    console.error("Erreur chargement patient :", error);
+    // Services et Réalisateurs
+    chargerServices();
+    chargerRealisateurs();
+
+  } catch (err) {
+    console.error("Erreur chargement patient :", err);
     afficherBulle("❌ Erreur de chargement", "alerte");
   } finally {
     if (overlay) overlay.style.display = "none";
@@ -2587,6 +2551,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
