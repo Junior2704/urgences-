@@ -1405,7 +1405,9 @@ async function updateHospitalisationField(field, value) {
 }
 
 
-	
+	document.getElementById("btnOuvrirModaleDemande").addEventListener("click", () => {
+  document.getElementById("modalExamen").style.display = "block";
+});
 
 	
 // --- Rafraîchissement des champs dynamiques ---
@@ -2552,6 +2554,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
