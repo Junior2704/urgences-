@@ -945,6 +945,16 @@ header {
   <label><input type="radio" name="typeSortie" value="Hospitalisation" /> 🏥 Hospitalisation</label><br/>
   <label><input type="radio" name="typeSortie" value="Transfert" /> ↔️ Transfert</label><br/>
   <label><input type="radio" name="typeSortie" value="Décès" /> ⚰️ Décès</label><br/>
+	<label>
+  <input type="radio" name="typeSortie" value="autre" /> 🔤 Autre
+  <input type="text" id="champAutreSortie" placeholder="Précisez..." style="display:none;" />
+</label>
+	<label>
+  <input type="checkbox" name="optionsSortie" value="autreOption" /> 🔤 Autre option
+  <input type="text" id="champAutreOption" placeholder="Précisez..." style="display:none;" />
+</label>
+
+
   <textarea id="champTraitementSortie"></textarea>
   <div id="sortieListe"></div>
   <div class="modal-buttons">
@@ -1226,7 +1236,6 @@ header {
     return age;
   }
 const modalSortie = document.getElementById("modalSortie");
-const btnSortie = document.getElementById("btnSortie");
 const btnAnnulerSortie = document.getElementById("btnAnnulerSortie");
 const btnValiderSortie = document.getElementById("btnValiderSortie");
 const sortieListe = document.getElementById("sortieListe");
@@ -2658,6 +2667,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
