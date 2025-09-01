@@ -2272,7 +2272,7 @@ function toggleSublist(id) {
     const list = document.getElementById(id);
     list.style.display = list.style.display === "block" ? "none" : "block";
   }
-async function chargerExamens(patientId, hospIndex) {
+async function chargerExamens(patientId, hospi) {
   const examensListe = document.getElementById("examensListe");
   examensListe.innerHTML = "<p>⏳ Chargement...</p>";
 
@@ -2280,7 +2280,7 @@ async function chargerExamens(patientId, hospIndex) {
     const snapshot = await db.collection("patients")
       .doc(patientId)
       .collection("hospitalisation")
-      .doc(hospIndex)
+      .doc(hospi)
       .collection("examens")
       .get();
 
@@ -2598,6 +2598,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
