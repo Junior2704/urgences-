@@ -1310,6 +1310,31 @@ async function chargerPatient() {
   }
 }
 
+async function updateHospitalisationField(field, value) {
+  try {
+    const doc = await patientRef.get();
+    if (!doc.exists) return;
+
+    const data = doc.data();
+    const index = data.hospitalisationIndex ?? 0;
+    const hospitalisations = Array.isArray(data.hospitalisations) ? [...data.hospitalisations] : [];
+
+    hospitalisations[index] = { ...hospitalisations[index], [field]: value };
+
+    await patientRef.update({ hospitalisations });
+
+    ajouterEntreeHistorique(`Modification de ${field} : ${value}`);
+    afficherBulle("✔️ Donnée enregistrée", "administratif");
+  } catch (err) {
+    console.error(`Erreur mise à jour ${field} :`, err);
+    afficherBulle("❌ Erreur d’enregistrement", "alerte");
+  }
+}
+
+
+	
+
+	
 // --- Rafraîchissement des champs dynamiques ---
 function rafraichirChampsSortie() {
   const typeSortie = document.querySelector('input[name="typeSortie"]:checked')?.value;
@@ -1436,27 +1461,12 @@ function formaterDate(dateStr) {
     
 
 
-	document.getElementById("gravite").addEventListener("change", async (e) => {
-  const gravite = e.target.value;
-  try {
-    const doc = await patientRef.get();
-    const data = doc.data();
-    const index = data.hospitalisationIndex ?? 0;
-    const hospitalisations = [...(data.hospitalisations || [])];
-    if (!hospitalisations[index]) return;
-    hospitalisations[index] = {
-      ...hospitalisations[index],
-      gravite
-    };
-    await patientRef.update({
-      hospitalisations,
-    });
-    ajouterEntreeHistorique(`Changement de gravité à ${gravite}`);
-  } catch (err) {
-    console.error("Erreur mise à jour gravité :", err);
-  }
-  document.getElementById("loadingOverlay").style.display = "none";
+document.getElementById("gravite").addEventListener("change", e => {
+  updateHospitalisationField("gravite", e.target.value);
+});
 
+document.getElementById("motif").addEventListener("blur", e => {
+  updateHospitalisationField("motif", e.target.value.trim());
 });
 
 async function ajouterEntreeHistorique(texte) {
@@ -1482,111 +1492,44 @@ async function ajouterEntreeHistorique(texte) {
   }
 }
 
-document.getElementById("motif").addEventListener("blur", async (e) => {
-  const motif = e.target.value.trim();
-  try {
-    const doc = await patientRef.get();
-    const data = doc.data();
-    const index = data.hospitalisationIndex ?? 0;
-    const hospitalisations = [...(data.hospitalisations || [])];
-    if (!hospitalisations[index]) return;
-    hospitalisations[index] = {
-      ...hospitalisations[index],
-      motif
-    };
-    await patientRef.update({
-      hospitalisations,
-    });
-    ajouterEntreeHistorique(`Modification du motif d'entrée : ${motif}`);
-  } catch (err) {
-    console.error("Erreur mise à jour motif :", err);
-  }
-});
+
 
 
   document.getElementById("btnSavePoids").addEventListener("click", async () => {
-    const poids = parseFloat(document.getElementById("poids").value);
-    const taille = parseFloat(document.getElementById("taille").value);
-    if (!poids || !taille) {
-      afficherBulle("❌Veuillez entrer un poids et une taille valide", "alerte");
-      return;
-    }
+  const poids = parseFloat(document.getElementById("poids").value);
+  const taille = parseFloat(document.getElementById("taille").value);
+
+  if (!poids || !taille) {
+    afficherBulle("❌ Veuillez entrer un poids et une taille valides", "alerte");
+    return;
+  }
+
+  try {
     await patientRef.update({ poids, taille });
     ajouterEntreeHistorique(`Poids/Taille/IMC enregistrés: ${poids}kg / ${taille}cm`);
-    afficherBulle("✔️Poids et taille enregistrée", "administratif");
-  });
-document.getElementById("gravite").addEventListener("change", async e => {
-  const gravite = e.target.value;
-
-  try {
-    const doc = await patientRef.get();
-    if (!doc.exists) return;
-
-    const data = doc.data();
-    const index = data.hospitalisationIndex ?? 0;
-    const hospitalisations = Array.isArray(data.hospitalisations) ? [...data.hospitalisations] : [];
-
-    hospitalisations[index] = hospitalisations[index] || {};
-    hospitalisations[index].gravite = gravite;
-
-    await patientRef.update({ hospitalisations });
-    ajouterEntreeHistorique(`Changement de gravité à ${gravite}`);
-  } catch (error) {
-    console.error("Erreur lors de la mise à jour de la gravité :", error);
+    afficherBulle("✔️ Poids et taille enregistrés", "administratif");
+    chargerPatient(); // 🔄 recharge pour recalculer IMC
+  } catch (err) {
+    console.error("Erreur enregistrement poids/taille :", err);
+    afficherBulle("❌ Erreur enregistrement", "alerte");
   }
 });
 
-document.getElementById("motif").addEventListener("blur", async e => {
-  const motif = e.target.value;
 
-  try {
-    const doc = await patientRef.get();
-    if (!doc.exists) return;
 
-    const data = doc.data();
-    const index = data.hospitalisationIndex ?? 0;
-    const hospitalisations = Array.isArray(data.hospitalisations) ? [...data.hospitalisations] : [];
 
-    hospitalisations[index] = hospitalisations[index] || {};
-    hospitalisations[index].motif = motif;
-
-    await patientRef.update({ hospitalisations });
-    ajouterEntreeHistorique(`Modification du motif d'entrée : ${motif}`);
-  } catch (error) {
-    console.error("Erreur lors de la mise à jour du motif :", error);
-  }
-});
-
-document.getElementById("btnSaveConst").addEventListener("click", async () => {
+document.getElementById("btnSaveConst").addEventListener("click", () => {
   const constantes = {
     temperature: document.getElementById("temperature").value.trim() || "",
     fc: document.getElementById("fc").value.trim() || "",
     ta: document.getElementById("ta").value.trim() || "",
     saturation: document.getElementById("saturation").value.trim() || "",
-	fr: document.getElementById("fr").value.trim() || "",
+    fr: document.getElementById("fr").value.trim() || "",
     douleur: document.getElementById("douleur").value.trim() || ""
   };
-
-  try {
-    const doc = await patientRef.get();
-    const data = doc.data();
-    const index = data.hospitalisationIndex ?? 0;
-    const hospitalisations = [...(data.hospitalisations || [])];
-
-    hospitalisations[index] = {
-      ...hospitalisations[index],
-      constantes
-    };
-
-    await patientRef.update({ hospitalisations });
-
-    ajouterEntreeHistorique(`Constantes enregistrées: Temp ${constantes.temperature}, FC ${constantes.fc}, TA ${constantes.ta}, Sat ${constantes.saturation} %, FR ${constantes.fr}, Douleur ${constantes.douleur} /10`);
-    afficherBulle("✔️Constantes enregistrées", "administratif");
-  } catch (e) {
-    console.error("Erreur enregistrement constantes :", e);
-    afficherBulle("❌ Erreur enregistrement", "alerte");
-  }
+  updateHospitalisationField("constantes", constantes);
 });
+
 
  
 
@@ -2535,6 +2478,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
