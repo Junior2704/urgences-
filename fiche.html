@@ -30,19 +30,26 @@
   box-sizing: border-box;
 }
 .close-tab {
-  all: unset;                /* enlève tous les styles par défaut */
+  all: unset;
   cursor: pointer;
-  color: #c62828;            /* rouge vif */
-  font-size: 20px;           /* taille de base */
+  color: #c62828;     /* rouge vif */
+  font-size: 20px;
   font-weight: bold;
   line-height: 1;
+  background: transparent !important;  /* 👈 force pas de fond */
   transition: transform 0.2s ease, color 0.2s ease;
 }
 
-.close-tab:hover {
-  transform: scale(1.3);     /* grossit au survol */
-  color: #e53935;            /* rouge un peu plus clair au hover */
+.close-tab:hover,
+.close-tab:focus,
+.close-tab:active {
+  transform: scale(1.3);
+  color: #e53935;            /* rouge plus clair */
+  background: transparent !important; /* 👈 bloque le bleu moche */
+  outline: none;             /* pas de contour par défaut */
+  box-shadow: none;          /* supprime glow éventuel */
 }
+
 
 .tab-content .card,
 #historique,
@@ -2605,6 +2612,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
