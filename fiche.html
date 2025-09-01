@@ -1235,7 +1235,8 @@ const champAutreOption = document.getElementById("champAutreOption");
 // Container dynamique pour les champs spécifiques
 const containerDynamique = document.createElement("div");
 containerDynamique.id = "optionsSpecifiques";
-document.querySelector("#modalSortie .modal").insertBefore(containerDynamique, sortieListe);
+document.querySelector("#modalSortie .modal").appendChild(containerDynamique);
+
 
 function rafraichirChampsSortie() {
   const typeSortie = document.querySelector('input[name="typeSortie"]:checked')?.value;
@@ -2657,6 +2658,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
