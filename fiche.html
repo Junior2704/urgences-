@@ -1186,7 +1186,7 @@ header {
 </div>
 
 <script>
-  const firebaseConfig = {
+   const firebaseConfig = {
     apiKey: "AIzaSyBKp5-7NNy0Gyl0tNbDgD-BxucYdg8ArWo",
     authDomain: "urgences-a8ed4.firebaseapp.com",
     projectId: "urgences-a8ed4",
@@ -1203,8 +1203,6 @@ header {
     alert("Erreur : aucun patient sélectionné.");
     throw new Error("Aucun patient id dans l’URL");
   }
-  const patientRef = db.collection("patients").doc(patientId);
-
   function afficherBulle(texte, type) {
     let container = document.getElementById('bubble-container');
     if (!container) {
@@ -1216,9 +1214,11 @@ header {
     bulle.className = `bubble ${type}`;
     bulle.textContent = texte;
     container.appendChild(bulle);
-    setTimeout(() => bulle.remove(), 3000);
+    setTimeout(() => {
+      bulle.remove();
+    }, 3000);
   }
-
+  const patientRef = db.collection("patients").doc(patientId);
   function calculerAge(dateNaissance) {
     const birth = new Date(dateNaissance);
     const now = new Date();
@@ -1231,329 +1231,482 @@ header {
     }
     return age;
   }
-async function chargerServices() {
-  const servicesSelect = document.getElementById("service");
-  servicesSelect.innerHTML = "";
-  const doc = await db.collection("référentiels").doc("spécialités").get();
-  const data = doc.data();
-  (data?.spécialités || []).forEach(service => {
-    const option = document.createElement("option");
-    option.value = service;
-    option.textContent = service;
-    servicesSelect.appendChild(option);
-  });
+const modalSortie = document.getElementById("modalSortie");
+const btnSortie = document.getElementById("btnSortie");
+const btnAnnulerSortie = document.getElementById("btnAnnulerSortie");
+const btnValiderSortie = document.getElementById("btnValiderSortie");
+const sortieListe = document.getElementById("sortieListe");
+const champAutreSortie = document.getElementById("champAutreSortie");
+const champAutreOption = document.getElementById("champAutreOption");
+// Container dynamique pour les champs spécifiques
+const containerDynamique = document.createElement("div");
+containerDynamique.id = "optionsSpecifiques";
+document.querySelector("#modalSortie .modal").insertBefore(containerDynamique, sortieListe);
+
+function rafraichirChampsSortie() {
+  const typeSortie = document.querySelector('input[name="typeSortie"]:checked')?.value;
+  const optionsSortie = Array.from(document.querySelectorAll('input[name="optionsSortie"]:checked')).map(cb => cb.value);
+
+  containerDynamique.innerHTML = "";
+
+  if (typeSortie === "Transfert") {
+    const label = document.createElement("label");
+    label.textContent = "Destination du transfert";
+    const input = document.createElement("input");
+    input.type = "text";
+    input.id = "champDestinationTransfert";
+    input.placeholder = "Ex: CHU Lyon";
+    containerDynamique.appendChild(label);
+    containerDynamique.appendChild(input);
+  }
+
+  if (typeSortie === "Hospitalisation") {
+    const label = document.createElement("label");
+    label.textContent = "Service hospitalisation";
+    const select = document.createElement("select");
+    select.id = "champServiceHospitalisation";
+
+    db.collection("référentiels").doc("spécialités").get().then(doc => {
+      const data = doc.data();
+      (data?.spécialités || []).forEach(service => {
+        const option = document.createElement("option");
+        option.value = service;
+        option.textContent = service;
+        select.appendChild(option);
+      });
+    });
+
+    containerDynamique.appendChild(label);
+    containerDynamique.appendChild(select);
+  }
+
+  if (optionsSortie.includes("Avis specialiste")) {
+    const label = document.createElement("label");
+    label.textContent = "Spécialiste consulté";
+    const input = document.createElement("input");
+    input.type = "text";
+    input.id = "champAvisSpecialiste";
+    input.placeholder = "Ex: Dr Dupont (Cardio)";
+    containerDynamique.appendChild(label);
+    containerDynamique.appendChild(input);
+  }
 }
 
-  // ===================== GESTION DES ONGLETS =====================
-  function openTab(tabId, event) {
-    document.querySelectorAll(".tab-content").forEach(tc => tc.style.display = "none");
-    document.querySelectorAll(".tablink").forEach(tl => tl.classList.remove("active"));
+// Affichage du champ "autre"
+document.querySelector('input[name="typeSortie"][value="autre"]').addEventListener("change", () => {
+  champAutreSortie.style.display = "block";
+});
+document.querySelector('input[name="optionsSortie"][value="autreOption"]').addEventListener("change", (e) => {
+  champAutreOption.style.display = e.target.checked ? "block" : "none";
+});
 
-    document.getElementById(tabId).style.display = "block";
-    if (event) event.currentTarget.classList.add("active");
+// Rafraîchit les champs à chaque changement
+document.querySelectorAll('input[name="typeSortie"], input[name="optionsSortie"]').forEach(el =>
+  el.addEventListener("change", rafraichirChampsSortie)
+);
 
-    // Charger automatiquement les données selon l’onglet
-    if (tabId === "tab-sortie-docs") {
-      chargerSortie();
-    }
-    if (tabId === "tab-exam-actes") {
-      chargerExamens();
-      chargerActes();
-    }
-    if (tabId === "tab-dossier") {
-      // dossier médical déjà rempli via loadPatient
-    }
-    if (tabId === "tab-patient") {
-      // déjà géré via loadPatient
-    }
+document.querySelector('input[name="typeSortie"][value="autre"]').addEventListener("change", () => {
+  champAutreSortie.style.display = document.querySelector('input[name="typeSortie"][value="autre"]').checked ? "block" : "none";
+});
+document.querySelector('input[name="optionsSortie"][value="autreOption"]').addEventListener("change", () => {
+  champAutreOption.style.display = document.querySelector('input[name="optionsSortie"][value="autreOption"]').checked ? "block" : "none";
+});
+function afficherSortieListe(sortie) {
+  if (!sortie || !sortie.type) {
+    sortieListe.innerHTML = "<p>Aucune sortie enregistrée.</p>";
+    return;
   }
 
-  // ===================== SORTIE =====================
-  const modalSortie = document.getElementById("modalSortie");
-  const btnAnnulerSortie = document.getElementById("btnAnnulerSortie");
-  const btnValiderSortie = document.getElementById("btnValiderSortie");
-  const sortieListe = document.getElementById("sortieListe");
-  const champAutreSortie = document.getElementById("champAutreSortie");
-  const champAutreOption = document.getElementById("champAutreOption");
 
-  // Container dynamique pour options spécifiques
-  const containerDynamique = document.createElement("div");
-  containerDynamique.id = "optionsSpecifiques";
-  let parent = document.querySelector("#tab-sortie-docs");
-  if (parent && sortieListe) {
-      parent.insertBefore(containerDynamique, sortieListe);
-  } else if (parent) {
-      parent.appendChild(containerDynamique);
+  let html = `
+    <p><strong>Type de sortie :</strong> ${sortie.type}</p>
+    <p><strong>Options :</strong> ${sortie.options?.join(", ") || "Aucune"}</p>
+  `;
+
+  if (sortie.destinationTransfert) {
+    html += `<p><strong>↔️ Destination :</strong> ${sortie.destinationTransfert}</p>`;
   }
-  // ===================== FONCTIONS SORTIE =====================
-  async function chargerSortie() {
+
+  if (sortie.serviceHospitalisation) {
+    html += `<p><strong>🏥 Service :</strong> ${sortie.serviceHospitalisation}</p>`;
+  }
+
+  if (sortie.avisSpecialiste) {
+    html += `<p><strong>👨‍⚕️ Spécialiste :</strong> ${sortie.avisSpecialiste}</p>`;
+  }
+
+  if (sortie.autreOptionTexte) {
+    html += `<p><strong>🔤 Autre option :</strong> ${sortie.autreOptionTexte}</p>`;
+  }
+if (sortie.traitementSortie) {
+  html += `<p><strong>💊 Traitement de sortie :</strong> ${sortie.traitementSortie}</p>`;
+}
+  html += `
+    <button id="btnSupprimerSortie" class="danger" style="margin-top:10px;">🗑 Supprimer</button>
+  `;
+
+  sortieListe.innerHTML = html;
+
+  document.getElementById("btnSupprimerSortie").addEventListener("click", async () => {
+  const doc = await patientRef.get();
+  const data = doc.data();
+  const index = data.hospitalisationIndex ?? 0;
+  const hospitalisations = [...(data.hospitalisations || [])];
+
+  // Supprimer la sortie
+  delete hospitalisations[index].sortie;
+
+  // Vider le champ traitementSortie s'il est en dehors de "sortie"
+  if (hospitalisations[index].traitementSortie) {
+    hospitalisations[index].traitementSortie = "";
+  }
+
+  await patientRef.update({ hospitalisations });
+
+  sortieListe.innerHTML = "<p>Sortie supprimée.</p>";
+  afficherBulle("🗑️ Sortie supprimée", "administratif");
+});
+
+}
+
+function formaterDate(dateStr) {
+  if (!dateStr) return "";
+  const match = dateStr.match(/^(\d{2})[-\/](\d{2})[-\/](\d{4})$/);
+  if (match) {
+    const [_, jj, mm, aaaa] = match;
+    return `${aaaa}-${mm}-${jj}`;
+  }
+  if (dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
+    return dateStr;
+  }
+  return "";
+}
+
+
+
+btnSortie.addEventListener("click", async () => {
+  modalSortie.style.display = "flex";
+
+  const doc = await patientRef.get();
+  const data = doc.data();
+  const index = data.hospitalisationIndex ?? 0;
+  const sortie = data.hospitalisations?.[index]?.sortie || {};
+  document.getElementById("champTraitementSortie").value = sortie.traitementSortie || "";
+
+
+  // Sélection du type
+  document.querySelectorAll('input[name="typeSortie"]').forEach(r => {
+    r.checked = (r.value === sortie.type);
+  });
+
+  // Champ 'autre'
+  if (sortie.type && !["Retour à domicile", "Hospitalisation", "Transfert"].includes(sortie.type)) {
+    document.querySelector('input[name="typeSortie"][value="autre"]').checked = true;
+    champAutreSortie.value = sortie.type;
+    champAutreSortie.style.display = "block";
+  } else {
+    champAutreSortie.value = "";
+    champAutreSortie.style.display = "none";
+  }
+
+  // Options cochées
+  document.querySelectorAll('input[name="optionsSortie"]').forEach(cb => {
+    cb.checked = sortie.options?.includes(cb.value);
+  });
+
+  champAutreOption.style.display = sortie.options?.includes("autreOption") ? "block" : "none";
+  champAutreOption.value = sortie.autreOptionTexte || "";
+
+  // Rafraîchir les champs spécifiques (transfert, service, spécialiste)
+  setTimeout(() => {
+    rafraichirChampsSortie();
+    if (sortie.destinationTransfert)
+      document.getElementById("champDestinationTransfert").value = sortie.destinationTransfert;
+    if (sortie.serviceHospitalisation)
+      document.getElementById("champServiceHospitalisation").value = sortie.serviceHospitalisation;
+    if (sortie.avisSpecialiste)
+      document.getElementById("champAvisSpecialiste").value = sortie.avisSpecialiste;
+  }, 300);
+
+  afficherSortieListe(sortie);
+});
+
+btnValiderSortie.addEventListener("click", async () => {
+  const checked = document.querySelector('input[name="typeSortie"]:checked');
+  const traitementSortie = document.getElementById("champTraitementSortie").value.trim();
+
+  if (!checked) return alert("Veuillez sélectionner un type de sortie.");
+
+  let type = checked.value;
+  if (type === "autre") {
+    type = champAutreSortie.value.trim();
+    if (!type) return afficherBulle("❌ Précisez le type de sortie", "alerte");
+  }
+
+  const options = Array.from(document.querySelectorAll('input[name="optionsSortie"]:checked')).map(cb => cb.value);
+  const autreOptionTexte = options.includes("autreOption") ? champAutreOption.value.trim() : "";
+
+  const destinationTransfert = document.getElementById("champDestinationTransfert")?.value || "";
+  const serviceHospitalisation = document.getElementById("champServiceHospitalisation")?.value || "";
+  const avisSpecialiste = document.getElementById("champAvisSpecialiste")?.value || "";
+
+  const sortie = {
+  type,
+  options,
+  autreOptionTexte,
+  destinationTransfert,
+  serviceHospitalisation,
+  avisSpecialiste,
+  traitementSortie,
+  date: new Date().toLocaleString()
+};
+	
+
+  try {
     const doc = await patientRef.get();
     const data = doc.data();
     const index = data.hospitalisationIndex ?? 0;
-    const sortie = data.hospitalisations?.[index]?.sortie || {};
+    const hospitalisations = [...(data.hospitalisations || [])];
+    hospitalisations[index] = {
+      ...hospitalisations[index],
+      sortie
+    };
 
-    document.getElementById("champTraitementSortie").value = sortie.traitementSortie || "";
-
-    // Sélection du type
-    document.querySelectorAll('input[name="typeSortie"]').forEach(r => {
-      r.checked = (r.value === sortie.type);
-    });
-
-    // Champ 'autre'
-    if (sortie.type && !["Retour à domicile", "Hospitalisation", "Transfert"].includes(sortie.type)) {
-      document.querySelector('input[name="typeSortie"][value="autre"]').checked = true;
-      champAutreSortie.value = sortie.type;
-      champAutreSortie.style.display = "block";
-    } else {
-      champAutreSortie.value = "";
-      champAutreSortie.style.display = "none";
-    }
-
-    // Options cochées
-    document.querySelectorAll('input[name="optionsSortie"]').forEach(cb => {
-      cb.checked = sortie.options?.includes(cb.value);
-    });
-
-    champAutreOption.style.display = sortie.options?.includes("autreOption") ? "block" : "none";
-    champAutreOption.value = sortie.autreOptionTexte || "";
-
+    await patientRef.update({ hospitalisations });
+    afficherBulle("✔️ Sortie enregistrée", "administratif");
+    ajouterEntreeHistorique(`Sortie : ${type} (${options.join(", ")})`);
     afficherSortieListe(sortie);
+    modalSortie.style.display = "none";
+  } catch (err) {
+    console.error("Erreur enregistrement sortie :", err);
+    afficherBulle("❌ Erreur enregistrement", "alerte");
   }
+});
 
-  function afficherSortieListe(sortie) {
-    if (!sortie || !sortie.type) {
-      sortieListe.innerHTML = "<p>Aucune sortie enregistrée.</p>";
+btnAnnulerSortie.addEventListener("click", () => {
+  modalSortie.style.display = "none";
+});
+
+async function loadPatient() {
+  const overlay = document.getElementById("loadingOverlay");
+  if (overlay) overlay.style.display = "flex";
+
+  try {
+    const doc = await patientRef.get();
+    if (!doc.exists) {
+      afficherBulle("❌ Patient introuvable", "alerte");
       return;
     }
 
-    let html = `
-      <p><strong>Type de sortie :</strong> ${sortie.type}</p>
-      <p><strong>Options :</strong> ${sortie.options?.join(", ") || "Aucune"}</p>
-    `;
+    const data = doc.data();
+    const index = data.hospitalisationIndex ?? 0;
+    const hospi = data.hospitalisations?.[index];
 
-    if (sortie.destinationTransfert) {
-      html += `<p><strong>↔️ Destination :</strong> ${sortie.destinationTransfert}</p>`;
-    }
-    if (sortie.serviceHospitalisation) {
-      html += `<p><strong>🏥 Service :</strong> ${sortie.serviceHospitalisation}</p>`;
-    }
-    if (sortie.avisSpecialiste) {
-      html += `<p><strong>👨‍⚕️ Spécialiste :</strong> ${sortie.avisSpecialiste}</p>`;
-    }
-    if (sortie.autreOptionTexte) {
-      html += `<p><strong>🔤 Autre option :</strong> ${sortie.autreOptionTexte}</p>`;
-    }
-    if (sortie.traitementSortie) {
-      html += `<p><strong>💊 Traitement de sortie :</strong> ${sortie.traitementSortie}</p>`;
+    // 🔹 Informations patient
+    document.getElementById("nom").textContent = data.nom || "";
+    document.getElementById("prenom").textContent = data.prenom || "";
+    document.getElementById("sexe").textContent = data.sexe || "";
+    document.getElementById("poids").value = data.poids || "";
+    document.getElementById("taille").value = data.taille || "";
+
+    // 🔹 Calcul IMC
+    const elImc = document.getElementById("imc");
+    const poids = parseFloat(data.poids);
+    const taille = parseFloat(data.taille);
+    if (!isNaN(poids) && !isNaN(taille) && taille > 0) {
+      const imc = poids / ((taille / 100) ** 2);
+      elImc.textContent = imc.toFixed(1);
+    } else {
+      elImc.textContent = "–";
     }
 
-    html += `<button id="btnSupprimerSortie" class="danger" style="margin-top:10px;">🗑 Supprimer</button>`;
-    sortieListe.innerHTML = html;
+    // 🔹 Calcul âge
+    const elAge = document.getElementById("age");
+    if (elAge && data.dateNaissance) {
+      const age = calculerAge(data.dateNaissance);
+      elAge.textContent = !isNaN(age) ? `${age} ans` : "Inconnu";
+    }
 
-    document.getElementById("btnSupprimerSortie").addEventListener("click", async () => {
-      const doc = await patientRef.get();
-      const data = doc.data();
-      const index = data.hospitalisationIndex ?? 0;
-      const hospitalisations = [...(data.hospitalisations || [])];
+    if (hospi) {
+      // 🔹 Informations d’hospitalisation
+      document.getElementById("gravite").value = hospi.gravite || "";
+      document.getElementById("motif").value = hospi.motif || "";
+      document.getElementById("moyen").value = hospi.moyen || "";
 
-      // Supprimer la sortie
-      delete hospitalisations[index].sortie;
-      if (hospitalisations[index].traitementSortie) {
-        hospitalisations[index].traitementSortie = "";
-      }
+      // 🔹 Constantes vitales
+      document.getElementById("temperature").value = hospi.constantes?.temperature || "";
+      document.getElementById("fc").value = hospi.constantes?.fc || "";
+      document.getElementById("ta").value = hospi.constantes?.ta || "";
+      document.getElementById("saturation").value = hospi.constantes?.saturation || "";
+	  document.getElementById("fr").value = hospi.constantes?.fr || "";
+      document.getElementById("douleur").value = hospi.constantes?.douleur || "";
 
-      await patientRef.update({ hospitalisations });
-      sortieListe.innerHTML = "<p>Sortie supprimée.</p>";
-      afficherBulle("🗑️ Sortie supprimée", "administratif");
-    });
+      // 🔹 Dossier médical (nouvelle section)
+      const dm = hospi.dossierMedical || {};
+	  document.getElementById("questionnaire").value = dm.questionnaire || "";
+      document.getElementById("antecedents").value = dm.antecedents || "";
+      document.getElementById("traitements").value = dm.traitements || "";
+      document.getElementById("histoire").value = dm.histoire || "";
+      document.getElementById("auscultation").value = dm.auscultation || "";
+
+      // 🔹 Évolution aux urgences
+      document.getElementById("evolutionTexte").value = hospi.evolution || "";
+
+      // 🔹 Services / historique
+      chargerServices();
+      clearHistorique();
+      await chargerHistorique();
+    }
+
+  } catch (error) {
+    console.error("Erreur chargement patient :", error);
+    afficherBulle("❌ Erreur de chargement", "alerte");
+  } finally {
+    if (overlay) overlay.style.display = "none"; // 👈 Très important pour débloquer l'écran
   }
+}
 
-  btnValiderSortie.addEventListener("click", async () => {
-    const checked = document.querySelector('input[name="typeSortie"]:checked');
-    const traitementSortie = document.getElementById("champTraitementSortie").value.trim();
-    if (!checked) return alert("Veuillez sélectionner un type de sortie.");
+    
 
-    let type = checked.value;
-    if (type === "autre") {
-      type = champAutreSortie.value.trim();
-      if (!type) return afficherBulle("❌ Précisez le type de sortie", "alerte");
-    }
 
-    const options = Array.from(document.querySelectorAll('input[name="optionsSortie"]:checked')).map(cb => cb.value);
-    const autreOptionTexte = options.includes("autreOption") ? champAutreOption.value.trim() : "";
-
-    const sortie = {
-      type,
-      options,
-      autreOptionTexte,
-      traitementSortie,
-      date: new Date().toLocaleString()
+	document.getElementById("gravite").addEventListener("change", async (e) => {
+  const gravite = e.target.value;
+  try {
+    const doc = await patientRef.get();
+    const data = doc.data();
+    const index = data.hospitalisationIndex ?? 0;
+    const hospitalisations = [...(data.hospitalisations || [])];
+    if (!hospitalisations[index]) return;
+    hospitalisations[index] = {
+      ...hospitalisations[index],
+      gravite
     };
+    await patientRef.update({
+      hospitalisations,
+    });
+    ajouterEntreeHistorique(`Changement de gravité à ${gravite}`);
+  } catch (err) {
+    console.error("Erreur mise à jour gravité :", err);
+  }
+  document.getElementById("loadingOverlay").style.display = "none";
 
-    try {
-      const doc = await patientRef.get();
-      const data = doc.data();
-      const index = data.hospitalisationIndex ?? 0;
-      const hospitalisations = [...(data.hospitalisations || [])];
-      hospitalisations[index] = { ...hospitalisations[index], sortie };
+});
 
-      await patientRef.update({ hospitalisations });
-      afficherBulle("✔️ Sortie enregistrée", "administratif");
-      afficherSortieListe(sortie);
-    } catch (err) {
-      console.error("Erreur enregistrement sortie :", err);
-      afficherBulle("❌ Erreur enregistrement", "alerte");
+async function ajouterEntreeHistorique(texte) {
+  const date = new Date().toLocaleString();
+  const entree = { date, texte };
+
+  try {
+    const doc = await patientRef.get();
+    const data = doc.data();
+    const index = data.hospitalisationIndex ?? 0;
+
+    const hospitalisations = data.hospitalisations || [];
+    hospitalisations[index] = hospitalisations[index] || {};
+    hospitalisations[index].historique = hospitalisations[index].historique || [];
+
+    hospitalisations[index].historique.push(entree);
+
+    await patientRef.update({ hospitalisations });
+
+    afficherHistorique(entree);
+  } catch (error) {
+    console.error("Erreur ajout historique :", error);
+  }
+}
+
+document.getElementById("motif").addEventListener("blur", async (e) => {
+  const motif = e.target.value.trim();
+  try {
+    const doc = await patientRef.get();
+    const data = doc.data();
+    const index = data.hospitalisationIndex ?? 0;
+    const hospitalisations = [...(data.hospitalisations || [])];
+    if (!hospitalisations[index]) return;
+    hospitalisations[index] = {
+      ...hospitalisations[index],
+      motif
+    };
+    await patientRef.update({
+      hospitalisations,
+    });
+    ajouterEntreeHistorique(`Modification du motif d'entrée : ${motif}`);
+  } catch (err) {
+    console.error("Erreur mise à jour motif :", err);
+  }
+});
+document.getElementById("moyen").addEventListener("blur", async (e) => {
+  const moyen = e.target.value.trim();
+  try {
+    const doc = await patientRef.get();
+    const data = doc.data();
+    const index = data.hospitalisationIndex ?? 0;
+    const hospitalisations = [...(data.hospitalisations || [])];
+    if (!hospitalisations[index]) return;
+    hospitalisations[index] = {
+      ...hospitalisations[index],
+      moyen
+    };
+    await patientRef.update({ hospitalisations });
+    ajouterEntreeHistorique(`Modification du moyen d'entrée : ${moyen}`);
+  } catch (err) {
+    console.error("Erreur mise à jour moyen d'entrée :", err);
+  }
+});
+
+  document.getElementById("btnSavePoids").addEventListener("click", async () => {
+    const poids = parseFloat(document.getElementById("poids").value);
+    const taille = parseFloat(document.getElementById("taille").value);
+    if (!poids || !taille) {
+      afficherBulle("❌Veuillez entrer un poids et une taille valide", "alerte");
+      return;
     }
+    await patientRef.update({ poids, taille });
+    ajouterEntreeHistorique(`Poids/Taille/IMC enregistrés: ${poids}kg / ${taille}cm`);
+    afficherBulle("✔️Poids et taille enregistrée", "administratif");
   });
+document.getElementById("gravite").addEventListener("change", async e => {
+  const gravite = e.target.value;
 
-  btnAnnulerSortie.addEventListener("click", () => {
-    chargerSortie();
-  });
+  try {
+    const doc = await patientRef.get();
+    if (!doc.exists) return;
 
-  // ===================== EXAMENS =====================
-  async function chargerExamens() {
-    try {
-      const doc = await patientRef.get();
-      const data = doc.data();
-      const index = data.hospitalisationIndex ?? 0;
-      const hospi = data.hospitalisations?.[index] || {};
-      const examens = hospi.examens || [];
+    const data = doc.data();
+    const index = data.hospitalisationIndex ?? 0;
+    const hospitalisations = Array.isArray(data.hospitalisations) ? [...data.hospitalisations] : [];
 
-      const examensSelectionnes = document.getElementById("examensSelectionnes");
-      examensSelectionnes.innerHTML = "";
+    hospitalisations[index] = hospitalisations[index] || {};
+    hospitalisations[index].gravite = gravite;
 
-      if (examens.length === 0) {
-        examensSelectionnes.innerHTML = "<p>Aucun examen enregistré.</p>";
-        return;
-      }
-
-      examens.forEach(exam => {
-        const div = document.createElement("div");
-        div.textContent = `• ${exam.nom} (${exam.commentaire || "—"})`;
-        examensSelectionnes.appendChild(div);
-      });
-    } catch (err) {
-      console.error("Erreur chargement examens :", err);
-      afficherBulle("❌ Erreur chargement examens", "alerte");
-    }
+    await patientRef.update({ hospitalisations });
+    ajouterEntreeHistorique(`Changement de gravité à ${gravite}`);
+  } catch (error) {
+    console.error("Erreur lors de la mise à jour de la gravité :", error);
   }
+});
 
-  // ===================== ACTES =====================
-  async function chargerActes() {
-    try {
-      const doc = await patientRef.get();
-      const data = doc.data();
-      const index = data.hospitalisationIndex ?? 0;
-      const hospi = data.hospitalisations?.[index] || {};
-      const actes = hospi.actes || [];
+document.getElementById("motif").addEventListener("blur", async e => {
+  const motif = e.target.value;
 
-      const listeActesRealises = document.getElementById("listeActesRealises");
-      listeActesRealises.innerHTML = "";
+  try {
+    const doc = await patientRef.get();
+    if (!doc.exists) return;
 
-      if (actes.length === 0) {
-        listeActesRealises.innerHTML = "<p>Aucun acte enregistré.</p>";
-        return;
-      }
+    const data = doc.data();
+    const index = data.hospitalisationIndex ?? 0;
+    const hospitalisations = Array.isArray(data.hospitalisations) ? [...data.hospitalisations] : [];
 
-      actes.forEach(acte => {
-        const div = document.createElement("div");
-        div.className = "prescription-item";
-        div.innerHTML = `
-          <span>${acte.type} — ${acte.realisateur || "?"}</span>
-          <span>${acte.remarque || ""}</span>
-        `;
-        listeActesRealises.appendChild(div);
-      });
-    } catch (err) {
-      console.error("Erreur chargement actes :", err);
-      afficherBulle("❌ Erreur chargement actes", "alerte");
-    }
+    hospitalisations[index] = hospitalisations[index] || {};
+    hospitalisations[index].motif = motif;
+
+    await patientRef.update({ hospitalisations });
+    ajouterEntreeHistorique(`Modification du motif d'entrée : ${motif}`);
+  } catch (error) {
+    console.error("Erreur lors de la mise à jour du motif :", error);
   }
+});
 
-  // ===================== DOCUMENTS =====================
-  async function chargerDocuments() {
-    // Ici tu peux ajouter de la logique si tu stockes en base
-    // Pour l'instant, les boutons de génération de documents fonctionnent directement
-  }
-  // ===================== PATIENT =====================
-  async function loadPatient() {
-    const overlay = document.getElementById("loadingOverlay");
-    if (overlay) overlay.style.display = "flex";
-
-    try {
-      const doc = await patientRef.get();
-      if (!doc.exists) {
-        afficherBulle("❌ Patient introuvable", "alerte");
-        return;
-      }
-
-      const data = doc.data();
-      const index = data.hospitalisationIndex ?? 0;
-      const hospi = data.hospitalisations?.[index];
-
-      // 🔹 Informations patient
-      document.getElementById("nom").textContent = data.nom || "";
-      document.getElementById("prenom").textContent = data.prenom || "";
-      document.getElementById("sexe").textContent = data.sexe || "";
-      document.getElementById("poids").value = data.poids || "";
-      document.getElementById("taille").value = data.taille || "";
-
-      // 🔹 Calcul IMC
-      const elImc = document.getElementById("imc");
-      const poids = parseFloat(data.poids);
-      const taille = parseFloat(data.taille);
-      if (!isNaN(poids) && !isNaN(taille) && taille > 0) {
-        const imc = poids / ((taille / 100) ** 2);
-        elImc.textContent = imc.toFixed(1);
-      } else {
-        elImc.textContent = "–";
-      }
-
-      // 🔹 Calcul âge
-      const elAge = document.getElementById("age");
-      if (elAge && data.dateNaissance) {
-        const age = calculerAge(data.dateNaissance);
-        elAge.textContent = !isNaN(age) ? `${age} ans` : "Inconnu";
-      }
-
-      if (hospi) {
-        // 🔹 Informations d’hospitalisation
-        document.getElementById("gravite").value = hospi.gravite || "";
-        document.getElementById("motif").value = hospi.motif || "";
-        document.getElementById("moyen").value = hospi.moyen || "";
-
-        // 🔹 Constantes vitales
-        document.getElementById("temperature").value = hospi.constantes?.temperature || "";
-        document.getElementById("fc").value = hospi.constantes?.fc || "";
-        document.getElementById("ta").value = hospi.constantes?.ta || "";
-        document.getElementById("saturation").value = hospi.constantes?.saturation || "";
-        document.getElementById("fr").value = hospi.constantes?.fr || "";
-        document.getElementById("douleur").value = hospi.constantes?.douleur || "";
-
-        // 🔹 Dossier médical
-        const dm = hospi.dossierMedical || {};
-        document.getElementById("questionnaire").value = dm.questionnaire || "";
-        document.getElementById("antecedents").value = dm.antecedents || "";
-        document.getElementById("traitements").value = dm.traitements || "";
-        document.getElementById("histoire").value = dm.histoire || "";
-        document.getElementById("auscultation").value = dm.auscultation || "";
-
-        // 🔹 Évolution aux urgences
-        document.getElementById("evolutionTexte").value = hospi.evolution || "";
-
-        // 🔹 Services / historique
-        chargerServices();
-        clearHistorique();
-        await chargerHistorique();
-      }
-
-    } catch (error) {
-      console.error("Erreur chargement patient :", error);
-      afficherBulle("❌ Erreur de chargement", "alerte");
-    } finally {
-      if (overlay) overlay.style.display = "none";
-    }
-  }
 document.getElementById("btnSaveConst").addEventListener("click", async () => {
   const constantes = {
     temperature: document.getElementById("temperature").value.trim() || "",
@@ -1564,7 +1717,27 @@ document.getElementById("btnSaveConst").addEventListener("click", async () => {
     douleur: document.getElementById("douleur").value.trim() || ""
   };
 
- 
+  try {
+    const doc = await patientRef.get();
+    const data = doc.data();
+    const index = data.hospitalisationIndex ?? 0;
+    const hospitalisations = [...(data.hospitalisations || [])];
+
+    hospitalisations[index] = {
+      ...hospitalisations[index],
+      constantes
+    };
+
+    await patientRef.update({ hospitalisations });
+
+    ajouterEntreeHistorique(`Constantes enregistrées: Temp ${constantes.temperature}, FC ${constantes.fc}, TA ${constantes.ta}, Sat ${constantes.saturation} %, FR ${constantes.fr}, Douleur ${constantes.douleur} /10`);
+    afficherBulle("✔️Constantes enregistrées", "administratif");
+  } catch (e) {
+    console.error("Erreur enregistrement constantes :", e);
+    afficherBulle("❌ Erreur enregistrement", "alerte");
+  }
+});
+
  
 
   const historiqueContainer = document.getElementById("historique");
@@ -1592,233 +1765,218 @@ async function chargerHistorique() {
     console.error("Erreur chargement historique :", error);
   }
 }
-document.getElementById("btnGlasgow").addEventListener("click", () => {
-  document.getElementById("modalGlasgow").style.display = "flex";
-});
-	document.getElementById("btnFermerGlasgow").addEventListener("click", () => {
-  document.getElementById("modalGlasgow").style.display = "none";
-});
-	["glasgowYeux", "glasgowVerbal", "glasgowMoteur"].forEach(id => {
-  document.getElementById(id).addEventListener("input", () => {
-    const yeux = parseInt(document.getElementById("glasgowYeux").value) || 0;
-    const verbal = parseInt(document.getElementById("glasgowVerbal").value) || 0;
-    const moteur = parseInt(document.getElementById("glasgowMoteur").value) || 0;
-    const total = yeux + verbal + moteur;
-    document.getElementById("glasgowTotal").value = total;
 
-    const pronostic = document.getElementById("glasgowPronostic");
-    if (total <= 4) pronostic.innerText = " 7 % de bonne récupération et 87 % de mortalité.";
-    else if (total <= 7) pronostic.innerText = "34 % de bonne récupération et 53 % de mortalité.";
-    else if (total <= 10) pronostic.innerText = " 68 % de bonne récupération et 27 % de mortalité.";
-    else pronostic.innerText = " 82 % de bonne récupération et 12 % de mortalité.";
-  
-  const pronostic2 = document.getElementById("glasgowPronostic2");
-    if (total <= 6) pronostic.innerText = "Coma Profond";
-    else if (total <= 9) pronostic.innerText = "Coma Lourd";
-    else if (total <= 14) pronostic.innerText = "Somnoloence / Coma Léger";
-    else pronostic.innerText = "Conscience Normale";
-});
-});
-function toggleSublist(id) {
-    const list = document.getElementById(id);
-    list.style.display = list.style.display === "block" ? "none" : "block";
+// Fonction d'affichage d'une seule entrée dans le DOM
+function afficherHistorique(entry) {
+  if (!historiqueContainer) return;
+  const div = document.createElement("div");
+  div.className = "entry";
+  div.innerHTML = `<strong>${entry.date}</strong><br>${entry.texte}`;
+  historiqueContainer.appendChild(div);
+}
+
+  function afficherHistoriqueAncienne(hospitalisation, index) {
+    if (!historiqueAncienContainer) return;
+    const titre = document.createElement("div");
+    titre.innerHTML = `<strong style="color:#d9534f">Hospitalisation ${index + 1} (${hospitalisation.dateDebut} - ${hospitalisation.dateFin || "en cours"})</strong>`;
+    historiqueAncienContainer.appendChild(titre);
+    hospitalisation.historique?.forEach(entry => afficherHistorique(entry, "ancien"));
   }
+  function clearHistoriqueAnciennes() {
+    if(historiqueAncienContainer) historiqueAncienContainer.innerHTML = "";
+  }
+  function clearHistorique() {
+    if(historiqueContainer) historiqueContainer.innerHTML = "";
+  }
+  const btnDemandeExamen = document.getElementById("btnDemandeExamen");
+const fenetreExamens = document.getElementById("fenetreExamens");
+const listeExamens = document.getElementById("listeExamens");
+const btnOuvrirModaleDemande = document.getElementById("btnOuvrirModaleDemande");
+const btnFermerFenetreExamens = document.getElementById("btnFermerFenetreExamens");
 
-  function toggleExam(checkbox) {
-    if (checkbox.checked) {
-      const item = document.createElement('div');
-      item.className = 'prescription-item';
-      item.textContent = checkbox.value;
-      item.dataset.exam = checkbox.value;
-      const del = document.createElement('button');
-      del.textContent = "✖";
-      del.className = "btn-delete";
-      del.onclick = () => {
-        item.remove();
-        checkbox.checked = false;
-      };
-      item.appendChild(del);
-      document.getElementById('prescription-list').appendChild(item);
+const modalExamen = document.getElementById("modalExamen");
+const typeExamen = document.getElementById("typeExamen");
+const commentaireExamen = document.getElementById("commentaireExamen");
+const btnSaveExamen = document.getElementById("btnSaveExamen");
+const btnCancelExamen = document.getElementById("btnCancelExamen");
+
+btnDemandeExamen.addEventListener("click", async () => {
+  listeExamens.innerHTML = "<em>Chargement...</em>";
+  fenetreExamens.style.display = "flex";
+
+  try {
+    const doc = await patientRef.get();
+    if (!doc.exists) return;
+    const data = doc.data();
+    const index = data.hospitalisationIndex ?? 0;
+    const examens = data.hospitalisations?.[index]?.examens || [];
+
+    if (examens.length === 0) {
+      listeExamens.innerHTML = "<p>Aucun examen demandé.</p>";
+      return;
     }
+
+    listeExamens.innerHTML = examens
+      .map((examen, i) => `
+        <div style="border:1px solid #ccc; padding:5px; margin-bottom:5px;">
+          <strong>${examen.type.toUpperCase()}</strong> - demandé le ${examen.dateDemande}
+          <br>
+          ${examen.commentaire ? "💬 " + examen.commentaire + "<br>" : ""}
+          ${examen.realise ? `✅ Réalisé le ${examen.dateRealisation}<br>📝 CR : ${examen.compteRendu}` : "⏳ En attente de réalisation"}
+        </div>
+      `)
+      .join("");
+  } catch (e) {
+    console.error("Erreur récupération examens :", e);
+    listeExamens.innerHTML = "<p style='color:red;'>Erreur de chargement</p>";
   }
-document.getElementById("btnEnregistrerGlasgow").addEventListener("click", async () => {
-  const yeux = parseInt(document.getElementById("glasgowYeux").value) || 0;
-  const verbal = parseInt(document.getElementById("glasgowVerbal").value) || 0;
-  const moteur = parseInt(document.getElementById("glasgowMoteur").value) || 0;
-  const total = yeux + verbal + moteur;
-  const texte = `Score de Glasgow enregistré : ${total} (Yeux ${yeux}, Verbal ${verbal}, Moteur ${moteur})`;
+});
+
+btnFermerFenetreExamens.addEventListener("click", () => {
+  fenetreExamens.style.display = "none";
+});
+
+btnOuvrirModaleDemande.addEventListener("click", () => {
+  
+  commentaireExamen.value = "";
+  modalExamen.style.display = "flex";
+});
+
+// Modale annulation
+btnCancelExamen.addEventListener("click", () => {
+  modalExamen.style.display = "none";
+});
+
+document.getElementById("btnSaveExamen").addEventListener("click", async () => {
+  const commentaire = document.getElementById("commentaireExamen").value.trim();
+
+  // Récupérer tous les examens cochés
+  const checkboxes = document.querySelectorAll("#modalExamen input[type='checkbox']:checked");
+  const examens = Array.from(checkboxes).map(cb => cb.value);
+
+  if (examens.length === 0) {
+    afficherBulle("❌ Veuillez sélectionner au moins un examen", "alerte");
+    return;
+  }
+
+  const date = new Date().toLocaleString();
 
   try {
     const doc = await patientRef.get();
     const data = doc.data();
     const index = data.hospitalisationIndex ?? 0;
     const hospitalisations = [...(data.hospitalisations || [])];
-    hospitalisations[index].glasgow = { yeux, verbal, moteur, total, date: new Date().toISOString() };
+
+    if (!hospitalisations[index].examens) hospitalisations[index].examens = [];
+
+    // Ajouter chaque examen individuellement
+    examens.forEach(type => {
+      hospitalisations[index].examens.push({
+        type,
+        commentaire,
+        dateDemande: date,
+        realise: false
+      });
+    });
 
     await patientRef.update({ hospitalisations });
 
-    await ajouterEntreeHistorique(texte);
-    afficherBulle("✔️ Score de Glasgow enregistré", "administratif");
-    document.getElementById("modalGlasgow").style.display = "none";
-  } catch (e) {
-    console.error("Erreur enregistrement Glasgow :", e);
+    modalExamen.style.display = "none";
+    afficherBulle("✔️ Examens enregistrés", "administratif");
+    ajouterEntreeHistorique(`📋 Examens demandés : ${examens.join(", ")}`);
+  } catch (err) {
+    console.error("Erreur enregistrement examens :", err);
     afficherBulle("❌ Erreur enregistrement", "alerte");
   }
+  
 });
-function ajouterHorodatage() {
-  const textarea = document.getElementById("texteRemarque");
-  const now = new Date();
-  const dateStr = now.toLocaleDateString('fr-FR');
-  const timeStr = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-  const horodatage = `${dateStr} ${timeStr} - ${medecinNom} : `;
-
-  textarea.value += textarea.value && !textarea.value.endsWith('\n') ? '\n' + horodatage : horodatage;
-  textarea.focus();
-}
-
-function ajouterHorodatageDans(id) {
-  const textarea = document.getElementById(id);
-  if (!textarea) return;
-
-  const horodatage = new Date().toLocaleString("fr-FR");
-const insertion = `${horodatage} - ${window.medecinNom}\n`;
-
-  const start = textarea.selectionStart;
-  const end = textarea.selectionEnd;
-
-  const texteAvant = textarea.value.substring(0, start);
-  const texteApres = textarea.value.substring(end);
-
-  textarea.value = texteAvant + insertion + texteApres;
-
-  const nouvellePosition = start + insertion.length;
-  textarea.selectionStart = textarea.selectionEnd = nouvellePosition;
-  textarea.focus();
-}
-async function enregistrerDossierMedical() {
-const questionnaire = document.getElementById("questionnaire").value.trim();
-  const antecedents = document.getElementById("antecedents").value.trim();
-  const traitements = document.getElementById("traitements").value.trim();
-  const histoire = document.getElementById("histoire").value.trim();
-  const auscultation = document.getElementById("auscultation").value.trim();
+  document.getElementById("btnCloturer").addEventListener("click", async () => {
+  const code = prompt("Entrez le code secret pour clôturer l'hospitalisation :");
+  if (!code) return;
 
   try {
-    const doc = await patientRef.get();
-    const data = doc.data();
-    const index = data.hospitalisationIndex ?? 0;
-    const hospitalisations = [...(data.hospitalisations || [])];
+    const codeDoc = await db.collection("patients").doc("QhwMJ0mjmUnS8MTNBCFU").get();
+    const codeAttendu = codeDoc.data().QhwMJ0mjmUnS8MTNBCFU;
 
-    hospitalisations[index].dossierMedical = {
-	questionnaire,
-      antecedents,
-      traitements,
-      histoire,
-      auscultation
-    };
-
-    await patientRef.update({ hospitalisations });
-    afficherBulle("💾 Dossier médical enregistré", "administratif");
-    ajouterEntreeHistorique("📝 Dossier médical mis à jour");
-  } catch (err) {
-    console.error("Erreur enregistrement dossier médical :", err);
-    afficherBulle("❌ Erreur lors de l'enregistrement", "alerte");
-  }
-}
-
-async function enregistrerEvolution() {
-  const texte = document.getElementById("evolutionTexte").value.trim();
-
-  try {
-    const doc = await patientRef.get();
-    const data = doc.data();
-    const index = data.hospitalisationIndex ?? 0;
-    const hospitalisations = [...(data.hospitalisations || [])];
-
-    hospitalisations[index].evolution = texte;
-
-    await patientRef.update({ hospitalisations });
-    afficherBulle("💾 Évolution enregistrée", "administratif");
-    ajouterEntreeHistorique("📈 Évolution mise à jour");
-  } catch (err) {
-    console.error("Erreur enregistrement évolution :", err);
-    afficherBulle("❌ Erreur lors de l'enregistrement", "alerte");
-  }
-}
-
-document.getElementById("btnVoirRawData").addEventListener("click", async () => {
-const params = new URLSearchParams(window.location.search);
-const id = params.get("id");
-
-  const modal = document.getElementById("modalRawData");
-  const content = document.getElementById("rawDataContent");
-
-  try {
-    const docRef = db.collection("patients").doc(id); // 🔁 Assure-toi que `id` est bien défini
-    const docSnap = await docRef.get();
-
-    if (docSnap.exists) {
-      content.textContent = JSON.stringify(docSnap.data(), null, 2); // Beautified JSON
-      modal.style.display = "flex";
-    } else {
-      content.textContent = "⚠️ Patient introuvable.";
-      modal.style.display = "flex";
-    }
-  } catch (e) {
-    content.textContent = "❌ Erreur lors de la récupération des données.";
-    modal.style.display = "flex";
-  }
-});
-
-document.getElementById("closeRawData").addEventListener("click", () => {
-  document.getElementById("modalRawData").style.display = "none";
-});
-
-async function remplirDepuisAncienneHospi(champ) {
-  try {
-    const doc = await patientRef.get();
-    const data = doc.data();
-    const index = data.hospitalisationIndex ?? 0;
-
-    if (index <= 0) {
-      afficherBulle("❌ Aucune hospitalisation antérieure", "alerte");
+    if (code !== codeAttendu) {
+      afficherBulle("❌ Code incorrect", "alerte");
       return;
     }
 
-    const ancienne = data.hospitalisations?.[index - 1]?.dossierMedical;
-    if (!ancienne || !ancienne[champ]) {
-      afficherBulle(`❌ Pas d'ancien contenu pour ${champ}`, "alerte");
-      return;
-    }
+    // Code correct → démarrage clôture
+    document.getElementById("modalCloture").style.display = "flex";
+    const bar = document.getElementById("clotureBar");
+    bar.style.width = "0%";
+    let progress = 0;
 
-    const contenu = ancienne[champ].trim();
-    const textarea = document.getElementById(champ);
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
+    const interval = setInterval(() => {
+      progress += 1;
+      bar.style.width = `${progress}%`;
+      if (progress >= 100) clearInterval(interval);
+    }, 30);
 
-    const avant = textarea.value.substring(0, start);
-    const apres = textarea.value.substring(end);
-    const insertion = contenu + "\n";
+    setTimeout(async () => {
+      try {
+        const now = new Date().toLocaleString();
+        const doc = await patientRef.get();
+        const data = doc.data();
+        const index = data.hospitalisationIndex ?? 0;
+        const hospitalisations = data.hospitalisations || [];
 
-    textarea.value = avant + insertion + apres;
+        if (hospitalisations[index]) {
+          hospitalisations[index].dateFin = now;
+          hospitalisations[index].historique = hospitalisations[index].historique || [];
+          hospitalisations[index].historique.push({ date: now, texte: "Hospitalisation clôturée" });
+          hospitalisations[index].rapport = `Rapport d'hospitalisation pour ${data.nom} ${data.prenom} clôturé le ${now}.`;
 
-    const nouvellePosition = start + insertion.length;
-    textarea.selectionStart = textarea.selectionEnd = nouvellePosition;
-    textarea.focus();
+          await patientRef.update({
+            hospitalisations,
+            hospitalisationIndex: index + 1,
+            hospitalisationActive: false
+          });
 
-    afficherBulle(`📁 Ancien ${champ} inséré`, "administratif");
+          alert("✅ Hospitalisation clôturée.");
+window.location.href = "urgences.html?id=QhwMJ0mjmUnS8MTNBCFU";
+        }
+      } catch (error) {
+        console.error("Erreur clôture hospitalisation :", error);
+        afficherBulle("⚠️Erreur de clôture", "alerte");
+      } finally {
+        document.getElementById("modalCloture").style.display = "none";
+      }
+    }, 3200);
 
   } catch (err) {
-    console.error("Erreur récupération données précédentes :", err);
-    afficherBulle("❌ Erreur de récupération", "alerte");
+    console.error("Erreur lors de la vérification du code :", err);
+    afficherBulle("Erreur de vérification du code", "alerte");
   }
-}
-
-document.getElementById("btnRapportHospi").addEventListener("click", () => {
-  const url = `rapporthospitalisation.html?id=${patientId}`;
-  document.getElementById("contenu").innerHTML = `
-    <iframe src="${url}" style="width:100%;height:100vh;border:none;"></iframe>
-  `;
 });
+
+  document.getElementById("btnRetour").addEventListener("click", () => {
+  window.location.href = "urgences.html?id=QhwMJ0mjmUnS8MTNBCFU";
+});
+
+  
+
+
+ document.getElementById("btnEnregistrerModifs").addEventListener("click", () => {
+    document.getElementById("popupNavigation").style.display = "flex";
+  });
+
+  document.getElementById("btnVersFiche").addEventListener("click", () => {
+    window.open(`Ordonnancier.html?id=${patientId}`, '_blank');
+  });
+document.getElementById("btnVersExs").addEventListener("click", () => {
+    window.open(`prescriptionexamens.html?id=${patientId}`, '_blank');
+  });
+  document.getElementById("btnVersSynthese").addEventListener("click", () => {
+    window.open(`Certificatmedical.html?id=${patientId}`, '_blank');
+  });
+  document.getElementById("btnVersFiches").addEventListener("click", () => {
+    window.open(`fichesconseil.html`, '_blank');
+  });
+
+// Gestion Administrative
 const modalAdmin = document.getElementById("modalAdmin");
 const btnAdmin = document.getElementById("btnAdmin");
 const btnFermerAdmin = document.getElementById("btnFermerAdmin");
@@ -1878,7 +2036,7 @@ const modal = document.getElementById('facturationModale');
     modal.style.display = 'none';
 	});
   window.open(`Facturation.html?id=${patientId}`, "_blank");
-});	
+});
 
 let tousLesActesRealises = [];
 
@@ -2101,12 +2259,433 @@ btnEnregistrerActe.addEventListener("click", async () => {
   modalActe.style.display = "none";
   reinitialiserFormulaireActe();
   await afficherActesRealises();
-});	
-  loadPatient();
+});
+async function chargerServices() {
+  try {
+    const doc = await db.collection("référentiels").doc("spécialités").get();
+    const data = doc.data();
+    const services = data?.spécialités || [];
+
+    const select = document.getElementById("service");
+    select.innerHTML = ""; // vide les anciennes options
+
+    services.forEach(service => {
+      const option = document.createElement("option");
+      option.value = service;
+      option.textContent = service;
+      select.appendChild(option);
+    });
+
+    // Pré-remplir si une valeur existe
+    const patientDoc = await patientRef.get();
+    const patientData = patientDoc.data();
+    const index = patientData.hospitalisationIndex ?? 0;
+    const hospi = patientData.hospitalisations?.[index];
+    if (hospi?.service) select.value = hospi.service || "";
+
+  } catch (e) {
+    console.error("Erreur chargement services :", e);
+  }
+}
+
+// Écouteur de modification
+document.getElementById("service").addEventListener("change", async (e) => {
+  const service = e.target.value;
+  try {
+    const doc = await patientRef.get();
+    const data = doc.data();
+    const index = data.hospitalisationIndex ?? 0;
+    const hospitalisations = [...(data.hospitalisations || [])];
+
+    hospitalisations[index] = {
+      ...hospitalisations[index],
+      service
+    };
+
+    await patientRef.update({ hospitalisations });
+    ajouterEntreeHistorique(`Changement de service : ${service}`);
+  } catch (err) {
+    console.error("Erreur mise à jour service :", err);
+  }
+});
+	
+function reinitialiserFormulaireActe() {
+  document.getElementById("selectActe").value = "";
+  document.getElementById("selectRealisateur").value = "";
+  document.getElementById("remarqueActe").value = "";
+  champAutreActe.value = "";
+  champAutreActe.style.display = "none";
+}
+
+async function verifierCodeEtCloturer(idPatient, callbackCloture) {
+  const saisie = prompt("Entrez le mot de passe de clôture d'hospitalisation :");
+  if (!saisie) return;
+
+  try {
+    const doc = await db.collection("codes").doc("QhwMJ0mjmUnS8MTNBCFU").get();
+    const codeAttendu = doc.data().QhwMJ0mjmUnS8MTNBCFU;
+
+    if (saisie !== codeAttendu) {
+      afficherBulle("❌ Code incorrect", "alerte");
+      return;
+    }
+
+    callbackCloture(); // Lance la clôture si le code est bon
+
+  } catch (err) {
+    console.error(err);
+    afficherBulle("❌Erreur lors de la vérification du code", "alerte");
+  }
+}
+function formatDateHeure(dateString) {
+  const date = new Date(dateString);
+  const pad = (n) => n.toString().padStart(2, '0');
+  const jour = pad(date.getDate());
+  const mois = pad(date.getMonth() + 1);
+  const annee = date.getFullYear();
+  const heures = pad(date.getHours());
+  const minutes = pad(date.getMinutes());
+  const secondes = pad(date.getSeconds());
+  return `${jour}/${mois}/${annee} ${heures}:${minutes}:${secondes}`;
+}
+
+document.getElementById('readVitaleBtn').addEventListener('click', () => {
+  const modal = document.getElementById('vitaleModal');
+  modal.style.display = 'flex';
+
+  const duration = 3000 + Math.random() * 7000; // entre 3 et 10 secondes
+
+  setTimeout(() => {
+    modal.style.display = 'none';
+
+    const isSuccess = Math.random() < 0.8; // 80% ok-20%erreur
+
+    if (isSuccess) {
+      afficherBulle("✅ Lecture Carte Vitale terminée !", "administratif");
+    } else {
+      afficherBulle("❌ Erreur lecture Carte Vitale - Veuillez ressayer", "alerte");
+    }
+  }, duration);
+});
+
+document.getElementById("btnGlasgow").addEventListener("click", () => {
+  document.getElementById("modalGlasgow").style.display = "flex";
+});
+
+document.getElementById("btnFermerGlasgow").addEventListener("click", () => {
+  document.getElementById("modalGlasgow").style.display = "none";
+});
+
+["glasgowYeux", "glasgowVerbal", "glasgowMoteur"].forEach(id => {
+  document.getElementById(id).addEventListener("input", () => {
+    const yeux = parseInt(document.getElementById("glasgowYeux").value) || 0;
+    const verbal = parseInt(document.getElementById("glasgowVerbal").value) || 0;
+    const moteur = parseInt(document.getElementById("glasgowMoteur").value) || 0;
+    const total = yeux + verbal + moteur;
+    document.getElementById("glasgowTotal").value = total;
+
+    const pronostic = document.getElementById("glasgowPronostic");
+    if (total <= 4) pronostic.innerText = " 7 % de bonne récupération et 87 % de mortalité.";
+    else if (total <= 7) pronostic.innerText = "34 % de bonne récupération et 53 % de mortalité.";
+    else if (total <= 10) pronostic.innerText = " 68 % de bonne récupération et 27 % de mortalité.";
+    else pronostic.innerText = " 82 % de bonne récupération et 12 % de mortalité.";
+  
+  const pronostic2 = document.getElementById("glasgowPronostic2");
+    if (total <= 6) pronostic.innerText = "Coma Profond";
+    else if (total <= 9) pronostic.innerText = "Coma Lourd";
+    else if (total <= 14) pronostic.innerText = "Somnoloence / Coma Léger";
+    else pronostic.innerText = "Conscience Normale";
+});
+});
+function toggleSublist(id) {
+    const list = document.getElementById(id);
+    list.style.display = list.style.display === "block" ? "none" : "block";
+  }
+
+  function toggleExam(checkbox) {
+    if (checkbox.checked) {
+      const item = document.createElement('div');
+      item.className = 'prescription-item';
+      item.textContent = checkbox.value;
+      item.dataset.exam = checkbox.value;
+      const del = document.createElement('button');
+      del.textContent = "✖";
+      del.className = "btn-delete";
+      del.onclick = () => {
+        item.remove();
+        checkbox.checked = false;
+      };
+      item.appendChild(del);
+      document.getElementById('prescription-list').appendChild(item);
+    }
+  }
+document.getElementById("btnEnregistrerGlasgow").addEventListener("click", async () => {
+  const yeux = parseInt(document.getElementById("glasgowYeux").value) || 0;
+  const verbal = parseInt(document.getElementById("glasgowVerbal").value) || 0;
+  const moteur = parseInt(document.getElementById("glasgowMoteur").value) || 0;
+  const total = yeux + verbal + moteur;
+  const texte = `Score de Glasgow enregistré : ${total} (Yeux ${yeux}, Verbal ${verbal}, Moteur ${moteur})`;
+
+  try {
+    const doc = await patientRef.get();
+    const data = doc.data();
+    const index = data.hospitalisationIndex ?? 0;
+    const hospitalisations = [...(data.hospitalisations || [])];
+    hospitalisations[index].glasgow = { yeux, verbal, moteur, total, date: new Date().toISOString() };
+
+    await patientRef.update({ hospitalisations });
+
+    await ajouterEntreeHistorique(texte);
+    afficherBulle("✔️ Score de Glasgow enregistré", "administratif");
+    document.getElementById("modalGlasgow").style.display = "none";
+  } catch (e) {
+    console.error("Erreur enregistrement Glasgow :", e);
+    afficherBulle("❌ Erreur enregistrement", "alerte");
+  }
+});
+function ajouterHorodatage() {
+  const textarea = document.getElementById("texteRemarque");
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('fr-FR');
+  const timeStr = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  const horodatage = `${dateStr} ${timeStr} - ${medecinNom} : `;
+
+  textarea.value += textarea.value && !textarea.value.endsWith('\n') ? '\n' + horodatage : horodatage;
+  textarea.focus();
+}
+
+function ajouterHorodatageDans(id) {
+  const textarea = document.getElementById(id);
+  if (!textarea) return;
+
+  const horodatage = new Date().toLocaleString("fr-FR");
+const insertion = `${horodatage} - ${window.medecinNom}\n`;
+
+  const start = textarea.selectionStart;
+  const end = textarea.selectionEnd;
+
+  const texteAvant = textarea.value.substring(0, start);
+  const texteApres = textarea.value.substring(end);
+
+  textarea.value = texteAvant + insertion + texteApres;
+
+  const nouvellePosition = start + insertion.length;
+  textarea.selectionStart = textarea.selectionEnd = nouvellePosition;
+  textarea.focus();
+}
+
+
+async function enregistrerDossierMedical() {
+const questionnaire = document.getElementById("questionnaire").value.trim();
+  const antecedents = document.getElementById("antecedents").value.trim();
+  const traitements = document.getElementById("traitements").value.trim();
+  const histoire = document.getElementById("histoire").value.trim();
+  const auscultation = document.getElementById("auscultation").value.trim();
+
+  try {
+    const doc = await patientRef.get();
+    const data = doc.data();
+    const index = data.hospitalisationIndex ?? 0;
+    const hospitalisations = [...(data.hospitalisations || [])];
+
+    hospitalisations[index].dossierMedical = {
+	questionnaire,
+      antecedents,
+      traitements,
+      histoire,
+      auscultation
+    };
+
+    await patientRef.update({ hospitalisations });
+    afficherBulle("💾 Dossier médical enregistré", "administratif");
+    ajouterEntreeHistorique("📝 Dossier médical mis à jour");
+  } catch (err) {
+    console.error("Erreur enregistrement dossier médical :", err);
+    afficherBulle("❌ Erreur lors de l'enregistrement", "alerte");
+  }
+}
+
+async function enregistrerEvolution() {
+  const texte = document.getElementById("evolutionTexte").value.trim();
+
+  try {
+    const doc = await patientRef.get();
+    const data = doc.data();
+    const index = data.hospitalisationIndex ?? 0;
+    const hospitalisations = [...(data.hospitalisations || [])];
+
+    hospitalisations[index].evolution = texte;
+
+    await patientRef.update({ hospitalisations });
+    afficherBulle("💾 Évolution enregistrée", "administratif");
+    ajouterEntreeHistorique("📈 Évolution mise à jour");
+  } catch (err) {
+    console.error("Erreur enregistrement évolution :", err);
+    afficherBulle("❌ Erreur lors de l'enregistrement", "alerte");
+  }
+}
+
+document.getElementById("btnVoirRawData").addEventListener("click", async () => {
+const params = new URLSearchParams(window.location.search);
+const id = params.get("id");
+
+  const modal = document.getElementById("modalRawData");
+  const content = document.getElementById("rawDataContent");
+
+  try {
+    const docRef = db.collection("patients").doc(id); // 🔁 Assure-toi que `id` est bien défini
+    const docSnap = await docRef.get();
+
+    if (docSnap.exists) {
+      content.textContent = JSON.stringify(docSnap.data(), null, 2); // Beautified JSON
+      modal.style.display = "flex";
+    } else {
+      content.textContent = "⚠️ Patient introuvable.";
+      modal.style.display = "flex";
+    }
+  } catch (e) {
+    content.textContent = "❌ Erreur lors de la récupération des données.";
+    modal.style.display = "flex";
+  }
+});
+
+document.getElementById("closeRawData").addEventListener("click", () => {
+  document.getElementById("modalRawData").style.display = "none";
+});
+
+async function remplirDepuisAncienneHospi(champ) {
+  try {
+    const doc = await patientRef.get();
+    const data = doc.data();
+    const index = data.hospitalisationIndex ?? 0;
+
+    if (index <= 0) {
+      afficherBulle("❌ Aucune hospitalisation antérieure", "alerte");
+      return;
+    }
+
+    const ancienne = data.hospitalisations?.[index - 1]?.dossierMedical;
+    if (!ancienne || !ancienne[champ]) {
+      afficherBulle(`❌ Pas d'ancien contenu pour ${champ}`, "alerte");
+      return;
+    }
+
+    const contenu = ancienne[champ].trim();
+    const textarea = document.getElementById(champ);
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+
+    const avant = textarea.value.substring(0, start);
+    const apres = textarea.value.substring(end);
+    const insertion = contenu + "\n";
+
+    textarea.value = avant + insertion + apres;
+
+    const nouvellePosition = start + insertion.length;
+    textarea.selectionStart = textarea.selectionEnd = nouvellePosition;
+    textarea.focus();
+
+    afficherBulle(`📁 Ancien ${champ} inséré`, "administratif");
+
+  } catch (err) {
+    console.error("Erreur récupération données précédentes :", err);
+    afficherBulle("❌ Erreur de récupération", "alerte");
+  }
+}
+
+document.getElementById("btnRapportHospi").addEventListener("click", () => {
+  const url = `rapporthospitalisation.html?id=${patientId}`;
+  document.getElementById("contenu").innerHTML = `
+    <iframe src="${url}" style="width:100%;height:100vh;border:none;"></iframe>
+  `;
+});
+
+
+loadPatient();
+// Ligne de test de fin
+console.log("Script terminé correctement ✅");
+</script>
+
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBKp5-7NNy0Gyl0tNbDgD-BxucYdg8ArWo",
+    authDomain: "urgences-a8ed4.firebaseapp.com",
+    projectId: "urgences-a8ed4"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+   let medecinNom = "";
+  let medecinSpecialite = "";
+  let medecinLieu = "";
+
+  onAuthStateChanged(auth, async (user) => {
+  if (!user) {
+    window.location.href = "index.html";
+  } else {
+    try {
+      const docRef = doc(db, "medecins", user.uid);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        const medecinNom = data.nom || "";
+        const medecinSpecialite = data.specialite || "";
+        const medecinLieu = data.lieu || "";
+
+        // Met à jour aussi les variables globales sur window
+        window.medecinNom = medecinNom;
+        window.medecinSpecialite = medecinSpecialite;
+        window.medecinLieu = medecinLieu;
+
+        // Mise à jour des éléments HTML si présents
+        const nomElem = document.getElementById("nom-medecin");
+        if (nomElem) nomElem.textContent = medecinNom;
+
+        const specElem = document.getElementById("specialite");
+        if (specElem) specElem.textContent = medecinSpecialite;
+
+        const lieuElem = document.getElementById("lieu-medecin");
+        if (lieuElem) lieuElem.textContent = medecinLieu;
+
+        // --- Vérification d'accès à la page ---
+        const pages = data.pages || {};
+        const currentPath = window.location.pathname;
+        const currentPage = currentPath.substring(currentPath.lastIndexOf("/") + 1).replace(".html", "");
+
+        if (!pages[currentPage]) {
+          alert("⛔️ Vous n’avez pas accès à cette page.");
+          window.location.href = "index.html";
+          return; // Stoppe le script ici
+        }
+      } else {
+        // Document inexistant — redirection
+        alert("Utilisateur non trouvé, veuillez vous reconnecter.");
+        window.location.href = "accueil.html";
+      }
+    } catch (error) {
+      console.error("Erreur chargement médecin :", error);
+      alert("Une erreur est survenue, veuillez réessayer plus tard.");
+    }
+  }
+});
+	function openTab(tabId, evt) {
+  document.querySelectorAll(".tab-content").forEach(tc => tc.style.display = "none");
+  document.querySelectorAll(".tablink").forEach(tl => tl.classList.remove("active"));
+  document.getElementById(tabId).style.display = "block";
+  evt.currentTarget.classList.add("active");
+}
 </script>
 
 </body>
 </html>
+
 
 
 
