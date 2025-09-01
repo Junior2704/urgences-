@@ -914,7 +914,7 @@ header {
 
     <label for="commentaireExamen">💬 Commentaire</label>
     <textarea id="commentaireExamen" placeholder="Détails supplémentaires..."></textarea>
-    
+     <button id="btnCloseExamen" class="secondary">❌ Fermer</button>
       <button id="btnSaveExamen">✅ Valider</button>
     </div>
 </div>
@@ -2298,6 +2298,9 @@ function toggleSublist(id) {
       document.getElementById('prescription-list').appendChild(item);
     }
   }
+	document.getElementById("btnCloseExamen").addEventListener("click", () => {
+    document.getElementById("modalExamen").style.display = "none";
+  });
 document.getElementById("btnEnregistrerGlasgow").addEventListener("click", async () => {
   const yeux = parseInt(document.getElementById("glasgowYeux").value) || 0;
   const verbal = parseInt(document.getElementById("glasgowVerbal").value) || 0;
@@ -2548,6 +2551,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
