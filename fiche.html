@@ -132,6 +132,13 @@
   max-height: 90vh;
   overflow-y: auto;
 }
+#dossierMedical textarea,
+#tab-dossier textarea,
+#evolutionTexte {
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  padding: 8px 12px;
+}
 
 #tab-dossier textarea {
   width: 100% !important;
@@ -1061,13 +1068,16 @@ header {
 </div>
 
 
-<div id="modalRawData" class="modal">
+<div id="modalRawData" class="modal-overlay">
+  <div class="modal">
   <div class="modal-content">
     <span id="closeRawData" class="close">&times;</span>
     <h2>Données brutes du patient</h2>
     <pre id="rawDataContent"></pre>
   </div>
 </div>
+</div>
+	
 
 
 <!-- Modal Clôture -->
@@ -1516,13 +1526,12 @@ function afficherSortieListe(sortie) {
     afficherBulle("🗑️ Sortie supprimée", "administratif");
   });
 }
-
-// --- Initialisation au chargement de l'onglet ---
 document.addEventListener("DOMContentLoaded", () => {
-
   rafraichirChampsSortie();
   champAutreSortie.style.display = document.querySelector('input[name="typeSortie"][value="autre"]')?.checked ? "block" : "none";
-	chargerPatient();
+  if (patientId) {
+    chargerPatient(patientId);
+  }
 });
 
 
@@ -2472,6 +2481,65 @@ const id = params.get("id");
 document.getElementById("closeRawData").addEventListener("click", () => {
   document.getElementById("modalRawData").style.display = "none";
 });
+async function chargerActes(patientId, hospiId) {
+  const container = document.getElementById("actesListe");
+  container.innerHTML = "<p>⏳ Chargement des actes...</p>";
+
+  try {
+    const snapshot = await db.collection("patients")
+      .doc(patientId)
+      .collection("hospitalisation")
+      .doc(hospiId)
+      .collection("actes")
+      .orderBy("date", "desc")
+      .get();
+
+    if (snapshot.empty) {
+      container.innerHTML = "<p>Aucun acte réalisé pour ce séjour.</p>";
+      return;
+    }
+
+    container.innerHTML = "";
+    snapshot.forEach(doc => {
+      const acte = doc.data();
+
+      const div = document.createElement("div");
+      div.className = "prescription-item";
+      div.innerHTML = `
+        <div>
+          <strong>${acte.type || "Acte inconnu"}</strong><br>
+          👨‍⚕️ ${acte.realisateur || "–"}<br>
+          📅 ${acte.date ? new Date(acte.date.seconds * 1000).toLocaleString() : "–"}<br>
+          💬 ${acte.remarque || ""}
+        </div>
+        <button class="btn-delete" onclick="supprimerActe('${patientId}','${hospiId}','${doc.id}')">❌</button>
+      `;
+      container.appendChild(div);
+    });
+  } catch (err) {
+    console.error("Erreur chargement actes :", err);
+    container.innerHTML = "<p style='color:red;'>⚠️ Erreur de chargement des actes</p>";
+  }
+}
+
+// fonction utilitaire pour supprimer un acte
+async function supprimerActe(patientId, hospiId, acteId) {
+  if (!confirm("Supprimer cet acte ?")) return;
+  try {
+    await db.collection("patients")
+      .doc(patientId)
+      .collection("hospitalisation")
+      .doc(hospiId)
+      .collection("actes")
+      .doc(acteId)
+      .delete();
+    afficherBulle("🗑️ Acte supprimé", "administratif");
+    await chargerActes(patientId, hospiId); // 🔄 refresh
+  } catch (err) {
+    console.error("Erreur suppression acte :", err);
+    afficherBulle("❌ Erreur lors de la suppression", "alerte");
+  }
+}
 
 async function remplirDepuisAncienneHospi(champ) {
   try {
@@ -2615,6 +2683,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
