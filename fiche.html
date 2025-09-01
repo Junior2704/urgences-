@@ -1884,14 +1884,6 @@ const dateNaissance = document.getElementById("adminNaissance").value.trim();
 });
 
 btnFacturer.addEventListener("click", () => {
-const modal = document.getElementById('facturationModale');
-  modal.style.display = 'flex';
-
-  const duration = 3000 ; 
-
-  setTimeout(() => {
-    modal.style.display = 'none';
-	});
   window.open(`Facturation.html?id=${patientId}`, "_blank");
 });
 
@@ -2555,6 +2547,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
