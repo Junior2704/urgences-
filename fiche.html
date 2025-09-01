@@ -1195,14 +1195,7 @@ header {
     appId: "1:392921498200:web:7ccce767332c67c697c02d",
     measurementId: "G-C74MK2KYDL"
   };
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
-  const urlParams = new URLSearchParams(window.location.search);
-  const patientId = urlParams.get("id");
-  if (!patientId) {
-    alert("Erreur : aucun patient sélectionné.");
-    throw new Error("Aucun patient id dans l’URL");
-  }
+
   function afficherBulle(texte, type) {
     let container = document.getElementById('bubble-container');
     if (!container) {
@@ -1296,9 +1289,6 @@ function rafraichirChampsSortie() {
 document.querySelector('input[name="typeSortie"][value="autre"]').addEventListener("change", () => {
   champAutreSortie.style.display = "block";
 });
-document.querySelector('input[name="optionsSortie"][value="autreOption"]').addEventListener("change", (e) => {
-  champAutreOption.style.display = e.target.checked ? "block" : "none";
-});
 
 // Rafraîchit les champs à chaque changement
 document.querySelectorAll('input[name="typeSortie"], input[name="optionsSortie"]').forEach(el =>
@@ -1308,9 +1298,7 @@ document.querySelectorAll('input[name="typeSortie"], input[name="optionsSortie"]
 document.querySelector('input[name="typeSortie"][value="autre"]').addEventListener("change", () => {
   champAutreSortie.style.display = document.querySelector('input[name="typeSortie"][value="autre"]').checked ? "block" : "none";
 });
-document.querySelector('input[name="optionsSortie"][value="autreOption"]').addEventListener("change", () => {
-  champAutreOption.style.display = document.querySelector('input[name="optionsSortie"][value="autreOption"]').checked ? "block" : "none";
-});
+
 function afficherSortieListe(sortie) {
   if (!sortie || !sortie.type) {
     sortieListe.innerHTML = "<p>Aucune sortie enregistrée.</p>";
@@ -1635,24 +1623,7 @@ document.getElementById("motif").addEventListener("blur", async (e) => {
     console.error("Erreur mise à jour motif :", err);
   }
 });
-document.getElementById("moyen").addEventListener("blur", async (e) => {
-  const moyen = e.target.value.trim();
-  try {
-    const doc = await patientRef.get();
-    const data = doc.data();
-    const index = data.hospitalisationIndex ?? 0;
-    const hospitalisations = [...(data.hospitalisations || [])];
-    if (!hospitalisations[index]) return;
-    hospitalisations[index] = {
-      ...hospitalisations[index],
-      moyen
-    };
-    await patientRef.update({ hospitalisations });
-    ajouterEntreeHistorique(`Modification du moyen d'entrée : ${moyen}`);
-  } catch (err) {
-    console.error("Erreur mise à jour moyen d'entrée :", err);
-  }
-});
+
 
   document.getElementById("btnSavePoids").addEventListener("click", async () => {
     const poids = parseFloat(document.getElementById("poids").value);
@@ -2122,7 +2093,7 @@ function mettreAJourListeActes(filtre) {
   const selectActe = document.getElementById("selectActe");
   selectActe.innerHTML = "";
 
-  const actesFiltres = tousLesActesDisponibles.filter(acte =>
+  const actesFiltres = tousLesActesDispos.filter(acte =>
     acte.toLowerCase().includes(filtre)
   );
 
@@ -2635,9 +2606,9 @@ console.log("Script terminé correctement ✅");
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
         const data = docSnap.data();
-        const medecinNom = data.nom || "";
-        const medecinSpecialite = data.specialite || "";
-        const medecinLieu = data.lieu || "";
+        medecinNom = data.nom || "";
+        medecinSpecialite = data.specialite || "";
+        medecinLieu = data.lieu || "";
 
         // Met à jour aussi les variables globales sur window
         window.medecinNom = medecinNom;
@@ -2685,6 +2656,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
