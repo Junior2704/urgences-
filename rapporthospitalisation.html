@@ -203,7 +203,7 @@ async function chargerDepuisFirestore() {
   const adresse = data.adresse || '';
 
   document.getElementById("identite").value =
-    `${sexe} ${prenom} ${nom}, \nNé(e) le ${dateNaissance2}, ${age} \n${adresse}`;
+    `${sexe} ${prenom} ${nom}, \nNé(e) le ${dateNaissance2}, ${age} \n${adresse}\nCIP (Code d'Identification Patient) : ${patientId}`;
 document.getElementById("hospitalisation").value = 
   `Ouverture du dossier : ${hospi.dateDebut} \nMotif d'entrée : ${hospi.motif} \nMoyen d'entrée : ${hospi.moyen}\nClôture du dossier : ${hospi.sortie?.date || "—"}`;
   document.getElementById("medical").value = `   Questionnaitre IAO :\n${hospi.dossierMedical?.questionnaire || ''}\n\n
@@ -523,3 +523,4 @@ let medecinNom = "";
 </div>
 </body>
 </html>
+
