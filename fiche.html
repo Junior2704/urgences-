@@ -115,23 +115,27 @@
 }
 
 #modalRawData {
-  display: none; /* masqué par défaut */
+  display: none;
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
   background: rgba(0,0,0,0.6);
   z-index: 4000;
   justify-content: center;
   align-items: center;
+  overflow-y: auto; /* 👉 ascenseur global */
 }
 
 #modalRawData .modal-content {
   background: white;
   padding: 20px;
   border-radius: 12px;
-  max-width: 800px;
-  max-height: 90vh;
-  overflow-y: auto;
+  width: 90%;           /* plus large */
+  max-width: 1200px;    /* limite en largeur */
+  margin: 40px auto;    /* espace haut/bas */
+  max-height: none;     /* enlève limite verticale */
+  overflow: visible;    /* 👉 pas d’ascenseur interne */
 }
+
 #dossierMedical textarea,
 #tab-dossier textarea,
 #evolutionTexte {
@@ -2546,7 +2550,7 @@ async function chargerRealisateurs() {
 
   try {
     // On suppose que tu stockes les réalisateurs dans "référentiels/realisateurs"
-    const doc = await db.collection("référentiels").doc("realisateurs").get();
+    const doc = await db.collection("référentiels").doc("personnel").get();
     const data = doc.data();
     const liste = data?.liste || [];
 
@@ -2710,6 +2714,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
