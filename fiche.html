@@ -1346,6 +1346,7 @@ async function chargerPatient(patientId) {
     const data = doc.data();
 
     // --- Infos patient ---
+	 document.getElementById("idPatient").textContent = patientId || "Non défini";
     document.getElementById("nom").textContent = data.nom || "";
     document.getElementById("prenom").textContent = data.prenom || "";
     document.getElementById("sexe").textContent = data.sexe || "";
@@ -2798,6 +2799,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
