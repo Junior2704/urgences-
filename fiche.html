@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+Hhopsi<!DOCTYPE html>
 <html lang="fr">
 <head>
 <link rel="icon" type="image/jpeg" href="logo.jpg">
@@ -1396,7 +1396,15 @@ async function chargerPatient(patientId) {
 
       // 🔹 Évolution aux urgences
       document.getElementById("evolutionTexte").value = hospi.evolution || "";
+   const hospiSnap = await db.collection("patients")
+      .doc(patientId)
+      .collection("hospitalisations")
+      .orderBy("dateAdmission", "desc") // ou autre critère
+      .limit(1)
+      .get();
 
+    if (!hospiSnap.empty) {
+      const hospiDoc = hospiSnap.docs[0];   // dernier séjour
       // --- Charger actes & examens depuis les sous-collections ---
       await chargerActes(patientId, hospiDoc.id);
       await chargerExamens(patientId, hospiDoc.id);
@@ -2787,6 +2795,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
