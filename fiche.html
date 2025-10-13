@@ -1372,7 +1372,7 @@ async function chargerPatient(patientId) {
     // --- Hospitalisation courante ---
     const hospiSnap = await db.collection("patients")
       .doc(patientId)
-      .collection("hospitalisation")
+      .collection("hospitalisations")
       .orderBy("dateAdmission", "desc") // ou autre critère
       .limit(1)
       .get();
@@ -2796,6 +2796,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
