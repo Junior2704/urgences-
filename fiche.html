@@ -1343,7 +1343,9 @@ async function chargerPatient(patientId) {
       return;
     }
 
-    const data = doc.data();
+ const data = doc.data();
+    const index = data.hospitalisationIndex ?? 0;
+    const hospi = data.hospitalisations?.[index];
 
     // --- Infos patient ---
 	 document.getElementById("idPatient").textContent = patientId || "Non défini";
@@ -1370,40 +1372,29 @@ async function chargerPatient(patientId) {
     }
 
     // --- Hospitalisation courante ---
-    const hospiSnap = await db.collection("patients")
-      .doc(patientId)
-      .collection("hospitalisations")
-      .orderBy("dateAdmission", "desc") // ou autre critère
-      .limit(1)
-      .get();
-
-    if (!hospiSnap.empty) {
-      const hospiDoc = hospiSnap.docs[0];   // dernier séjour
-      const hospi = hospiDoc.data();
-
-      // Affiche les champs hospitalisation
+    if (hospi) {
+      // 🔹 Informations d’hospitalisation
       document.getElementById("gravite").value = hospi.gravite || "";
       document.getElementById("motif").value = hospi.motif || "";
       document.getElementById("moyen").value = hospi.moyen || "";
 
-      // Constantes
-      const consts = hospi.constantes || {};
-      document.getElementById("temperature").value = consts.temperature || "";
-      document.getElementById("fc").value = consts.fc || "";
-      document.getElementById("ta").value = consts.ta || "";
-      document.getElementById("saturation").value = consts.saturation || "";
-      document.getElementById("fr").value = consts.fr || "";
-      document.getElementById("douleur").value = consts.douleur || "";
+      // 🔹 Constantes vitales
+      document.getElementById("temperature").value = hospi.constantes?.temperature || "";
+      document.getElementById("fc").value = hospi.constantes?.fc || "";
+      document.getElementById("ta").value = hospi.constantes?.ta || "";
+      document.getElementById("saturation").value = hospi.constantes?.saturation || "";
+	  document.getElementById("fr").value = hospi.constantes?.fr || "";
+      document.getElementById("douleur").value = hospi.constantes?.douleur || "";
 
-      // Dossier médical
+      // 🔹 Dossier médical (nouvelle section)
       const dm = hospi.dossierMedical || {};
-      document.getElementById("questionnaire").value = dm.questionnaire || "";
+	  document.getElementById("questionnaire").value = dm.questionnaire || "";
       document.getElementById("antecedents").value = dm.antecedents || "";
       document.getElementById("traitements").value = dm.traitements || "";
       document.getElementById("histoire").value = dm.histoire || "";
       document.getElementById("auscultation").value = dm.auscultation || "";
 
-      // Evolution
+      // 🔹 Évolution aux urgences
       document.getElementById("evolutionTexte").value = hospi.evolution || "";
 
       // --- Charger actes & examens depuis les sous-collections ---
@@ -2796,6 +2787,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
