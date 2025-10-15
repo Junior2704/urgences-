@@ -196,7 +196,7 @@ button:hover {
       <div class="wave-row" style="height:62%;">
         <div class="wave" style="flex:2">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-            <div style="font-weight:700">ECG II</div>
+            <div style="font-weight:700">RC</div>
             <div style="font-size:12px;color:var(--muted)">HR <span id="hr-small">--</span> bpm</div>
           </div>
           <canvas id="ecg" height="220"></canvas>
@@ -205,14 +205,14 @@ button:hover {
         <div style="width:260px;display:flex;flex-direction:column;gap:8px">
           <div class="wave" style="height:50%">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-              <div style="font-weight:700">PLETH / SpO₂</div>
+              <div style="font-weight:700">SpO₂</div>
               <div style="font-size:12px;color:var(--muted)"><span id="spo2-small">--</span>%</div>
             </div>
             <canvas id="pleth" height="100"></canvas>
           </div>
           <div class="wave" style="height:50%">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-              <div style="font-weight:700">RESP / CO₂</div>
+              <div style="font-weight:700">FR</div>
               <div style="font-size:12px;color:var(--muted)"><span id="resp-small">--</span> br/m</div>
             </div>
             <canvas id="resp" height="100"></canvas>
@@ -223,12 +223,12 @@ button:hover {
 <div class = "right" >
       <div class="panel" style="margin-bottom:10px">
   <div class="vitals" style="grid-template-columns:repeat(3,1fr);gap:8px">
-    <div class="metric"><span class="m-label">Heart Rate</span><span id="hr" class="m-value">--</span></div>
+    <div class="metric"><span class="m-label">RC</span><span id="hr" class="m-value">--</span></div>
     <div class="metric"><span class="m-label">SpO₂</span><span id="spo2" class="m-value">--%</span></div>
     <div class="metric"><span class="m-label">Temp</span><span id="temp" class="m-value">-- °C</span></div>
-    <div class="metric"><span class="m-label">RR</span><span id="rr" class="m-value">--</span></div>
-    <div class="metric"><span class="m-label">EtCO₂</span><span id="etco2" class="m-value">-- mmHg</span></div>
-    <div class="metric"><span class="m-label">NIBP</span><span id="nibp" class="m-value">-- / -- mmHg</span></div>
+    <div class="metric"><span class="m-label">FR</span><span id="rr" class="m-value">--</span></div>
+    <div class="metric"><span class="m-label">TCO₂</span><span id="etco2" class="m-value">-- mmHg</span></div>
+    <div class="metric"><span class="m-label">TA</span><span id="nibp" class="m-value">-- / -- mmHg</span></div>
   </div>
 </div>
 <div style="margin-left:auto;color:var(--muted);font-size:12px">Alarmes: <span id="alarms">Aucune</span></div>
@@ -236,7 +236,7 @@ button:hover {
 
     <div class="right">
       <div class="panel">
-        <div style="font-weight:700;margin-bottom:6px">Détails</div>
+        <div style="font-weight:700;margin-bottom:6px">Détails TA</div>
         <div class="vitals">
           <div><div class="m-label">Systolique</div><div id="sys" class="big-num">--</div></div>
           <div><div class="m-label">Diastolique</div><div id="dia" class="big-num">--</div></div>
