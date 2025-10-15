@@ -2794,6 +2794,87 @@ document.getElementById("btnRapportHospi").addEventListener("click", () => {
 
 
 document.addEventListener("DOMContentLoaded", () => {
+	// === 🔌 GESTION DU SCOPE ===
+
+// références
+const chkScope = document.getElementById("patientScopeCheckbox");
+const divScopeFields = document.getElementById("scopeFields");
+const divScopeSuccess = document.getElementById("scopeSuccess");
+const inputScopeNum = document.getElementById("scopeNum");
+const btnConnectScope = document.getElementById("btnConnectScope");
+const btnOpenScope = document.getElementById("btnOpenScope");
+const scopeLoading = document.getElementById("scopeLoading");
+
+// 🔹 Fonction de chargement de l'état du scope depuis Firestore
+async function chargerScopeDepuisHospi(patientId) {
+  const doc = await patientRef.get();
+  if (!doc.exists) return;
+
+  const data = doc.data();
+  const index = data.hospitalisationIndex ?? 0;
+  const hospi = data.hospitalisations?.[index] || {};
+  const scope = hospi.scope || { active: false, numero: "" };
+
+  chkScope.checked = !!scope.active;
+  inputScopeNum.value = scope.numero || "";
+
+  if (scope.active) {
+    divScopeFields.style.display = "block";
+    divScopeSuccess.style.display = "block";
+  } else {
+    divScopeFields.style.display = "none";
+    divScopeSuccess.style.display = "none";
+  }
+}
+
+// 🔹 Sauvegarde Firestore
+async function enregistrerScopeDansHospi(active, numero) {
+  try {
+    await updateHospitalisationField("scope", { active, numero });
+    afficherBulle("💾 Scope mis à jour", "administratif");
+  } catch (err) {
+    console.error("Erreur enregistrement scope :", err);
+    afficherBulle("❌ Erreur d’enregistrement scope", "alerte");
+  }
+}
+
+// 🔹 Gestion des événements
+chkScope.addEventListener("change", async () => {
+  const actif = chkScope.checked;
+  divScopeFields.style.display = actif ? "block" : "none";
+  divScopeSuccess.style.display = actif ? "block" : "none";
+
+  await enregistrerScopeDansHospi(actif, inputScopeNum.value.trim());
+});
+
+inputScopeNum.addEventListener("blur", async () => {
+  if (chkScope.checked) {
+    await enregistrerScopeDansHospi(true, inputScopeNum.value.trim());
+  }
+});
+
+btnConnectScope.addEventListener("click", async () => {
+  if (!chkScope.checked) return;
+  scopeLoading.style.display = "inline";
+  // simulation de connexion
+  setTimeout(async () => {
+    scopeLoading.style.display = "none";
+    divScopeSuccess.style.display = "block";
+    await enregistrerScopeDansHospi(true, inputScopeNum.value.trim());
+  }, 1000);
+});
+
+btnOpenScope.addEventListener("click", () => {
+  const num = inputScopeNum.value.trim();
+  if (!num) return afficherBulle("⚠️ Numéro de scope manquant", "alerte");
+  window.open(`scope.html?num=${encodeURIComponent(num)}`, "_blank");
+});
+
+// 🔹 Charger au démarrage
+document.addEventListener("DOMContentLoaded", () => {
+  if (patientId) chargerScopeDepuisHospi(patientId);
+});
+
   rafraichirChampsSortie();
   champAutreSortie.style.display = document.querySelector('input[name="typeSortie"][value="autre"]')?.checked ? "block" : "none";
 
@@ -2887,6 +2968,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
