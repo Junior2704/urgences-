@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Panneau de contrôle - Scope</title>
+  <style>
+    body{font-family:Inter, sans-serif;background:#101820;color:#e0f2ff;margin:0;padding:20px;}
+    h1{font-size:20px;margin-bottom:20px;}
+    label{display:block;margin-top:12px;}
+    input[type=range]{width:100%;}
+    span.val{color:#00ff88;font-family:"Roboto Mono", monospace;margin-left:4px;}
+    button{margin-top:20px;padding:8px 14px;background:#007aff;border:none;border-radius:6px;color:white;cursor:pointer;}
+    button:hover{background:#1493ff;}
+  </style>
+</head>
+<body>
+  <h1>Panneau de contrôle du scope</h1>
+
+  <label>Fréquence cardiaque (bpm): <span id="hr-val" class="val">80</span></label>
+  <input id="hr-range" type="range" value="80">
+
+  <label>SpO₂ (%): <span id="spo2-val" class="val">98</span></label>
+  <input id="spo2-range" type="range" value="98">
+
+  <label>Respiration (br/min): <span id="rr-val" class="val">16</span></label>
+  <input id="rr-range" type="range" value="16">
+
+  <label>Température (°C): <span id="temp-val" class="val">36.8</span></label>
+  <input id="temp-range" type="range" step="0.1" value="36.8">
+
+  <label>EtCO₂ (mmHg): <span id="etco2-val" class="val">32</span></label>
+  <input id="etco2-range" type="range" value="32">
+
+  <script>
+    const bc = new BroadcastChannel('scope_control');
+    const fields = ['hr','spo2','rr','temp','etco2'];
+    const state = {hr:80, spo2:98, rr:16, temp:36.8, etco2:32};
+
+    fields.forEach(f=>{
+      const range=document.getElementById(f+'-range');
+      const val=document.getElementById(f+'-val');
+      range.addEventListener('input',()=>{
+        state[f]=parseFloat(range.value);
+        val.textContent=range.value;
+        bc.postMessage({type:'update', payload: state});
+      });
+    });
+  </script>
+</body>
+</html>

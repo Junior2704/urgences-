@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Simulateur Scope - Monitor</title>
+  <style>
+:root{
+  --bg:#0b0f14; 
+  --panel:#061019; 
+  --accent:#1bd760; 
+  --accent2:#39a9ff; 
+  --warn:#ff3b30; 
+  --muted:#7d8a95; 
+  --glass: rgba(255,255,255,0.03);
+  --mono: "Roboto Mono", "Courier New", monospace;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  background: linear-gradient(180deg,#03060a 0%, #07101a 100%);
+  font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+  color: #d8eef7;
+  overflow: hidden; /* Empêche les scrollbars */
+}
+
+.container {
+  display: grid;
+  grid-template-columns: 1fr min(30%, 400px);
+  gap: 16px;
+  padding: 0;
+  height: 100vh;
+  box-sizing: border-box;
+}
+
+@media (max-width: 900px) {
+  .container {
+    grid-template-columns: 1fr;
+  }
+}
+
+.left {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 1rem;
+  border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+  background: var(--panel);
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand {
+  font-weight: 700;
+  font-size: clamp(16px, 2.5vw, 22px);
+}
+
+button {
+  cursor: pointer;
+  background: var(--accent2);
+  color: white;
+  border: none;
+  padding: clamp(4px, 1vw, 8px) clamp(6px, 2vw, 12px);
+  border-radius: 6px;
+  font-size: clamp(12px, 1.5vw, 16px);
+}
+
+button:hover {
+  background: #4ab2ff;
+}
+
+.wave-row {
+  display: flex;
+  gap: 10px;
+  flex: 1; /* prend tout l’espace vertical restant */
+  align-items: stretch;
+}
+
+.wave {
+  display: flex;
+  flex-direction: column;
+  padding: 0.5rem;
+  border-radius: 10px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  flex: 1;
+}
+
+.wave-row .wave:first-child {
+  flex: 2; /* ECG plus large */
+}
+
+.wave canvas {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  border-radius: 6px;
+  background: transparent;
+}
+
+.right {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.panel {
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border-radius: 12px;
+  padding: 1rem;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.5);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1; /* Remplit tout l’espace vertical disponible */
+  overflow: hidden; /* Pas de scrollbar */
+}
+
+.vitals {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+
+.metric {
+  background: var(--glass);
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.m-label {
+  font-size: clamp(10px, 1.5vw, 14px);
+}
+
+.m-value {
+  font-family: var(--mono);
+  font-size: clamp(14px, 2vw, 22px);
+  font-weight: 700;
+}
+
+.big-num {
+  font-family: var(--mono);
+  font-size: clamp(20px, 3vw, 28px);
+  font-weight: 800;
+}
+
+.footer {
+  font-size: clamp(10px, 1.5vw, 12px);
+  color: var(--muted);
+  margin-top: 0.5rem;
+}
+.right > .panel {
+  flex: none; /* Ne prend pas toute la hauteur automatiquement */
+  height: auto; /* hauteur automatique selon contenu */
+}
+
+.right > .panel:last-child {
+  flex: 1; /* seul le journal prend tout l’espace restant */
+  overflow-y: auto; /* scroll uniquement si contenu dépasse */
+}
+
+</style>
+
+
+</head>
+<body>
+<!-- Firebase SDK (compat version) -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+  <div class="container">
+    <div class="left">
+      <div class="title">
+        <div class="brand">Monitoring</div>
+        <div style="margin-left:auto;color:var(--muted)">Patient: </div>
+      </div>
+
+      <div style="display:flex;gap:10px;margin-bottom:6px;">
+        <button onclick="window.open('controle.html','_blank')">Ouvrir le panneau de contrôle</button>
+        <button id="nibp-btn">Mesure TA</button>
+      </div>
+
+      <div class="wave-row" style="height:62%;">
+        <div class="wave" style="flex:2">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+            <div style="font-weight:700">ECG II</div>
+            <div style="font-size:12px;color:var(--muted)">HR <span id="hr-small">--</span> bpm</div>
+          </div>
+          <canvas id="ecg" height="220"></canvas>
+        </div>
+
+        <div style="width:260px;display:flex;flex-direction:column;gap:8px">
+          <div class="wave" style="height:50%">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+              <div style="font-weight:700">PLETH / SpO₂</div>
+              <div style="font-size:12px;color:var(--muted)"><span id="spo2-small">--</span>%</div>
+            </div>
+            <canvas id="pleth" height="100"></canvas>
+          </div>
+          <div class="wave" style="height:50%">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+              <div style="font-weight:700">RESP / CO₂</div>
+              <div style="font-size:12px;color:var(--muted)"><span id="resp-small">--</span> br/m</div>
+            </div>
+            <canvas id="resp" height="100"></canvas>
+          </div>
+        </div>
+      </div>
+	  </div>
+<div class = "right" >
+      <div class="panel" style="margin-bottom:10px">
+  <div class="vitals" style="grid-template-columns:repeat(3,1fr);gap:8px">
+    <div class="metric"><span class="m-label">Heart Rate</span><span id="hr" class="m-value">--</span></div>
+    <div class="metric"><span class="m-label">SpO₂</span><span id="spo2" class="m-value">--%</span></div>
+    <div class="metric"><span class="m-label">Temp</span><span id="temp" class="m-value">-- °C</span></div>
+    <div class="metric"><span class="m-label">RR</span><span id="rr" class="m-value">--</span></div>
+    <div class="metric"><span class="m-label">EtCO₂</span><span id="etco2" class="m-value">-- mmHg</span></div>
+    <div class="metric"><span class="m-label">NIBP</span><span id="nibp" class="m-value">-- / -- mmHg</span></div>
+  </div>
+</div>
+<div style="margin-left:auto;color:var(--muted);font-size:12px">Alarmes: <span id="alarms">Aucune</span></div>
+
+
+    <div class="right">
+      <div class="panel">
+        <div style="font-weight:700;margin-bottom:6px">Détails</div>
+        <div class="vitals">
+          <div><div class="m-label">Systolique</div><div id="sys" class="big-num">--</div></div>
+          <div><div class="m-label">Diastolique</div><div id="dia" class="big-num">--</div></div>
+          <div><div class="m-label">MAP</div><div id="map" class="big-num">--</div></div>
+          <div><div class="m-label">Dernière mesure</div><div id="last-nibp" class="big-num">--</div></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div style="font-weight:700;margin-bottom:6px">Journal</div>
+        <div id="log" style="height:140px;overflow:auto;color:var(--muted);font-size:13px"></div>
+      </div>
+    </div>
+  </div>
+</div>
+  <script>
+    // Initialisation Firebase
+  const firebaseConfig = {
+    apiKey: "AIzaSyBKp5-7NNy0Gyl0tNbDgD-BxucYdg8ArWo",
+    authDomain: "urgences-a8ed4.firebaseapp.com",
+    projectId: "urgences-a8ed4",
+    storageBucket: "urgences-a8ed4.firebasestorage.app",
+    messagingSenderId: "392921498200",
+    appId: "1:392921498200:web:7ccce767332c67c697c02d",
+    measurementId: "G-C74MK2KYDL"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  // Récupérer l'ID patient depuis l'URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const patientId = urlParams.get('id');
+
+  const patientLabel = document.querySelector('.title div[style*="margin-left:auto"]');
+
+  if(patientId){
+    db.collection('patients').doc(patientId).get().then(doc=>{
+      if(doc.exists){
+  const data = doc.data();
+  const age = data.dateNaissance ? calculateAge(data.dateNaissance) : '--';
+  patientLabel.textContent = `Patient : ${data.nom} ${data.prenom} • ${age} ans`;
+}
+
+ else {
+        patientLabel.textContent = 'Patient : Inconnu';
+      }
+    }).catch(err=>{
+      console.error(err);
+      patientLabel.textContent = 'Patient : Erreur';
+    });
+  } else {
+    patientLabel.textContent = 'Patient : Aucun ID';
+  }
+  function calculateAge(dateNaissance) {
+    const birth = new Date(dateNaissance);
+    const now = new Date();
+    let age = now.getFullYear() - birth.getFullYear();
+    if (
+      now.getMonth() < birth.getMonth() ||
+      (now.getMonth() === birth.getMonth() && now.getDate() < birth.getDate())
+    ) {
+      age--;
+    }
+    return age;
+  }
+  
+  
+  
+  
+  
+    const rand=(a,b)=>Math.random()*(b-a)+a;
+    const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+    const logEl=document.getElementById('log');
+    const hrEl=document.getElementById('hr'), hrSmall=document.getElementById('hr-small'),
+          spo2El=document.getElementById('spo2'), spo2Small=document.getElementById('spo2-small'),
+          rrEl=document.getElementById('rr'), respSmall=document.getElementById('resp-small'),
+          tempEl=document.getElementById('temp'), etco2El=document.getElementById('etco2'),
+          nibpEl=document.getElementById('nibp'), sysEl=document.getElementById('sys'),
+          diaEl=document.getElementById('dia'), mapEl=document.getElementById('map'),
+          lastNibpEl=document.getElementById('last-nibp'), alarmsEl=document.getElementById('alarms');
+
+    const ecgC=document.getElementById('ecg'), plethC=document.getElementById('pleth'), respC=document.getElementById('resp');
+    const ecgCtx=ecgC.getContext('2d'), plethCtx=plethC.getContext('2d'), respCtx=respC.getContext('2d');
+
+    let state={hr:80,spo2:98,rr:16,temp:36.8,etco2:32,arr:false};
+    let target={...state};
+
+    const bc=new BroadcastChannel('scope_control');
+    bc.onmessage=(e)=>{
+      const data=e.data;
+      if(data.type==='update'){
+        target={...target,...data.payload};
+        state={...target};
+        updateUI();
+        log('Valeurs modifiées depuis le panneau');
+      }
+    };
+
+
+    document.getElementById('nibp-btn').addEventListener('click',doNIBP);
+
+    function log(msg){const s=new Date().toLocaleTimeString(); logEl.innerHTML=`<div>[${s}] ${msg}</div>`+logEl.innerHTML;}
+
+    function updateUI(){
+      hrEl.textContent=state.hr; hrSmall.textContent=state.hr;
+      spo2El.textContent=state.spo2+'%'; spo2Small.textContent=state.spo2;
+      rrEl.textContent=state.rr; respSmall.textContent=state.rr;
+      tempEl.textContent=state.temp.toFixed(1)+' °C';
+      etco2El.textContent=state.etco2+' mmHg';
+    }
+
+    function smoothUpdate(){
+      for(let k in state){
+        if(typeof state[k]==='number'){
+          state[k]+= (target[k]-state[k])*0.02 + rand(-0.05,0.05);
+          if(k!=='temp') state[k]=Math.round(state[k]);
+          if(k==='temp') state[k]=clamp(state[k],34,41);
+        }
+      }
+    }
+
+    function drawWave(ctx,buf,scaleY,color){
+      const w=ctx.canvas.width, h=ctx.canvas.height; ctx.clearRect(0,0,w,h);
+      ctx.save(); ctx.translate(0,h/2); ctx.beginPath();
+      const len=buf.length; for(let i=0;i<w;i++){const bi=Math.floor((i/w)*len); const v=buf[bi]; const y=-v*scaleY; if(i===0) ctx.moveTo(i,y); else ctx.lineTo(i,y);}
+      ctx.lineWidth=2; ctx.strokeStyle=color; ctx.stroke(); ctx.restore();
+    }
+
+    function resize(){[ecgC,plethC,respC].forEach(c=>{const rect=c.getBoundingClientRect();const dpr=window.devicePixelRatio||1;c.width=Math.floor(rect.width*dpr);c.height=Math.floor(rect.height*dpr);const ctx=c.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);ctx.lineJoin='round';ctx.lineCap='round';});}
+    window.addEventListener('resize',resize); resize();
+
+    let ecgBuffer=new Float32Array(1024), plethBuffer=new Float32Array(1024), respBuffer=new Float32Array(1024);
+    let ecgPos=0, plethPos=0, respPos=0;
+
+    const genECGSample=t=>0.9*Math.exp(-Math.pow((t%(60/state.hr))/(60/state.hr)*5-1.25,2));
+    const genPlethSample=t=>clamp(0.6*Math.abs(Math.sin(t*state.hr/60*Math.PI))+0.03*rand(-1,1)+0.08*Math.sin(t*state.rr/60*2*Math.PI),0,1);
+    const genRespSample=t=>0.6*Math.sin(t*state.rr/60*2*Math.PI)+0.08*Math.sin(t*0.8);
+
+    let t0=performance.now()/1000;
+    function loop(){
+      const t=performance.now()/1000-t0;
+      for(let s=0;s<4;s++){const ts=t+s*(1/60)/4;ecgBuffer[ecgPos]=(genECGSample(ts));ecgPos=(ecgPos+1)%ecgBuffer.length;
+        plethBuffer[plethPos]=genPlethSample(ts);plethPos=(plethPos+1)%plethBuffer.length;
+        respBuffer[respPos]=genRespSample(ts);respPos=(respPos+1)%respBuffer.length;}
+      drawWave(ecgCtx,ecgBuffer,80,'#ff3b30'); // ECG rouge
+      drawWave(plethCtx,plethBuffer,60,'#39a9ff');
+      drawWave(respCtx,respBuffer,30,'#f5b642');
+      smoothUpdate(); updateUI();
+      state.etco2=Math.round((28+(40-state.rr)*0.2+rand(-1,1))*10)/10;
+      const alarms=[]; if(state.spo2<90)alarms.push('SpO₂ basse'); if(state.hr<50||state.hr>140)alarms.push('FC anormale'); if(state.temp>39)alarms.push('Fièvre');
+      alarmsEl.textContent=alarms.length?alarms.join(' • '):'Aucune';
+      requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+
+    function doNIBP(){
+      log('Mesure NIBP en cours...');
+      const btn=document.getElementById('nibp-btn');
+      btn.disabled=true;
+      setTimeout(()=>{
+        const sys=Math.round(rand(100,140));
+        const dia=Math.round(rand(60,90));
+        const m=Math.round((sys+2*dia)/3);
+        sysEl.textContent=sys; diaEl.textContent=dia; mapEl.textContent=m;
+        lastNibpEl.textContent=new Date().toLocaleTimeString();
+        nibpEl.textContent=sys+' / '+dia+' mmHg';
+        log('NIBP: '+sys+'/'+dia+' mmHg');
+        btn.disabled=false;
+      },1500+Math.random()*1500);
+    }
+
+    log('Simulateur démarré');
+  </script>
+</body>
+</html>
