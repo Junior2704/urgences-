@@ -808,7 +808,22 @@ header {
     <h3>🩺 Constantes</h3>
  
   </div>
- 
+ <hr>
+<h3>Scope</h3>
+<label>
+  <input type="checkbox" id="patientScopeCheckbox"> Patient scopé ?
+</label>
+
+<div id="scopeFields" style="display:none; margin-top:10px;">
+  <label for="scopeNum">Numéro de scope</label>
+  <input type="text" id="scopeNum" class="text1" />
+  <button id="btnConnectScope">🔌 Connecter</button>
+  <span id="scopeLoading" style="display:none; margin-left:10px;">⏳ Connexion...</span>
+</div>
+
+<div id="scopeSuccess" style="display:none; margin-top:10px;">
+  <button id="btnOpenScope">🖥️ Écran Scope</button>
+</div>
     <label for="temperature">🌡 Température (°C)</label>
     <input type="number" id="temperature" step="0.1" class="text1"/>
     <label for="fc">❤️ Fréquence cardiaque (bpm)</label>
@@ -1696,6 +1711,48 @@ document.getElementById("btnSaveConst").addEventListener("click", async () => {
   }
 });
 
+  const checkbox = document.getElementById('patientScopeCheckbox');
+  const scopeFields = document.getElementById('scopeFields');
+  const btnConnectScope = document.getElementById('btnConnectScope');
+  const scopeLoading = document.getElementById('scopeLoading');
+  const scopeSuccess = document.getElementById('scopeSuccess');
+  const btnOpenScope = document.getElementById('btnOpenScope');
+  const scopeNum = document.getElementById('scopeNum');
+
+  // Affichage du champ numéro de scope si coché
+  checkbox.addEventListener('change', () => {
+    scopeFields.style.display = checkbox.checked ? 'block' : 'none';
+    scopeSuccess.style.display = 'none';
+    scopeNum.value = '';
+  });
+
+  // Simulation connexion scope
+  btnConnectScope.addEventListener('click', () => {
+    const num = scopeNum.value.trim();
+    if (!num) return alert("Entrez un numéro de scope");
+
+    scopeLoading.style.display = 'inline';
+    scopeSuccess.style.display = 'none';
+
+    // Simuler délai de connexion
+    setTimeout(() => {
+      scopeLoading.style.display = 'none';
+      const success = Math.random() < 0.7; // 70% de chances de réussir
+
+      if (success) {
+        scopeSuccess.style.display = 'block';
+      } else {
+        alert("Échec de connexion au scope");
+        scopeNum.value = '';
+      }
+    }, 1500); // 1.5 sec de "chargement"
+  });
+
+  // Ouvrir scope.html avec id patient
+  btnOpenScope.addEventListener('click', () => {
+    const num = scopeNum.value.trim();
+    window.open(`scope.html?num=${num}&id=${patientId}`, '_blank');
+  });
 
 
  
@@ -2796,6 +2853,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
