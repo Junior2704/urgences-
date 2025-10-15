@@ -1452,7 +1452,7 @@ async function updateHospitalisationField(field, value) {
     await patientRef.update({ hospitalisations });
 
     ajouterEntreeHistorique(`Modification de ${field} : ${value}`);
-    afficherBulle("✔️ Donnée enregistrée", "administratif");
+    
   } catch (err) {
     console.error(`Erreur mise à jour ${field} :`, err);
     afficherBulle("❌ Erreur d’enregistrement", "alerte");
@@ -1711,6 +1711,7 @@ document.getElementById("btnSaveConst").addEventListener("click", async () => {
   }
 });
 
+>
   const checkbox = document.getElementById('patientScopeCheckbox');
   const scopeFields = document.getElementById('scopeFields');
   const btnConnectScope = document.getElementById('btnConnectScope');
@@ -1719,40 +1720,73 @@ document.getElementById("btnSaveConst").addEventListener("click", async () => {
   const btnOpenScope = document.getElementById('btnOpenScope');
   const scopeNum = document.getElementById('scopeNum');
 
-  // Affichage du champ numéro de scope si coché
-  checkbox.addEventListener('change', () => {
+  // --- Affichage du champ numéro de scope si coché ---
+  checkbox.addEventListener('change', async () => {
     scopeFields.style.display = checkbox.checked ? 'block' : 'none';
     scopeSuccess.style.display = 'none';
     scopeNum.value = '';
+
+    try {
+      await patientRef.update({
+        scopé: checkbox.checked,
+        scopeNum: ""
+      });
+    } catch (err) {
+      console.error("Erreur sauvegarde scope :", err);
+    }
   });
 
-  // Simulation connexion scope
-  btnConnectScope.addEventListener('click', () => {
+  // --- Simulation connexion scope ---
+  btnConnectScope.addEventListener('click', async () => {
     const num = scopeNum.value.trim();
     if (!num) return alert("Entrez un numéro de scope");
 
     scopeLoading.style.display = 'inline';
     scopeSuccess.style.display = 'none';
 
-    // Simuler délai de connexion
-    setTimeout(() => {
+    setTimeout(async () => {
       scopeLoading.style.display = 'none';
-      const success = Math.random() < 0.7; // 70% de chances de réussir
+      const success = Math.random() < 0.7; // 70% de chances de réussite
 
       if (success) {
         scopeSuccess.style.display = 'block';
+        // Sauvegarde du numéro de scope dans Firestore
+        try {
+          await patientRef.update({
+            scopé: true,
+            scopeNum: num
+          });
+        } catch (err) {
+          console.error("Erreur sauvegarde scope :", err);
+        }
       } else {
         alert("Échec de connexion au scope");
         scopeNum.value = '';
+        // Mettre à jour Firestore
+        try {
+          await patientRef.update({
+            scopé: false,
+            scopeNum: ""
+          });
+        } catch (err) {
+          console.error("Erreur sauvegarde scope :", err);
+        }
       }
-    }, 1500); // 1.5 sec de "chargement"
+    }, 1500);
   });
 
-  // Ouvrir scope.html avec id patient
+  // --- Ouvrir scope.html avec id patient ---
   btnOpenScope.addEventListener('click', () => {
+    const patientId = getPatientId(); // récupérer depuis URL
     const num = scopeNum.value.trim();
     window.open(`scope.html?num=${num}&id=${patientId}`, '_blank');
   });
+
+  // --- Fonction pour récupérer l'ID patient depuis l'URL ---
+  function getPatientId() {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get("id");
+  }
 
 
  
@@ -2853,6 +2887,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
