@@ -18,19 +18,19 @@
   <h1>Panneau de contrôle du scope</h1>
 
   <label>Fréquence cardiaque (bpm): <span id="hr-val" class="val">80</span></label>
-  <input id="hr-range" type="range" value="80">
+  <input id="hr-range" type="range" min="0" max="200" value="80">
 
   <label>SpO₂ (%): <span id="spo2-val" class="val">98</span></label>
-  <input id="spo2-range" type="range" value="98">
+  <input id="spo2-range" type="range" min="0" max="100" value="98">
 
   <label>Respiration (br/min): <span id="rr-val" class="val">16</span></label>
-  <input id="rr-range" type="range" value="16">
+  <input id="rr-range" type="range" min="0" max="50" value="16">
 
   <label>Température (°C): <span id="temp-val" class="val">36.8</span></label>
-  <input id="temp-range" type="range" step="0.1" value="36.8">
+  <input id="temp-range" type="range" min="20" max="50" step="0.1" value="36.8">
 
   <label>EtCO₂ (mmHg): <span id="etco2-val" class="val">32</span></label>
-  <input id="etco2-range" type="range" value="32">
+  <input id="etco2-range" type="range" min="0" max="150" value="32">
 
   <script>
     const bc = new BroadcastChannel('scope_control');
@@ -49,3 +49,4 @@
   </script>
 </body>
 </html>
+
