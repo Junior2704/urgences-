@@ -799,7 +799,7 @@ header {
 
   <br><br>
   <button id="btnAdmin" class="btn-admin">🛠 Gestion Administrative</button>
-  <button id="btnVoirRawData">🧾 Données brutes</button>
+  <button id="btnVoirRawData">🧾 Historique des hospitalisations</button>
 </div>
 
 
@@ -868,8 +868,7 @@ header {
 
 <div id="tab-historique" class="tab-content">
   <div class="tab-header">
-    <h3>📜 Historique</h3>
-    
+    <h3>📜 Historique</h3>    
   </div>
   
     <h3>Historique de l'hospitalisation en cours</h3>
@@ -2818,7 +2817,7 @@ async function chargerScopeDepuisHospi(patientId) {
   chkScope.checked = !!scope.active;
   inputScopeNum.value = scope.numero || "";
 
-  if (scope.active) {
+  if (scope.active = "True") {
     divScopeFields.style.display = "block";
     divScopeSuccess.style.display = "block";
   } else {
@@ -2968,6 +2967,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
