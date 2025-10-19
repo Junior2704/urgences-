@@ -858,7 +858,7 @@ header {
  <hr>
 <h3>Scope</h3>
 <label>
-  <input type="checkbox" id="patientScopeCheckbox"> Patient scopé ?
+  <input type="checkbox" id="patientScopeCheckbox"> Patient scopé
 </label>
 
 <div id="scopeFields" style="display:none; margin-top:10px;">
@@ -1788,7 +1788,7 @@ document.getElementById("btnSaveConst").addEventListener("click", async () => {
       fields.style.display = "none";
       successDiv.style.display = "none";
       await updateHospitalisationField("scope", { scopeActive: false, numero: "" });
-      afficherBulle("Scope désactivé", "administratif");
+      afficherBulle("✔️ Scope désactivé", "administratif");
       return;
     }
     fields.style.display = "block";
@@ -1799,7 +1799,7 @@ document.getElementById("btnSaveConst").addEventListener("click", async () => {
   document.getElementById("btnConnectScope").addEventListener("click", async () => {
     const numero = numInput.value.trim();
     if (!numero) {
-      afficherBulle("Veuillez entrer un numéro de scope", "alerte");
+      afficherBulle("❌Veuillez entrer un numéro de scope", "alerte");
       return;
     }
     document.getElementById("scopeLoading").style.display = "inline";
@@ -1807,7 +1807,7 @@ document.getElementById("btnSaveConst").addEventListener("click", async () => {
       document.getElementById("scopeLoading").style.display = "none";
       successDiv.style.display = "block";
       await updateHospitalisationField("scope", { scopeActive: true, numero });
-      afficherBulle(`Scope ${numero} connecté`, "administratif");
+      afficherBulle(`✔️ Scope ${numero} connecté`, "administratif");
     }, 1500);
   });
 
@@ -1815,7 +1815,7 @@ document.getElementById("btnSaveConst").addEventListener("click", async () => {
   document.getElementById("btnOpenScope").addEventListener("click", () => {
     const numero = numInput.value.trim();
     if (!numero) {
-      afficherBulle("Numéro de scope manquant", "alerte");
+      afficherBulle("❌Numéro de scope manquant", "alerte");
       return;
     }
     window.open(`scope.html?num=${encodeURIComponent(numero)}`, "_blank");
@@ -2987,6 +2987,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
