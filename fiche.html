@@ -2644,7 +2644,8 @@ async function chargerHistoriqueComplet() {
     }
 
     const data = patientDoc.data();
-    const hospitalisations = Array.isArray(data.hospitalisations) ? data.hospitalisations : [];
+    let hospitalisations = Array.isArray(data.hospitalisations) ? data.hospitalisations : [];
+
 if (hospitalisations.length > 1) {
       hospitalisations = hospitalisations.slice(0, -1);
     } else {
@@ -3005,6 +3006,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
