@@ -2603,7 +2603,8 @@ const dm = hospi.dossierMedical
 		   <p><strong>CR auscult init.  : ${dm.auscultation}</strong> </p> 
         </div>
 
- <p><strong>📈 Evolution aux urgences:</strong> ${hospi.evolution || "?"}</p>
+ <p><strong>📈 Evolution aux urgences:</strong> 
+ ${hospi.evolution || "?"}</p>
       <h4>☢️ Examens réalisés</h4>
       ${(hospi.examens || []).map(ex => `
         <div class="entry">
@@ -2894,6 +2895,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
