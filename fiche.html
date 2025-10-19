@@ -2648,6 +2648,7 @@ async function chargerHistoriqueComplet() {
 		  const date2 = hospi.dateFin || "Date inconnue";
         const evolution = hospi.evolution || "Aucune évolution enregistrée.";
         const dossier = hospi.dossierMedical || {};
+		 const sortie = hospi.sortie || null;
         const dmHTML = `
 		
           <div class="entry"><strong>📅 Admission :</strong> ${date}</div>
@@ -2665,6 +2666,31 @@ async function chargerHistoriqueComplet() {
           <h3>📈 Évolution aux urgences</h3>
           <p>${evolution}</p>
         `;
+		  if (sortie) {
+          html += `<hr><h3>🚪 Sortie</h3>`;
+          html += `<p><strong>Type :</strong> ${sortie.type || "—"}</p>`;
+
+          if (sortie.serviceHospitalisation)
+            html += `<p><strong>🏥 Service hospitalisation :</strong> ${sortie.serviceHospitalisation}</p>`;
+
+          if (sortie.destinationTransfert)
+            html += `<p><strong>↔️ Destination transfert :</strong> ${sortie.destinationTransfert}</p>`;
+
+          if (sortie.avisSpecialiste)
+            html += `<p><strong>👩‍⚕️ Avis spécialiste :</strong> ${sortie.avisSpecialiste}</p>`;
+
+          if (Array.isArray(sortie.options) && sortie.options.length > 0)
+            html += `<p><strong>📋 Options :</strong> ${sortie.options.join(", ")}</p>`;
+
+          if (sortie.traitementSortie)
+            html += `<p><strong>💊 Traitement de sortie :</strong><br>${sortie.traitementSortie}</p>`;
+
+          if (sortie.autreSortieTexte)
+            html += `<p><strong>🔤 Autre :</strong> ${sortie.autreSortieTexte}</p>`;
+
+          if (sortie.autreOptionTexte)
+            html += `<p><strong>🔤 Autre option :</strong> ${sortie.autreOptionTexte}</p>`;
+        }
         card.innerHTML = dmHTML;
         contenu.appendChild(card);
       });
@@ -2950,6 +2976,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
