@@ -1758,84 +1758,77 @@ document.getElementById("btnSaveConst").addEventListener("click", async () => {
 });
 
 
-  const checkbox = document.getElementById('patientScopeCheckbox');
-  const scopeFields = document.getElementById('scopeFields');
-  const btnConnectScope = document.getElementById('btnConnectScope');
-  const scopeLoading = document.getElementById('scopeLoading');
-  const scopeSuccess = document.getElementById('scopeSuccess');
-  const btnOpenScope = document.getElementById('btnOpenScope');
-  const scopeNum = document.getElementById('scopeNum');
+  async function initialiserScope(patientId) {
+  const doc = await patientRef.get();
+  if (!doc.exists) return;
 
-  // --- Affichage du champ numéro de scope si coché ---
-  checkbox.addEventListener('change', async () => {
-    scopeFields.style.display = checkbox.checked ? 'block' : 'none';
-    scopeSuccess.style.display = 'none';
-    scopeNum.value = '';
+  const data = doc.data();
+  const index = data.hospitalisationIndex ?? 0;
+  const hospi = data.hospitalisations?.[index] || {};
 
-    try {
-      await patientRef.update({
-        scopé: checkbox.checked,
-        scopeNum: ""
-      });
-    } catch (err) {
-      console.error("Erreur sauvegarde scope :", err);
+  const checkbox = document.getElementById("patientScopeCheckbox");
+  const fields = document.getElementById("scopeFields");
+  const successDiv = document.getElementById("scopeSuccess");
+  const numInput = document.getElementById("scopeNum");
+
+  // 🔹 Lecture depuis Firestore
+  if (hospi.scope) {
+    checkbox.checked = hospi.scope.scopeActive || false;
+    if (hospi.scope.scopeActive) {
+      fields.style.display = "block";
+      numInput.value = hospi.scope.numero || "";
+      successDiv.style.display = "block";
     }
+  }
+
+  // 🔹 Changement de statut du scope
+  checkbox.addEventListener("change", async () => {
+    const actif = checkbox.checked;
+    if (!actif) {
+      fields.style.display = "none";
+      successDiv.style.display = "none";
+      await updateHospitalisationField("scope", { scopeActive: false, numero: "" });
+      afficherBulle("Scope désactivé", "administratif");
+      return;
+    }
+    fields.style.display = "block";
+    await updateHospitalisationField("scope", { scopeActive: true, numero: "" });
   });
 
-  // --- Simulation connexion scope ---
-  btnConnectScope.addEventListener('click', async () => {
-    const num = scopeNum.value.trim();
-    if (!num) return alert("Entrez un numéro de scope");
-
-    scopeLoading.style.display = 'inline';
-    scopeSuccess.style.display = 'none';
-
+  // 🔹 Simulation de connexion au scope
+  document.getElementById("btnConnectScope").addEventListener("click", async () => {
+    const numero = numInput.value.trim();
+    if (!numero) {
+      afficherBulle("Veuillez entrer un numéro de scope", "alerte");
+      return;
+    }
+    document.getElementById("scopeLoading").style.display = "inline";
     setTimeout(async () => {
-      scopeLoading.style.display = 'none';
-      const success = Math.random() < 0.7; // 70% de chances de réussite
-
-      if (success) {
-        scopeSuccess.style.display = 'block';
-        // Sauvegarde du numéro de scope dans Firestore
-        try {
-          await patientRef.update({
-            scopé: true,
-            scopeNum: num
-          });
-        } catch (err) {
-          console.error("Erreur sauvegarde scope :", err);
-        }
-      } else {
-        alert("Échec de connexion au scope");
-        scopeNum.value = '';
-        // Mettre à jour Firestore
-        try {
-          await patientRef.update({
-            scopé: false,
-            scopeNum: ""
-          });
-        } catch (err) {
-          console.error("Erreur sauvegarde scope :", err);
-        }
-      }
+      document.getElementById("scopeLoading").style.display = "none";
+      successDiv.style.display = "block";
+      await updateHospitalisationField("scope", { scopeActive: true, numero });
+      afficherBulle(`Scope ${numero} connecté`, "administratif");
     }, 1500);
   });
 
-  // --- Ouvrir scope.html avec id patient ---
-  btnOpenScope.addEventListener('click', () => {
-    const patientId = getPatientId(); // récupérer depuis URL
-    const num = scopeNum.value.trim();
-    window.open(`scope.html?num=${num}&id=${patientId}`, '_blank');
+  // 🔹 Ouverture du scope.html
+  document.getElementById("btnOpenScope").addEventListener("click", () => {
+    const numero = numInput.value.trim();
+    if (!numero) {
+      afficherBulle("Numéro de scope manquant", "alerte");
+      return;
+    }
+    window.open(`scope.html?num=${encodeURIComponent(numero)}`, "_blank");
   });
+}
 
-  // --- Fonction pour récupérer l'ID patient depuis l'URL ---
-  function getPatientId() {
-    const urlParams = new URLSearchParams(window.location.search);
-    return urlParams.get("id");
+// 🧠 Intégration dans le chargement patient
+document.addEventListener("DOMContentLoaded", async () => {
+  if (patientId) {
+    await chargerPatient(patientId);
+    await initialiserScope(patientId);
   }
-
-
- 
+});
 
   const historiqueContainer = document.getElementById("historique");
 
@@ -2994,6 +2987,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
