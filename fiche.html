@@ -2645,18 +2645,25 @@ async function chargerHistoriqueComplet() {
 
     const data = patientDoc.data();
     const hospitalisations = Array.isArray(data.hospitalisations) ? data.hospitalisations : [];
+if (hospitalisations.length > 1) {
+      hospitalisations = hospitalisations.slice(0, -1);
+    } else {
+      hospitalisations = []; // aucune hospitalisation précédente
+    }
 
     if (hospitalisations.length === 0) {
-      contenu.innerHTML = "<p>Aucune hospitalisation enregistrée.</p>";
+      contenu.innerHTML = "<p>Aucune hospitalisation antérieure.</p>";
       return;
     }
 
-    contenu.innerHTML = ""; // on vide avant d'ajouter
+    contenu.innerHTML = "";
 
-    // parcours des hospitalisations (les plus récentes en premier)
-    hospitalisations.slice().reverse().forEach((hospi, idx) => {
-      const card = document.createElement("div");
-      card.className = "card";
+    hospitalisations
+      .slice() // copie
+      .reverse() // plus récentes d'abord
+      .forEach((hospi, idx) => {
+        const card = document.createElement("div");
+        card.className = "card";
 
       const date = hospi.dateDebut || hospi.dateDebut || "Date inconnue";
 		 const datef = hospi.dateFin || hospi.dateFin || "Date inconnue";
@@ -2998,6 +3005,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
