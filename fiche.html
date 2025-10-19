@@ -2595,7 +2595,18 @@ document.getElementById("btnVoirRawData").addEventListener("click", async () => 
       <p><strong>🤕 Motif :</strong> ${hospi.motif || "Non renseigné"}</p>
       <p><strong>🏥 Service idéal :</strong> ${hospi.service || "?"}</p>
       <p><strong>🚨 Priorité :</strong> ${hospi.gravite || "?"}</p>
-
+	  
+   		<h4>📋Dossier médical</h4>
+      ${(hospi.dossierMedical || []).map(ex => `
+        <div class="entry">
+		<p><strong>Questionnaire IAO : ${ex.questionnaire}</strong> </p>
+          <p><strong>Antécédents médicaux : ${ex.antecedents}</strong> </p>
+		  <p><strong>TRraitements en cours : ${ex.traitements}</strong> </p>
+           <p><strong>Histoire de la maladie  : ${ex.histoire}</strong> </p>
+		   <p><strong>CR auscult init.  : ${ex.auscultation}</strong> </p> 
+        </div>
+      `).join("") || "<p>Dossier médical non-renseigné</p>"}
+ <p><strong>📈 Evolution aux urgences:</strong> ${hospi.evolution || "?"}</p>
       <h4>☢️ Examens réalisés</h4>
       ${(hospi.examens || []).map(ex => `
         <div class="entry">
@@ -2886,6 +2897,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
