@@ -2644,15 +2644,19 @@ async function chargerHistoriqueComplet() {
       .forEach((hospi, i) => {
         const card = document.createElement("div");
         card.className = "card";
-        const date = hospi.dateAdmission || "Date inconnue";
+        const date = hospi.dateDebut || "Date inconnue";
+		  const date2 = hospi.dateFin || "Date inconnue";
         const evolution = hospi.evolution || "Aucune évolution enregistrée.";
         const dossier = hospi.dossierMedical || {};
         const dmHTML = `
+		
           <div class="entry"><strong>📅 Admission :</strong> ${date}</div>
+		  <div class="entry"><strong>📅 Sortie :</strong> ${date2}</div>
           <div class="entry"><strong>Motif :</strong> ${hospi.motif || "—"}</div>
           <div class="entry"><strong>Gravité :</strong> ${hospi.gravite || "—"}</div>
           <hr>
           <h3>📋 Dossier médical</h3>
+		  <p><strong>Questionnaire IAO :</strong><br>${dossier.questionnaire || "—"}</p>
           <p><strong>Antécédents :</strong><br>${dossier.antecedents || "—"}</p>
           <p><strong>Traitements :</strong><br>${dossier.traitements || "—"}</p>
           <p><strong>Histoire de la maladie :</strong><br>${dossier.histoire || "—"}</p>
@@ -2946,6 +2950,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
