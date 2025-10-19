@@ -2569,62 +2569,67 @@ async function chargerRealisateurs() {
 }
 
 
+// --- 🩺 Charger l'historique complet avec dossier médical + évolution ---
+async function chargerHistoriqueComplet() {
+  const contenu = document.getElementById("hospitalisationsContent");
+  contenu.innerHTML = "<p>⏳ Chargement...</p>";
+
+  try {
+    const patientDoc = await db.collection("patients").doc(patientId).get();
+    if (!patientDoc.exists) {
+      contenu.innerHTML = "<p>❌ Patient introuvable</p>";
+      return;
+    }
+
+    const data = patientDoc.data();
+    const hospitalisations = data.hospitalisations || [];
+
+    if (hospitalisations.length === 0) {
+      contenu.innerHTML = "<p>Aucune hospitalisation enregistrée.</p>";
+      return;
+    }
+
+    contenu.innerHTML = "";
+
+    hospitalisations
+      .slice() // copie
+      .reverse() // ordre antéchronologique
+      .forEach((hospi, i) => {
+        const card = document.createElement("div");
+        card.className = "card";
+        const date = hospi.dateAdmission || "Date inconnue";
+        const evolution = hospi.evolution || "Aucune évolution enregistrée.";
+        const dossier = hospi.dossierMedical || {};
+        const dmHTML = `
+          <div class="entry"><strong>📅 Admission :</strong> ${date}</div>
+          <div class="entry"><strong>Motif :</strong> ${hospi.motif || "—"}</div>
+          <div class="entry"><strong>Gravité :</strong> ${hospi.gravite || "—"}</div>
+          <hr>
+          <h3>📋 Dossier médical</h3>
+          <p><strong>Antécédents :</strong><br>${dossier.antecedents || "—"}</p>
+          <p><strong>Traitements :</strong><br>${dossier.traitements || "—"}</p>
+          <p><strong>Histoire de la maladie :</strong><br>${dossier.histoire || "—"}</p>
+          <p><strong>CR Auscultation :</strong><br>${dossier.auscultation || "—"}</p>
+          <hr>
+          <h3>📈 Évolution aux urgences</h3>
+          <p>${evolution}</p>
+        `;
+        card.innerHTML = dmHTML;
+        contenu.appendChild(card);
+      });
+  } catch (err) {
+    console.error("Erreur chargement historique :", err);
+    contenu.innerHTML = "<p>❌ Erreur lors du chargement de l'historique.</p>";
+  }
+}
+
+// --- Lier le bouton d’ouverture de l’historique ---
 document.getElementById("btnVoirRawData").addEventListener("click", async () => {
   document.getElementById("modalRawData").style.display = "flex";
-
-  const doc = await patientRef.get();
-  const data = doc.data();
-  const container = document.getElementById("hospitalisationsContent");
-  container.innerHTML = "";
-
-  if (!data.hospitalisations || data.hospitalisations.length === 0) {
-    container.innerHTML = "<p>Aucune hospitalisation enregistrée.</p>";
-    return;
-  }
-
-  data.hospitalisations.forEach((hospi, index) => {
-    const bloc = document.createElement("div");
-    bloc.className = "card";
-
-    bloc.innerHTML = `
-      <h3>🏥 Hospitalisation ${index + 1}</h3>
-      <p><strong>📅 Début :</strong> ${hospi.dateDebut || "?"}</p>
-      <p><strong>📅 Fin :</strong> ${hospi.dateFin || "?"}</p>
-      <p><strong>🤕 Motif :</strong> ${hospi.motif || "Non renseigné"}</p>
-      <p><strong>🏥 Service idéal :</strong> ${hospi.service || "?"}</p>
-      <p><strong>🚨 Priorité :</strong> ${hospi.gravite || "?"}</p>
-	    <h4>📈 Dossier médical</h4>
-        <div class="entry">
-		<p><strong>Questionnaire IAO : ${dm.questionnaire}</strong> </p>
-          <p><strong>Antécédents médicaux : ${dm.antecedents}</strong> </p>
-		  <p><strong>TRraitements en cours : ${dm.traitements}</strong> </p>
-           <p><strong>Histoire de la maladie  : ${dm.histoire}</strong> </p>
-		   <p><strong>CR auscult init.  : ${dm.auscultation}</strong> </p> 
-        </div>
-
- <p><strong>📈 Evolution aux urgences:</strong> 
- ${hospi.evolution || "?"}</p>
-      <h4>☢️ Examens réalisés</h4>
-      ${(hospi.examens || []).map(ex => `
-        <div class="entry">
-          <p><strong>${ex.type}</strong> (${ex.date || "?"})</p>
-          <p>Compte-rendu : ${ex.cr || "—"}</p>
-        </div>
-      `).join("") || "<p>Aucun</p>"}
-
-      <h4>💉 Actes réalisés</h4>
-      ${(hospi.actes || []).map(acte => `
-        <div class="entry">
-          <p><strong>${acte.type}</strong> (${acte.date || "?"})</p>
-          <p>Remarques : ${acte.remarque || "—"}</p>
-        </div>
-      `).join("") || "<p>Aucun</p>"}
-    `;
-
-    container.appendChild(bloc);
-  });
+  await chargerHistoriqueComplet();
 });
 
+// --- Bouton fermeture modale ---
 document.getElementById("closeRawData").addEventListener("click", () => {
   document.getElementById("modalRawData").style.display = "none";
 });
@@ -2894,6 +2899,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
