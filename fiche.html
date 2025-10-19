@@ -412,12 +412,12 @@ button.danger:hover {
   padding-bottom: 10px;
 }
 
-/* Bouton de fermeture (coin supérieur droit) */
 #closeRawData {
   position: fixed;
   top: 20px;
   right: 30px;
-  font-size: 32px;
+  font-size: 36px;
+  font-weight: bold;
   color: #c62828;
   background: transparent;
   border: none;
@@ -427,8 +427,8 @@ button.danger:hover {
 }
 
 #closeRawData:hover {
-  transform: scale(1.2);
   color: #ff5252;
+  transform: scale(1.2);
 }
 
 /* Cartes d’hospitalisation */
@@ -1154,7 +1154,7 @@ header {
 <div id="modalRawData" class="modal-overlay">
   <div class="modal">
     <div class="modal-content">
-      <span id="closeRawData" class="close">&times;</span>
+      <button id="closeRawData" title="Fermer la fenêtre">❌</button>
       <h2>📊 Hospitalisations du patient</h2>
       <div id="hospitalisationsContent"></div>
     </div>
@@ -2950,6 +2950,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
