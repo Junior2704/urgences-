@@ -2574,7 +2574,6 @@ document.getElementById("btnVoirRawData").addEventListener("click", async () => 
 
   const doc = await patientRef.get();
   const data = doc.data();
-const dm = hospi.dossierMedical
   const container = document.getElementById("hospitalisationsContent");
   container.innerHTML = "";
 
@@ -2895,6 +2894,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
