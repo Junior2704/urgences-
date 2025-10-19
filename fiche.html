@@ -2620,10 +2620,12 @@ async function chargerRealisateurs() {
   }
 }
 
-
-// --- 🩺 Charger l'historique complet avec dossier médical + évolution ---
 async function chargerHistoriqueComplet() {
   const contenu = document.getElementById("hospitalisationsContent");
+  if (!contenu) {
+    console.error("Element #hospitalisationsContent introuvable");
+    return;
+  }
   contenu.innerHTML = "<p>⏳ Chargement...</p>";
 
   try {
@@ -2634,77 +2636,84 @@ async function chargerHistoriqueComplet() {
     }
 
     const data = patientDoc.data();
-    const hospitalisations = data.hospitalisations || [];
+    const hospitalisations = Array.isArray(data.hospitalisations) ? data.hospitalisations : [];
 
     if (hospitalisations.length === 0) {
       contenu.innerHTML = "<p>Aucune hospitalisation enregistrée.</p>";
       return;
     }
 
-    contenu.innerHTML = "";
+    contenu.innerHTML = ""; // on vide avant d'ajouter
 
-    hospitalisations
-      .slice() // copie
-      .reverse() // ordre antéchronologique
-      .forEach((hospi, i) => {
-        const card = document.createElement("div");
-        card.className = "card";
-        const date = hospi.dateDebut || "Date inconnue";
-		  const date2 = hospi.dateFin || "Date inconnue";
-        const evolution = hospi.evolution || "Aucune évolution enregistrée.";
-        const dossier = hospi.dossierMedical || {};
-		 const sortie = hospi.sortie || null;
-        const dmHTML = `
-		
-          <div class="entry"><strong>📅 Admission :</strong> ${date}</div>
-		  <div class="entry"><strong>📅 Sortie :</strong> ${date2}</div>
-          <div class="entry"><strong>Motif :</strong> ${hospi.motif || "—"}</div>
-          <div class="entry"><strong>Gravité :</strong> ${hospi.gravite || "—"}</div>
-          <hr>
-          <h3>📋 Dossier médical</h3>
-		  <p><strong>Questionnaire IAO :</strong><br>${dossier.questionnaire || "—"}</p>
-          <p><strong>Antécédents :</strong><br>${dossier.antecedents || "—"}</p>
-          <p><strong>Traitements :</strong><br>${dossier.traitements || "—"}</p>
-          <p><strong>Histoire de la maladie :</strong><br>${dossier.histoire || "—"}</p>
-          <p><strong>CR Auscultation :</strong><br>${dossier.auscultation || "—"}</p>
-          <hr>
-          <h3>📈 Évolution aux urgences</h3>
-          <p>${evolution}</p>
-        `;
-		  if (sortie) {
-          html += `<hr><h3>🚪 Sortie</h3>`;
-          html += `<p><strong>Type :</strong> ${sortie.type || "—"}</p>`;
+    // parcours des hospitalisations (les plus récentes en premier)
+    hospitalisations.slice().reverse().forEach((hospi, idx) => {
+      const card = document.createElement("div");
+      card.className = "card";
 
-          if (sortie.serviceHospitalisation)
-            html += `<p><strong>🏥 Service hospitalisation :</strong> ${sortie.serviceHospitalisation}</p>`;
+      const date = hospi.dateDebut || hospi.dateDebut || "Date inconnue";
+		 const datef = hospi.dateFin || hospi.dateFin || "Date inconnue";
+      const motif = hospi.motif || "—";
+      const gravite = hospi.gravite || "—";
+      const evolution = hospi.evolution || "Aucune évolution enregistrée.";
+      const dossier = hospi.dossierMedical || {};
+      const sortie = hospi.sortie || null;
 
-          if (sortie.destinationTransfert)
-            html += `<p><strong>↔️ Destination transfert :</strong> ${sortie.destinationTransfert}</p>`;
+      // construire le HTML via un tableau de parties (plus sûr)
+      const parts = [];
 
-          if (sortie.avisSpecialiste)
-            html += `<p><strong>👩‍⚕️ Avis spécialiste :</strong> ${sortie.avisSpecialiste}</p>`;
+      parts.push(`<div class="entry"><strong>📅 Admission :</strong> ${date}</div>`);
+		parts.push(`<div class="entry"><strong>📅 Sortie :</strong> ${datef}</div>`);
+      parts.push(`<div class="entry"><strong>Motif :</strong> ${motif}</div>`);
+      parts.push(`<div class="entry"><strong>Gravité :</strong> ${gravite}</div>`);
+      parts.push(`<hr>`);
+      parts.push(`<h3>📋 Dossier médical</h3>`);
+		parts.push(`<p><strong>Questionnaire IAO :</strong><br>${dossier.questionnaire || "—"}</p>`);
+      parts.push(`<p><strong>Antécédents :</strong><br>${dossier.antecedents || "—"}</p>`);
+      parts.push(`<p><strong>Traitements :</strong><br>${dossier.traitements || "—"}</p>`);
+      parts.push(`<p><strong>Histoire de la maladie :</strong><br>${dossier.histoire || "—"}</p>`);
+      parts.push(`<p><strong>CR Auscultation :</strong><br>${dossier.auscultation || "—"}</p>`);
+      parts.push(`<hr>`);
+      parts.push(`<h3>📈 Évolution aux urgences</h3>`);
+      parts.push(`<p style="white-space:pre-wrap">${evolution}</p>`);
 
-          if (Array.isArray(sortie.options) && sortie.options.length > 0)
-            html += `<p><strong>📋 Options :</strong> ${sortie.options.join(", ")}</p>`;
+      // ajout de la sortie si présente
+      if (sortie) {
+        parts.push(`<hr>`);
+        parts.push(`<h3>🚪 Sortie</h3>`);
+        parts.push(`<p><strong>Type :</strong> ${sortie.type || "—"}</p>`);
 
-          if (sortie.traitementSortie)
-            html += `<p><strong>💊 Traitement de sortie :</strong><br>${sortie.traitementSortie}</p>`;
+        if (sortie.serviceHospitalisation)
+          parts.push(`<p><strong>🏥 Service hospitalisation :</strong> ${sortie.serviceHospitalisation}</p>`);
 
-          if (sortie.autreSortieTexte)
-            html += `<p><strong>🔤 Autre :</strong> ${sortie.autreSortieTexte}</p>`;
+        if (sortie.destinationTransfert)
+          parts.push(`<p><strong>↔️ Destination transfert :</strong> ${sortie.destinationTransfert}</p>`);
 
-          if (sortie.autreOptionTexte)
-            html += `<p><strong>🔤 Autre option :</strong> ${sortie.autreOptionTexte}</p>`;
-        }
-        card.innerHTML = dmHTML;
-        contenu.appendChild(card);
-      });
+        if (sortie.avisSpecialiste)
+          parts.push(`<p><strong>👩‍⚕️ Avis spécialiste :</strong> ${sortie.avisSpecialiste}</p>`);
+
+        if (Array.isArray(sortie.options) && sortie.options.length > 0)
+          parts.push(`<p><strong>📋 Options :</strong> ${sortie.options.join(", ")}</p>`);
+
+        if (sortie.traitementSortie)
+          parts.push(`<p><strong>💊 Traitement de sortie :</strong><br>${sortie.traitementSortie}</p>`);
+
+        if (sortie.autreSortieTexte)
+          parts.push(`<p><strong>🔤 Autre :</strong> ${sortie.autreSortieTexte}</p>`);
+
+        if (sortie.autreOptionTexte)
+          parts.push(`<p><strong>🔤 Autre option :</strong> ${sortie.autreOptionTexte}</p>`);
+      }
+
+      // affecter le HTML final
+      card.innerHTML = parts.join("\n");
+      contenu.appendChild(card);
+    });
+
   } catch (err) {
     console.error("Erreur chargement historique :", err);
     contenu.innerHTML = "<p>❌ Erreur lors du chargement de l'historique.</p>";
   }
 }
-
 // --- Lier le bouton d’ouverture de l’historique ---
 document.getElementById("btnVoirRawData").addEventListener("click", async () => {
   document.getElementById("modalRawData").style.display = "flex";
@@ -2981,6 +2990,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
