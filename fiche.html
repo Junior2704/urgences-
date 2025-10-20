@@ -1941,6 +1941,7 @@ document.getElementById("btnSaveExamen").addEventListener("click", async () => {
     modalExamen.style.display = "none";
     afficherBulle("✔️ Examens enregistrés", "administratif");
     ajouterEntreeHistorique(`📋 Examens demandés : ${examens.join(", ")}`);
+	  reinitialiserFormulaireExamen();
 	  chargerExamens();
   } catch (err) {
     console.error("Erreur enregistrement examens :", err);
@@ -1948,6 +1949,15 @@ document.getElementById("btnSaveExamen").addEventListener("click", async () => {
   }
   
 });
+	function reinitialiserFormulaireExamen() {
+  // Décoche tous les checkboxes dans le modal
+  const checkboxes = document.querySelectorAll("#modalExamen input[type='checkbox']");
+  checkboxes.forEach(cb => cb.checked = false);
+
+  // Vide le commentaire
+  document.getElementById("commentaireExamen").value = "";
+}
+
   document.getElementById("btnCloturer").addEventListener("click", async () => {
   const code = prompt("Entrez le code secret pour clôturer l'hospitalisation :");
   if (!code) return;
@@ -2988,6 +2998,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
