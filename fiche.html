@@ -2654,6 +2654,7 @@ if (hospitalisations.length > 1) {
       const evolution = hospi.evolution || "Aucune évolution enregistrée.";
       const dossier = hospi.dossierMedical || {};
       const sortie = hospi.sortie || null;
+	  const rapport = hospi.rapport || "Pas de rapport d'hospitalisation validé";
 
       // construire le HTML via un tableau de parties (plus sûr)
       const parts = [];
@@ -2700,7 +2701,7 @@ if (hospitalisations.length > 1) {
         if (sortie.autreOptionTexte)
           parts.push(`<p><strong>🔤 Autre option :</strong> ${sortie.autreOptionTexte}</p>`);
       }
-
+ parts.push(`<p><strong></strong> ${rapport}</p>`);
       // affecter le HTML final
       card.innerHTML = parts.join("\n");
       contenu.appendChild(card);
@@ -2987,6 +2988,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
