@@ -411,7 +411,8 @@ function formaterDate(dateStr) {
 }
 
   function showDetails(patient) {
-  const examensNonRealisesHTML = patient.examensNonRealises.map((e, i) => `
+  // Examens non réalisés
+  const examensNonRealisesHTML = (patient.examensNonRealises || []).map((e, i) => `
     <div class="examen-encart">
       <p><b>☢️Type:</b> ${e.type || "N/A"}</p>
       <p><b>💬Commentaire:</b> ${e.commentaire || ""}</p>
@@ -421,42 +422,23 @@ function formaterDate(dateStr) {
     </div>
   `).join("");
 
+  // Examens réalisés
   const examensRealises = (patient.fullData.hospitalisations?.[patient.hospIndex]?.examens || [])
     .filter(ex => ex.realise)
     .map(ex => `
-      // génération du HTML des examens
-const examensHTML = examens.map(ex => `
-  <div class="examen-encart" style="background-color: #eaf9ea; border-color: #9ccc65;" data-type="${ex.type}" data-patient-id="${ex.patientId}">
-    <p><b>☢️Type:</b> ${ex.type || "N/A"}</p>
-    <p><b>💬Commentaire:</b> ${ex.commentaire || ""}</p>
-    <p><b>📄Compte rendu:</b> ${ex.compteRendu || ""}</p>
-    <p><b>📅Date demande:</b> ${formatDateHeure(ex.dateDemande) || "N/A"}</p>
-    <p><b>✅Réalisé le:</b> ${ex.dateRealisation ? formatDateHeure(ex.dateRealisation) : "?"}</p>
-  </div>
-`).join("");
+      <div class="examen-encart" style="background-color: #eaf9ea; border-color: #9ccc65;" 
+           data-type="${ex.type}" data-patient-id="${patient.id}">
+        <p><b>☢️Type:</b> ${ex.type || "N/A"}</p>
+        <p><b>💬Commentaire:</b> ${ex.commentaire || ""}</p>
+        <p><b>📄Compte rendu:</b> ${ex.compteRendu || ""}</p>
+        <p><b>📅Date demande:</b> ${formatDateHeure(ex.dateDemande) || "N/A"}</p>
+        <p><b>✅Réalisé le:</b> ${ex.dateRealisation ? formatDateHeure(ex.dateRealisation) : "?"}</p>
+      </div>
+    `).join("");
 
-// insertion dans le conteneur
-document.getElementById("examenContainer").innerHTML = examensHTML;
-
-// ajout du clic sur chaque examen
-document.querySelectorAll('.examen-encart').forEach(div => {
-  div.addEventListener('click', () => {
-    const type = div.dataset.type;
-    const patientId = div.dataset.patientId;
-
-    // ouverture modale
-    openModal();
-
-    // si type commence par "Scanner", ouvrir scanner.html avec l'id patient
-    if (type && type.startsWith("Scanner")) {
-      window.open(`scanner.html?id=${encodeURIComponent(patientId)}`, '_blank');
-    }
-  });
-});
-
-
+  // insertion dans le conteneur
   detailContent.innerHTML = `
-    <h2>👤${patient.prenom} ${patient.nom}</h2>
+    <h2>👤 ${patient.prenom} ${patient.nom}</h2>
     <p><b>Sexe :</b> ${patient.fullData.sexe || "Non renseigné"}</p>
     <p><b>Date de naissance :</b> ${formaterDate(patient.dateNaissance)}</p>
     <p><b>Âge :</b> ${calculerAge(patient.dateNaissance)} ans</p>
@@ -471,14 +453,31 @@ document.querySelectorAll('.examen-encart').forEach(div => {
     <pre>${JSON.stringify(patient.fullData, null, 2)}</pre>
   `;
 
+  // ajout du clic pour scanner
+  document.querySelectorAll('.examen-encart[data-type]').forEach(div => {
+    div.addEventListener('click', () => {
+      const type = div.dataset.type;
+      const patientId = div.dataset.patientId;
+
+      openModal(); // modale habituelle
+
+      if (type && type.startsWith("Scanner")) {
+        window.open(`scanner.html?id=${encodeURIComponent(patientId)}`, '_blank');
+      }
+    });
+  });
+
   detailPanel.style.display = "flex";
 }
 
-  window.openEditModal = (patientId, hospIndex, examIndex) => {
-    currentEdit = { patientId, hospIndex, examIndex };
-    compteRenduInput.value = "";
-    editModal.style.display = "flex";
-  };
+// Fonction pour ouvrir le modal de réalisation d'examen
+window.openEditModal = (patientId, hospIndex, examIndex) => {
+  currentEdit = { patientId, hospIndex, examIndex };
+  compteRenduInput.value = "";
+  editModal.style.display = "flex";
+};
+
+
 function formatDateHeure(dateString) {
   const date = new Date(dateString);
   const pad = (n) => n.toString().padStart(2, '0');
@@ -664,4 +663,5 @@ et medecinNom = "";
 </script>
 </body>
 </html>
+
 
