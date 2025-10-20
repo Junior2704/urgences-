@@ -32,7 +32,23 @@
     .gantry svg{width:100%;height:100%}
     .table{position:absolute;left:50%;transform:translateX(-50%);bottom:38px;width:420px;height:30px;border-radius:6px;background:linear-gradient(180deg,#dbeeff10,#bcd8ff08);display:flex;align-items:center;justify-content:center}
     .table .mat{width:380px;height:22px;border-radius:4px;background:linear-gradient(180deg,#0c2130,#06212b);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px}
-    .silhouette{position:absolute;left:50%;transform:translateX(-50%);bottom:64px;width:210px;height:180px;pointer-events:none;}
+    .silhouette {
+  position: absolute;
+  top: 500px; /* juste sous les vues de face/profil */
+  left: 50%;
+  transform: translateX(-50%);
+  width: 220px;  /* taille raisonnable */
+  height: auto;
+  z-index: 50; /* pour être au-dessus du contenu du dessous */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none;
+}
+.silhouette svg {
+  width: 100%;
+  height: auto;
+}
     .slices{display:flex;gap:12px}
     .slice{flex:1;padding:10px;border-radius:8px;background:linear-gradient(180deg,#081022,#061424);min-height:140px}
     .slice h3{margin:0 0 8px 0;font-size:13px;color:#dfefff}
@@ -434,13 +450,19 @@
         <div class="table" id="table">
           <div class="mat" id="mat">Table: position 0 mm</div>
         </div>
-        <div class="silhouette" id="silhouette">
-          <svg viewBox="-60 -110 120 220" preserveAspectRatio="xMidYMid meet" style="width:50%;height:100%">
-            <defs><linearGradient id="skin" x1="0" x2="1"><stop offset="0%" stop-color="#cfe9ff"/><stop offset="100%" stop-color="#9fcdf8"/></linearGradient></defs>
-            <path d="M-24,20 C-28,32 -30,52 -28,80 C-26,108 -4,118 0,118 C4,118 24,108 28,80 C30,52 28,32 24,20 C12,6 -12,6 -24,20Z" fill="url(#skin)" stroke="#08202a" stroke-opacity="0.25"/>
-            <circle cx="0" cy="-28" r="20" fill="url(#skin)" stroke="#071824" stroke-opacity="0.2"/>
-          </svg>
-        </div>
+       <div class="silhouette" id="silhouette">
+  <svg viewBox="0 0 150 250" preserveAspectRatio="xMidYMid meet" style="width:50%;height:auto">
+    <defs>
+      <linearGradient id="skin" x1="0" x2="1">
+        <stop offset="0%" stop-color="#cfe9ff"/>
+        <stop offset="100%" stop-color="#9fcdf8"/>
+      </linearGradient>
+    </defs>
+    <path d="M50,80 C40,120 40,180 50,230 C60,250 90,250 100,230 C110,180 110,120 100,80 C90,60 60,60 50,80Z"
+          fill="url(#skin)" stroke="#08202a" stroke-opacity="0.25"/>
+    <circle cx="75" cy="40" r="25" fill="url(#skin)" stroke="#071824" stroke-opacity="0.2"/>
+  </svg>
+</div>
         <div class="hud" id="hud">
           <div style="font-size:13px;font-weight:700">Gantry angle: <span id="hudAngle">0°</span></div>
           <div style="font-size:12px;color:var(--muted)">Collimation: <span id="hudColl">32 ch</span></div>
@@ -1049,6 +1071,7 @@ updatePositionLabels();
   </script>
 </body>
 </html>
+
 
 
 
