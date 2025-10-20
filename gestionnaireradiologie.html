@@ -7,7 +7,38 @@
 
   <style>
     * { box-sizing: border-box; }
+#hospitalisationsContent {
+  margin-top: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
 
+#hospitalisationsContent .card {
+  background: #f9f9f9;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+  border-left: 8px solid #0078d4;
+}
+
+#hospitalisationsContent h3 {
+  color: #0078d4;
+  margin-top: 10px;
+  margin-bottom: 8px;
+}
+
+#hospitalisationsContent p {
+  margin: 5px 0;
+  line-height: 1.5;
+  white-space: pre-wrap; /* conserve les sauts de ligne */
+  color: #333;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1); }
+}
     body {
       font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
       background: #f7f9fc;
@@ -402,6 +433,7 @@
     };
 
     function showDetails(patient) {
+      await chargerHistoriqueComplet()
       const examensNonRealisesHTML = (patient.examensNonRealises || []).map(e => `
         <div class="examen-encart">
           <p><b>☢️ Type :</b> ${e.type || "N/A"}</p>
@@ -440,8 +472,8 @@
         <h3>🗂️ Historique des examens réalisés :</h3>
         ${examensRealises || "<p>Aucun examen réalisé.</p>"}
 
-        <button id="toggleRawDataBtn" style="margin-top:10px;">Afficher les données brutes</button>
-        <pre id="rawData" style="display:none;background:#f0f0f0;padding:10px;border-radius:8px;">${JSON.stringify(patient.fullData, null, 2)}</pre>
+       <h2>📊 Hospitalisations du patient</h2>
+      <div id="hospitalisationsContent"></div>
       `;
 
       document.getElementById("toggleRawDataBtn").onclick = () => {
@@ -503,11 +535,116 @@
     cont.appendChild(bubble);
     setTimeout(() => bubble.remove(), 5500);
   }
+
+  async function chargerHistoriqueComplet() {
+  const contenu = document.getElementById("hospitalisationsContent");
+  if (!contenu) {
+    console.error("Element #hospitalisationsContent introuvable");
+    return;
+  }
+  contenu.innerHTML = "<p>⏳ Chargement...</p>";
+
+  try {
+    const patientDoc = await db.collection("patients").doc(patientId).get();
+    if (!patientDoc.exists) {
+      contenu.innerHTML = "<p>❌ Patient introuvable</p>";
+      return;
+    }
+
+    const data = patientDoc.data();
+    let hospitalisations = Array.isArray(data.hospitalisations) ? data.hospitalisations : [];
+
+if (hospitalisations.length > 1) {
+      hospitalisations = hospitalisations.slice(0, -1);
+    } else {
+      hospitalisations = []; // aucune hospitalisation précédente
+    }
+
+    if (hospitalisations.length === 0) {
+      contenu.innerHTML = "<p>Aucune hospitalisation antérieure.</p>";
+      return;
+    }
+
+    contenu.innerHTML = "";
+
+    hospitalisations
+      .slice() // copie
+      .reverse() // plus récentes d'abord
+      .forEach((hospi, idx) => {
+        const card = document.createElement("div");
+        card.className = "card";
+
+      const date = hospi.dateDebut || hospi.dateDebut || "Date inconnue";
+		 const datef = hospi.dateFin || hospi.dateFin || "Date inconnue";
+      const motif = hospi.motif || "—";
+      const gravite = hospi.gravite || "—";
+      const evolution = hospi.evolution || "Aucune évolution enregistrée.";
+      const dossier = hospi.dossierMedical || {};
+      const sortie = hospi.sortie || null;
+	  const rapport = hospi.rapport || "Pas de rapport d'hospitalisation validé";
+
+      // construire le HTML via un tableau de parties (plus sûr)
+      const parts = [];
+
+      parts.push(`<div class="entry"><strong>📅 Admission :</strong> ${date}</div>`);
+		parts.push(`<div class="entry"><strong>📅 Sortie :</strong> ${datef}</div>`);
+      parts.push(`<div class="entry"><strong>Motif :</strong> ${motif}</div>`);
+      parts.push(`<div class="entry"><strong>Gravité :</strong> ${gravite}</div>`);
+      parts.push(`<hr>`);
+      parts.push(`<h3>📋 Dossier médical</h3>`);
+		parts.push(`<p><strong>Questionnaire IAO :</strong><br>${dossier.questionnaire || "—"}</p>`);
+      parts.push(`<p><strong>Antécédents :</strong><br>${dossier.antecedents || "—"}</p>`);
+      parts.push(`<p><strong>Traitements :</strong><br>${dossier.traitements || "—"}</p>`);
+      parts.push(`<p><strong>Histoire de la maladie :</strong><br>${dossier.histoire || "—"}</p>`);
+      parts.push(`<p><strong>CR Auscultation :</strong><br>${dossier.auscultation || "—"}</p>`);
+      parts.push(`<hr>`);
+      parts.push(`<h3>📈 Évolution aux urgences</h3>`);
+      parts.push(`<p style="white-space:pre-wrap">${evolution}</p>`);
+
+      // ajout de la sortie si présente
+      if (sortie) {
+        parts.push(`<hr>`);
+        parts.push(`<h3>🚪 Sortie</h3>`);
+        parts.push(`<p><strong>Type :</strong> ${sortie.type || "—"}</p>`);
+
+        if (sortie.serviceHospitalisation)
+          parts.push(`<p><strong>🏥 Service hospitalisation :</strong> ${sortie.serviceHospitalisation}</p>`);
+
+        if (sortie.destinationTransfert)
+          parts.push(`<p><strong>↔️ Destination transfert :</strong> ${sortie.destinationTransfert}</p>`);
+
+        if (sortie.avisSpecialiste)
+          parts.push(`<p><strong>👩‍⚕️ Avis spécialiste :</strong> ${sortie.avisSpecialiste}</p>`);
+
+        if (Array.isArray(sortie.options) && sortie.options.length > 0)
+          parts.push(`<p><strong>📋 Options :</strong> ${sortie.options.join(", ")}</p>`);
+
+        if (sortie.traitementSortie)
+          parts.push(`<p><strong>💊 Traitement de sortie :</strong><br>${sortie.traitementSortie}</p>`);
+
+        if (sortie.autreSortieTexte)
+          parts.push(`<p><strong>🔤 Autre :</strong> ${sortie.autreSortieTexte}</p>`);
+
+        if (sortie.autreOptionTexte)
+          parts.push(`<p><strong>🔤 Autre option :</strong> ${sortie.autreOptionTexte}</p>`);
+      }
+ parts.push(`<p><strong></strong> ${rapport}</p>`);
+      // affecter le HTML final
+      card.innerHTML = parts.join("\n");
+      contenu.appendChild(card);
+    });
+
+  } catch (err) {
+    console.error("Erreur chargement historique :", err);
+    contenu.innerHTML = "<p>❌ Erreur lors du chargement de l'historique.</p>";
+  }
+}
 </script>
 
 <div id="bubble-container"></div>
 
 </body>
 </html>
+
 
 
