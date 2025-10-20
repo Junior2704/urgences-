@@ -424,14 +424,36 @@ function formaterDate(dateStr) {
   const examensRealises = (patient.fullData.hospitalisations?.[patient.hospIndex]?.examens || [])
     .filter(ex => ex.realise)
     .map(ex => `
-      <div class="examen-encart" style="background-color: #eaf9ea; border-color: #9ccc65;">
-        <p><b>☢️Type:</b> ${ex.type || "N/A"}</p>
-        <p><b>💬Commentaire:</b> ${ex.commentaire || ""}</p>
-        <p><b>📄Compte rendu:</b> ${ex.compteRendu || ""}</p>
-        <p><b>📅Date demande:</b> ${formatDateHeure(ex.dateDemande) || "N/A"}</p>
-        <p><b>✅Réalisé le:</b> ${ex.dateRealisation ? formatDateHeure(ex.dateRealisation) : "?"}</p>
-      </div>
-    `).join("");
+      // génération du HTML des examens
+const examensHTML = examens.map(ex => `
+  <div class="examen-encart" style="background-color: #eaf9ea; border-color: #9ccc65;" data-type="${ex.type}" data-patient-id="${ex.patientId}">
+    <p><b>☢️Type:</b> ${ex.type || "N/A"}</p>
+    <p><b>💬Commentaire:</b> ${ex.commentaire || ""}</p>
+    <p><b>📄Compte rendu:</b> ${ex.compteRendu || ""}</p>
+    <p><b>📅Date demande:</b> ${formatDateHeure(ex.dateDemande) || "N/A"}</p>
+    <p><b>✅Réalisé le:</b> ${ex.dateRealisation ? formatDateHeure(ex.dateRealisation) : "?"}</p>
+  </div>
+`).join("");
+
+// insertion dans le conteneur
+document.getElementById("examenContainer").innerHTML = examensHTML;
+
+// ajout du clic sur chaque examen
+document.querySelectorAll('.examen-encart').forEach(div => {
+  div.addEventListener('click', () => {
+    const type = div.dataset.type;
+    const patientId = div.dataset.patientId;
+
+    // ouverture modale
+    openModal();
+
+    // si type commence par "Scanner", ouvrir scanner.html avec l'id patient
+    if (type && type.startsWith("Scanner")) {
+      window.open(`scanner.html?id=${encodeURIComponent(patientId)}`, '_blank');
+    }
+  });
+});
+
 
   detailContent.innerHTML = `
     <h2>👤${patient.prenom} ${patient.nom}</h2>
@@ -642,3 +664,4 @@ et medecinNom = "";
 </script>
 </body>
 </html>
+
