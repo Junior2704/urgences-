@@ -463,9 +463,12 @@ const hospitalisationsContent = document.getElementById("hospitalisationsContent
 
         <button onclick="window.open('scanner.html?id=${encodeURIComponent(patient.id)}', '_blank')" 
                 style="background:#e67e22;color:white;padding:10px 16px;border:none;border-radius:8px;margin-bottom:10px;cursor:pointer;">
-          🩻 Ouvrir le scanner
+          🩻 Gestion scanner
         </button>
-
+<button onclick="window.open('irm.html?id=${encodeURIComponent(patient.id)}', '_blank')" 
+                style="background:#e67e22;color:white;padding:10px 16px;border:none;border-radius:8px;margin-bottom:10px;cursor:pointer;">
+          🩻 Gestion IRM
+        </button>
         <h3>☢️ Examens non réalisés :</h3>
         ${examensNonRealisesHTML || "<p>Aucun examen en attente.</p>"}
 
@@ -644,6 +647,7 @@ if (hospitalisations.length > 1) {
 
 </body>
 </html>
+
 
 
 
