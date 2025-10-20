@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Simulateur IRM — Interface réaliste</title>
+  <title>GESTIONNAIRE D'IRM</title>
   <style>
 :root{
       --bg:#0f1724; --panel:#0b1220; --accent:#60a5fa; --glass: rgba(255,255,255,0.06);
@@ -363,7 +363,7 @@
 
       <div style="display:flex;gap:8px;align-items:center">
         <button id="rampUp" class="small">Chauffer/Mettre sous champ</button>
-        <button id="quench" class="red small" title="Simulation: mise hors champ d'urgence">Quench (Simulé)</button>
+        <button id="quench" class="red small" title="Mise hors champ d'urgence">Quench </button>
       </div>
 	  
     </div>
@@ -499,7 +499,7 @@
       <div class="card" style="display:flex;gap:8px;align-items:center;justify-content:space-between">
         <div>
           <div class="label">Visu export</div>
-          <div style="font-size:13px;color:var(--muted)">Export PNG / Impression (simulé)</div>
+          <div style="font-size:13px;color:var(--muted)">Export PNG / Impression </div>
         </div>
         <div style="display:flex;gap:8px">
           <button id="exportPNG" class="ghost small">Exporter PNG</button>
@@ -559,8 +559,8 @@
       });
       displayPatients(patients);
     } catch (e) {
-      console.warn("Impossible de charger patients (simu hors ligne possible).", e);
-      patientList.innerHTML = "<p style='color:var(--muted)'>Impossible de joindre la base (simulation)</p>";
+      console.warn("Impossible de charger patients.", e);
+      patientList.innerHTML = "<p style='color:var(--muted)'>Impossible de joindre la base </p>";
     }
   }
 
@@ -972,7 +972,7 @@ $('applyPosition').addEventListener('click', ()=> {
 
   // Simulate ramp up / quench (simulé)
   $('rampUp').addEventListener('click', ()=> {
-    log('Mise sous champ (simulation) — stabilisation des gradients et shim en cours...');
+    log('Mise sous champ — stabilisation des gradients et shim en cours...');
     afficherBulle("Mise sous champ: vérifier zones interdites, aimants mobiles éloignés.", "administratif");
     // small visual effect
     const prev = b0.value;
@@ -984,8 +984,8 @@ $('applyPosition').addEventListener('click', ()=> {
     if (scanTimer) clearInterval(scanTimer);
     scanning = false;
     prog.style.width = '0%';
-    log('*** QUENCH SIMULÉ *** : sortie d\'urgence du champ magnétique (simulation only).');
-    afficherBulle("Quench simulé — contacter ingénieur technique (simulation)", "alerte");
+    log('*** UREGENCE QUENCH *** : sortie d\'urgence du champ magnétique ');
+    afficherBulle("Quench déclenché — contacter ingénieur technique", "alerte");
   });
 
   // export / print
@@ -1008,7 +1008,8 @@ $('applyPosition').addEventListener('click', ()=> {
   // initial sync
   updatePositionLabels();
   updateAll();
-  log('Interface IRM prête (simulation).');
+  log('IRM sous tension');
 </script>
 </body>
 </html>
+
