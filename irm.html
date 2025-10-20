@@ -1,0 +1,1014 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Simulateur IRM — Interface réaliste</title>
+  <style>
+:root{
+      --bg:#0f1724; --panel:#0b1220; --accent:#60a5fa; --glass: rgba(255,255,255,0.06);
+      --card:#0c1422; --muted:#98a0b3; --danger:#ef4444;
+    }
+    html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, 'Helvetica Neue', Arial;color:#e6eef8;background:linear-gradient(180deg,#071026 0%, #071226 60%);}
+    .app{display:grid;grid-template-columns:420px 1fr 380px;gap:18px;padding:18px;height:100vh;box-sizing:border-box}
+    header{grid-column:1/-1;display:flex;align-items:center;gap:12px;padding:12px 18px;border-radius:10px;background:linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.005));box-shadow:0 6px 18px rgba(2,6,23,0.6);}
+    header h1{font-size:18px;margin:0;color:#dff0ff}
+    .panel{background:linear-gradient(180deg,var(--panel), rgba(16,22,34,0.9));border-radius:12px;padding:14px;box-shadow:0 6px 18px rgba(0,0,0,0.6);}
+    .controls{display:flex;flex-direction:column;gap:12px;}
+    .card{padding:12px;border-radius:10px;background:var(--card);}
+    .label{font-size:12px;color:var(--muted);margin-bottom:6px}
+    .row{display:flex;gap:8px;align-items:center}
+    .range{width:100%}
+    input[type=range]{-webkit-appearance:none;height:8px;border-radius:6px;background:linear-gradient(90deg,#2a3a50,#1b2432);outline:none}
+    input[type=number], select{background:transparent;border:1px solid rgba(255,255,255,0.04);padding:8px;border-radius:8px;color:#e6eef8}
+    button{padding:8px 12px;border-radius:8px;border:none;background:var(--accent);color:#02203a;font-weight:600;cursor:pointer}
+    button.ghost{background:transparent;border:1px solid rgba(255,255,255,0.06);color:#e6eef8}
+    button.red{background:var(--danger);color:white}
+    .small{font-size:13px;padding:6px 8px}
+    .stage{display:grid;grid-template-rows: 56px 1fr 160px;gap:12px}
+    .stage-top{display:flex;gap:12px;align-items:center}
+    .machine-wrap{display:flex;gap:12px;align-items:center}
+    .gantry{width:520px;height:300px;position:relative}
+    .gantry svg{width:100%;height:100%}
+    .table{position:absolute;left:50%;transform:translateX(-50%);bottom:200px;width:420px;height:30px;border-radius:6px;background:linear-gradient(180deg,#dbeeff10,#bcd8ff08);display:flex;align-items:center;justify-content:center}
+    .table .mat{width:300px;height:22px;border-radius:4px;background:linear-gradient(180deg,#0c2130,#06212b);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px}
+.silhouette {
+  position: absolute;
+  top: 500px; /* juste sous les vues de face/profil */
+  left: 50%;
+  transform: translateX(-50%);
+  width: 220px;  /* taille raisonnable */
+  height: auto;
+  z-index: 50; /* pour être au-dessus du contenu du dessous */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none;
+}
+.silhouette svg {
+  width: 100%;
+  height: auto;
+}
+
+    .slices{display:flex;gap:12px}
+    .slice{flex:1;padding:10px;border-radius:8px;background:linear-gradient(180deg,#081022,#061424);min-height:140px}
+    .slice h3{margin:0 0 8px 0;font-size:13px;color:#dfefff}
+    .slice canvas{width:100%;height:84px;background:#021021;border-radius:4px}
+    .info{display:flex;flex-direction:column;gap:12px}
+    .params{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .param{padding:8px;border-radius:8px;background:linear-gradient(180deg,#071827,#051522);display:flex;flex-direction:column}
+    .param strong{font-size:15px;color:#e6eef8}
+    .log{height:220px;overflow:auto;padding:10px;background:linear-gradient(180deg,#041124,#02121b);border-radius:8px;font-size:13px}
+    .hud{position:absolute;right:10px;top:10px;background:rgba(0,0,0,0.28);padding:8px;border-radius:8px;color:#dff0ff}
+    .gauge{display:flex;flex-direction:column;align-items:center}
+    .progress-bar{height:8px;border-radius:6px;background:#06212b;width:100%;overflow:hidden}
+    .progress-fill{height:100%;width:0%;background:linear-gradient(90deg,#7dd3fc,#60a5fa)}
+    .legend{display:flex;gap:6px;flex-wrap:wrap}
+    .legend div{font-size:12px;color:var(--muted)}
+    @media (max-width:1100px){.app{grid-template-columns:1fr;grid-template-rows:auto 1fr auto;padding:12px}header{grid-column:1/-1} .stage{order:2} .controls{order:1} .info{order:3}}
+  #bubble-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 9999;
+  align-items: flex-end;
+}
+	.bubble {
+  max-width: 300px;
+  padding: 10px 15px;
+  border-radius: 8px;
+  color: white;
+  font-family: sans-serif;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  animation: fadeout 0.5s ease-in-out 1.5s forwards;
+  word-wrap: break-word;
+  text-align: left;
+}
+
+.administratif {
+  background-color: #2196F3; /* bleu */
+}
+
+.alerte {
+  background-color: #f44336; /* rouge */
+}
+
+@keyframes fadeout {
+  to {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+}
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 2000;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(6px);
+}
+
+/* Contenu principal */
+.modal-content {
+  background: linear-gradient(180deg, var(--panel), rgba(16,22,34,0.9));
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  margin: 8% auto;
+  padding: 22px 24px;
+  border-radius: 14px;
+  width: 90%;
+  max-width: 480px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+  color: #e6eef8;
+  animation: fadeIn 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* En-tête */
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.modal-header h2 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #dfefff;
+  margin: 0;
+}
+
+.close {
+  color: var(--muted);
+  font-size: 22px;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.close:hover {
+  color: var(--accent);
+}
+
+/* --- Barre de recherche --- */
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--glass);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 10px;
+  padding: 0.5rem 0.8rem;
+}
+
+.search-bar input {
+  border: none;
+  outline: none;
+  flex: 1;
+  font-size: 0.95rem;
+  background: transparent;
+  color: #e6eef8;
+}
+
+.search-bar input::placeholder {
+  color: var(--muted);
+}
+
+.search-bar svg {
+  color: var(--muted);
+}
+
+/* --- Liste des patients --- */
+.patient-list {
+  max-height: 260px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-right: 4px;
+}
+
+/* Élément patient */
+.patient-item {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #0c1422, #091524);
+  border: 1px solid rgba(255,255,255,0.03);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.patient-item:hover {
+  background: linear-gradient(180deg, #102032, #0a1b2b);
+  border-color: rgba(96,165,250,0.3);
+  box-shadow: 0 0 8px rgba(96,165,250,0.25);
+}
+
+.patient-item:active {
+  background: linear-gradient(180deg, #08111e, #07121f);
+  box-shadow: 0 0 4px rgba(96,165,250,0.15) inset;
+}
+
+/* --- Étiquette du patient sélectionné --- */
+#patientLabel {
+  display: inline-block;
+  margin-left: 10px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+
+</style>
+</head>
+<body>
+  <div class="app">
+    <header >
+      <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36'><rect width='36' height='36' rx='6' fill='%2360a5fa'/><text x='50%' y='57%' font-size='14' font-family='Arial' text-anchor='middle' fill='white'>MRI</text></svg>" alt="logo" style="width:36px;height:36px;border-radius:8px;">
+      <h1>Gestion IRM</h1>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span id="patientLabel">Aucun patient sélectionné</span>
+        <button style="background-color: transparent; color: #2563eb; border: none; cursor: pointer; font-size: 1rem;" id="openModalBtn">👤</button>
+      </div>
+    </header>
+
+    <!-- CONTROLES GAUCHE -->
+    <div class="controls panel">
+      <div class="card">
+        <div class="label" style="font-weight:600;font-size:14px;">Position du patient</div>
+        <div class="row" style="align-items:center;margin-top:10px">
+          <div style="width:110px;font-size:12px;color:var(--muted)">Hauteur (Z)</div>
+          <button class="ghost small" id="heightDown">–</button>
+          <input id="height" class="range" type="range" min="-200" max="200" value="0" step="1" style="flex:1">
+          <button class="ghost small" id="heightUp">+</button>
+          <div id="heightVal" style="width:70px;text-align:right;font-size:13px;color:#9fcdf8">0 mm</div>
+        </div>
+
+        <div class="row" style="align-items:center;margin-top:10px">
+          <div style="width:110px;font-size:12px;color:var(--muted)">Latéral (Y)</div>
+          <button class="ghost small" id="lateralLeft">←</button>
+          <input id="lateral" class="range" type="range" min="-75" max="75" value="0" step="1" style="flex:1">
+          <button class="ghost small" id="lateralRight">→</button>
+          <div id="lateralVal" style="width:70px;text-align:right;font-size:13px;color:#9fcdf8">0 mm</div>
+        </div>
+
+        <div class="row" style="align-items:center;margin-top:10px">
+          <div style="width:110px;font-size:12px;color:var(--muted)">Longitudinal (X)</div>
+          <button class="ghost small" id="longBack">←</button>
+          <input id="long" class="range" type="range" min="0" max="400" value="0" step="1" style="flex:1">
+          <button class="ghost small" id="longForward">→</button>
+          <div id="longVal" style="width:70px;text-align:right;font-size:13px;color:#9fcdf8">0 mm</div>
+        </div>
+
+        <hr style="margin:14px 0;border:none;border-top:1px solid rgba(255,255,255,0.05)" />
+
+        <div class="column" style="display:flex;flex-direction:column;align-items:center;gap:8px">
+          <div style="font-size:12px;color:var(--muted);align-self:flex-start;">Saisie manuelle :</div>
+          <div class="row" style="gap:8px;justify-content:center;width:100%;">
+            <input id="inputZ" type="number" placeholder="Hauteur (Z)" style="width:90px;padding:6px;border-radius:6px;border:1px solid rgba(255,255,255,0.06);background:#0f1724;color:#e6eef8;font-size:13px">
+            <input id="inputY" type="number" placeholder="Latéral (Y)" style="width:90px;padding:6px;border-radius:6px;border:1px solid rgba(255,255,255,0.06);background:#0f1724;color:#e6eef8;font-size:13px">
+            <input id="inputX" type="number" placeholder="Longitudinal (X)" style="width:100px;padding:6px;border-radius:6px;border:1px solid rgba(255,255,255,0.06);background:#0f1724;color:#e6eef8;font-size:13px">
+          </div>
+          <button id="applyPosition" class="small" style="margin-top:6px;width:120px">Appliquer</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="label" style="font-weight:600;font-size:14px;">Presets & actions</div>
+        <div style="display:flex;gap:8px;margin-bottom:8px">
+          <button id="presetHead" class="small ghost">Tête (Cerveau)</button>
+          <button id="presetSpine" class="small ghost">Rachis</button>
+          <button id="presetAbdo" class="small ghost">Abdomen</button>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button id="park" class="ghost small">Parquer table</button>
+          <button id="centerPatient" class="small">Centrer patient</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="label" style="font-weight:600;font-size:14px;">Paramètres d'acquisition IRM</div>
+
+        <div style="display:flex;gap:8px;margin-bottom:8px">
+          <div style="flex:1"><label class="label">Champ (B₀)</label>
+            <select id="b0">
+              <option value="1.5">1.5 T</option>
+              <option value="3">3.0 T</option>
+              <option value="0.5">0.5 T</option>
+            </select>
+          </div>
+          <div style="flex:1"><label class="label">Bobine (coil)</label>
+            <select id="coil">
+              <option>Head coil</option>
+              <option>Body coil</option>
+              <option>Spine coil</option>
+              <option>Surface coil</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:8px;margin-bottom:8px">
+          <div style="flex:1"><label class="label">Séquence</label>
+            <select id="sequence">
+              <option value="T1">T1</option>
+              <option value="T2">T2</option>
+              <option value="FLAIR">FLAIR</option>
+              <option value="DWI">DWI</option>
+              <option value="GRE">GRE</option>
+            </select>
+          </div>
+          <div style="flex:1"><label class="label">Mode</label>
+            <select id="mode">
+              <option>2D</option>
+              <option>3D</option>
+              <option>SS-EPI</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:8px;margin-bottom:8px">
+          <div style="flex:1"><label class="label">TR (ms)</label><input id="TR" type="number" min="100" max="10000" value="2000"></div>
+          <div style="flex:1"><label class="label">TE (ms)</label><input id="TE" type="number" min="1" max="500" value="30"></div>
+        </div>
+
+        <div style="display:flex;gap:8px;margin-bottom:8px">
+          <div style="flex:1"><label class="label">Flip angle (°)</label><input id="flip" type="number" min="1" max="180" value="90"></div>
+          <div style="flex:1"><label class="label">N° slices</label><input id="nslices" type="number" min="1" max="512" value="24"></div>
+        </div>
+
+        <div style="display:flex;gap:8px;margin-bottom:8px">
+          <div style="flex:1"><label class="label">Averages</label><input id="averages" type="number" min="1" max="8" value="1"></div>
+          <div style="flex:1"><label class="label">Bandwidth (Hz)</label><input id="bw" type="number" min="100" max="5000" value="250"></div>
+        </div>
+
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <select id="recon">
+            <option>Recon: Standard</option>
+            <option>Recon: HighRes</option>
+            <option>Recon: Diffusion</option>
+            <option>Recon: Angio</option>
+          </select>
+        </div>
+
+      </div>
+
+      <div style="display:flex;gap:8px;align-items:center">
+        <button id="rampUp" class="small">Chauffer/Mettre sous champ</button>
+        <button id="quench" class="red small" title="Simulation: mise hors champ d'urgence">Quench (Simulé)</button>
+      </div>
+	  
+    </div>
+	
+
+    <!-- CENTRE : visualisation -->
+    <div class="panel stage">
+      <div class="stage-top card" style="display:flex;gap:12px;align-items:center">
+        <div style="flex:1">
+          <div class="label">État du scan</div>
+          <div class="progress-bar"><div id="scanProgress" class="progress-fill"></div></div>
+        </div>
+        <div style="width:260px;display:flex;flex-direction:column;gap:6px">
+          <div class="label">Affichage 3 vues</div>
+          <div style="display:flex;gap:8px">
+            <button id="viewSag" class="small ghost">Sagittal</button>
+            <button id="viewCor" class="small ghost">Coronal</button>
+            <button id="viewAxi" class="small ghost">Axial</button>
+            <button id="viewSeq" class="small ghost">Séquence</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="position:relative;overflow:hidden">
+     <div class="machine-wrap">
+ <!-- VUE DE FACE -->
+            <svg id="rearView" viewBox="0 100 500 500" style="width:50%;height:500px;">
+              <defs>
+                <radialGradient id="tubeDepth"><stop offset="0%" stop-color="#0b2230"/><stop offset="100%" stop-color="#04111a"/></radialGradient>
+              </defs>
+              <rect x="0" y="0" width="400" height="400" rx="20" fill="rgba(5,12,18,0.6)"/>
+              <g transform="translate(200,180)">
+                <ellipse cx="0" cy="0" rx="150" ry="110" fill="url(#tubeDepth)" stroke="rgba(255,255,255,0.08)" stroke-width="3"/>
+                <ellipse cx="0" cy="0" rx="100" ry="70" fill="rgba(8,20,30,0.95)" stroke="rgba(255,255,255,0.15)" stroke-width="2"/>
+                <rect x="-180" y="120" width="360" height="40" rx="8" fill="#061722" opacity="0.7"/>
+                <g id="rearPatient" transform="translate(0,0)">
+                  <circle cx="0" cy="-15" r="18" fill="#b6d9ee" stroke="#08202a" stroke-opacity="0.25"/>
+<rect x="-40" y="4" width="80" height="10" rx="10" fill="white" stroke="#08202a" stroke-opacity="0.25"/>
+                </g>
+                <line id="rearMidline" x1="0" y1="-110" x2="0" y2="110" stroke="#2c9bd6" stroke-opacity="0.35" stroke-width="1" stroke-dasharray="4 6"/>
+                <text x="0" y="-118" fill="#cfe9ff" font-size="11" text-anchor="middle">Centre</text>
+              </g>
+            </svg>
+
+            <!-- VUE DE PROFIL -->
+            <svg id="profileView" viewBox="0 0 650 500" style="width:100%;height:500px;">
+              <defs>
+                <linearGradient id="profGrad" x1="0" x2="1"><stop offset="0%" stop-color="#071a24"/><stop offset="100%" stop-color="#031521"/></linearGradient>
+              </defs>
+              <rect x="0" y="0" width="1200" height="300" rx="12" fill="rgba(5,10,15,0.5)"/>
+              <g transform="translate(60,40)">
+                <rect x="-50" y="0" width="630" height="220" rx="20" fill="url(#profGrad)" stroke="rgba(255,255,255,0.06)" stroke-width="2"/>
+                <rect x="190" y="40" width="350" height="180" rx="18" fill="rgba(8,20,30,0.95)" stroke="rgba(255,255,255,0.1)" stroke-width="2"/>
+                <rect x="-35" y="172" width="600" height="36" rx="10" fill="#0c3140"/>
+                <g id="profPatient" transform="translate(120,160)">
+                  <ellipse cx="-50" cy="10" rx="100" ry="16" fill="white" stroke="#08202a" stroke-opacity="0.25"/>
+                  <rect x="-130" y="-10" width="150" height="20" rx="6" fill="#b6d9ee" stroke="#08202a" stroke-opacity="0.25"/>
+                  <circle cx="20" cy="-12" r="14" fill="#b6d9ee" stroke="#08202a" stroke-opacity="0.25"/>
+                </g>
+                <line id="profDepthLine" x1="120" y1="32" x2="120" y2="220" stroke="#60a5fa" stroke-opacity="0.6" stroke-width="2" stroke-dasharray="3 5"/>
+                <text id="profDepthLabel" x="120" y="26" fill="#cfe9ff" font-size="11" text-anchor="middle">Z = 0 mm</text>
+              </g>
+            </svg>
+
+          </div>
+        </div>
+
+        <div class="table" id="table">
+          <div class="mat" id="mat">Table: position 0 mm</div>
+        </div>
+<div class="silhouette" id="silhouette">
+  <svg viewBox="0 0 150 250" preserveAspectRatio="xMidYMid meet" style="width:50%;height:auto">
+    <defs>
+      <linearGradient id="skin" x1="0" x2="1">
+        <stop offset="0%" stop-color="#cfe9ff"/>
+        <stop offset="100%" stop-color="#9fcdf8"/>
+      </linearGradient>
+    </defs>
+    <path d="M50,80 C40,120 40,180 50,230 C60,250 90,250 100,230 C110,180 110,120 100,80 C90,60 60,60 50,80Z"
+          fill="url(#skin)" stroke="#08202a" stroke-opacity="0.25"/>
+    <circle cx="75" cy="40" r="25" fill="url(#skin)" stroke="#071824" stroke-opacity="0.2"/>
+  </svg>
+</div>
+
+        <div class="hud" id="hud">
+          <div style="font-size:13px;font-weight:700">B₀: <span id="hudB0">1.5 T</span></div>
+          <div style="font-size:12px;color:var(--muted)">Séquence: <span id="hudSeq">T1</span></div>
+          <div style="font-size:12px;color:var(--muted)">SAR: <span id="hudSAR">0.0 W/kg</span></div>
+        </div>
+		   <div class="card slices">
+        <div class="slice">
+          <h3>Sagittal</h3>
+          <canvas id="sagCanvas"></canvas>
+        </div>
+        <div class="slice">
+          <h3>Coronal</h3>
+          <canvas id="corCanvas"></canvas>
+        </div>
+        <div class="slice">
+          <h3>Axial</h3>
+          <canvas id="axiCanvas"></canvas>
+        </div>
+      </div>
+      </div>
+
+   
+   
+
+    <!-- CONTROLES DROITE -->
+    <div class="panel info">
+      <div style="display:flex;gap:8px;align-items:center">
+        <button id="startScan">Démarrer le scan</button>
+        <button id="stopScan" class="red small" title="Arrêt d'urgence">Arrêt d'Urgence</button>
+      </div>
+
+      <div class="card">
+        <div class="label" style="font-weight:600;font-size:14px;">Position en direct</div>
+        <div class="params">
+          <div class="param"><strong id="pHeight">Hauteur: 0 mm</strong><div class="label">Position verticale</div></div>
+          <div class="param"><strong id="pLateral">Latéral: 0 mm</strong><div class="label">Position latérale</div></div>
+          <div class="param"><strong id="pLong">Longitudinale: 0 mm</strong><div class="label">Position long.</div></div>
+          <div class="param"><strong id="pSeq">Séquence: T1</strong><div class="label">Type</div></div>
+          <div class="param"><strong id="pTR">TR: 2000 ms</strong><div class="label">Temps de répétition</div></div>
+          <div class="param"><strong id="pTE">TE: 30 ms</strong><div class="label">Temps d'écho</div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="label">Journal d'événements</div>
+        <div class="log" id="log"></div>
+      </div>
+
+      <div class="card" style="display:flex;gap:8px;align-items:center;justify-content:space-between">
+        <div>
+          <div class="label">Visu export</div>
+          <div style="font-size:13px;color:var(--muted)">Export PNG / Impression (simulé)</div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button id="exportPNG" class="ghost small">Exporter PNG</button>
+          <button id="print" class="ghost small">Imprimer</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+ <!-- modal patient (identique au précédent) -->
+    <div id="patientModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Sélectionner un patient</h2>
+          <span class="close" id="closeModalBtn">&times;</span>
+        </div>
+        <div class="search-bar" style="display:flex;align-items:center;gap:8px;background:var(--glass);border-radius:10px;padding:.5rem">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <input type="text" id="searchInput" placeholder="Rechercher un patient..." style="border:none;outline:none;background:transparent;color:#e6eef8;flex:1">
+        </div>
+        <div class="patient-list" id="patientList" style="max-height:260px;overflow-y:auto;"></div>
+      </div>
+    </div>
+<script type="module">
+  // ---- début module (Firebase initialisation + patient modal) ----
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+  import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBKp5-7NNy0Gyl0tNbDgD-BxucYdg8ArWo",
+    authDomain: "urgences-a8ed4.firebaseapp.com",
+    projectId: "urgences-a8ed4",
+    storageBucket: "urgences-a8ed4.firebasestorage.app",
+    messagingSenderId: "392921498200",
+    appId: "1:392921498200:web:7ccce767332c67c697c02d",
+    measurementId: "G-C74MK2KYDL"
+  };
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  const patientLabel = document.getElementById("patientLabel");
+  const modal = document.getElementById("patientModal");
+  const openBtn = document.getElementById("openModalBtn");
+  const closeBtn = document.getElementById("closeModalBtn");
+  const searchInput = document.getElementById("searchInput");
+  const patientList = document.getElementById("patientList");
+  let patients = [];
+
+  async function loadPatients() {
+    patients = [];
+    try {
+      const querySnapshot = await getDocs(collection(db, "patients"));
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        patients.push({ id: doc.id, nom: data.nom || "Nom inconnu", prenom: data.prenom || "", dob: data.dob || null });
+      });
+      displayPatients(patients);
+    } catch (e) {
+      console.warn("Impossible de charger patients (simu hors ligne possible).", e);
+      patientList.innerHTML = "<p style='color:var(--muted)'>Impossible de joindre la base (simulation)</p>";
+    }
+  }
+
+  function displayPatients(list) {
+    patientList.innerHTML = "";
+    if (!list.length) { patientList.innerHTML = "<p>Aucun patient trouvé</p>"; return; }
+    list.forEach(p => {
+      const item = document.createElement("div");
+      item.classList.add("patient-item");
+      item.textContent = `${p.prenom} ${p.nom}`;
+      item.onclick = () => {
+        patientLabel.textContent = `${p.prenom} ${p.nom}`;
+        modal.style.display = "none";
+        log(`Patient sélectionné: ${p.prenom} ${p.nom}`);
+        // Safety quick-check example
+        afficherBulle("Rappel: vérifier antécédents métalliques / implants.", "administratif");
+      };
+      patientList.appendChild(item);
+    });
+  }
+
+  openBtn.onclick = async () => { modal.style.display = "block"; await loadPatients(); };
+  closeBtn.onclick = () => modal.style.display = "none";
+  window.onclick = (e) => { if (e.target === modal) modal.style.display = "none"; };
+  searchInput.addEventListener("input", (e) => {
+    const q = e.target.value.toLowerCase();
+    displayPatients(patients.filter(p => (`${p.prenom} ${p.nom}`).toLowerCase().includes(q)));
+  });
+  // ---- fin module patient ----
+
+  // ---- utilitaires UI ----
+  const $ = id => document.getElementById(id);
+  const height = $('height'), lateral = $('lateral'), long = $('long');
+  const b0 = $('b0'), coil = $('coil'), sequence = $('sequence'), TR = $('TR'), TE = $('TE'), flip = $('flip');
+  const nslices = $('nslices'), averages = $('averages'), bw = $('bw'), hudB0 = $('hudB0');
+  const hudSeq = $('hudSeq'), hudSAR = $('hudSAR'), prog = $('scanProgress');
+  const mat = $('mat');
+  const pHeight = $('pHeight'), pLateral = $('pLateral'), pLong = $('pLong'), pSeq = $('pSeq'), pTR = $('pTR'), pTE = $('pTE');
+  const logEl = $('log');
+
+  function log(s) { const el = document.createElement('div'); el.textContent = '['+new Date().toLocaleTimeString()+'] '+s; logEl.prepend(el); }
+
+  function afficherBulle(texte, type) {
+    let container = document.getElementById('bubble-container');
+    if (!container) { container = document.createElement('div'); container.id='bubble-container'; document.body.appendChild(container); }
+    const bulle = document.createElement('div'); bulle.className = `bubble ${type}`; bulle.textContent = texte; container.appendChild(bulle);
+    setTimeout(()=>bulle.remove(), 3500);
+  }
+
+  // ---- mise à jour UI et synchronisation des vues ----
+  function updateAll(){
+    if (mat) mat.textContent = `Table: Z=${height.value} mm | Y=${lateral.value} mm | X=${long.value} mm`;
+    if (hudB0) hudB0.textContent = b0.value + ' T';
+    if (hudSeq) hudSeq.textContent = sequence.value;
+    if (pHeight) pHeight.textContent = 'Hauteur: '+height.value+' mm';
+    if (pLateral) pLateral.textContent = 'Latéral: '+lateral.value+' mm';
+    if (pLong) pLong.textContent = 'Longitudinale: '+long.value+' mm';
+    if (pSeq) pSeq.textContent = 'Séquence: '+sequence.value;
+    if (pTR) pTR.textContent = 'TR: '+TR.value+' ms';
+    if (pTE) pTE.textContent = 'TE: '+TE.value+' ms';
+    // SAR estimate (very simplified): SAR ~ B0 * (flip^2) * duty
+    const duty = Math.min(1, (parseFloat(nslices.value) * parseFloat(averages.value)) / 100.0);
+    const sar = (parseFloat(b0.value) * Math.pow(parseFloat(flip.value),2) * duty) / 100.0;
+    if (hudSAR) hudSAR.textContent = sar.toFixed(2) + ' W/kg';
+    // animate field lines / gradient pulses
+    updateFieldAnimation();
+    drawSlices();
+	updatePatientVisual();
+  }
+
+  [height,lateral,long,b0,sequence,TR,TE,flip,nslices,averages,bw].forEach(el => { if (el) el.addEventListener('input', updateAll); });
+
+  function updatePositionLabels() {
+    $('heightVal').textContent = `${height.value} mm`;
+    $('lateralVal').textContent = `${lateral.value} mm`;
+    $('longVal').textContent = `${long.value} mm`;
+  }
+
+  // buttons +/- animation
+ function animateTo(el, target) {
+  if (!el) return;
+  const start = parseFloat(el.value);
+  const end = parseFloat(target);
+  const distance = Math.abs(end - start);
+
+  // --- Vitesse moyenne à régler ---
+  // en mm/ms : 0.2 = 200 mm/s
+  const speed = 0.25;
+
+  // Calcule durée proportionnelle à la distance (min 300 ms, max 2500 ms)
+  let duration = Math.max(300, Math.min(2500, distance / speed));
+
+  const startTime = performance.now();
+
+  function step(now) {
+    const progress = Math.min((now - startTime) / duration, 1);
+    const newVal = start + (end - start) * progress;
+    el.value = newVal;
+
+    // Mise à jour visuelle en direct
+    updateAll();
+    updateTargetFromUI();
+
+    if (progress < 1) requestAnimationFrame(step);
+  }
+
+  requestAnimationFrame(step);
+}
+
+
+// === ANIMATION PATIENT / TABLE / VUES (IRM) ===
+
+// Sélection des éléments SVG et HTML
+const rearPatient = document.getElementById("rearPatient");
+const profPatient = document.getElementById("profPatient");
+const profDepthLine = document.getElementById("profDepthLine");
+const profDepthLabel = document.getElementById("profDepthLabel");
+const silhouette = document.getElementById("silhouette");
+const matLabel = document.getElementById("mat");
+
+// États internes de position
+let pos = { x: 0, y: 0, z: 0 };      // positions animées
+let target = { x: 0, y: 0, z: 0 };   // positions cibles
+let animating = false;
+
+// --- Animation fluide entre position actuelle et cible ---
+function animatePosition() {
+  if (!animating) return;
+  const speed = 0.08;
+  let dx = target.x - pos.x;
+  let dy = target.y - pos.y;
+  let dz = target.z - pos.z;
+  pos.x += dx * speed;
+  pos.y += dy * speed;
+  pos.z += dz * speed;
+
+  if (Math.abs(dx) < 0.1 && Math.abs(dy) < 0.1 && Math.abs(dz) < 0.1) {
+    pos.x = target.x; pos.y = target.y; pos.z = target.z;
+    animating = false;
+  }
+
+  updatePatientVisual();
+  if (animating) requestAnimationFrame(animatePosition);
+}
+
+// --- Met à jour les deux vues SVG en fonction de la position actuelle ---
+function updatePatientVisual() {
+  // ---- VUE DE PROFIL ----
+  const xPos = 120 + (pos.x / 400) * 380; // map X 0–400 mm
+  const zShift = (-pos.z / 10);           // hauteur Z influence légère
+  if (profPatient)
+    profPatient.setAttribute("transform", `translate(${xPos},${160 + zShift})`);
+  if (profDepthLine) {
+    profDepthLine.setAttribute("x1", xPos);
+    profDepthLine.setAttribute("x2", xPos);
+  }
+  if (profDepthLabel) {
+    profDepthLabel.setAttribute("x", xPos);
+    profDepthLabel.textContent = `X = ${pos.x.toFixed(0)} mm`;
+  }
+
+  // ---- VUE DE FACE ----
+  const yShift = (pos.y / 75) * 60; // map -75→+75 mm
+  const zShiftFront = (-pos.z / 10);
+  if (rearPatient)
+    rearPatient.setAttribute("transform", `translate(${yShift},${zShiftFront})`);
+
+  // ---- Silhouette 3D ----
+  // ⚠️ Ne pas bouger avec la hauteur : seulement la position longitudinale ou latérale si tu le veux
+  // On ne touche donc pas au transform vertical ici
+
+  // ---- Table label ----
+  if (matLabel)
+    matLabel.textContent = `Table: Z=${pos.z.toFixed(0)} mm | Y=${pos.y.toFixed(0)} mm | X=${pos.x.toFixed(0)} mm`;
+}
+
+// --- Mise à jour de la cible (sliders) ---
+function updateTargetFromUI() {
+  target.z = parseFloat(document.getElementById("height").value) || 0;
+  target.y = parseFloat(document.getElementById("lateral").value) || 0;
+  target.x = parseFloat(document.getElementById("long").value) || 0;
+
+  if (!animating) {
+    animating = true;
+    requestAnimationFrame(animatePosition);
+  }
+}
+
+// --- Liaison sliders aux mouvements ---
+["height", "lateral", "long"].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener("input", updateTargetFromUI);
+});
+
+// --- Initialisation ---
+updateTargetFromUI();
+
+  const stepFine = 5;
+  $('heightUp').onclick = () => animateValue(height, Math.min(200, parseFloat(height.value)+stepFine));
+  $('heightDown').onclick = () => animateValue(height, Math.max(-200, parseFloat(height.value)-stepFine));
+  $('lateralRight').onclick = () => animateValue(lateral, Math.min(75, parseFloat(lateral.value)+stepFine));
+  $('lateralLeft').onclick = () => animateValue(lateral, Math.max(-75, parseFloat(lateral.value)-stepFine));
+  $('longForward').onclick = () => animateValue(long, Math.min(400, parseFloat(long.value)+stepFine));
+  $('longBack').onclick = () => animateValue(long, Math.max(0, parseFloat(long.value)-stepFine));
+$('applyPosition').addEventListener('click', ()=> {
+  const z = parseFloat($('inputZ').value);
+  const y = parseFloat($('inputY').value);
+  const x = parseFloat($('inputX').value);
+
+  if (!isNaN(z))
+    animateTo(height, Math.max(-200, Math.min(200, z)));
+  if (!isNaN(y))
+    animateTo(lateral, Math.max(-75, Math.min(75, y)));
+  if (!isNaN(x))
+    animateTo(long, Math.max(0, Math.min(400, x)));
+
+  updateAll();
+  updateTargetFromUI();
+  log('Position appliquée manuellement');
+});
+
+
+  // presets adaptés IRM
+  $('presetHead').addEventListener('click', ()=> {
+    log('Preset TÊTE chargé');
+	animateTo(height, 180);
+  animateTo(lateral, 0);
+  animateTo(long, 145);
+    sequence.value = 'T1'; TR.value = 2000; TE.value = 30; nslices.value = 24; averages.value = 1;
+    updateAll();
+	updateTargetFromUI();
+
+  });
+  $('presetSpine').addEventListener('click', ()=> {
+    log('Preset RACHIS chargé');
+	animateTo(height, 20);
+  animateTo(lateral, 0);
+  animateTo(long, 200);
+    sequence.value = 'T2'; TR.value = 4000; TE.value = 100; nslices.value = 32; averages.value = 1;
+    updateAll();
+	updateTargetFromUI();
+
+  });
+  $('presetAbdo').addEventListener('click', ()=> {
+    log('Preset ABDO chargé');
+	animateTo(height, 30);
+  animateTo(lateral, 0);
+  animateTo(long, 255);
+    sequence.value = 'GRE'; TR.value = 10; TE.value = 3; nslices.value = 40; averages.value = 2;
+    updateAll();
+	updateTargetFromUI();
+
+  });
+  $('centerPatient').addEventListener('click', ()=> {
+    log('Patient centré');
+	animateTo(height, 0);
+  animateTo(lateral, 0);
+  animateTo(long, 0);
+    
+	updateTargetFromUI();
+
+  });
+  $('park').addEventListener('click', ()=> {
+    log('Table parquée');
+	animateTo(height, -200);
+  animateTo(lateral, 0);
+  animateTo(long, 0);
+   
+	updateTargetFromUI();
+
+  });
+
+  // canvases
+  const sagC = $('sagCanvas'), corC = $('corCanvas'), axiC = $('axiCanvas');
+  [sagC,corC,axiC].forEach(c => {
+    if (!c) return;
+    const w = c.clientWidth || 300; const h = c.clientHeight || 84;
+    c.width = Math.max(300, w*2); c.height = Math.max(160, h*2);
+    c.style.width = '100%'; c.style.height = (h) + 'px';
+  });
+  const sagCtx = sagC ? sagC.getContext('2d') : null;
+  const corCtx = corC ? corC.getContext('2d') : null;
+  const axiCtx = axiC ? axiC.getContext('2d') : null;
+
+  function drawSlices(scanned = 0) {
+    // Simplified drawing: indicate number of slices scanned
+    const total = parseInt(nslices.value) || 1;
+    const scannedCount = Math.round(total * scanned);
+    // sagittal
+    if (sagCtx) {
+      sagCtx.clearRect(0,0,sagC.width,sagC.height);
+      sagCtx.fillStyle = '#021826'; sagCtx.fillRect(0,0,sagC.width,sagC.height);
+      sagCtx.save(); sagCtx.translate(40, sagC.height/2);
+      sagCtx.fillStyle = 'rgba(180,213,238,0.95)';
+      sagCtx.fillRect(0,-30, (sagC.width-100) * (scanned), 60);
+      sagCtx.fillStyle = '#0e2a38'; sagCtx.fillText(`Slices: ${scannedCount}/${total}`, 10, 10);
+      sagCtx.restore();
+    }
+    if (corCtx) {
+      corCtx.clearRect(0,0,corC.width,corC.height); corCtx.fillStyle = '#021826'; corCtx.fillRect(0,0,corC.width,corC.height);
+      corCtx.save(); corCtx.translate(20,corC.height/2);
+      for (let i=0;i<total;i++){
+        const barW = (corC.width-40)/total - 2;
+        const x = i*(barW+2);
+        corCtx.fillStyle = (i < scannedCount) ? 'rgba(125,211,252,0.9)' : 'rgba(10,20,30,0.8)';
+        corCtx.fillRect(x, -30, barW, 60);
+      }
+      corCtx.restore();
+    }
+    if (axiCtx) {
+      axiCtx.clearRect(0,0,axiC.width,axiC.height); axiCtx.fillStyle = '#021826'; axiCtx.fillRect(0,0,axiC.width,axiC.height);
+      axiCtx.save(); axiCtx.translate(axiC.width/2, axiC.height/2);
+      axiCtx.fillStyle = 'rgba(180,213,238,0.9)';
+      const r = 40 + scanned * 80;
+      axiCtx.beginPath(); axiCtx.ellipse(0,0, r, r*0.6, 0, 0, Math.PI*2); axiCtx.fill();
+      axiCtx.restore();
+    }
+  }
+
+  // Field/gradient animation
+  let fieldPhase = 0;
+  function updateFieldAnimation() {
+    const g = document.getElementById('bore-field');
+    if (!g) return;
+    fieldPhase = (fieldPhase + 0.03) % (Math.PI*2);
+    g.innerHTML = ''; // redraw dynamic lines
+    const strength = parseFloat(b0.value) || 1.5;
+    const count = Math.round(6 + strength*4);
+    for (let i=0;i<count;i++){
+      const r = 60 + i*10 + Math.sin(fieldPhase + i)*6;
+      const el = document.createElementNS('http://www.w3.org/2000/svg','ellipse');
+      el.setAttribute('cx','0'); el.setAttribute('cy','0'); el.setAttribute('rx', r); el.setAttribute('ry', r*0.6);
+      el.setAttribute('fill','none'); el.setAttribute('stroke','#60a5fa'); el.setAttribute('stroke-opacity', 0.05 + i*0.02);
+      el.setAttribute('transform','translate(200,200)');
+      g.appendChild(el);
+    }
+  }
+
+  // animation loop
+  function loop() { requestAnimationFrame(loop); updateAll(); }
+  requestAnimationFrame(loop);
+
+  // ---- Simulateur d'acquisition (TR/TE, slices, averages) ----
+  let scanning = false, scanTimer = null, scanProgress = 0;
+  $('startScan').addEventListener('click', ()=> {
+    if (scanning) return;
+    // safety quick checks
+    afficherBulle("Vérifier: implants métalliques, pacemaker, claustrophobie.", "administratif");
+    scanning = true; scanProgress = 0; prog.style.width = '0%';
+    log('Initialisation IRM...');
+    // estimate time = TR (ms) * nslices * averages / 1000 (s), plus overhead
+    const tr = Math.max(1, parseFloat(TR.value) || 2000);
+    const slices = Math.max(1, parseInt(nslices.value) || 24);
+    const avg = Math.max(1, parseInt(averages.value) || 1);
+    const overhead = 5; // seconds overhead
+    const estSeconds = Math.max(2, Math.round((tr * slices * avg) / 1000 + overhead));
+    log(`Estimation durée: ${estSeconds} s (TR ${tr} ms, ${slices} slices, ${avg} averages)`);
+
+    // We'll step progress each TR block (simulated)
+    const totalSteps = slices * avg;
+    let currentStep = 0;
+    // play simulated gradient "clicks" (simple oscillator bursts) - small, not harmful
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    function playBeep(time, freq, dur=0.02) {
+      const o = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      o.type = 'sine'; o.frequency.value = freq;
+      g.gain.value = 0.0005; // very soft
+      o.connect(g); g.connect(audioCtx.destination);
+      o.start(time); o.stop(time + dur);
+    }
+
+    scanTimer = setInterval(()=> {
+      if (!scanning) { clearInterval(scanTimer); return; }
+      // simulate one TR step
+      currentStep++;
+      // progress ratio
+      const ratio = currentStep / totalSteps;
+      scanProgress = Math.min(1, ratio);
+      prog.style.width = (scanProgress*100)+'%';
+      drawSlices(scanProgress);
+      log(`Acquisition: slice ${Math.min(currentStep, totalSteps)}/${totalSteps} (${Math.round(scanProgress*100)}%)`);
+      // simulated noise tick
+      try { playBeep(audioCtx.currentTime, 200 + Math.random()*1200, 0.02); } catch(e){/* audio may be blocked in some contexts */}
+
+      if (currentStep >= totalSteps) {
+        clearInterval(scanTimer);
+        scanning = false;
+        prog.style.width = '100%';
+        log('Acquisition terminée — Reconstruction...');
+        // reconstruction delay
+        setTimeout(()=> {
+          prog.style.width = '0%';
+          log('Images reconstruites. Scan prêt.');
+          afficherBulle("Scan terminé — vérifiez la qualité.", "administratif");
+        }, 1200 + Math.random()*1200);
+      }
+    }, Math.max(60, Math.round(tr / 2))); // tick faster than TR to give smoother progress
+  });
+
+  $('stopScan').addEventListener('click', ()=> {
+    if (scanTimer) clearInterval(scanTimer);
+    scanning = false;
+    if (prog) prog.style.width = '0%';
+    log('Scan arrêté manuellement');
+    afficherBulle("Scan interrompu", "alerte");
+  });
+
+  // Simulate ramp up / quench (simulé)
+  $('rampUp').addEventListener('click', ()=> {
+    log('Mise sous champ (simulation) — stabilisation des gradients et shim en cours...');
+    afficherBulle("Mise sous champ: vérifier zones interdites, aimants mobiles éloignés.", "administratif");
+    // small visual effect
+    const prev = b0.value;
+    animateValue(b0, prev, 800);
+  });
+
+  $('quench').addEventListener('click', ()=> {
+    // only simulation: produce big alert and stop scanning
+    if (scanTimer) clearInterval(scanTimer);
+    scanning = false;
+    prog.style.width = '0%';
+    log('*** QUENCH SIMULÉ *** : sortie d\'urgence du champ magnétique (simulation only).');
+    afficherBulle("Quench simulé — contacter ingénieur technique (simulation)", "alerte");
+  });
+
+  // export / print
+  $('exportPNG').addEventListener('click', ()=> {
+    const out = document.createElement('canvas'); out.width = 1200; out.height = 700; const ctx = out.getContext('2d');
+    ctx.fillStyle='#041022'; ctx.fillRect(0,0,out.width,out.height);
+    if (sagC) ctx.drawImage(sagC,40,30,360,220);
+    if (corC) ctx.drawImage(corC,420,30,360,220);
+    if (axiC) ctx.drawImage(axiC,800,30,360,220);
+    const a = document.createElement('a'); a.download='irm_preview.png'; a.href = out.toDataURL('image/png'); a.click(); log('Export PNG généré');
+  });
+  $('print').addEventListener('click', ()=> { window.print(); log('Commande impression'); });
+
+  // view buttons
+  $('viewSag').addEventListener('click', ()=> afficherBulle("Vue sagittale", "administratif"));
+  $('viewCor').addEventListener('click', ()=> afficherBulle("Vue coronale", "administratif"));
+  $('viewAxi').addEventListener('click', ()=> afficherBulle("Vue axiale", "administratif"));
+  $('viewSeq').addEventListener('click', ()=> afficherBulle(`Séquence: ${sequence.value}`, "administratif"));
+
+  // initial sync
+  updatePositionLabels();
+  updateAll();
+  log('Interface IRM prête (simulation).');
+</script>
+</body>
+</html>
