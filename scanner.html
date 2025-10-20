@@ -1,0 +1,820 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Simulateur de Scanner Médical — Interface réaliste</title>
+  <style>
+    :root{
+      --bg:#0f1724; --panel:#0b1220; --accent:#60a5fa; --glass: rgba(255,255,255,0.06);
+      --card:#0c1422; --muted:#98a0b3; --danger:#ef4444;
+    }
+    html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, 'Helvetica Neue', Arial;color:#e6eef8;background:linear-gradient(180deg,#071026 0%, #071226 60%);}
+    .app{display:grid;grid-template-columns:420px 1fr 380px;gap:18px;padding:18px;height:100vh;box-sizing:border-box}
+    header{grid-column:1/-1;display:flex;align-items:center;gap:12px;padding:12px 18px;border-radius:10px;background:linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.005));box-shadow:0 6px 18px rgba(2,6,23,0.6);}
+    header h1{font-size:18px;margin:0;color:#dff0ff}
+    .panel{background:linear-gradient(180deg,var(--panel), rgba(16,22,34,0.9));border-radius:12px;padding:14px;box-shadow:0 6px 18px rgba(0,0,0,0.6);}
+    .controls{display:flex;flex-direction:column;gap:12px;}
+    .card{padding:12px;border-radius:10px;background:var(--card);}
+    .label{font-size:12px;color:var(--muted);margin-bottom:6px}
+    .row{display:flex;gap:8px;align-items:center}
+    .range{width:100%}
+    input[type=range]{-webkit-appearance:none;height:8px;border-radius:6px;background:linear-gradient(90deg,#2a3a50,#1b2432);outline:none}
+    input[type=number], select{background:transparent;border:1px solid rgba(255,255,255,0.04);padding:8px;border-radius:8px;color:#e6eef8}
+    button{padding:8px 12px;border-radius:8px;border:none;background:var(--accent);color:#02203a;font-weight:600;cursor:pointer}
+    button.ghost{background:transparent;border:1px solid rgba(255,255,255,0.06);color:#e6eef8}
+    button.red{background:var(--danger);color:white}
+    .small{font-size:13px;padding:6px 8px}
+    .stage{display:grid;grid-template-rows: 56px 1fr 160px;gap:12px}
+    .stage-top{display:flex;gap:12px;align-items:center}
+    .machine-wrap{display:flex;gap:12px;align-items:center}
+    .gantry{width:520px;height:300px;position:relative}
+    .gantry svg{width:100%;height:100%}
+    .table{position:absolute;left:50%;transform:translateX(-50%);bottom:38px;width:420px;height:30px;border-radius:6px;background:linear-gradient(180deg,#dbeeff10,#bcd8ff08);display:flex;align-items:center;justify-content:center}
+    .table .mat{width:380px;height:22px;border-radius:4px;background:linear-gradient(180deg,#0c2130,#06212b);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px}
+    .silhouette{position:absolute;left:50%;transform:translateX(-50%);bottom:64px;width:210px;height:180px;pointer-events:none;}
+    .slices{display:flex;gap:12px}
+    .slice{flex:1;padding:10px;border-radius:8px;background:linear-gradient(180deg,#081022,#061424);min-height:140px}
+    .slice h3{margin:0 0 8px 0;font-size:13px;color:#dfefff}
+    .slice canvas{width:100%;height:84px;background:#021021;border-radius:4px}
+    .info{display:flex;flex-direction:column;gap:12px}
+    .params{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .param{padding:8px;border-radius:8px;background:linear-gradient(180deg,#071827,#051522);display:flex;flex-direction:column}
+    .param strong{font-size:15px;color:#e6eef8}
+    .log{height:220px;overflow:auto;padding:10px;background:linear-gradient(180deg,#041124,#02121b);border-radius:8px;font-size:13px}
+    .hud{position:absolute;right:10px;top:10px;background:rgba(0,0,0,0.28);padding:8px;border-radius:8px;color:#dff0ff}
+    .gauge{display:flex;flex-direction:column;align-items:center}
+    .progress-bar{height:8px;border-radius:6px;background:#06212b;width:100%;overflow:hidden}
+    .progress-fill{height:100%;width:0%;background:linear-gradient(90deg,#7dd3fc,#60a5fa)}
+    .legend{display:flex;gap:6px;flex-wrap:wrap}
+    .legend div{font-size:12px;color:var(--muted)}
+    @media (max-width:1100px){.app{grid-template-columns:1fr;grid-template-rows:auto 1fr auto;padding:12px}header{grid-column:1/-1} .stage{order:2} .controls{order:1} .info{order:3}}
+  #bubble-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 9999;
+  align-items: flex-end;
+}
+	.bubble {
+  max-width: 300px;
+  padding: 10px 15px;
+  border-radius: 8px;
+  color: white;
+  font-family: sans-serif;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  animation: fadeout 0.5s ease-in-out 1.5s forwards;
+  word-wrap: break-word;
+  text-align: left;
+}
+
+.administratif {
+  background-color: #2196F3; /* bleu */
+}
+
+.alerte {
+  background-color: #f44336; /* rouge */
+}
+
+@keyframes fadeout {
+  to {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+}
+  </style>
+</head>
+<body>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <div class="app">
+    <header class="panel">
+      <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36'><rect width='36' height='36' rx='6' fill='%2360a5fa'/><text x='50%' y='57%' font-size='18' font-family='Arial' text-anchor='middle' fill='white'>CT</text></svg>" alt="logo" style="width:36px;height:36px;border-radius:8px;">
+      <div style="flex:1">
+        <h1>Gestion du scanner</h1>
+      </div>
+
+      
+        
+          
+      <div style="display:flex;gap:8px;align-items:center">
+	  <div id="patientLabel" style="margin-left:auto;color:var(--muted)">Patient: </div>
+        <button id="startScan">Démarrer le scan</button>
+        <button id="stopScan" class="red small" title="Arrêt d'urgence">Arrêt d'Urgence</button>
+      </div>
+    </header>
+
+    <!-- CONTROLES GAUCHE -->
+    <div class="controls panel">
+ <div class="card">
+  <div class="label" style="font-weight:600;font-size:14px;">Position du patient</div>
+
+  <!-- Hauteur -->
+  <div class="row" style="align-items:center;margin-top:10px">
+    <div style="width:110px;font-size:12px;color:var(--muted)">Hauteur (Z)</div>
+    <button class="ghost small" id="heightDown">–</button>
+    <input id="height" class="range" type="range" min="-200" max="200" value="0" step="1" style="flex:1">
+    <button class="ghost small" id="heightUp">+</button>
+    <div id="heightVal" style="width:70px;text-align:right;font-size:13px;color:#9fcdf8">0 mm</div>
+  </div>
+
+  <!-- Latéral -->
+  <div class="row" style="align-items:center;margin-top:10px">
+    <div style="width:110px;font-size:12px;color:var(--muted)">Latéral (Y)</div>
+    <button class="ghost small" id="lateralLeft">←</button>
+    <input id="lateral" class="range" type="range" min="-75" max="75" value="0" step="1" style="flex:1">
+    <button class="ghost small" id="lateralRight">→</button>
+    <div id="lateralVal" style="width:70px;text-align:right;font-size:13px;color:#9fcdf8">0 mm</div>
+  </div>
+
+  <!-- Longitudinal -->
+  <div class="row" style="align-items:center;margin-top:10px">
+    <div style="width:110px;font-size:12px;color:var(--muted)">Longitudinal (X)</div>
+    <button class="ghost small" id="longBack">←</button>
+    <input id="long" class="range" type="range" min="0" max="400" value="0" step="1" style="flex:1">
+    <button class="ghost small" id="longForward">→</button>
+    <div id="longVal" style="width:70px;text-align:right;font-size:13px;color:#9fcdf8">0 mm</div>
+  </div>
+
+  <hr style="margin:14px 0;border:none;border-top:1px solid rgba(255,255,255,0.05)" />
+
+  <!-- Champ de saisie directe -->
+  <div class="column" style="display:flex;flex-direction:column;align-items:center;gap:8px">
+    <div style="font-size:12px;color:var(--muted);align-self:flex-start;">Saisie manuelle :</div>
+
+    <div class="row" style="gap:8px;justify-content:center;width:100%;">
+      <input id="inputZ" type="number" placeholder="Hauteur (Z)" style="width:90px;padding:6px;border-radius:6px;border:1px solid rgba(255,255,255,0.06);background:#0f1724;color:#e6eef8;font-size:13px">
+      <input id="inputY" type="number" placeholder="Latéral (Y)" style="width:90px;padding:6px;border-radius:6px;border:1px solid rgba(255,255,255,0.06);background:#0f1724;color:#e6eef8;font-size:13px">
+      <input id="inputX" type="number" placeholder="Longitudinal (X)" style="width:100px;padding:6px;border-radius:6px;border:1px solid rgba(255,255,255,0.06);background:#0f1724;color:#e6eef8;font-size:13px">
+    </div>
+
+    <button id="applyPosition" class="small" style="margin-top:6px;width:120px">Appliquer</button>
+  </div>
+
+ 
+
+
+</div>
+ <div class="card">
+ <div class="label" style="font-weight:600;font-size:14px;">Presets & actions</div>
+     
+        <div style="display:flex;gap:8px;margin-bottom:8px">
+          <button id="presetHead" class="small ghost">Tête</button>
+          <button id="presetChest" class="small ghost">Thorax</button>
+          <button id="presetAbdo" class="small ghost">Abdomen</button>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button id="park" class="ghost small">Parquer table</button>
+          <button id="centerPatient" class="small">Centrer patient</button>
+        </div>
+      </div>
+
+      <div class="card">
+           <div class="label" style="font-weight:600;font-size:14px;">Paramètres d'acquisition</div>
+        <div class="row" style="margin-bottom:8px">
+          <div style="flex:1">
+            <div class="label">Angle gantry (°)</div>
+            <input id="angle" class="range" type="range" min="0" max="360" value="0">
+          </div>
+        </div>
+        <div class="row">
+          <div style="flex:1">
+            <div class="label">Ouverture diaphragme (collimation)</div>
+            <input id="collimation" type="range" min="1" max="64" value="32" class="range">
+          </div>
+        </div>
+    
+
+
+         
+        <div style="display:flex;gap:8px;margin-bottom:8px">
+          <div style="flex:1"><label class="label">kV</label><input id="kv" type="number" min="40" max="240" value="120"></div>
+          <div style="flex:1"><label class="label">mA</label><input id="ma" type="number" min="10" max="800" value="200"></div>
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:8px">
+          <div style="flex:1"><label class="label">Temps rotation (s)</label><input id="rotTime" type="number" step="0.1" value="0.5"></div>
+          <div style="flex:1"><label class="label">Pitch</label><input id="pitch" type="number" step="0.1" value="0.8"></div>
+        </div>
+        <div class="row" style="margin-top:8px">
+          <select id="recon">
+            <option>Recon: Standard</option>
+            <option>Recon: OS-Field</option>
+            <option>Recon: Bone</option>
+            <option>Recon: Soft</option>
+            <option>Recon: Vascular</option>
+          </select>
+        </div>
+      </div>
+
+     
+
+
+        
+        <div style="display:flex;gap:8px;align-items:center">
+          <button id="emergency" class="blue small">Mise en tension</button>
+        </div>
+
+    </div>
+
+    <!-- CENTRE : visualisation -->
+   <div class="panel stage">
+      <div class="stage-top card" style="display:flex;gap:12px;align-items:center">
+        
+        <div style="flex:1">
+          <div class="label">État du scan</div>
+          <div class="progress-bar"><div id="scanProgress" class="progress-fill"></div></div>
+        </div>
+        <div style="width:220px;display:flex;flex-direction:column;gap:6px">
+          <div class="label">Affichage 3 vues</div>
+          <div style="display:flex;gap:8px">
+            <button id="viewSag" class="small ghost">Sagittal</button>
+            <button id="viewCor" class="small ghost">Coronal</button>
+            <button id="viewAxi" class="small ghost">Axial</button>
+          </div>
+        </div>
+      </div>
+
+
+      <div class="card" style="position:relative;overflow:hidden">
+        <div class="machine-wrap">
+          <div style="display:flex;gap:10px;width:100%;align-items:center;justify-content:center">
+
+            <!-- VUE DE FACE -->
+            <svg id="rearView" viewBox="0 0 400 400" style="width:48%;height:300px;">
+              <defs>
+                <radialGradient id="tubeDepth"><stop offset="0%" stop-color="#0b2230"/><stop offset="100%" stop-color="#04111a"/></radialGradient>
+              </defs>
+              <rect x="0" y="0" width="400" height="400" rx="20" fill="rgba(5,12,18,0.6)"/>
+              <g transform="translate(200,180)">
+                <ellipse cx="0" cy="0" rx="150" ry="110" fill="url(#tubeDepth)" stroke="rgba(255,255,255,0.08)" stroke-width="3"/>
+                <ellipse cx="0" cy="0" rx="100" ry="70" fill="rgba(8,20,30,0.95)" stroke="rgba(255,255,255,0.15)" stroke-width="2"/>
+                <rect x="-180" y="120" width="360" height="40" rx="8" fill="#061722" opacity="0.7"/>
+                <g id="rearPatient" transform="translate(0,0)">
+                  <circle cx="0" cy="-15" r="18" fill="#b6d9ee" stroke="#08202a" stroke-opacity="0.25"/>
+<rect x="-40" y="4" width="80" height="10" rx="10" fill="white" stroke="#08202a" stroke-opacity="0.25"/>
+                </g>
+                <line id="rearMidline" x1="0" y1="-110" x2="0" y2="110" stroke="#2c9bd6" stroke-opacity="0.35" stroke-width="1" stroke-dasharray="4 6"/>
+                <text x="0" y="-118" fill="#cfe9ff" font-size="11" text-anchor="middle">Centre</text>
+              </g>
+            </svg>
+
+            <!-- VUE DE PROFIL -->
+            <svg id="profileView" viewBox="0 0 650 300" style="width:48%;height:300px;">
+              <defs>
+                <linearGradient id="profGrad" x1="0" x2="1"><stop offset="0%" stop-color="#071a24"/><stop offset="100%" stop-color="#031521"/></linearGradient>
+              </defs>
+              <rect x="0" y="0" width="650" height="300" rx="12" fill="rgba(5,10,15,0.5)"/>
+              <g transform="translate(60,40)">
+                <rect x="0" y="0" width="520" height="220" rx="20" fill="url(#profGrad)" stroke="rgba(255,255,255,0.06)" stroke-width="2"/>
+                <rect x="250" y="40" width="50" height="180" rx="18" fill="rgba(8,20,30,0.95)" stroke="rgba(255,255,255,0.1)" stroke-width="2"/>
+                <rect x="20" y="172" width="450" height="36" rx="10" fill="#0c3140"/>
+                <g id="profPatient" transform="translate(120,160)">
+                  <ellipse cx="0" cy="10" rx="100" ry="16" fill="white" stroke="#08202a" stroke-opacity="0.25"/>
+                  <rect x="-80" y="-10" width="150" height="20" rx="6" fill="#b6d9ee" stroke="#08202a" stroke-opacity="0.25"/>
+                  <circle cx="70" cy="-12" r="14" fill="#b6d9ee" stroke="#08202a" stroke-opacity="0.25"/>
+                </g>
+                <line id="profDepthLine" x1="120" y1="32" x2="120" y2="220" stroke="#60a5fa" stroke-opacity="0.6" stroke-width="2" stroke-dasharray="3 5"/>
+                <text id="profDepthLabel" x="120" y="26" fill="#cfe9ff" font-size="11" text-anchor="middle">Z = 0 mm</text>
+              </g>
+            </svg>
+
+          </div>
+        </div>
+
+        <div class="table" id="table">
+          <div class="mat" id="mat">Table: position 0 mm</div>
+        </div>
+        <div class="silhouette" id="silhouette">
+          <svg viewBox="-60 -110 120 220" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%">
+            <defs><linearGradient id="skin" x1="0" x2="1"><stop offset="0%" stop-color="#cfe9ff"/><stop offset="100%" stop-color="#9fcdf8"/></linearGradient></defs>
+            <path d="M-24,20 C-28,32 -30,52 -28,80 C-26,108 -4,118 0,118 C4,118 24,108 28,80 C30,52 28,32 24,20 C12,6 -12,6 -24,20Z" fill="url(#skin)" stroke="#08202a" stroke-opacity="0.25"/>
+            <circle cx="0" cy="-28" r="20" fill="url(#skin)" stroke="#071824" stroke-opacity="0.2"/>
+          </svg>
+        </div>
+        <div class="hud" id="hud">
+          <div style="font-size:13px;font-weight:700">Gantry angle: <span id="hudAngle">0°</span></div>
+          <div style="font-size:12px;color:var(--muted)">Collimation: <span id="hudColl">32 ch</span></div>
+        </div>
+      </div>
+
+      <div class="card slices">
+        <div class="slice">
+          <h3>Sagittal (hauteur)</h3>
+          <canvas id="sagCanvas"></canvas>
+        </div>
+        <div class="slice">
+          <h3>Coronal (latéral)</h3>
+          <canvas id="corCanvas"></canvas>
+        </div>
+        <div class="slice">
+          <h3>Axial (profondeur)</h3>
+          <canvas id="axiCanvas"></canvas>
+        </div>
+      </div>
+    </div>
+
+   
+
+  <!-- CONTROLES DROITE -->
+  <div class="panel info">
+      <div class="card">
+        <div class="label">Paramètres en direct</div>
+        <div class="params">
+          <div class="param"><strong id="pHeight">Hauteur: 0 mm</strong><div class="label">Position vertical</div></div>
+          <div class="param"><strong id="pLateral">Latéral: 0 mm</strong><div class="label">Position latérale</div></div>
+          <div class="param"><strong id="pLong">Longitudinale: 0 mm</strong><div class="label">Position long.</div></div>
+          <div class="param"><strong id="pAngle">Angle: 0°</strong><div class="label">Rotation gantry</div></div>
+          <div class="param"><strong id="pKV">kV: 120</strong><div class="label">Tension tube</div></div>
+          <div class="param"><strong id="pMA">mA: 200</strong><div class="label">Courant tube</div></div>
+        </div>
+      </div>
+
+  
+
+      <div class="card">
+        <div class="label">Journal d'événements</div>
+        <div class="log" id="log"></div>
+      </div>
+
+      <div class="card" style="display:flex;gap:8px;align-items:center;justify-content:space-between">
+        <div>
+          <div class="label">Visu export</div>
+          <div style="font-size:13px;color:var(--muted)">Export PNG / Impression (simulé)</div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button id="exportPNG" class="ghost small">Exporter PNG</button>
+          <button id="print" class="ghost small">Imprimer</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+ </div>
+  <script>
+  window.addEventListener('DOMContentLoaded', () => {
+  const firebaseConfig = {
+    apiKey: "AIzaSyBKp5-7NNy0Gyl0tNbDgD-BxucYdg8ArWo",
+    authDomain: "urgences-a8ed4.firebaseapp.com",
+    projectId: "urgences-a8ed4",
+    storageBucket: "urgences-a8ed4.firebasestorage.app",
+    messagingSenderId: "392921498200",
+    appId: "1:392921498200:web:7ccce767332c67c697c02d",
+    measurementId: "G-C74MK2KYDL"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const patientId = urlParams.get('id');
+
+  const patientLabel = document.getElementById("patientLabel");
+
+  if(patientId){
+    db.collection('patients').doc(patientId).get().then(doc=>{
+      if(doc.exists){
+  const data = doc.data();
+  const age = data.dateNaissance ? calculateAge(data.dateNaissance) : '--';
+  patientLabel.textContent = `Patient : ${data.nom} ${data.prenom} • ${age} ans`;
+}
+
+ else {
+        patientLabel.textContent = 'Patient : Inconnu';
+      }
+    }).catch(err=>{
+      console.error(err);
+      patientLabel.textContent = 'Patient : Erreur';
+    });
+  } else {
+    patientLabel.textContent = 'Patient : Aucun ID';
+  }
+ function calculateAge(dateNaissance) {
+    const birth = new Date(dateNaissance);
+    const now = new Date();
+    let age = now.getFullYear() - birth.getFullYear();
+    if (
+      now.getMonth() < birth.getMonth() ||
+      (now.getMonth() === birth.getMonth() && now.getDate() < birth.getDate())
+    ) {
+      age--;
+    }
+    return age;
+  }  
+    const $ = id => document.getElementById(id);
+    const height=$('height'), lateral=$('lateral'), long=$('long');
+    const angle=$('angle'), collimation=$('collimation');
+    const kv=$('kv'), ma=$('ma'), pitch=$('pitch'), rotTime=$('rotTime');
+    const mat=$('mat');
+    const hudAngle=$('hudAngle'), hudColl=$('hudColl');
+    const pHeight=$('pHeight'), pLateral=$('pLateral'), pLong=$('pLong'), pAngle=$('pAngle'), pKV=$('pKV'), pMA=$('pMA');
+    const prog=$('scanProgress');
+
+    const rearPatient=$('rearPatient');
+    const profilePatient=$('profPatient');
+    const profDepthLine=$('profDepthLine');
+    const profDepthLabel=$('profDepthLabel');
+    const rearMid=$('rearMidline');
+
+    function updateAll(){
+      if (mat) mat.textContent = `Table: Z=${long.value} mm | Y=${height.value} mm | X=${lateral.value} mm`;
+      if (hudAngle) hudAngle.textContent = angle.value+'°';
+      if (hudColl) hudColl.textContent = collimation.value+' ch';
+      if (pHeight) pHeight.textContent = 'Hauteur: '+height.value+' mm';
+      if (pLateral) pLateral.textContent = 'Latéral: '+lateral.value+' mm';
+      if (pLong) pLong.textContent = 'Longitudinale: '+long.value+' mm';
+      if (pAngle) pAngle.textContent = 'Angle: '+angle.value+'°';
+      if (pKV) pKV.textContent = 'kV: '+kv.value;
+      if (pMA) pMA.textContent = 'mA: '+ma.value;
+      syncDiagramViews();
+    }
+
+    const inputs=[height,lateral,long,angle,collimation,kv,ma,pitch,rotTime];
+    inputs.forEach(el=>{el.addEventListener('input',updateAll);});
+
+    function syncDiagramViews() {
+    const latVal = parseFloat(lateral.value),
+          hVal = parseFloat(height.value),
+          lngVal = parseFloat(long.value);
+
+    // Vue arrière
+    const rx = (latVal / 150) * 120;
+    const ry = (hVal / 200) * -30;
+    rearPatient.setAttribute('transform', `translate(${rx},${ry})`);
+
+    // Vue profil
+    const profX = 120 + (lngVal / 400) * 240;
+    const profY = 160 + (hVal / 200) * -30; // <- Déplacement vertical ajouté
+    profilePatient.setAttribute('transform', `translate(${profX},${profY})`);
+
+    // Ligne de profondeur
+    profDepthLine.setAttribute('x1', profX);
+    profDepthLine.setAttribute('x2', profX);
+
+    // Étiquette
+    profDepthLabel.textContent = `X = ${lngVal} mm`;
+}
+
+
+    updateAll();
+	 const log = (s) => {
+      const l = $('log');
+      if (!l) return;
+      const el = document.createElement('div');
+      el.textContent = '[' + new Date().toLocaleTimeString() + '] ' + s;
+      l.prepend(el);
+    };
+
+    
+
+    // Canvas for slices
+    const sagC = document.getElementById('sagCanvas');
+    const corC = document.getElementById('corCanvas');
+    const axiC = document.getElementById('axiCanvas');
+    // defensive checks
+    if (!sagC || !corC || !axiC) {
+      console.warn('Un ou plusieurs canvas manquent; certaines vues 2D ne seront pas dessinées.');
+    } else {
+      [sagC,corC,axiC].forEach(c=>{
+        // adapt to DPR
+        const w = c.clientWidth || 300;
+        const h = c.clientHeight || 84;
+        c.width = Math.max(300, w*2);
+        c.height = Math.max(160, h*2);
+        c.style.width = '100%';
+        c.style.height = (h) + 'px';
+      });
+    }
+    const sagCtx = sagC ? sagC.getContext('2d') : null;
+    const corCtx = corC ? corC.getContext('2d') : null;
+    const axiCtx = axiC ? axiC.getContext('2d') : null;
+
+    
+    // rotor element (for rotation animation)
+    const rotorInner = document.querySelector('#rotorInner') || null;
+
+    // table element for translation
+    const tableTop = document.getElementById('tableTop');
+
+    function drawSlices(){
+      const h = parseFloat(height ? height.value : 0);
+      const lat = parseFloat(lateral ? lateral.value : 0);
+      const lng = parseFloat(long ? long.value : 0);
+
+      // SAGITTAL: height
+      if (sagCtx) {
+        sagCtx.clearRect(0,0,sagC.width,sagC.height);
+        sagCtx.save();
+        sagCtx.fillStyle = '#021826';
+        sagCtx.fillRect(0,0,sagC.width,sagC.height);
+        sagCtx.translate(sagC.width/2, sagC.height/2);
+        sagCtx.fillStyle = 'rgba(180,213,238,0.95)';
+        const headY = -40 + (h/4);
+        sagCtx.beginPath(); sagCtx.arc(0, headY, 26, 0, Math.PI*2); sagCtx.fill();
+        sagCtx.fillRect(-28, headY+26, 56, 86);
+        sagCtx.restore();
+      }
+
+      // CORONAL: lateral
+      if (corCtx) {
+        corCtx.clearRect(0,0,corC.width,corC.height);
+        corCtx.fillStyle = '#021826'; corCtx.fillRect(0,0,corC.width,corC.height);
+        corCtx.save();
+        corCtx.translate(corC.width/2, corC.height/2);
+        corCtx.fillStyle = 'rgba(180,213,238,0.95)';
+        const latX = lat/1.5;
+        corCtx.beginPath(); corCtx.ellipse(latX,0,60,110,0,0,Math.PI*2); corCtx.fill();
+        corCtx.restore();
+      }
+
+      // AXIAL: depth
+      if (axiCtx) {
+        axiCtx.clearRect(0,0,axiC.width,axiC.height);
+        axiCtx.fillStyle = '#021826'; axiCtx.fillRect(0,0,axiC.width,axiC.height);
+        axiCtx.save(); axiCtx.translate(axiC.width/2, axiC.height/2);
+        axiCtx.fillStyle = 'rgba(180,213,238,0.95)';
+        const depthOff = lng/3;
+        axiCtx.beginPath(); axiCtx.ellipse(depthOff,0,90,60,0,0,Math.PI*2); axiCtx.fill();
+        axiCtx.restore();
+      }
+    }
+
+  // Fonction utilitaire pour animer un déplacement fluide
+function animateValue(el, target, duration = 1000) {
+  if (!el) return;
+  const start = parseFloat(el.value);
+  const end = parseFloat(target);
+  const startTime = performance.now();
+
+  function step(now) {
+    const progress = Math.min((now - startTime) / duration, 1);
+    // interpolation linéaire
+    el.value = start + (end - start) * progress;
+    updateAll();
+    if (progress < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+// Presets avec animation fluide
+if ($('presetHead')) $('presetHead').addEventListener('click', ()=>{
+  log('Preset TÊTE chargé');
+  animateValue(height, 180,2000);
+  animateValue(long, 145, 2000);
+  if (collimation) collimation.value = 32;
+  if (kv) kv.value = 120;
+  if (ma) ma.value = 220;
+});
+
+if ($('presetChest')) $('presetChest').addEventListener('click', ()=>{
+  log('Preset THORAX chargé');
+  animateValue(height, 0, 2000);
+  animateValue(long, 235, 2000);
+  if (collimation) collimation.value = 32;
+  if (kv) kv.value = 120;
+  if (ma) ma.value = 200;
+});
+
+if ($('presetAbdo')) $('presetAbdo').addEventListener('click', ()=>{
+  log('Preset ABDO chargé');
+  animateValue(height, 30, 2000);
+  animateValue(long, 255, 2000);
+  if (collimation) collimation.value = 64;
+  if (kv) kv.value = 140;
+  if (ma) ma.value = 240;
+});
+ 
+
+   function afficherBulle(texte, type) {
+    let container = document.getElementById('bubble-container');
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'bubble-container';
+      document.body.appendChild(container);
+    }
+    const bulle = document.createElement('div');
+    bulle.className = `bubble ${type}`;
+    bulle.textContent = texte;
+    container.appendChild(bulle);
+    setTimeout(() => {
+      bulle.remove();
+    }, 3000);
+  } 
+
+    // Presets
+    
+    if ($('centerPatient')) $('centerPatient').addEventListener('click', ()=>{
+  log('Patient centré');
+  animateValue(height, 0, 2000);
+  animateValue(long, 0, 2000);
+  if (collimation) collimation.value = 0;
+  if (kv) kv.value = 0;
+  if (ma) ma.value = 0;
+});
+
+if ($('park')) $('park').addEventListener('click', ()=>{
+  log('Table parquée');
+  animateValue(height, -200, 2000);
+  animateValue(long, 0, 2000);
+  if (collimation) collimation.value = 0;
+  if (kv) kv.value = 0;
+  if (ma) ma.value = 0;
+});
+    // Animation rotor & lights
+    let rotAnimating=false; let rotAngle=0;
+    if ($('animateRot')) $('animateRot').addEventListener('click', ()=>{ rotAnimating = !rotAnimating; $('animateRot').textContent = rotAnimating? 'Stop rotor' : 'Animer rotor'; log(rotAnimating? 'Rotor en rotation' : 'Rotor arrêté'); });
+    let lights=false; if ($('toggleLights')) $('toggleLights').addEventListener('click', ()=>{ lights=!lights; document.body.style.background = lights? 'linear-gradient(180deg,#071a2a,#04202c)' : 'linear-gradient(180deg,#071026 0%, #071226 60%)'; log(lights? 'Lumières allumées' : 'Lumières éteintes'); });
+
+    // frame animation (rotor transform, table movement, silhouette movement)
+    function frame(){
+      if (rotAnimating && rotorInner) {
+        rotAngle = (rotAngle + 4) % 360;
+        rotorInner.style.transform = `rotate(${rotAngle}deg)`;
+      }
+      // rotate main rotor group according to angle (if present)
+      const rotorGroup = document.querySelector('#rotor');
+      if (rotorGroup && angle) {
+        rotorGroup.setAttribute('transform', `translate(600,350) rotate(${angle.value})`);
+      }
+      // move table according to longitudinal slider
+      if (tableTop && long) {
+        const lng = parseFloat(long.value);
+        const ty = 500 - (lng/2);
+        tableTop.setAttribute('transform', `translate(300,${ty})`);
+      }
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+
+    
+    // Scanning simulation
+    let scanning=false; let scanPercent=0; let scanTimer=null;
+if ($('startScan')) $('startScan').addEventListener('click', ()=>{
+  if (scanning) return;
+  scanning = true;
+  scanPercent = 0;
+  if (prog) prog.style.width = '0%';
+  log('Initialisation du scan...');
+
+  // paramètres ajustables
+  const rotVal = parseFloat(rotTime ? rotTime.value : 0.5) || 0.5;
+  const totalSeconds = Math.max(3, 10 * rotVal); // durée totale approximative
+  const phases = [
+    { name: 'init', weight: 0.05, min: 300, max: 700 },    // 0-5% init
+    { name: 'scan', weight: 0.85, min: 800, max: 1200 },   // 5-90% main
+    { name: 'final', weight: 0.10, min: 400, max: 900 }    // 90-100% finalize
+  ];
+
+  // convert weights to percent ranges
+  const ranges = [];
+  let startPct = 0;
+  phases.forEach(p => {
+    const endPct = startPct + Math.round(100 * p.weight);
+    ranges.push({ ...p, startPct, endPct });
+    startPct = endPct;
+  });
+  ranges[ranges.length-1].endPct = 100; // assurer 100%
+
+  log('Phase: initialisation');
+  let currentPhaseIdx = 0;
+  let lastUpdate = performance.now();
+
+  // helper random
+  const randBetween = (a,b) => a + Math.random() * (b-a);
+
+  scanTimer = setInterval(()=>{
+    const now = performance.now();
+    const phase = ranges[currentPhaseIdx];
+
+    // progress speed depends on phase and small random jitter
+    const phaseDurationMs = (phase.weight * totalSeconds * 1000);
+    const elapsed = now - lastUpdate;
+    lastUpdate = now;
+
+    // base progress in this tick (percent)
+    let pctRange = phase.endPct - phase.startPct;
+    let basePctPerMs = pctRange / Math.max(50, phaseDurationMs); // percent per ms
+    // add jitter and occasional stalls
+    let jitter = (Math.random() - 0.5) * 0.25 * basePctPerMs * 100; // small random multiplier
+    let stallChance = Math.random();
+    if (stallChance < 0.03) { // 3% tick chance to stall (no progress)
+      // do nothing this tick
+      if (Math.random() < 0.5) log(`Pause I/O...`);
+    } else {
+      // micro-burst sometimes
+      if (Math.random() < 0.08 && currentPhaseIdx === 1) {
+        // micro burst: big progress in single tick
+        scanPercent += Math.round(randBetween(0.8, 3.5) * (pctRange/50));
+      } else {
+        scanPercent += (elapsed * basePctPerMs) * (1 + jitter);
+      }
+    }
+
+    // clamp to phase range
+    if (scanPercent >= phase.endPct) {
+      scanPercent = phase.endPct;
+      currentPhaseIdx++;
+      if (currentPhaseIdx < ranges.length) {
+        log(`Phase: ${ranges[currentPhaseIdx].name}`);
+      }
+    }
+
+    // update UI
+    scanPercent = Math.min(100, Math.max(0, Math.round(scanPercent)));
+    if (prog) prog.style.width = scanPercent + '%';
+
+    if (scanPercent >= 100 || currentPhaseIdx >= ranges.length) {
+      clearInterval(scanTimer);
+      scanning = false;
+      scanPercent = 100;
+      if (prog) prog.style.width = '100%';
+      log('Scan terminé');
+	  log("Re-inistialisation...");
+setTimeout(() => {
+  prog.style.width='0%';
+  log('Scan prêt !')
+}, 1500); 
+
+    }
+  }, 120); // tick ~120ms
+  
+  
+});
+
+    if ($('stopScan')) $('stopScan').addEventListener('click', ()=>{ if (scanTimer) clearInterval(scanTimer); scanning=false; if (prog) prog.style.width='0%'; log('Scan arrêté manuellement'); });
+    if ($('emergency')) $('emergency').addEventListener('click', ()=>{ if (scanTimer) clearInterval(scanTimer); scanning=false; if (prog) prog.style.width='0%'; log("Scanner mis en tension"); afficherBulle("Scanner mis en tension", "administratif"); });
+
+    // Export
+    if ($('exportPNG')) $('exportPNG').addEventListener('click', ()=>{
+      // combine canvases into one image
+      const out = document.createElement('canvas'); out.width = 1200; out.height = 700; const ctx = out.getContext('2d');
+      ctx.fillStyle='#041022'; ctx.fillRect(0,0,out.width,out.height);
+      if (sagC) ctx.drawImage(sagC,40,30,360,220);
+      if (corC) ctx.drawImage(corC,420,30,360,220);
+      if (axiC) ctx.drawImage(axiC,800,30,360,220);
+      const a = document.createElement('a'); a.download='scan_preview.png'; a.href = out.toDataURL('image/png'); a.click(); log('Export PNG généré');
+    });
+    if ($('print')) $('print').addEventListener('click', ()=>{ window.print(); log('Commande impression'); });
+
+    // small UI view toggles
+    if ($('viewSag')) $('viewSag').addEventListener('click', ()=>{ afficherBulle("Vue sagittale", "administratif"); });
+    if ($('viewCor')) $('viewCor').addEventListener('click', ()=>{ afficherBulle("Vue coronale", "administratif"); });
+    if ($('viewAxi')) $('viewAxi').addEventListener('click', ()=>{ afficherBulle("Vue axiale", "administratif"); });
+	
+// --- Animation fluide réutilisable ---
+
+
+// --- Mises à jour affichage texte ---
+function updatePositionLabels() {
+  $('heightVal').textContent = `${height.value} mm`;
+  $('lateralVal').textContent = `${lateral.value} mm`;
+  $('longVal').textContent = `${long.value} mm`;
+}
+
+// --- Incréments réalistes ---
+const stepFine = 5;
+
+// Boutons + / - avec animation fluide
+$('heightUp').onclick = () => { animateValue(height, Math.min(200, parseFloat(height.value)+stepFine)); };
+$('heightDown').onclick = () => { animateValue(height, Math.max(-200, parseFloat(height.value)-stepFine)); };
+$('lateralRight').onclick = () => { animateValue(lateral, Math.min(75, parseFloat(lateral.value)+stepFine)); };
+$('lateralLeft').onclick = () => { animateValue(lateral, Math.max(-75, parseFloat(lateral.value)-stepFine)); };
+$('longForward').onclick = () => { animateValue(long, Math.min(400, parseFloat(long.value)+stepFine)); };
+$('longBack').onclick = () => { animateValue(long, Math.max(0, parseFloat(long.value)-stepFine)); };
+
+// Synchronisation curseurs / labels
+['height','lateral','long'].forEach(id => {
+  const el = $(id);
+  if (el) el.addEventListener('input', ()=>{ updateAll(); updatePositionLabels(); });
+});
+
+// --- Saisie manuelle + bouton "Appliquer" ---
+$('applyPosition').addEventListener('click', ()=>{
+  const z = parseFloat($('inputZ').value);
+  const y = parseFloat($('inputY').value);
+  const x = parseFloat($('inputX').value);
+
+  if (!isNaN(z)) animateValue(height, Math.max(-200, Math.min(200, z)), 2000);
+  if (!isNaN(y)) animateValue(lateral, Math.max(-75, Math.min(75, y)), 2000);
+  if (!isNaN(x)) animateValue(long, Math.max(0, Math.min(400, x)), 2000);
+
+  log('Position appliquée manuellement');
+});
+
+updatePositionLabels();
+
+
+
+
+    // initial UI sync
+    updateAll();
+    log('Préparation du Scan...');
+	setTimeout(() => {
+  prog.style.width='0%';
+  log('Scan prêt !')
+}, 1500);
+  });
+  </script>
+</body>
+</html>
