@@ -85,6 +85,130 @@
     transform: translateX(-20px);
   }
 }
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 2000;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(6px);
+}
+
+/* Contenu principal */
+.modal-content {
+  background: linear-gradient(180deg, var(--panel), rgba(16,22,34,0.9));
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  margin: 8% auto;
+  padding: 22px 24px;
+  border-radius: 14px;
+  width: 90%;
+  max-width: 480px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+  color: #e6eef8;
+  animation: fadeIn 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* En-tête */
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.modal-header h2 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #dfefff;
+  margin: 0;
+}
+
+.close {
+  color: var(--muted);
+  font-size: 22px;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.close:hover {
+  color: var(--accent);
+}
+
+/* --- Barre de recherche --- */
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--glass);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 10px;
+  padding: 0.5rem 0.8rem;
+}
+
+.search-bar input {
+  border: none;
+  outline: none;
+  flex: 1;
+  font-size: 0.95rem;
+  background: transparent;
+  color: #e6eef8;
+}
+
+.search-bar input::placeholder {
+  color: var(--muted);
+}
+
+.search-bar svg {
+  color: var(--muted);
+}
+
+/* --- Liste des patients --- */
+.patient-list {
+  max-height: 260px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-right: 4px;
+}
+
+/* Élément patient */
+.patient-item {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #0c1422, #091524);
+  border: 1px solid rgba(255,255,255,0.03);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.patient-item:hover {
+  background: linear-gradient(180deg, #102032, #0a1b2b);
+  border-color: rgba(96,165,250,0.3);
+  box-shadow: 0 0 8px rgba(96,165,250,0.25);
+}
+
+.patient-item:active {
+  background: linear-gradient(180deg, #08111e, #07121f);
+  box-shadow: 0 0 4px rgba(96,165,250,0.15) inset;
+}
+
+/* --- Étiquette du patient sélectionné --- */
+#patientLabel {
+  display: inline-block;
+  margin-left: 10px;
+  font-weight: 600;
+  color: var(--accent);
+}
   </style>
 </head>
 <body>
@@ -96,17 +220,40 @@
       <div style="flex:1">
         <h1>Gestion du scanner</h1>
       </div>
-
-      
-        
-          
+   
       <div style="display:flex;gap:8px;align-items:center">
-	  <div id="patientLabel" style="margin-left:auto;color:var(--muted)">Patient: </div>
-        <button id="startScan">Démarrer le scan</button>
-        <button id="stopScan" class="red small" title="Arrêt d'urgence">Arrêt d'Urgence</button>
+	  <span id="patientLabel">Aucun patient sélectionné</span>
+	  <button style="background-color: transparent;
+  color: #2563eb;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;" id="openModalBtn">👤</button>
+
       </div>
     </header>
+  <!-- Modal -->
+  <div id="patientModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Sélectionner un patient</h2>
+		   
 
+        <span class="close" id="closeModalBtn">&times;</span>
+      </div>
+
+      <div class="search-bar">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input type="text" id="searchInput" placeholder="Rechercher un patient...">
+      </div>
+
+      <div class="patient-list" id="patientList">
+        <!-- Liste des patients Firestore -->
+      </div>
+    </div>
+  </div>
     <!-- CONTROLES GAUCHE -->
     <div class="controls panel">
  <div class="card">
@@ -319,9 +466,14 @@
    
 
   <!-- CONTROLES DROITE -->
+  
   <div class="panel info">
+  <div style="display:flex;gap:8px;align-items:center">
+  <button id="startScan">Démarrer le scan</button>
+        <button id="stopScan" class="red small" title="Arrêt d'urgence">Arrêt d'Urgence</button>
+		</div>
       <div class="card">
-        <div class="label">Paramètres en direct</div>
+        <div class="label" style="font-weight:600;font-size:14px;">Position en direct</div>
         <div class="params">
           <div class="param"><strong id="pHeight">Hauteur: 0 mm</strong><div class="label">Position vertical</div></div>
           <div class="param"><strong id="pLateral">Latéral: 0 mm</strong><div class="label">Position latérale</div></div>
@@ -353,43 +505,94 @@
 
   </div>
  </div>
+ <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBKp5-7NNy0Gyl0tNbDgD-BxucYdg8ArWo",
+      authDomain: "urgences-a8ed4.firebaseapp.com",
+      projectId: "urgences-a8ed4",
+      storageBucket: "urgences-a8ed4.firebasestorage.app",
+      messagingSenderId: "392921498200",
+      appId: "1:392921498200:web:7ccce767332c67c697c02d",
+      measurementId: "G-C74MK2KYDL"
+    };
+
+    // --- Initialisation Firebase ---
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const patientId = urlParams.get('id');
+    const patientLabel = document.getElementById("patientLabel");
+
+    const modal = document.getElementById("patientModal");
+    const openBtn = document.getElementById("openModalBtn");
+    const closeBtn = document.getElementById("closeModalBtn");
+    const searchInput = document.getElementById("searchInput");
+    const patientList = document.getElementById("patientList");
+
+    let patients = [];
+
+    // --- Charger les patients depuis Firestore ---
+    async function loadPatients() {
+      patients = [];
+      const querySnapshot = await getDocs(collection(db, "patients"));
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        patients.push({
+          id: doc.id,
+          nom: data.nom || "Nom inconnu",
+          prenom: data.prenom || "",
+        });
+      });
+      displayPatients(patients);
+    }
+
+    // --- Afficher la liste ---
+    function displayPatients(list) {
+      patientList.innerHTML = "";
+      if (list.length === 0) {
+        patientList.innerHTML = "<p>Aucun patient trouvé</p>";
+        return;
+      }
+      list.forEach(p => {
+        const item = document.createElement("div");
+        item.classList.add("patient-item");
+        item.textContent = `${p.prenom} ${p.nom}`;
+        item.onclick = () => {
+          patientLabel.textContent = `${p.prenom} ${p.nom}`;
+          modal.style.display = "none";
+          console.log("Patient sélectionné :", p.id);
+          // Ici, tu peux rattacher le scan au patient sélectionné
+        };
+        patientList.appendChild(item);
+      });
+    }
+
+    // --- Ouverture / fermeture de la modale ---
+    openBtn.onclick = async () => {
+      modal.style.display = "block";
+      await loadPatients();
+    };
+
+    closeBtn.onclick = () => modal.style.display = "none";
+    window.onclick = (e) => { if (e.target === modal) modal.style.display = "none"; };
+
+    // --- Recherche dynamique ---
+    searchInput.addEventListener("input", (e) => {
+      const query = e.target.value.toLowerCase();
+      const filtered = patients.filter(p =>
+        (`${p.prenom} ${p.nom}`).toLowerCase().includes(query)
+      );
+      displayPatients(filtered);
+    });
+  </script>
   <script>
   window.addEventListener('DOMContentLoaded', () => {
-  const firebaseConfig = {
-    apiKey: "AIzaSyBKp5-7NNy0Gyl0tNbDgD-BxucYdg8ArWo",
-    authDomain: "urgences-a8ed4.firebaseapp.com",
-    projectId: "urgences-a8ed4",
-    storageBucket: "urgences-a8ed4.firebasestorage.app",
-    messagingSenderId: "392921498200",
-    appId: "1:392921498200:web:7ccce767332c67c697c02d",
-    measurementId: "G-C74MK2KYDL"
-  };
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
-
-  const urlParams = new URLSearchParams(window.location.search);
-  const patientId = urlParams.get('id');
-
-  const patientLabel = document.getElementById("patientLabel");
-
-  if(patientId){
-    db.collection('patients').doc(patientId).get().then(doc=>{
-      if(doc.exists){
-  const data = doc.data();
-  const age = data.dateNaissance ? calculateAge(data.dateNaissance) : '--';
-  patientLabel.textContent = `Patient : ${data.nom} ${data.prenom} • ${age} ans`;
-}
-
- else {
-        patientLabel.textContent = 'Patient : Inconnu';
-      }
-    }).catch(err=>{
-      console.error(err);
-      patientLabel.textContent = 'Patient : Erreur';
-    });
-  } else {
-    patientLabel.textContent = 'Patient : Aucun ID';
-  }
+  
+  
  function calculateAge(dateNaissance) {
     const birth = new Date(dateNaissance);
     const now = new Date();
