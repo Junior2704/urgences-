@@ -30,11 +30,11 @@
     .machine-wrap{display:flex;gap:12px;align-items:center}
     .gantry{width:520px;height:300px;position:relative}
     .gantry svg{width:100%;height:100%}
-    .table{position:absolute;left:50%;transform:translateX(-50%);bottom:38px;width:420px;height:30px;border-radius:6px;background:linear-gradient(180deg,#dbeeff10,#bcd8ff08);display:flex;align-items:center;justify-content:center}
+    .table{position:absolute;left:50%;transform:translateX(-50%);bottom:0px;width:420px;height:30px;border-radius:6px;background:linear-gradient(180deg,#dbeeff10,#bcd8ff08);display:flex;align-items:center;justify-content:center}
     .table .mat{width:380px;height:22px;border-radius:4px;background:linear-gradient(180deg,#0c2130,#06212b);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px}
     .silhouette {
   position: absolute;
-  top: 500px; /* juste sous les vues de face/profil */
+  top: 310px; /* juste sous les vues de face/profil */
   left: 50%;
   transform: translateX(-50%);
   width: 220px;  /* taille raisonnable */
@@ -451,7 +451,7 @@
           <div class="mat" id="mat">Table: position 0 mm</div>
         </div>
        <div class="silhouette" id="silhouette">
-  <svg viewBox="0 0 150 250" preserveAspectRatio="xMidYMid meet" style="width:50%;height:auto">
+  <svg viewBox="0 0 150 200" preserveAspectRatio="xMidYMid meet" style="width:50%;height:auto">
     <defs>
       <linearGradient id="skin" x1="0" x2="1">
         <stop offset="0%" stop-color="#cfe9ff"/>
@@ -1071,6 +1071,7 @@ updatePositionLabels();
   </script>
 </body>
 </html>
+
 
 
 
