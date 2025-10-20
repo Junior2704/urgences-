@@ -438,7 +438,7 @@ const hospitalisationsContent = document.getElementById("hospitalisationsContent
         <div class="examen-encart">
           <p><b>☢️ Type :</b> ${e.type || "N/A"}</p>
           <p><b>💬 Commentaire :</b> ${e.commentaire || ""}</p>
-          <p><b>📅 Date demande :</b> ${formatDateHeure(e.dateDemande) || "N/A"}</p>
+          <p><b>📅 Date demande :</b> ${e.dateDemande || "N/A"}</p>
           <button onclick="window.openEditModal('${patient.id}', ${patient.hospIndex}, ${e.realIndex})">Réaliser l'examen</button>
         </div>
       `).join("");
@@ -647,6 +647,7 @@ if (hospitalisations.length > 1) {
 
 </body>
 </html>
+
 
 
 
