@@ -76,6 +76,17 @@
   position: relative;
   transition: all 0.3s ease; /* optionnel pour douceur */
 }
+#editModal {
+  display: none !important;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 10001;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
 
     #closeBtnDetail, #closeEditModal {
       position: absolute;
@@ -498,4 +509,5 @@
 
 </body>
 </html>
+
 
