@@ -433,7 +433,7 @@
     };
 
     function showDetails(patient) {
-      await chargerHistoriqueComplet()
+    chargerHistoriqueComplet()
       const examensNonRealisesHTML = (patient.examensNonRealises || []).map(e => `
         <div class="examen-encart">
           <p><b>☢️ Type :</b> ${e.type || "N/A"}</p>
@@ -645,6 +645,7 @@ if (hospitalisations.length > 1) {
 
 </body>
 </html>
+
 
 
 
