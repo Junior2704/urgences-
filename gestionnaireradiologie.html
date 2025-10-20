@@ -51,28 +51,31 @@
       background-color: #dbe9f4;
     }
 
-    #detailPanel, #editModal {
-      display: none;
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.6);
-      backdrop-filter: blur(4px);
-      z-index: 10000;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
-    }
+ #detailPanel {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(4px);
+  z-index: 10000;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
 
-    #detailContent, #editModalContent {
-      background: white;
-      border-radius: 12px;
-      max-width: 90vw;
-      max-height: 90vh;
-      overflow-y: auto;
-      padding: 30px 40px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-      position: relative;
-    }
+/* ✅ Fixe la taille et évite le saut de la modale */
+#detailContent {
+  background: white;
+  border-radius: 12px;
+  width: 90vw;
+  max-width: 800px;
+  height: 80vh;              /* <-- taille stable */
+  overflow-y: auto;          /* <-- défilement interne */
+  padding: 30px 40px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  position: relative;
+  transition: all 0.3s ease; /* optionnel pour douceur */
+}
 
     #closeBtnDetail, #closeEditModal {
       position: absolute;
@@ -495,3 +498,4 @@
 
 </body>
 </html>
+
