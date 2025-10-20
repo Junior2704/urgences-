@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Simulateur de Scanner Médical — Interface réaliste</title>
+  <title>Gestionnaire du Scan</title>
   <style>
     :root{
       --bg:#0f1724; --panel:#0b1220; --accent:#60a5fa; --glass: rgba(255,255,255,0.06);
@@ -228,6 +228,7 @@
   </style>
 </head>
 <body>
+	<link rel="icon" type="image/jpeg" href="logo.jpg">
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <div class="app">
@@ -516,7 +517,7 @@
       <div class="card" style="display:flex;gap:8px;align-items:center;justify-content:space-between">
         <div>
           <div class="label">Visu export</div>
-          <div style="font-size:13px;color:var(--muted)">Export PNG / Impression (simulé)</div>
+          <div style="font-size:13px;color:var(--muted)">Export PNG / Impression</div>
         </div>
         <div style="display:flex;gap:8px">
           <button id="exportPNG" class="ghost small">Exporter PNG</button>
@@ -1071,6 +1072,7 @@ updatePositionLabels();
   </script>
 </body>
 </html>
+
 
 
 
