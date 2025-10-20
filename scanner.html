@@ -744,27 +744,42 @@
     }
 
   // Fonction utilitaire pour animer un déplacement fluide
-function animateValue(el, target, duration = 1000) {
+function animateTo(el, target) {
   if (!el) return;
   const start = parseFloat(el.value);
   const end = parseFloat(target);
+  const distance = Math.abs(end - start);
+
+  // --- Vitesse moyenne à régler ---
+  // en mm/ms : 0.2 = 200 mm/s
+  const speed = 0.25;
+
+  // Calcule durée proportionnelle à la distance (min 300 ms, max 2500 ms)
+  let duration = Math.max(300, Math.min(2500, distance / speed));
+
   const startTime = performance.now();
 
   function step(now) {
     const progress = Math.min((now - startTime) / duration, 1);
-    // interpolation linéaire
-    el.value = start + (end - start) * progress;
+    const newVal = start + (end - start) * progress;
+    el.value = newVal;
+
+    // Mise à jour visuelle en direct
     updateAll();
+    updateTargetFromUI();
+
     if (progress < 1) requestAnimationFrame(step);
   }
+
   requestAnimationFrame(step);
 }
 
 // Presets avec animation fluide
 if ($('presetHead')) $('presetHead').addEventListener('click', ()=>{
   log('Preset TÊTE chargé');
-  animateValue(height, 180,2000);
-  animateValue(long, 145, 2000);
+	animateTo(height, 180);
+  animateTo(lateral, 0);
+  animateTo(long, 145);
   if (collimation) collimation.value = 32;
   if (kv) kv.value = 120;
   if (ma) ma.value = 220;
@@ -772,8 +787,10 @@ if ($('presetHead')) $('presetHead').addEventListener('click', ()=>{
 
 if ($('presetChest')) $('presetChest').addEventListener('click', ()=>{
   log('Preset THORAX chargé');
-  animateValue(height, 0, 2000);
-  animateValue(long, 235, 2000);
+	animateTo(height, 0);
+  animateTo(lateral, 0);
+  animateTo(long, 235);
+
   if (collimation) collimation.value = 32;
   if (kv) kv.value = 120;
   if (ma) ma.value = 200;
@@ -781,8 +798,10 @@ if ($('presetChest')) $('presetChest').addEventListener('click', ()=>{
 
 if ($('presetAbdo')) $('presetAbdo').addEventListener('click', ()=>{
   log('Preset ABDO chargé');
-  animateValue(height, 30, 2000);
-  animateValue(long, 255, 2000);
+	animateTo(height, 30);
+  animateTo(lateral, 0);
+  animateTo(long, 255);
+
   if (collimation) collimation.value = 64;
   if (kv) kv.value = 140;
   if (ma) ma.value = 240;
@@ -809,8 +828,10 @@ if ($('presetAbdo')) $('presetAbdo').addEventListener('click', ()=>{
     
     if ($('centerPatient')) $('centerPatient').addEventListener('click', ()=>{
   log('Patient centré');
-  animateValue(height, 0, 2000);
-  animateValue(long, 0, 2000);
+		animateTo(height, 0);
+  animateTo(lateral, 0);
+  animateTo(long, 0);
+  
   if (collimation) collimation.value = 0;
   if (kv) kv.value = 0;
   if (ma) ma.value = 0;
@@ -818,8 +839,9 @@ if ($('presetAbdo')) $('presetAbdo').addEventListener('click', ()=>{
 
 if ($('park')) $('park').addEventListener('click', ()=>{
   log('Table parquée');
-  animateValue(height, -200, 2000);
-  animateValue(long, 0, 2000);
+  animateTo(height, -200);
+  animateTo(lateral, 0);
+  animateTo(long, 0);
   if (collimation) collimation.value = 0;
   if (kv) kv.value = 0;
   if (ma) ma.value = 0;
@@ -993,17 +1015,23 @@ $('longBack').onclick = () => { animateValue(long, Math.max(0, parseFloat(long.v
 });
 
 // --- Saisie manuelle + bouton "Appliquer" ---
-$('applyPosition').addEventListener('click', ()=>{
+$('applyPosition').addEventListener('click', ()=> {
   const z = parseFloat($('inputZ').value);
   const y = parseFloat($('inputY').value);
   const x = parseFloat($('inputX').value);
 
-  if (!isNaN(z)) animateValue(height, Math.max(-200, Math.min(200, z)), 2000);
-  if (!isNaN(y)) animateValue(lateral, Math.max(-75, Math.min(75, y)), 2000);
-  if (!isNaN(x)) animateValue(long, Math.max(0, Math.min(400, x)), 2000);
+  if (!isNaN(z))
+    animateTo(height, Math.max(-200, Math.min(200, z)));
+  if (!isNaN(y))
+    animateTo(lateral, Math.max(-75, Math.min(75, y)));
+  if (!isNaN(x))
+    animateTo(long, Math.max(0, Math.min(400, x)));
 
+  updateAll();
+  updateTargetFromUI();
   log('Position appliquée manuellement');
 });
+
 
 updatePositionLabels();
 
@@ -1021,3 +1049,4 @@ updatePositionLabels();
   </script>
 </body>
 </html>
+
