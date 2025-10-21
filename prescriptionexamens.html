@@ -31,7 +31,7 @@
     .form-group {
       margin-bottom: 15px;
     }
-    .form-group input, .form-group select {
+    .form-group input, .form-group select, .form-group textarea {
       width: 100%;
       padding: 10px;
       border-radius: 8px;
@@ -77,50 +77,80 @@
       padding: 5px 10px;
       cursor: pointer;
     }
-	.ordonnance {
-  margin-top: 30px;
-  padding: 20px;
-  background-color: #fafafa;
-  border-radius: 12px;
-  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
-}
-.ordonnance h2 {
-  font-size: 28px;
-  color: #333;
-  margin-bottom: 15px;
-  text-align: center;
-  font-weight: 600;
-}
-.doctor-info, .patient-info, .date-info {
-  margin-bottom: 10px;
-  font-size: 16px;
-  color: #555;
-}
-.buttons-wrapper::after {
-  content: "";
-  display: table;
-  clear: both;
-}
-.btn-print {
-  background-color: #007BFF;
-  float: left;
-}
-.btn-download {
-  background-color: #FFC107;
-  float: right;
-}
-.btn-print, .btn-download {
-  width: 48%;
-  height: 50px;
-  font-size: 16px;
-  margin-top: 20px;
-  border-radius: 8px;
-  cursor: pointer;
-  border: none;
-  color: white;
-  transition: background-color 0.3s;
-}
-
+    .ordonnance {
+      margin-top: 30px;
+      padding: 20px;
+      background-color: #fafafa;
+      border-radius: 12px;
+      box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+    }
+    .ordonnance h2 {
+      font-size: 28px;
+      color: #333;
+      margin-bottom: 15px;
+      text-align: center;
+      font-weight: 600;
+    }
+    .doctor-info, .patient-info, .date-info {
+      margin-bottom: 10px;
+      font-size: 16px;
+      color: #555;
+    }
+    .buttons-wrapper::after {
+      content: "";
+      display: table;
+      clear: both;
+    }
+    .btn-print {
+      background-color: #007BFF;
+      float: left;
+    }
+    .btn-download {
+      background-color: #FFC107;
+      float: right;
+    }
+    .btn-print, .btn-download {
+      width: 48%;
+      height: 50px;
+      font-size: 16px;
+      margin-top: 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      border: none;
+      color: white;
+      transition: background-color 0.3s;
+    }
+    #bubble-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 9999;
+      align-items: flex-end;
+    }
+    .bubble {
+      max-width: 300px;
+      padding: 10px 15px;
+      border-radius: 8px;
+      color: white;
+      font-family: sans-serif;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      animation: fadeout 0.5s ease-in-out 1.5s forwards;
+    }
+    .administratif {
+      background-color: #007BFF;
+    }
+    .alerte {
+      background-color: #f44336;
+    }
+    @keyframes fadeout {
+      to {
+        opacity: 0;
+        transform: translateX(-20px);
+      }
+    }
   </style>
 </head>
 <body>
@@ -128,25 +158,26 @@
   <h1>🧪 Prescripteur d'Examens</h1>
   <div class="form-group">
     <label>Prénom</label>
-    <input type="text" id="patient-first-name">
+    <input type="text" id="patient-first-name" oninput="updateOrdonnance()">
   </div>
   <div class="form-group">
     <label>Nom</label>
-    <input type="text" id="patient-last-name">
+    <input type="text" id="patient-last-name" oninput="updateOrdonnance()">
   </div>
   <div class="form-group">
     <label>Date de naissance</label>
-    <input type="date" id="patient-birthdate">
+    <input type="date" id="patient-birthdate" onchange="updateOrdonnance()">
   </div>
   <div class="form-group">
     <label>Sexe</label>
-    <select id="sexe">
+    <select id="sexe" onchange="updateOrdonnance()">
       <option value="M">M</option>
       <option value="Mme">Mme</option>
       <option value="L'enfant">L'enfant</option>
     </select>
   </div>
 
+  <!-- Boutons d'examens -->
   <button class="exam-button" onclick="toggleSublist('prise-sang-list')">🩸 Prise de sang</button>
   <div class="sub-list" id="prise-sang-list">
     <label><input type="checkbox" onchange="toggleExam(this)" value="NFS (Numération Formule Sanguine)"> NFS</label>
@@ -165,81 +196,85 @@
   </div>
 
   <button class="exam-button" onclick="toggleSublist('radio-list')">📸 Radiologie</button>
-<div class="sub-list" id="radio-list">
-  <label><input type="checkbox" onchange="toggleExam(this)" value="Radiographie du crâne"> Crâne</label>
-  <label><input type="checkbox" onchange="toggleExam(this)" value="Radiographie du thorax"> Thorax</label>
-  <label><input type="checkbox" onchange="toggleExam(this)" value="Radiographie de l'abdomen"> Abdomen</label>
-  <label><input type="checkbox" onchange="toggleExam(this)" value="Radiographie du bassin"> Bassin</label>
-  <label><input type="checkbox" onchange="toggleExam(this)" value="Radiographie du rachis cervical"> Rachis cervical</label>
-  <label><input type="checkbox" onchange="toggleExam(this)" value="Radiographie du rachis dorsal"> Rachis dorsal</label>
-  <label><input type="checkbox" onchange="toggleExam(this)" value="Radiographie du rachis lombaire"> Rachis lombaire</label>
-  <label><input type="checkbox" onchange="toggleExam(this)" value="Radiographie du genou"> Genou</label>
-  <label><input type="checkbox" onchange="toggleExam(this)" value="Radiographie de la cheville"> Cheville</label>
-  <label><input type="checkbox" onchange="toggleExam(this)" value="Radiographie du poignet"> Poignet</label>
-  <label><input type="checkbox" onchange="toggleExam(this)" value="Radiographie du coude"> Coude</label>
-  <label><input type="checkbox" onchange="toggleExam(this)" value="Radiographie des mains"> Mains</label>
-  <label><input type="checkbox" onchange="toggleExam(this)" value="Radiographie des pieds"> Pieds</label>
-</div>
-<button class="exam-button" onclick="toggleSublist('urine-list')">🧪 Examens urinaires</button>
-<div class="sub-list" id="urine-list">
-  <label><input type="checkbox" onchange="toggleExam(this)" value="ECBU (Examen cytobactériologique des urines)"> ECBU</label>
-  <label><input type="checkbox" onchange="toggleExam(this)" value="Protéinurie des 24h"> Protéinurie 24h</label>
-  <label><input type="checkbox" onchange="toggleExam(this)" value="Bandelette urinaire"> Bandelette urinaire</label>
-  <label><input type="checkbox" onchange="toggleExam(this)" value="Recherche de sang dans les urines"> Sang dans les urines</label>
-  <label><input type="checkbox" onchange="toggleExam(this)" value="Recherche de drogues urinaires"> Recherche de drogues</label>
-  <label><input type="checkbox" onchange="toggleExam(this)" value="Test de grossesse urinaire"> Test de grossesse</label>
-  <label><input type="checkbox" onchange="toggleExam(this)" value="Dosage créatinine urinaire"> Créatinine urinaire</label>
-</div>
-<button class="exam-button" onclick="toggleSublist('irm-list')">🧲 IRM</button>
-<div class="sub-list" id="irm-list">
-  <label><input type="checkbox" onchange="toggleExam(this)" value="IRM cérébrale"> Cérébrale</label>
-  <label><input type="checkbox" onchange="toggleExam(this)" value="IRM hypophysaire"> Hypophysaire</label>
-  <label><input type="checkbox" onchange="toggleExam(this)" value="IRM rachis cervical"> Rachis cervical</label>
-  <label><input type="checkbox" onchange="toggleExam(this)" value="IRM rachis dorsal"> Rachis dorsal</label>
-  <label><input type="checkbox" onchange="toggleExam(this)" value="IRM rachis lombaire"> Rachis lombaire</label>
-  <label><input type="checkbox" onchange="toggleExam(this)" value="IRM abdominale"> Abdominale</label>
-  <label><input type="checkbox" onchange="toggleExam(this)" value="IRM pelvienne"> Pelvienne</label>
-  <label><input type="checkbox" onchange="toggleExam(this)" value="IRM genou"> Genou</label>
-  <label><input type="checkbox" onchange="toggleExam(this)" value="IRM épaule"> Épaule</label>
-  <label><input type="checkbox" onchange="toggleExam(this)" value="IRM avec injection"> Avec injection</label>
-</div>
-<button class="exam-button" onclick="toggleSublist('scanner-list')">🖥️ Scanner</button>
-<div class="sub-list" id="scanner-list">
-  <label><input type="checkbox" onchange="toggleExam(this)" value="Scanner cérébral"> Cérébral</label>
-  <label><input type="checkbox" onchange="toggleExam(this)" value="Scanner thoracique"> Thorax</label>
-  <label><input type="checkbox" onchange="toggleExam(this)" value="Scanner abdomino-pelvien"> Abdomino-pelvien</label>
-  <label><input type="checkbox" onchange="toggleExam(this)" value="Scanner rachis cervical"> Rachis cervical</label>
-  <label><input type="checkbox" onchange="toggleExam(this)" value="Scanner rachis lombaire"> Rachis lombaire</label>
-  <label><input type="checkbox" onchange="toggleExam(this)" value="Scanner des sinus"> Sinus</label>
-  <label><input type="checkbox" onchange="toggleExam(this)" value="Scanner genou"> Genou</label>
-  <label><input type="checkbox" onchange="toggleExam(this)" value="Angioscanner cérébral"> Angioscanner cérébral</label>
-  <label><input type="checkbox" onchange="toggleExam(this)" value="Angioscanner thoracique"> Angioscanner thoracique</label>
-  <label><input type="checkbox" onchange="toggleExam(this)" value="Angioscanner abdominal"> Angioscanner abdominal</label>
-</div>
-<button class="exam-button" onclick="toggleSublist('echo-list')">🧭 Échographie</button>
-<div class="sub-list" id="echo-list">
-  <label><input type="checkbox" onchange="toggleExam(this)" value="Échographie abdominale"> Abdominale</label>
-  <label><input type="checkbox" onchange="toggleExam(this)" value="Échographie pelvienne"> Pelvienne</label>
-  <label><input type="checkbox" onchange="toggleExam(this)" value="Échographie rénale"> Rénale</label>
-  <label><input type="checkbox" onchange="toggleExam(this)" value="Échographie hépatique"> Hépatique</label>
-  <label><input type="checkbox" onchange="toggleExam(this)" value="Échographie thyroïdienne"> Thyroïdienne</label>
-  <label><input type="checkbox" onchange="toggleExam(this)" value="Échographie mammaire"> Mammaire</label>
-  <label><input type="checkbox" onchange="toggleExam(this)" value="Échographie testiculaire"> Testiculaire</label>
-  <label><input type="checkbox" onchange="toggleExam(this)" value="Échographie cardiaque (ETT)"> Cardiaque (ETT)</label>
-  <label><input type="checkbox" onchange="toggleExam(this)" value="Doppler veineux des membres inférieurs"> Doppler veineux MI</label>
-  <label><input type="checkbox" onchange="toggleExam(this)" value="Doppler artériel des membres inférieurs"> Doppler artériel MI</label>
-</div>
-<button class="exam-button" onclick="toggleSublist('eos-list')">🦴 EOS</button>
-<div class="sub-list" id="eos-list">
-  <label><input type="checkbox" onchange="toggleExam(this)" value="EOS rachis complet"> Rachis complet</label>
-  <label><input type="checkbox" onchange="toggleExam(this)" value="EOS membres inférieurs"> Membres inférieurs</label>
-  <label><input type="checkbox" onchange="toggleExam(this)" value="EOS membres supérieurs"> Membres supérieurs</label>
-  <label><input type="checkbox" onchange="toggleExam(this)" value="EOS posture globale"> Posture globale</label>
-</div>
-<br><br>
-<label for="commentaireExamen">💬 Commentaire</label><br>
-<textarea id="commentaireExamen" placeholder="Détails supplémentaires..."></textarea>
+  <div class="sub-list" id="radio-list">
+    <label><input type="checkbox" onchange="toggleExam(this)" value="Radiographie du crâne"> Crâne</label>
+    <label><input type="checkbox" onchange="toggleExam(this)" value="Radiographie du thorax"> Thorax</label>
+    <label><input type="checkbox" onchange="toggleExam(this)" value="Radiographie de l'abdomen"> Abdomen</label>
+    <label><input type="checkbox" onchange="toggleExam(this)" value="Radiographie du bassin"> Bassin</label>
+    <label><input type="checkbox" onchange="toggleExam(this)" value="Radiographie du rachis cervical"> Rachis cervical</label>
+    <label><input type="checkbox" onchange="toggleExam(this)" value="Radiographie du rachis dorsal"> Rachis dorsal</label>
+    <label><input type="checkbox" onchange="toggleExam(this)" value="Radiographie du rachis lombaire"> Rachis lombaire</label>
+    <label><input type="checkbox" onchange="toggleExam(this)" value="Radiographie du genou"> Genou</label>
+    <label><input type="checkbox" onchange="toggleExam(this)" value="Radiographie de la cheville"> Cheville</label>
+    <label><input type="checkbox" onchange="toggleExam(this)" value="Radiographie du poignet"> Poignet</label>
+    <label><input type="checkbox" onchange="toggleExam(this)" value="Radiographie du coude"> Coude</label>
+    <label><input type="checkbox" onchange="toggleExam(this)" value="Radiographie des mains"> Mains</label>
+    <label><input type="checkbox" onchange="toggleExam(this)" value="Radiographie des pieds"> Pieds</label>
+  </div>
 
+  <button class="exam-button" onclick="toggleSublist('urine-list')">🧪 Examens urinaires</button>
+  <div class="sub-list" id="urine-list">
+    <label><input type="checkbox" onchange="toggleExam(this)" value="ECBU (Examen cytobactériologique des urines)"> ECBU</label>
+    <label><input type="checkbox" onchange="toggleExam(this)" value="Protéinurie des 24h"> Protéinurie 24h</label>
+    <label><input type="checkbox" onchange="toggleExam(this)" value="Bandelette urinaire"> Bandelette urinaire</label>
+    <label><input type="checkbox" onchange="toggleExam(this)" value="Recherche de sang dans les urines"> Sang dans les urines</label>
+    <label><input type="checkbox" onchange="toggleExam(this)" value="Recherche de drogues urinaires"> Recherche de drogues</label>
+    <label><input type="checkbox" onchange="toggleExam(this)" value="Test de grossesse urinaire"> Test de grossesse</label>
+    <label><input type="checkbox" onchange="toggleExam(this)" value="Dosage créatinine urinaire"> Créatinine urinaire</label>
+  </div>
+
+  <button class="exam-button" onclick="toggleSublist('irm-list')">🧲 IRM</button>
+  <div class="sub-list" id="irm-list">
+    <label><input type="checkbox" onchange="toggleExam(this)" value="IRM cérébrale"> Cérébrale</label>
+    <label><input type="checkbox" onchange="toggleExam(this)" value="IRM hypophysaire"> Hypophysaire</label>
+    <label><input type="checkbox" onchange="toggleExam(this)" value="IRM rachis cervical"> Rachis cervical</label>
+    <label><input type="checkbox" onchange="toggleExam(this)" value="IRM rachis dorsal"> Rachis dorsal</label>
+    <label><input type="checkbox" onchange="toggleExam(this)" value="IRM rachis lombaire"> Rachis lombaire</label>
+    <label><input type="checkbox" onchange="toggleExam(this)" value="IRM abdominale"> Abdominale</label>
+    <label><input type="checkbox" onchange="toggleExam(this)" value="IRM pelvienne"> Pelvienne</label>
+    <label><input type="checkbox" onchange="toggleExam(this)" value="IRM genou"> Genou</label>
+    <label><input type="checkbox" onchange="toggleExam(this)" value="IRM épaule"> Épaule</label>
+    <label><input type="checkbox" onchange="toggleExam(this)" value="IRM avec injection"> Avec injection</label>
+  </div>
+
+  <button class="exam-button" onclick="toggleSublist('scanner-list')">🖥️ Scanner</button>
+  <div class="sub-list" id="scanner-list">
+    <label><input type="checkbox" onchange="toggleExam(this)" value="Scanner cérébral"> Cérébral</label>
+    <label><input type="checkbox" onchange="toggleExam(this)" value="Scanner thoracique"> Thorax</label>
+    <label><input type="checkbox" onchange="toggleExam(this)" value="Scanner abdomino-pelvien"> Abdomino-pelvien</label>
+    <label><input type="checkbox" onchange="toggleExam(this)" value="Scanner rachis cervical"> Rachis cervical</label>
+    <label><input type="checkbox" onchange="toggleExam(this)" value="Scanner rachis lombaire"> Rachis lombaire</label>
+    <label><input type="checkbox" onchange="toggleExam(this)" value="Scanner des sinus"> Sinus</label>
+    <label><input type="checkbox" onchange="toggleExam(this)" value="Scanner genou"> Genou</label>
+    <label><input type="checkbox" onchange="toggleExam(this)" value="Angioscanner cérébral"> Angioscanner cérébral</label>
+    <label><input type="checkbox" onchange="toggleExam(this)" value="Angioscanner thoracique"> Angioscanner thoracique</label>
+    <label><input type="checkbox" onchange="toggleExam(this)" value="Angioscanner abdominal"> Angioscanner abdominal</label>
+  </div>
+
+  <button class="exam-button" onclick="toggleSublist('echo-list')">🧭 Échographie</button>
+  <div class="sub-list" id="echo-list">
+    <label><input type="checkbox" onchange="toggleExam(this)" value="Échographie abdominale"> Abdominale</label>
+    <label><input type="checkbox" onchange="toggleExam(this)" value="Échographie pelvienne"> Pelvienne</label>
+    <label><input type="checkbox" onchange="toggleExam(this)" value="Échographie rénale"> Rénale</label>
+    <label><input type="checkbox" onchange="toggleExam(this)" value="Échographie hépatique"> Hépatique</label>
+    <label><input type="checkbox" onchange="toggleExam(this)" value="Échographie thyroïdienne"> Thyroïdienne</label>
+    <label><input type="checkbox" onchange="toggleExam(this)" value="Échographie mammaire"> Mammaire</label>
+    <label><input type="checkbox" onchange="toggleExam(this)" value="Échographie testiculaire"> Testiculaire</label>
+    <label><input type="checkbox" onchange="toggleExam(this)" value="Échographie cardiaque (ETT)"> Cardiaque (ETT)</label>
+    <label><input type="checkbox" onchange="toggleExam(this)" value="Doppler veineux des membres inférieurs"> Doppler veineux MI</label>
+    <label><input type="checkbox" onchange="toggleExam(this)" value="Doppler artériel des membres inférieurs"> Doppler artériel MI</label>
+  </div>
+
+  <button class="exam-button" onclick="toggleSublist('eos-list')">🦴 EOS</button>
+  <div class="sub-list" id="eos-list">
+    <label><input type="checkbox" onchange="toggleExam(this)" value="EOS rachis complet"> Rachis complet</label>
+    <label><input type="checkbox" onchange="toggleExam(this)" value="EOS membres inférieurs"> Membres inférieurs</label>
+    <label><input type="checkbox" onchange="toggleExam(this)" value="EOS membres supérieurs"> Membres supérieurs</label>
+    <label><input type="checkbox" onchange="toggleExam(this)" value="EOS posture globale"> Posture globale</label>
+  </div>
+  <br><br>
+  <label for="commentaireExamen">💬 Commentaire</label><br>
+  <textarea id="commentaireExamen" placeholder="Détails supplémentaires..." oninput="updateOrdonnance()"></textarea>
 
   <div id="prescription-list" class="prescription-list"></div>
  </div> 
@@ -255,7 +290,7 @@
     <span id="patient-name-display">Nom du patient</span>
   </div>
   <div class="prescription-list" id="examens-list-display"></div>
-
+  <div class="commentaire-display" id="commentaire-display" style="margin-top:10px;"></div>
 
   <div class="buttons-wrapper" style="display:none;">
     <button class="btn-print" onclick="window.print()">🖨️ Imprimer</button>
@@ -263,287 +298,141 @@
   </div>
 </div>
 
-<script>
-  const firebaseConfig = { apiKey: "AIzaSyBKp5-7NNy0Gyl0tNbDgD-BxucYdg8ArWo",
-    authDomain: "urgences-a8ed4.firebaseapp.com",
-    projectId: "urgences-a8ed4",
-    storageBucket: "urgences-a8ed4.appspot.com",  
-    messagingSenderId: "392921498200",
-    appId: "1:392921498200:web:7ccce767332c67c697c02d",
-    measurementId: "G-C74MK2KYDL" };
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
-
-  const urlParams = new URLSearchParams(window.location.search);
-  const patientId = urlParams.get("id");
-
-  if (patientId) {
-    db.collection("patients").doc(patientId).get().then(doc => {
-      if (doc.exists) {
-        const data = doc.data();
-        document.getElementById("patient-first-name").value = data.prenom || "";
-        document.getElementById("patient-last-name").value = data.nom || "";
-		const naissance = data.dateNaissance;
-if (naissance instanceof firebase.firestore.Timestamp) {
-  const dateObj = naissance.toDate();
-  const yyyy = dateObj.getFullYear();
-  const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
-  const dd = String(dateObj.getDate()).padStart(2, '0');
-  document.getElementById("patient-birthdate").value = `${yyyy}-${mm}-${dd}`;
-} else {
-  document.getElementById("patient-birthdate").value = naissance || "";
-}
-
-        document.getElementById("sexe").value = data.sexe || "M";
-      }
-    });
-  }
-
-  function toggleSublist(id) {
-    const list = document.getElementById(id);
-    list.style.display = list.style.display === "block" ? "none" : "block";
-  }
-  function toggleExam(checkbox) {
-  const ordonnance = document.getElementById("ordonnance");
-  const buttonsWrapper = document.querySelector(".buttons-wrapper");
-
-  if (checkbox.checked) {
-    const item = document.createElement('div');
-    item.className = 'prescription-item';
-    item.textContent = checkbox.value;
-    item.dataset.exam = checkbox.value;
-
-    const del = document.createElement('button');
-    del.textContent = "✖";
-    del.className = "btn-delete";
-    del.onclick = () => {
-      item.remove();
-      checkbox.checked = false;
-      checkIfPrescriptionsRemain(); // Nouvelle vérification
-    };
-
-    item.appendChild(del);
-    document.getElementById('prescription-list').appendChild(item);
-
-    // ➕ Afficher ordonnance et boutons
-    ordonnance.style.display = "block";
-    buttonsWrapper.style.display = "block";
-
-    // ➕ Mettre à jour les blocs patient et médecin
-    document.getElementById("patient-name-display").textContent =
-      document.getElementById("patient-first-name").value + " " +
-      document.getElementById("patient-last-name").value;
-
-    document.getElementById("current-date").textContent =
-      new Date().toLocaleDateString("fr-FR");
-  }
-}
-
-
-  
-function validateExamPrescription() {
-  const patientNom = document.getElementById("patient-last-name").value;
-  const patientPrenom = document.getElementById("patient-first-name").value;
-  const prescriptions = Array.from(document.querySelectorAll('.prescription-item')).map(item => item.dataset.exam);
-  if (prescriptions.length === 0) {
-    showBubble("⛔ Aucun examen sélectionné.", "alerte");
-    return;
-  }
-
-  // Affichage dans la zone ordonnancier-style
-  const listDisplay = document.getElementById("examens-list-display");
-  listDisplay.innerHTML = "";
-  prescriptions.forEach(exam => {
-    const div = document.createElement("div");
-    div.className = "prescription-item";
-    div.textContent = `• ${exam}`;
-    listDisplay.appendChild(div);
-  });
-
-  document.getElementById("ordonnance").style.display = "block";
-  document.querySelector(".buttons-wrapper").style.display = "block";
-
-  const displayName = `${patientPrenom} ${patientNom}`;
-  document.getElementById("patient-name-display").textContent = displayName;
-
-  const today = new Date().toLocaleDateString("fr-FR");
-  document.getElementById("current-date").textContent = today;
-}
-async function telechargerExamens() {
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
-
-  // Logo (optionnel)
-  // doc.addImage(...);
-
-  // Bandeau
-  doc.setFillColor(52, 152, 219);
-  doc.rect(0, 0, 210, 20, 'F');
-  doc.setFontSize(20);
-  doc.setTextColor(255, 255, 255);
-  doc.text("Prescription d'Examens", 105, 14, { align: "center" });
-
-  // Infos médecin
-  doc.setTextColor(0, 0, 0);
-  doc.setFontSize(14);
-  doc.text(`${medecinNom},`, 20, 30);
-  doc.text(medecinSpecialite, 20, 38);
-  doc.text(`À ${medecinLieu}`, 150, 38);
-
-  // Infos patient
-  const prenom = document.getElementById("patient-first-name").value;
-  const nom = document.getElementById("patient-last-name").value;
-  const sexe = document.getElementById("sexe").value;
-  const birth = document.getElementById("patient-birthdate").value;
-  const patientLine = `${sexe} ${prenom} ${nom}, né(e) le ${birth}`;
-  doc.text(patientLine, 20, 50);
-
-  // Examens
-  let y = 65;
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(16);
-  doc.text("Examens prescrits :", 20, y);
-  y += 10;
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(12);
-
-  const items = Array.from(document.querySelectorAll('.prescription-item')).map(e => e.dataset.exam);
-  items.forEach(exam => {
-    const lines = doc.splitTextToSize(`• ${exam}`, 180);
-    if (y + lines.length * 10 > 280) {
-      doc.addPage();
-      y = 20;
-    }
-    doc.text(lines, 25, y);
-    y += lines.length * 10;
-  });
-
-  doc.save(`Prescription_Examens_${nom}_${prenom}.pdf`);
-}
-
-</script>
 <div id="bubble-container"></div>
+
 <script>
-function showBubble(message, type) {
-  const container = document.getElementById("bubble-container");
-  const bubble = document.createElement("div");
-  bubble.className = "bubble " + type;
-  bubble.innerText = message;
-  container.appendChild(bubble);
-  setTimeout(() => bubble.remove(), 2000);
-}
-
-function checkIfPrescriptionsRemain() {
-  const prescriptions = document.querySelectorAll('.prescription-item');
-  if (prescriptions.length === 0) {
-    document.getElementById("ordonnance").style.display = "none";
-    document.querySelector(".buttons-wrapper").style.display = "none";
-  }
-}
-
-</script>
-<style>
-#bubble-container {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  z-index: 9999;
-  align-items: flex-end;
-}
-.bubble {
-  max-width: 300px;
-  padding: 10px 15px;
-  border-radius: 8px;
-  color: white;
-  font-family: sans-serif;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-  animation: fadeout 0.5s ease-in-out 1.5s forwards;
-}
-.administratif {
-  background-color: #007BFF;
-}
-.alerte {
-  background-color: #f44336;
-}
-@keyframes fadeout {
-  to {
-    opacity: 0;
-    transform: translateX(-20px);
-  }
-}
-</style>
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyBKp5-7NNy0Gyl0tNbDgD-BxucYdg8ArWo",
-    authDomain: "urgences-a8ed4.firebaseapp.com",
-    projectId: "urgences-a8ed4"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
+const firebaseConfig = {
+  apiKey: "ton_apiKey",
+  authDomain: "ton_projectId.firebaseapp.com",
+  projectId: "ton_projectId",
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 
 let medecinNom = "";
-  let medecinSpecialite = "";
-  let medecinLieu = "";
+let medecinSpecialite = "";
+let medecinLieu = "";
 
-  onAuthStateChanged(auth, async (user) => {
-  if (!user) {
-    window.location.href = "accueil.html";
-  } else {
-    try {
-      const docRef = doc(db, "medecins", user.uid);
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        const medecinNom = data.nom || "";
-        const medecinSpecialite = data.specialite || "";
-        const medecinLieu = data.lieu || "";
-
-        // Met à jour aussi les variables globales sur window
-        window.medecinNom = medecinNom;
-        window.medecinSpecialite = medecinSpecialite;
-        window.medecinLieu = medecinLieu;
-
-        // Mise à jour des éléments HTML si présents
-        const nomElem = document.getElementById("nom-medecin");
-        if (nomElem) nomElem.textContent = medecinNom;
-
-        const specElem = document.getElementById("specialite");
-        if (specElem) specElem.textContent = medecinSpecialite;
-
-        const lieuElem = document.getElementById("lieu-medecin");
-        if (lieuElem) lieuElem.textContent = medecinLieu;
-
-        // --- Vérification d'accès à la page ---
-        const pages = data.pages || {};
-        const currentPath = window.location.pathname;
-        const currentPage = currentPath.substring(currentPath.lastIndexOf("/") + 1).replace(".html", "");
-
-        if (!pages[currentPage]) {
-          alert("⛔️ Vous n’avez pas accès à cette page.");
-          window.location.href = "index.html";
-          return; // Stoppe le script ici
-        }
-      } else {
-        // Document inexistant — redirection
-        alert("Utilisateur non trouvé, veuillez vous reconnecter.");
-        window.location.href = "accueil.html";
-      }
-    } catch (error) {
-      console.error("Erreur chargement médecin :", error);
-      alert("Une erreur est survenue, veuillez réessayer plus tard.");
+firebase.auth().onAuthStateChanged(async user => {
+  if(user){
+    const doc = await db.collection('SAMU').doc(user.displayName).get();
+    if(doc.exists){
+      const data = doc.data();
+      medecinNom = data.nom || "";
+      medecinSpecialite = data.specialite || "";
+      medecinLieu = data.lieu || "";
+      updateOrdonnance();
     }
   }
 });
-</script>
 
+// Pré-remplissage patient depuis URL
+const urlParams = new URLSearchParams(window.location.search);
+const patientId = urlParams.get("id");
+
+if(patientId){
+  db.collection("patients").doc(patientId).get().then(doc=>{
+    if(doc.exists){
+      const data = doc.data();
+      document.getElementById("patient-first-name").value = data.prenom || "";
+      document.getElementById("patient-last-name").value = data.nom || "";
+      document.getElementById("sexe").value = data.sexe || "M";
+      const naissance = data.dateNaissance;
+      if(naissance instanceof firebase.firestore.Timestamp){
+        document.getElementById("patient-birthdate").valueAsDate = naissance.toDate();
+      } else if(typeof naissance === "string"){
+        document.getElementById("patient-birthdate").value = naissance;
+      }
+      updateOrdonnance();
+    }
+  });
+}
+
+function toggleSublist(listId){
+  const sublist = document.getElementById(listId);
+  sublist.style.display = sublist.style.display === "block" ? "none" : "block";
+}
+
+function toggleExam(checkbox){
+  const value = checkbox.value;
+  const prescriptionList = document.getElementById("prescription-list");
+  if(checkbox.checked){
+    const div = document.createElement("div");
+    div.className = "prescription-item";
+    div.dataset.exam = value;
+    div.innerHTML = `${value} <button class="btn-delete" onclick="removeExam(this)">✖</button>`;
+    prescriptionList.appendChild(div);
+  } else {
+    Array.from(prescriptionList.children).forEach(child=>{
+      if(child.dataset.exam === value) prescriptionList.removeChild(child);
+    });
+  }
+  checkIfPrescriptionsRemain();
+  updateOrdonnance();
+}
+
+function removeExam(btn){
+  const div = btn.parentElement;
+  const val = div.dataset.exam;
+  div.parentElement.removeChild(div);
+  document.querySelectorAll('input[type="checkbox"]').forEach(cb=>{
+    if(cb.value === val) cb.checked = false;
+  });
+  checkIfPrescriptionsRemain();
+  updateOrdonnance();
+}
+
+function checkIfPrescriptionsRemain(){
+  const ordonnance = document.getElementById("ordonnance");
+  const buttonsWrapper = ordonnance.querySelector(".buttons-wrapper");
+  if(document.getElementById("prescription-list").children.length > 0){
+    ordonnance.style.display = "block";
+    buttonsWrapper.style.display = "block";
+  } else {
+    ordonnance.style.display = "none";
+    buttonsWrapper.style.display = "none";
+  }
+}
+
+function updateOrdonnance(){
+  const patientName = document.getElementById("patient-first-name").value + " " + document.getElementById("patient-last-name").value;
+  document.getElementById("patient-name-display").textContent = patientName;
+  document.getElementById("medecin-nom-display").textContent = medecinNom;
+  document.getElementById("medecin-specialite-display").textContent = medecinSpecialite;
+  const today = new Date();
+  document.getElementById("current-date").textContent = today.toLocaleDateString();
+  const examensList = document.getElementById("examens-list-display");
+  examensList.innerHTML = "";
+  Array.from(document.getElementById("prescription-list").children).forEach(item=>{
+    const div = document.createElement("div");
+    div.textContent = item.dataset.exam;
+    examensList.appendChild(div);
+  });
+  document.getElementById("commentaire-display").textContent = document.getElementById("commentaireExamen").value;
+}
+
+function telechargerExamens(){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  doc.setFontSize(18);
+  doc.text("🧪 Prescription d'Examens", 105, 20, null, null, "center");
+  doc.setFontSize(12);
+  doc.text(`Médecin: ${medecinNom} - ${medecinSpecialite}`, 10, 30);
+  doc.text(`Date: ${new Date().toLocaleDateString()}`, 10, 40);
+  const patientName = document.getElementById("patient-first-name").value + " " + document.getElementById("patient-last-name").value;
+  doc.text(`Patient: ${patientName}`, 10, 50);
+  doc.text("Examens prescrits:", 10, 60);
+  let y = 70;
+  Array.from(document.getElementById("prescription-list").children).forEach(item=>{
+    doc.text("- " + item.dataset.exam, 15, y);
+    y += 10;
+  });
+  const commentaire = document.getElementById("commentaireExamen").value;
+  if(commentaire){
+    doc.text("Commentaire: " + commentaire, 10, y + 10);
+  }
+  doc.save("Prescription_Examens.pdf");
+}
+</script>
 </body>
 </html>
