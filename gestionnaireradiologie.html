@@ -496,7 +496,7 @@ const { patientId, hospIndex, examIndex } = window.currentEdit;
 
       examen.compteRendu = compteRendu;
       examen.realise = true;
-      examen.dateRealisation = new Date().toISOString();
+    examen.dateRealisation = formatDate(new Date().toISOString());
 
       await updateDoc(docRef, { hospitalisations: patientData.hospitalisations });
       afficherBulle("✔️ Examen enregistré", "administratif");
@@ -649,6 +649,17 @@ window.openEditModal = (patientId, hospIndex, examIndex) => {
   compteRenduInput.value = "";
   editModal.style.display = "flex";
 };
+// ✅ Fonction de formatage de date (jj/mm/aaaa - hh:mm:ss)
+function formatDate(isoString) {
+  const date = new Date(isoString);
+  const jour = String(date.getDate()).padStart(2, '0');
+  const mois = String(date.getMonth() + 1).padStart(2, '0');
+  const annee = date.getFullYear();
+  const heures = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const secondes = String(date.getSeconds()).padStart(2, '0');
+  return `${jour}/${mois}/${annee} - ${heures}:${minutes}:${secondes}`;
+}
 
 </script>
 
@@ -656,6 +667,7 @@ window.openEditModal = (patientId, hospIndex, examIndex) => {
 
 </body>
 </html>
+
 
 
 
