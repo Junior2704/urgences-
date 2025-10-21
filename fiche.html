@@ -2744,46 +2744,51 @@ document.getElementById("closeRawData").addEventListener("click", () => {
   document.getElementById("modalRawData").style.display = "none";
 });
 
-
 async function chargerActes(patientId, hospiId) {
   const container = document.getElementById("actesListe");
   container.innerHTML = "<p>⏳ Chargement des actes...</p>";
 
   try {
-    const snapshot = await db.collection("patients")
+    const doc = await db.collection("patients")
       .doc(patientId)
       .collection("hospitalisations")
       .doc(hospiId)
-      .collection("actes")
-      .get(); // 👈 suppression du orderBy
+      .get();
 
-    if (snapshot.empty) {
+    if (!doc.exists) {
+      container.innerHTML = "<p style='color:red;'>⚠️ Hospitalisation introuvable.</p>";
+      return;
+    }
+
+    const data = doc.data();
+    const actes = data.actes || []; // 👈 récupère le tableau "actes"
+
+    if (actes.length === 0) {
       container.innerHTML = "<p>Aucun acte réalisé pour ce séjour.</p>";
       return;
     }
 
     container.innerHTML = "";
-    snapshot.forEach(doc => {
-      const acte = doc.data();
-
+    actes.forEach((acte, i) => {
       const div = document.createElement("div");
       div.className = "prescription-item";
       div.innerHTML = `
         <div>
           <strong>${acte.type || "Acte inconnu"}</strong><br>
           👨‍⚕️ ${acte.realisateur || "–"}<br>
-          📅 ${acte.date ? new Date(acte.date).toLocaleString() : "–"}<br>
+          📅 ${acte.date || "–"}<br>
           💬 ${acte.remarque || ""}
         </div>
-        <button class="btn-delete" onclick="supprimerActe('${patientId}','${hospiId}','${doc.id}')">❌</button>
       `;
       container.appendChild(div);
     });
+
   } catch (err) {
     console.error("Erreur chargement actes :", err);
     container.innerHTML = "<p style='color:red;'>⚠️ Erreur de chargement des actes</p>";
   }
 }
+
 
 
 // fonction utilitaire pour supprimer un acte
@@ -3009,6 +3014,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
