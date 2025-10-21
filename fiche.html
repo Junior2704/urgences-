@@ -2744,7 +2744,7 @@ async function chargerActes(patientId, hospiId) {
   try {
     const snapshot = await db.collection("patients")
       .doc(patientId)
-      .collection("hospitalisation")
+      .collection("hospitalisations")
       .doc(hospiId)
       .collection("actes")
       .orderBy("date", "desc")
@@ -3001,6 +3001,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
