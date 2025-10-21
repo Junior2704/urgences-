@@ -2840,9 +2840,9 @@ async function chargerExamens() {
       <div class="examen-encart" style="margin-bottom:8px; padding:10px; border-radius:8px; background:${ex.realise ? '#eaf9ea' : '#f5faff'};">
         <p><b>☢️Type :</b> ${ex.type || "N/A"}</p>
         <p><b>💬Commentaire :</b> ${ex.commentaire || ""}</p>
-        <p><b>📄Compte rendu :</b> ${ex.compteRendu || ""}</p>
         <p><b>📅Date demande :</b> ${ex.dateDemande || "?"}</p>
-        ${ex.realise ? `<p><b>✅ Réalisé le :</b> ${ex.dateRealisation || "?"}</p>` : ""}
+        ${ex.realise ? `<p><b>✅ Réalisé le :</b> ${ex.dateRealisation || "?"}</p>
+		<p><b>📄Compte rendu :</b> ${ex.compteRendu || ""}</p>` : ""}
       </div>
     `).join("");
 
@@ -3001,6 +3001,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
