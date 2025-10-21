@@ -1687,6 +1687,9 @@ document.getElementById("gravite").addEventListener("change", e => {
 document.getElementById("motif").addEventListener("blur", e => {
   updateHospitalisationField("motif", e.target.value.trim());
 });
+document.getElementById("moyen").addEventListener("blur", e => {
+  updateHospitalisationField("moyen", e.target.value.trim());
+});
 
 async function ajouterEntreeHistorique(texte) {
   const date = new Date().toLocaleString();
@@ -2998,6 +3001,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
