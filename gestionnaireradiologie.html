@@ -426,12 +426,7 @@ const hospitalisationsContent = document.getElementById("hospitalisationsContent
       });
     }
 
-    window.openEditModal = (patientId, hospIndex, examIndex) => {
-      currentEdit = { patientId, hospIndex, examIndex };
-      compteRenduInput.value = "";
-      editModal.style.display = "flex";
-    };
-
+   
     function showDetails(patient) {
     
       const examensNonRealisesHTML = (patient.examensNonRealises || []).map(e => `
@@ -641,12 +636,20 @@ if (hospitalisations.length > 1) {
     contenu.innerHTML = "<p>❌ Erreur lors du chargement de l'historique.</p>";
   }
 }
+
+	 window.openEditModal = (patientId, hospIndex, examIndex) => {
+      currentEdit = { patientId, hospIndex, examIndex };
+      compteRenduInput.value = "";
+      editModal.style.display = "flex";
+    };
+
 </script>
 
 <div id="bubble-container"></div>
 
 </body>
 </html>
+
 
 
 
