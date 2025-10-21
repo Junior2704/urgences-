@@ -637,12 +637,18 @@ if (hospitalisations.length > 1) {
     contenu.innerHTML = "<p>❌ Erreur lors du chargement de l'historique.</p>";
   }
 }
+// ✅ Fonction accessible globalement pour ouvrir la modale d'édition
+window.openEditModal = (patientId, hospIndex, examIndex) => {
+  const editModal = document.getElementById("editModal");
+  const compteRenduInput = document.getElementById("compteRenduInput");
 
-	 window.openEditModal = (patientId, hospIndex, examIndex) => {
-      currentEdit = { patientId, hospIndex, examIndex };
-      compteRenduInput.value = "";
-      editModal.style.display = "flex";
-    };
+  // on stocke l’état dans un objet global
+  window.currentEdit = { patientId, hospIndex, examIndex };
+
+  // réinitialisation du champ texte
+  compteRenduInput.value = "";
+  editModal.style.display = "flex";
+};
 
 </script>
 
@@ -650,6 +656,7 @@ if (hospitalisations.length > 1) {
 
 </body>
 </html>
+
 
 
 
