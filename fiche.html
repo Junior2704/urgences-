@@ -2755,8 +2755,7 @@ async function chargerActes(patientId, hospiId) {
       .collection("hospitalisations")
       .doc(hospiId)
       .collection("actes")
-      .orderBy("date", "desc")
-      .get();
+      .get(); // 👈 suppression du orderBy
 
     if (snapshot.empty) {
       container.innerHTML = "<p>Aucun acte réalisé pour ce séjour.</p>";
@@ -2773,7 +2772,7 @@ async function chargerActes(patientId, hospiId) {
         <div>
           <strong>${acte.type || "Acte inconnu"}</strong><br>
           👨‍⚕️ ${acte.realisateur || "–"}<br>
-          📅 ${acte.date ? new Date(acte.date.seconds * 1000).toLocaleString() : "–"}<br>
+          📅 ${acte.date ? new Date(acte.date).toLocaleString() : "–"}<br>
           💬 ${acte.remarque || ""}
         </div>
         <button class="btn-delete" onclick="supprimerActe('${patientId}','${hospiId}','${doc.id}')">❌</button>
@@ -2785,6 +2784,7 @@ async function chargerActes(patientId, hospiId) {
     container.innerHTML = "<p style='color:red;'>⚠️ Erreur de chargement des actes</p>";
   }
 }
+
 
 // fonction utilitaire pour supprimer un acte
 async function supprimerActe(patientId, hospiId, acteId) {
@@ -3009,6 +3009,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
