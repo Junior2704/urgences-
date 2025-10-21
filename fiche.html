@@ -2295,7 +2295,15 @@ document.getElementById("btnEnregistrerActe").addEventListener("click", async ()
     type,
     realisateur,
     remarque,
-    date: new Date().toISOString()
+   date: new Date().toLocaleString("fr-FR", {
+  day: "2-digit",
+  month: "2-digit",
+  year: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit"
+})
+
   };
 
   try {
@@ -3001,6 +3009,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
