@@ -480,8 +480,9 @@ chargerHistoriqueComplet(patient.id);
     }
 
     validerBtn.onclick = async () => {
-      if (!currentEdit) return;
-      const { patientId, hospIndex, examIndex } = currentEdit;
+      if (!window.currentEdit) return;
+const { patientId, hospIndex, examIndex } = window.currentEdit;
+
       const docRef = doc(db, "patients", patientId);
       const docSnap = await getDoc(docRef);
       if (!docSnap.exists()) return afficherBulle("❌ Patient introuvable", "alerte");
@@ -649,6 +650,7 @@ if (hospitalisations.length > 1) {
 
 </body>
 </html>
+
 
 
 
