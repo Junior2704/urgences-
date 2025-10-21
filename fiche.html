@@ -1468,7 +1468,7 @@ async function chargerPatient(patientId) {
     if (!hospiSnap.empty) {
       const hospiDoc = hospiSnap.docs[0];   // dernier séjour
       // --- Charger actes & examens depuis les sous-collections ---
-      await chargerActes(patientId, hospiDoc.id);
+      await chargerActes(patientId);
       await chargerExamens(patientId, hospiDoc.id);
     }
 
@@ -2467,61 +2467,7 @@ function toggleSublist(id) {
     const list = document.getElementById(id);
     list.style.display = list.style.display === "block" ? "none" : "block";
   }
-async function chargerExamens(patientId, hospi) {
-  const examensListe = document.getElementById("examensListe");
-  examensListe.innerHTML = "<p>⏳ Chargement...</p>";
 
-  try {
-    const snapshot = await db.collection("patients")
-      .doc(patientId)
-      .collection("hospitalisation")
-      .doc(hospi)
-      .collection("examens")
-      .get();
-
-    examensListe.innerHTML = "";
-
-    if (snapshot.empty) {
-      examensListe.innerHTML = "<p>Aucun examen enregistré.</p>";
-      return;
-    }
-
-    snapshot.forEach(doc => {
-      const examen = doc.data();
-      const div = document.createElement("div");
-      div.className = "p-2 mb-2 border rounded bg-gray-50";
-      div.innerHTML = `
-        <strong>🧪 ${examen.type}</strong><br>
-        📅 Demande : ${examen.dateDemande ? new Date(examen.dateDemande).toLocaleString() : "—"}<br>
-        📅 Réalisation : ${examen.dateRealisation ? new Date(examen.dateRealisation).toLocaleString() : "—"}<br>
-        ${examen["compte-rendu"] ? "📄 CR : " + examen["compte-rendu"] + "<br>" : ""}
-        ${examen.commentaire ? "📝 " + examen.commentaire : ""}
-      `;
-      examensListe.appendChild(div);
-    });
-  } catch (e) {
-    console.error("Erreur chargement examens :", e);
-    examensListe.innerHTML = "<p>⚠️ Erreur lors du chargement</p>";
-  }
-}
-
-  function toggleExam(checkbox) {
-    if (checkbox.checked) {
-      const item = document.createElement('div');
-      item.className = 'prescription-item';
-      item.textContent = checkbox.value;
-      item.dataset.exam = checkbox.value;
-      const del = document.createElement('button');
-      del.textContent = "✖";
-      del.className = "btn-delete";
-      del.onclick = () => {
-        item.remove();
-        checkbox.checked = false;
-      };
-      item.appendChild(del);
-      document.getElementById('prescription-list').appendChild(item);
-    }
-  }
 	
 document.getElementById("btnEnregistrerGlasgow").addEventListener("click", async () => {
   const yeux = parseInt(document.getElementById("glasgowYeux").value) || 0;
@@ -2744,32 +2690,29 @@ document.getElementById("closeRawData").addEventListener("click", () => {
   document.getElementById("modalRawData").style.display = "none";
 });
 
-async function chargerActes(patientId, hospiId) {
+async function chargerActes(patientId) {
   const container = document.getElementById("actesListe");
   container.innerHTML = "<p>⏳ Chargement des actes...</p>";
 
   try {
-    const doc = await db.collection("patients")
-      .doc(patientId)
-      .collection("hospitalisations")
-      .doc(hospiId)
-      .get();
-
+    const doc = await db.collection("patients").doc(patientId).get();
     if (!doc.exists) {
-      container.innerHTML = "<p style='color:red;'>⚠️ Hospitalisation introuvable.</p>";
+      container.innerHTML = "<p style='color:red;'>❌ Patient introuvable.</p>";
       return;
     }
 
     const data = doc.data();
-    const actes = data.actes || []; // 👈 récupère le tableau "actes"
+    const index = data.hospitalisationIndex ?? 0; // hospitalisation active
+    const hospi = data.hospitalisations?.[index];
 
-    if (actes.length === 0) {
-      container.innerHTML = "<p>Aucun acte réalisé pour ce séjour.</p>";
+    if (!hospi || !hospi.actes || hospi.actes.length === 0) {
+      container.innerHTML = "<p>Aucun acte enregistré pour ce séjour.</p>";
       return;
     }
 
+    // --- Affichage des actes ---
     container.innerHTML = "";
-    actes.forEach((acte, i) => {
+    hospi.actes.forEach((acte) => {
       const div = document.createElement("div");
       div.className = "prescription-item";
       div.innerHTML = `
@@ -2785,9 +2728,10 @@ async function chargerActes(patientId, hospiId) {
 
   } catch (err) {
     console.error("Erreur chargement actes :", err);
-    container.innerHTML = "<p style='color:red;'>⚠️ Erreur de chargement des actes</p>";
+    container.innerHTML = "<p style='color:red;'>⚠️ Erreur lors du chargement des actes</p>";
   }
 }
+
 
 
 
@@ -2803,7 +2747,7 @@ async function supprimerActe(patientId, hospiId, acteId) {
       .doc(acteId)
       .delete();
     afficherBulle("🗑️ Acte supprimé", "administratif");
-    await chargerActes(patientId, hospiId); // 🔄 refresh
+    await chargerActes(patientId); // 🔄 refresh
   } catch (err) {
     console.error("Erreur suppression acte :", err);
     afficherBulle("❌ Erreur lors de la suppression", "alerte");
@@ -3014,6 +2958,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
