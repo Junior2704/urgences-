@@ -499,78 +499,58 @@ const pdfBase64 = doc.output('datauristring').split(',')[1]; // On enlève "data
 window.pdfBase64 = pdfBase64; // stocké globalement pour EmailJS
 
 }
-	// 🔹 Fonction pour envoyer le PDF sur Firebase Storage
-async function uploadRapportToFirebase(pdfBlob, patientId) {
+	async function uploadRapportToFileIO(pdfBlob) {
   try {
-    const storage = firebase.storage();
-    const fileName = `rapports_hospitalisation/${patientId}/rapport_${Date.now()}.pdf`;
-    const ref = storage.ref(fileName);
+    const formData = new FormData();
+    formData.append("file", pdfBlob, "rapport.pdf");
 
-    // Envoi du fichier
-    await ref.put(pdfBlob);
-
-    // Générer un lien temporaire (valide 7 jours)
-    const expiresInMs = 7 * 24 * 60 * 60 * 1000; // 7 jours
-    const expirationDate = new Date(Date.now() + expiresInMs).toISOString();
-
-    const url = await ref.getDownloadURL();
-
-    // On stocke aussi la date d’expiration dans Firestore
-    await patientRef.update({
-      lienRapport: {
-        url,
-        expireLe: expirationDate
-      }
+    // 🔹 Envoi du fichier sur file.io (valable 7 jours)
+    const response = await fetch("https://file.io/?expires=7d", {
+      method: "POST",
+      body: formData
     });
 
-    return url;
-  } catch (error) {
-    console.error("Erreur upload PDF Firebase :", error);
-    afficherBulle("⚠️ Erreur lors de l’envoi du rapport en ligne", "alerte");
-    throw error;
+    const result = await response.json();
+
+    if (!result.success) throw new Error("Erreur lors de l’upload : " + result.message);
+
+    console.log("Lien de téléchargement :", result.link);
+    return result.link; // ex: https://file.io/abc123xyz
+  } catch (err) {
+    console.error("Erreur upload file.io:", err);
+    throw err;
   }
 }
 
+
 document.getElementById("btnEnvoyerMail").addEventListener("click", async function() {
-  try {
-    await genererPDF();
+  await genererPDF();
 
-    // Convertir le PDF base64 en Blob pour upload
-    const byteCharacters = atob(window.pdfBase64);
-    const byteNumbers = new Array(byteCharacters.length);
-    for (let i = 0; i < byteCharacters.length; i++) {
-      byteNumbers[i] = byteCharacters.charCodeAt(i);
-    }
-    const byteArray = new Uint8Array(byteNumbers);
-    const pdfBlob = new Blob([byteArray], { type: "application/pdf" });
-
-    // 🔹 Upload sur Firebase Storage
-    const lienPdf = await uploadRapportToFirebase(pdfBlob, patientId);
-
-    // 🔹 Envoi du mail avec lien
-    const to_email = window.patientData.email || "";
-    if (!to_email) {
-      alert("❌ Aucune adresse e-mail n’est enregistrée pour ce patient.");
-      return;
-    }
-
-    const patient_nom = window.patientData.nom || "";
-    const patient_prenom = window.patientData.prenom || "";
-
-    await emailjs.send("service_o07vuso", "template_juigshl", {
-      to_email,
-      patient_nom,
-      patient_prenom,
-      lien_compte_rendu: lienPdf,
-      message: "Bonjour, votre compte-rendu d’hospitalisation est disponible via le lien ci-dessous (valide 7 jours)."
-    });
-
-    afficherBulle("📨 E-mail envoyé avec le lien du rapport !", "administratif");
-  } catch (error) {
-    console.error(error);
-    afficherBulle("⚠️ Erreur lors de l’envoi de l’e-mail", "alerte");
+  const byteCharacters = atob(window.pdfBase64);
+  const byteNumbers = new Array(byteCharacters.length);
+  for (let i = 0; i < byteCharacters.length; i++) {
+    byteNumbers[i] = byteCharacters.charCodeAt(i);
   }
+  const pdfBlob = new Blob([new Uint8Array(byteNumbers)], { type: "application/pdf" });
+
+  // 🔹 Upload sur file.io
+  const lienPdf = await uploadRapportToFileIO(pdfBlob);
+
+  const to_email = window.patientData.email || "";
+  const patient_nom = window.patientData.nom || "";
+  const patient_prenom = window.patientData.prenom || "";
+
+  await emailjs.send("service_o07vuso", "template_juigshl", {
+    to_email,
+    patient_nom,
+    patient_prenom,
+    lien_compte_rendu: lienPdf,
+    message: "Bonjour, votre compte-rendu d’hospitalisation est disponible via le lien ci-dessous (valide 7 jours)."
+  });
+
+  alert("📨 E-mail envoyé avec le lien vers le rapport !");
 });
+
 
 	
 // Gestion du bouton valider
@@ -702,6 +682,7 @@ let medecinNom = "";
  
 </body>
 </html>
+
 
 
 
