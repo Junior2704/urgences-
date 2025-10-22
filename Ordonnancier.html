@@ -16286,12 +16286,7 @@ function filterMedicaments() {
   const filtres = medicaments.filter(m => m.toLowerCase().includes(search));
   afficherMedicaments(filtres);
 }
-
-
-		// Variables globales
-		let prescriptionItems = [];
-
-		if (!window.prescriptionItems) {
+if (!window.prescriptionItems) {
     window.prescriptionItems = [];
   }
 
