@@ -7,6 +7,8 @@
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-storage-compat.js"></script>
+
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -497,41 +499,77 @@ const pdfBase64 = doc.output('datauristring').split(',')[1]; // On enlève "data
 window.pdfBase64 = pdfBase64; // stocké globalement pour EmailJS
 
 }
-document.getElementById("btnEnvoyerMail").addEventListener("click", async function() {
-    await genererPDF();
-const pdfData = "data:application/pdf;base64," + window.pdfBase64;
-    const patient_nom = window.patientData.nom || "";      
-    const patient_prenom = window.patientData.prenom || ""; 
-    const to_email = window.patientData.email || "";
+	// 🔹 Fonction pour envoyer le PDF sur Firebase Storage
+async function uploadRapportToFirebase(pdfBlob, patientId) {
+  try {
+    const storage = firebase.storage();
+    const fileName = `rapports_hospitalisation/${patientId}/rapport_${Date.now()}.pdf`;
+    const ref = storage.ref(fileName);
 
+    // Envoi du fichier
+    await ref.put(pdfBlob);
+
+    // Générer un lien temporaire (valide 7 jours)
+    const expiresInMs = 7 * 24 * 60 * 60 * 1000; // 7 jours
+    const expirationDate = new Date(Date.now() + expiresInMs).toISOString();
+
+    const url = await ref.getDownloadURL();
+
+    // On stocke aussi la date d’expiration dans Firestore
+    await patientRef.update({
+      lienRapport: {
+        url,
+        expireLe: expirationDate
+      }
+    });
+
+    return url;
+  } catch (error) {
+    console.error("Erreur upload PDF Firebase :", error);
+    afficherBulle("⚠️ Erreur lors de l’envoi du rapport en ligne", "alerte");
+    throw error;
+  }
+}
+
+document.getElementById("btnEnvoyerMail").addEventListener("click", async function() {
+  try {
+    await genererPDF();
+
+    // Convertir le PDF base64 en Blob pour upload
+    const byteCharacters = atob(window.pdfBase64);
+    const byteNumbers = new Array(byteCharacters.length);
+    for (let i = 0; i < byteCharacters.length; i++) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+    const byteArray = new Uint8Array(byteNumbers);
+    const pdfBlob = new Blob([byteArray], { type: "application/pdf" });
+
+    // 🔹 Upload sur Firebase Storage
+    const lienPdf = await uploadRapportToFirebase(pdfBlob, patientId);
+
+    // 🔹 Envoi du mail avec lien
+    const to_email = window.patientData.email || "";
     if (!to_email) {
-        alert("❌ Aucune adresse e-mail n’est enregistrée pour ce patient.");
-        console.error("EmailJS: aucun destinataire");
-        return;
+      alert("❌ Aucune adresse e-mail n’est enregistrée pour ce patient.");
+      return;
     }
 
-    const attachmentBase64 = window.pdfBase64 || "";
+    const patient_nom = window.patientData.nom || "";
+    const patient_prenom = window.patientData.prenom || "";
 
-    emailjs.send(
-        "service_o07vuso",
-        "template_juigshl",
-        {
-            to_email: to_email,
-            subject: "Votre compte-rendu d'hospitalisation",
-            patient_nom: patient_nom,
-            patient_prenom: patient_prenom,
-            message: "Bonjour, votre compte-rendu est disponible.",
-            
-        }
-		{ attachments: [pdfData] }
-    )
-    .then(function(response) {
-        afficherBulle("📨 E-mail envoyé avec succès !",adminsitratif);
-        console.log("SUCCESS!", response.status, response.text);
-    }, function(error) {
-        alert("⚠️ Erreur lors de l'envoi du mail : " + error.text);
-        console.log("FAILED...", error);
+    await emailjs.send("service_o07vuso", "template_juigshl", {
+      to_email,
+      patient_nom,
+      patient_prenom,
+      lien_compte_rendu: lienPdf,
+      message: "Bonjour, votre compte-rendu d’hospitalisation est disponible via le lien ci-dessous (valide 7 jours)."
     });
+
+    afficherBulle("📨 E-mail envoyé avec le lien du rapport !", "administratif");
+  } catch (error) {
+    console.error(error);
+    afficherBulle("⚠️ Erreur lors de l’envoi de l’e-mail", "alerte");
+  }
 });
 
 	
@@ -664,6 +702,7 @@ let medecinNom = "";
  
 </body>
 </html>
+
 
 
 
