@@ -499,17 +499,25 @@ const pdfBase64 = doc.output('datauristring').split(',')[1]; // On enlève "data
 window.pdfBase64 = pdfBase64; // stocké globalement pour EmailJS
 
 }
-	async function uploadRapportToTransferSH(pdfBlob) {
+	async function uploadRapportToFileIO(pdfBlob) {
   try {
-    const response = await fetch("https://transfer.sh/rapport.pdf", {
-      method: "PUT",
-      body: pdfBlob
+    const formData = new FormData();
+    formData.append("file", pdfBlob, "rapport.pdf");
+
+    // 🔹 Envoi du fichier sur file.io (valable 7 jours)
+    const response = await fetch("https://urgences.onrender.com", {
+      method: "POST",
+      body: formData
     });
-    const link = await response.text();
-    console.log("Lien généré:", link);
-    return link.trim();
+
+    const result = await response.json();
+
+    if (!result.success) throw new Error("Erreur lors de l’upload : " + result.message);
+
+    console.log("Lien de téléchargement :", result.link);
+    return result.link; // ex: https://file.io/abc123xyz
   } catch (err) {
-    console.error("Erreur upload transfer.sh:", err);
+    console.error("Erreur upload file.io:", err);
     throw err;
   }
 }
@@ -525,8 +533,8 @@ document.getElementById("btnEnvoyerMail").addEventListener("click", async functi
   }
   const pdfBlob = new Blob([new Uint8Array(byteNumbers)], { type: "application/pdf" });
 
-  const lienPdf = await uploadRapportToTransferSH(pdfBlob);
-
+  // 🔹 Upload sur file.io
+  const lienPdf = await uploadRapportToFileIO(pdfBlob);
 
   const to_email = window.patientData.email || "";
   const patient_nom = window.patientData.nom || "";
@@ -674,6 +682,7 @@ let medecinNom = "";
  
 </body>
 </html>
+
 
 
 
