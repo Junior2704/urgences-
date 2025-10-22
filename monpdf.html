@@ -101,56 +101,34 @@
     const db = firebase.firestore();
 
     async function telechargerPDF() {
-      try {
-        const params = new URLSearchParams(window.location.search);
-        const id = params.get("id");
+  const id = new URLSearchParams(window.location.search).get("id");
+  if (!id) {
+    document.body.innerHTML = "<p>❌ Lien invalide.</p>";
+    return;
+  }
 
-        // 🔒 Sécurité : ID requis
-        if (!id || !/^[a-z0-9]+$/i.test(id)) {
-          showError("Lien invalide ou corrompu.");
-          return;
-        }
+  const docSnap = await db.collection("liens_pdfs").doc(id).get();
+  if (!docSnap.exists) {
+    document.body.innerHTML = "<p>⏳ Ce lien a expiré ou est invalide.</p>";
+    return;
+  }
 
-        // 🔍 Récupération du PDF
-        const docSnap = await db.collection("liens_pdfs").doc(id).get();
-        if (!docSnap.exists) {
-          showError("Ce lien a expiré ou n’existe plus.");
-          return;
-        }
+  const data = docSnap.data();
+  const base64 = data.base64;
+  const fileName = data.nomFichier || "document.pdf"; // 🟢 utilise le vrai nom s’il existe
 
-        const data = docSnap.data();
-        if (!data.base64) {
-          showError("Le document est introuvable.");
-          return;
-        }
+  // Conversion base64 → Blob → téléchargement
+  const blob = base64ToBlob(base64, "application/pdf");
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = fileName;
+  a.click();
 
-        // ✅ Conversion Base64 → PDF
-        const blob = base64ToBlob(data.base64, "application/pdf");
-        const url = URL.createObjectURL(blob);
+  // Fermeture après téléchargement
+  setTimeout(() => window.close(), 3000);
+}
 
-        // 🧾 Téléchargement automatique
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "rapport_hospitalisation.pdf";
-        a.style.display = "none";
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-
-        // Message de succès
-        showSuccess("Votre rapport a été téléchargé avec succès.");
-
-        // 🔐 Option : supprimer le document Firestore après téléchargement
-        await db.collection("liens_pdfs").doc(id).delete();
-
-        // Fermeture automatique
-        setTimeout(() => window.close(), 3000);
-
-      } catch (err) {
-        console.error(err);
-        showError("Une erreur est survenue. Le lien est peut-être expiré.");
-      }
-    }
 
     // Utilitaires d’affichage
     function showSuccess(msg) {
