@@ -415,7 +415,6 @@ function setRapportValide(val) {
 	envoyerMailBtn.style.display = val ? "inline-block" : "none";
 }
 
-// Génération PDF avec titres et paragraphes stylés + logo
 async function genererPDF() {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
@@ -424,81 +423,85 @@ async function genererPDF() {
   const lineHeight = 7;
   const pageHeight = doc.internal.pageSize.height;
 
-const logoUrl = "data:image/jpeg;base64,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"
-  // Charger logo image asynchrone
+  const logoUrl = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBxAHEhUQBxMVFhUWFRYYFhYWFxoVFhkbFRUbFhYWFhYYHCggGx0lGxgWJTEiJSktLi4vFx8zODMtOCgtLisBCgoKDg0OGxAQGzUlHyYwLS03LS8tLSs1LS01Mi0tMCsrLy8vLS0rLS0vLS0tLS0tLS0tLS0tLS8vLS0tLS0tLf/AABEIAOEA4QMBEQACEQEDEQH..." // ton image base64
   const img = new Image();
   img.src = logoUrl;
   img.crossOrigin = "anonymous";
-  img.onload = () => {
-    doc.addImage(img, 'PNG', marginLeft, y, 40, 40);
-    y += 30;
 
-    // Titre
-    doc.setFontSize(18);
-    doc.setTextColor("#1a73e8");
-    doc.text("\nCompte-rendu passage aux Urgences\n\n", marginLeft+50, y);
-    y += 15;
+  return new Promise((resolve) => {
+    img.onload = () => {
+      // === Début du contenu une fois le logo chargé ===
+      doc.addImage(img, 'PNG', marginLeft, y, 40, 40);
+      y += 30;
 
-    // Ligne séparation
-    doc.setDrawColor(26, 115, 232);
-    doc.setLineWidth(0.8);
-    doc.line(marginLeft, y, 195, y);
-    y += 10;
-
-    // Fonction utilitaire pour ajouter un bloc texte avec gestion page
-    function addBlock(titre, contenu){
-      doc.setFontSize(14);
+      // Titre
+      doc.setFontSize(18);
       doc.setTextColor("#1a73e8");
-      doc.text(titre, marginLeft, y);
-      y += lineHeight;
+      doc.text("Compte-rendu passage aux Urgences", marginLeft + 50, y);
+      y += 15;
 
-      doc.setFontSize(11);
-      doc.setTextColor("#000000");
-
-      const splitText = doc.splitTextToSize(contenu, 180);
-      for(let i=0; i<splitText.length; i++){
-        if(y > pageHeight - 20){
-          doc.addPage();
-          y = 15;
-        }
-        doc.text(splitText[i], marginLeft, y);
-        y += lineHeight;
-      }
-
-      y += lineHeight; // espace après bloc
-      // Ligne séparation fine
-      doc.setDrawColor(200, 200, 200);
-      doc.setLineWidth(0.6);
+      // Ligne séparation
+      doc.setDrawColor(26, 115, 232);
+      doc.setLineWidth(0.8);
       doc.line(marginLeft, y, 195, y);
       y += 10;
-    }
 
-    // Ajouter tous les champs
-    addBlock("Identité du patient", document.getElementById("identite").value.trim());
-	addBlock("Hospitalisation", document.getElementById("hospitalisation").value.trim());
-    addBlock("Dossier Médical", document.getElementById("medical").value.trim());
-    addBlock("Évolution aux urgences", document.getElementById("evolution").value.trim());
-    addBlock("Constantes Vitales", document.getElementById("constantes").value.trim());
-    addBlock("Examens Complémentaires", document.getElementById("examens").value.trim());
-    addBlock("Actes réalisés", document.getElementById("actes").value.trim());
-    addBlock("Sortie", document.getElementById("sortie").value.trim());
+      // Fonction utilitaire pour ajouter un bloc texte
+      function addBlock(titre, contenu) {
+        doc.setFontSize(14);
+        doc.setTextColor("#1a73e8");
+        doc.text(titre, marginLeft, y);
+        y += lineHeight;
 
-const signatureText = `${medecinNom}\n${medecinSpecialite}`;
-  const pageWidth = doc.internal.pageSize.width;
+        doc.setFontSize(11);
+        doc.setTextColor("#000000");
 
+        const splitText = doc.splitTextToSize(contenu || "—", 180);
+        for (let i = 0; i < splitText.length; i++) {
+          if (y > pageHeight - 20) {
+            doc.addPage();
+            y = 15;
+          }
+          doc.text(splitText[i], marginLeft, y);
+          y += lineHeight;
+        }
 
+        y += lineHeight;
+        doc.setDrawColor(200, 200, 200);
+        doc.setLineWidth(0.6);
+        doc.line(marginLeft, y, 195, y);
+        y += 10;
+      }
 
-  // Texte signature à droite, marge 15 mm
-  const splitSignature = doc.splitTextToSize(signatureText, 60);
-  doc.text(splitSignature, pageWidth - 75, pageHeight - 30);
+      // Ajouter tous les blocs
+      addBlock("Identité du patient", document.getElementById("identite").value.trim());
+      addBlock("Hospitalisation", document.getElementById("hospitalisation").value.trim());
+      addBlock("Dossier Médical", document.getElementById("medical").value.trim());
+      addBlock("Évolution aux urgences", document.getElementById("evolution").value.trim());
+      addBlock("Constantes Vitales", document.getElementById("constantes").value.trim());
+      addBlock("Examens Complémentaires", document.getElementById("examens").value.trim());
+      addBlock("Actes réalisés", document.getElementById("actes").value.trim());
+      addBlock("Sortie", document.getElementById("sortie").value.trim());
 
-    // Sauvegarder PDF
-    doc.save("rapport d'hospitalisation.pdf");
-  };
-const pdfBase64 = doc.output('datauristring').split(',')[1]; // On enlève "data:application/pdf;base64,"
-window.pdfBase64 = pdfBase64; // stocké globalement pour EmailJS
+      // Signature
+      const signatureText = `${medecinNom || "Dr Non renseigné"}\n${medecinSpecialite || ""}`;
+      const pageWidth = doc.internal.pageSize.width;
+      const splitSignature = doc.splitTextToSize(signatureText, 60);
+      doc.text(splitSignature, pageWidth - 75, pageHeight - 30);
 
+      // ✅ Maintenant seulement : export du PDF
+      const pdfData = doc.output("datauristring");
+      window.pdfBase64 = pdfData.split(",")[1];
+
+      // Optionnel : téléchargement local
+      // doc.save("rapport_hospitalisation.pdf");
+
+      console.log("✅ PDF généré, taille base64:", window.pdfBase64.length);
+      resolve(window.pdfBase64);
+    };
+  });
 }
+
 async function uploadRapportToFileIO(pdfBlob) {
   const formData = new FormData();
   formData.append("file", pdfBlob, "rapport.pdf");
@@ -682,4 +685,5 @@ let medecinNom = "";
 
 </body>
 </html>
+
 
