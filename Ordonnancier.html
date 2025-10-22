@@ -16241,6 +16241,7 @@ Cordialement,
 	<script>
 let db; 	
 	window.addEventListener("DOMContentLoaded", async () => {
+		hideLoadingModal()
   const firebaseConfig = {
     apiKey: "AIzaSyBKp5-7NNy0Gyl0tNbDgD-BxucYdg8ArWo",
     authDomain: "urgences-a8ed4.firebaseapp.com",
@@ -16765,6 +16766,13 @@ function afficherBulle(texte, type) {
     view[i] = binary.charCodeAt(i);
   }
   return new Blob([view], { type });
+}
+function showLoadingModal() {
+  document.getElementById("loadingModal").classList.remove("hidden");
+}
+
+function hideLoadingModal() {
+  document.getElementById("loadingModal").classList.add("hidden");
 }
  document.getElementById("btnEnvoyerMail").addEventListener("click", async function () {
   try {
