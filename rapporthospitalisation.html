@@ -532,13 +532,26 @@ function base64ToBlob(base64, type = "application/pdf") {
 
 
 document.getElementById("btnEnvoyerMail").addEventListener("click", async function() {
-	await genererPDF();
-const pdfBlob = base64ToBlob(window.pdfBase64);
+  // 1️⃣ Génère le PDF
+  const pdfBase64 = await genererPDF();
 
+  // 2️⃣ Crée un ID unique
+  let idUnique;
+  do {
+    idUnique = Math.random().toString(36).substring(2, 10);
+    const docRef = await db.collection("liens_pdfs").doc(idUnique).get();
+  } while (docRef.exists);
 
-  // 🔹 Upload sur file.io
-  const lienPdf = await uploadRapportToFileIO(pdfBlob);
+  // 3️⃣ Enregistre dans Firestore
+  await db.collection("liens_pdfs").doc(idUnique).set({
+    base64: pdfBase64,
+    dateCreation: firebase.firestore.FieldValue.serverTimestamp()
+  });
 
+  // 4️⃣ Construit le lien vers ton site GitHub Pages
+  const lienPdf = `https://junior2704.github.io/monpdf.html?id=${idUnique}`;
+
+  // 5️⃣ Envoie l'e-mail
   const to_email = window.patientData.email || "";
   const patient_nom = window.patientData.nom || "";
   const patient_prenom = window.patientData.prenom || "";
@@ -685,5 +698,6 @@ let medecinNom = "";
 
 </body>
 </html>
+
 
 
