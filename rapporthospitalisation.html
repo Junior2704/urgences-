@@ -178,16 +178,7 @@ function calculerAge(dateStr) {
   const ageDt = new Date(diffMs);
   return Math.abs(ageDt.getUTCFullYear() - 1970);
 }
-  const envoyerMailBtn = document.createElement("button");
-  envoyerMailBtn.textContent = "📧 Envoyer le rapport par e-mail";
-  envoyerMailBtn.style.backgroundColor = "#ff9800";
-  envoyerMailBtn.style.color = "white";
-  envoyerMailBtn.style.display = "none";
-  envoyerMailBtn.style.borderRadius = "6px";
-  envoyerMailBtn.style.padding = "12px 24px";
-  envoyerMailBtn.style.fontWeight = "600";
-  document.querySelector(".button-group").appendChild(envoyerMailBtn);
-
+ 
 	
 // Adaptation hauteur textarea au contenu
 function autoResizeTextarea(el) {
@@ -605,6 +596,7 @@ let medecinNom = "";
 </div>
 </body>
 </html>
+
 
 
 
