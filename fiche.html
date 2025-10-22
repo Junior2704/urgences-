@@ -6,9 +6,7 @@
 
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Fiche Patient
-  <p id="currentTime"></p>
-  </title>
+  <title>Fiche Patient </title>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
   <style>
@@ -1383,7 +1381,14 @@ function openTab(tabId, event) {
   document.getElementById(tabId).style.display = "block";
   if (event) event.currentTarget.classList.add("active");
 }
+function updateTime() {
+    const now = new Date();
+    const formatted = now.toLocaleString(); // format local avec date et heure
+    document.title = "Fiche Patient - " + formatted;
+}
 
+// mettre à jour toutes les secondes
+setInterval(updateTime, 1000);
   function calculerAge(dateNaissance) {
     const birth = new Date(dateNaissance);
     const now = new Date();
@@ -3005,6 +3010,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
