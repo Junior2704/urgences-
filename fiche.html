@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
+	<script src="http://www.vidal.fr/includes/javascript/vidal/widget/WidgetVidal.js"></script>
 <link rel="icon" type="image/jpeg" href="logo.jpg">
 
   <meta charset="UTF-8" />
@@ -1140,7 +1141,11 @@ header {
   <hr>
   <h4>📄 Documents</h4>
 	<br><br>
-	<iframe width="468" height="60" frameborder="0" scrolling="no" src="https://www.vidal.fr/widgets/search/t:2/">
+	<div data-role="widget_vidal"
+     data-width="300"
+     data-height="30"
+     data-padding="5">
+</div>
   <button id="btnRapportHospi">📃 Rapport d'hospitalisation</button>
 	<br><br>
   <button id="btnVersFiche">📄 Ordonnancier</button>
@@ -2959,6 +2964,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
