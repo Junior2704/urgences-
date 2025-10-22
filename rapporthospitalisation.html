@@ -190,17 +190,18 @@
 
 <div id="choixRapportModal" class="modal">
   <div class="modal-content">
-    <h2>Choix du rapport</h2>
-    <p>Souhaitez-vous ouvrir un rapport existant ou en créer un nouveau ?</p>
+    <h2>Un rapport existe déjà, </h2>
+    <p>Souhaitez-vous :</p>
 
     <div class="modal-buttons">
-      <button id="btnOuvrir" class="btnModal ouvrir">📂 Ouvrir un rapport existant</button>
-      <button id="btnEcraser" class="btnModal ecraser">📝 Créer un nouveau rapport</button>
+      <button id="btnOuvrir" class="btnModal ouvrir">📂 l'ouvrir</button>
+      <button id="btnEcraser" class="btnModal ecraser">📝 en créer un nouveau</button>
     </div>
 
     <button id="btnFermerModal" class="btnModal fermer">❌ Fermer</button>
   </div>
 </div>
+
 <form id="formRapport">
   <label for="identite">Identité</label>
   <textarea id="identite"></textarea>
@@ -505,6 +506,10 @@ document.getElementById("btnEnvoyerMail").addEventListener("click", async functi
 
       // Exemple de PDF encodé en base64 (à remplacer par ton PDF)
       const attachmentBase64 = window.pdfBase64 || ""; // tu dois générer ton PDF en base64
+if (!to_email) {
+  alert("Le patient n’a pas d’adresse e-mail enregistrée.");
+  return;
+}
 
       // Envoi du mail
       emailjs.send(
@@ -652,46 +657,12 @@ let medecinNom = "";
     }
   }
 });
-	envoyerMailBtn.addEventListener("click", async () => {
-    if (!patientEmail) {
-      afficherBulle("❌Aucune adresse e-mail trouvée pour ce patient", "alerte");
-      return;
-    }
-
-    await genererPDF();
-    const reader = new FileReader();
-    reader.onloadend = async () => {
-      const base64PDF = reader.result.split(",")[1];
-
-      const templateParams = {
-        to_email: patientEmail,
-        subject: "Votre rapport d'hospitalisation",
-        message: "Bonjour, veuillez trouver ci-joint votre rapport d'hospitalisation.",
-        attachment: base64PDF
-      };
-
-      emailjs.send("service_o07vuso", "template_juigshl", templateParams)
-        .then(() => {
-          afficherBulle("📨 E-mail envoyé au patient avec succès", "administratif");
-        })
-        .catch((err) => {
-          console.error(err);
-          afficherBulle("⚠️ Erreur lors de l'envoi de l'e-mail", "alerte");
-        });
-    };
-    reader.readAsDataURL(pdfBlob);
-  });
+	
 </script>
-  <div id="choixRapportModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.4); z-index:10000; align-items:center; justify-content:center;">
-  <div style="background:white; padding:30px; border-radius:10px; width:90%; max-width:500px; box-shadow:0 5px 15px rgba(0,0,0,0.3); text-align:center;">
-    <h2 style="color:#1a73e8;">Un rapport existe déjà</h2>
-    <p>Souhaitez-vous :</p>
-    <button id="btnOuvrir" style="background-color:#28a745; color:white; padding:10px 20px; margin:10px; border:none; border-radius:6px; font-size:1rem;">🔁 Ouvrir le rapport existant</button>
-    <button id="btnEcraser" style="background-color:#dc3545; color:white; padding:10px 20px; margin:10px; border:none; border-radius:6px; font-size:1rem;">🆕 Créer un nouveau rapport</button>
-  </div>
-</div>
+ 
 </body>
 </html>
+
 
 
 
