@@ -2686,8 +2686,9 @@ async function chargerActes(patientId) {
   container.innerHTML = "<p>⏳ Chargement des actes...</p>";
 
   try {
-    // Récupérer le dernier séjour hospitalisation
-    const hospiSnap = await db.collection("patients")
+    // 🔹 Récupère la dernière hospitalisation
+    const hospiSnap = await db
+      .collection("patients")
       .doc(patientId)
       .collection("hospitalisations")
       .orderBy("dateAdmission", "desc")
@@ -2695,15 +2696,16 @@ async function chargerActes(patientId) {
       .get();
 
     if (hospiSnap.empty) {
-      container.innerHTML = "<p>Aucune hospitalisation trouvée.</p>";
+      container.innerHTML = "<p>Aucune hospitalisation trouvée pour ce patient.</p>";
       return;
     }
 
     const hospiDoc = hospiSnap.docs[0];
     const hospiId = hospiDoc.id;
 
-    // Charger les actes dans la sous-collection
-    const actesSnap = await db.collection("patients")
+    // 🔹 Charge les actes depuis la sous-collection
+    const actesSnap = await db
+      .collection("patients")
       .doc(patientId)
       .collection("hospitalisations")
       .doc(hospiId)
@@ -2716,6 +2718,7 @@ async function chargerActes(patientId) {
       return;
     }
 
+    // 🔹 Affichage des actes
     container.innerHTML = "";
     actesSnap.forEach(doc => {
       const acte = doc.data();
@@ -2737,7 +2740,6 @@ async function chargerActes(patientId) {
     container.innerHTML = "<p style='color:red;'>⚠️ Erreur lors du chargement des actes</p>";
   }
 }
-
 
 
 
@@ -2983,6 +2985,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
