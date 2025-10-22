@@ -1,43 +1,42 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html>
 <head>
   <meta charset="UTF-8">
-  <title>Nettoyage PDF</title>
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-    import { getFirestore, collection, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
-
+  <title>Nettoyage PDFs</title>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+  <h2>Nettoyage des PDF expirés...</h2>
+  <script>
     const firebaseConfig = {
-      apiKey: "...",
-      authDomain: "...",
-      projectId: "urgences-a8ed4",
+      apiKey: "AIzaSyBKp5-7NNy0Gyl0tNbDgD-BxucYdg8ArWo",
+      authDomain: "urgences-a8ed4.firebaseapp.com",
+      projectId: "urgences-a8ed4"
     };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+    async function nettoyerPDFs() {
+      const now = new Date();
+      const uneSemaine = 7 * 24 * 60 * 60 * 1000;
 
-    async function cleanupPDFs() {
-      const now = Date.now();
-      const sevenDays = 7 * 24 * 60 * 60 * 1000;
-
-      const snapshot = await getDocs(collection(db, "pdfs"));
-      let deleted = 0;
-
-      for (const docSnap of snapshot.docs) {
-        const data = docSnap.data();
-        if (data.createdAt && now - data.createdAt > sevenDays) {
-          await deleteDoc(doc(db, "pdfs", docSnap.id));
-          deleted++;
+      const snapshot = await db.collection("liens_pdfs").get();
+      let count = 0;
+      for (const doc of snapshot.docs) {
+        const data = doc.data();
+        if (data.dateCreation?.toDate) {
+          const age = now - data.dateCreation.toDate();
+          if (age > uneSemaine) {
+            await doc.ref.delete();
+            count++;
+          }
         }
       }
-
-      document.body.innerHTML = `<h2>🧹 ${deleted} PDF supprimés (anciens de plus de 7 jours)</h2>`;
+      document.body.innerHTML += `<p>✅ ${count} lien(s) supprimé(s).</p>`;
     }
 
-    cleanupPDFs();
+    nettoyerPDFs();
   </script>
-</head>
-<body style="font-family: sans-serif; text-align: center; margin-top: 40px;">
-  <h2>Nettoyage en cours...</h2>
 </body>
 </html>
