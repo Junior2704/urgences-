@@ -2681,87 +2681,75 @@ document.getElementById("closeRawData").addEventListener("click", () => {
   document.getElementById("modalRawData").style.display = "none";
 });
 
-async function chargerActes(patientId) {
-  const container = document.getElementById("actesListe");
-  container.innerHTML = "<p>⏳ Chargement des actes...</p>";
-
+async function chargerActes() {
   try {
-    // 🔹 Récupère la dernière hospitalisation
-    const hospiSnap = await db
-      .collection("patients")
-      .doc(patientId)
-      .collection("hospitalisations")
-      .orderBy("dateAdmission", "desc")
-      .limit(1)
-      .get();
+    const snap = await patientRef.get();
+    if (!snap.exists) return;
 
-    if (hospiSnap.empty) {
-      container.innerHTML = "<p>Aucune hospitalisation trouvée pour ce patient.</p>";
+    const data = snap.data();
+    const hosp = data.hospitalisations?.[data.hospitalisationIndex];
+
+    // Si aucun acte trouvé
+    if (!hosp || !hosp.actes) {
+      document.getElementById("actesListe").innerHTML = "<i>Aucun acte enregistré.</i>";
       return;
     }
 
-    const hospiDoc = hospiSnap.docs[0];
-    const hospiId = hospiDoc.id;
+    // Construire l'affichage HTML
+    const liste = hosp.actes.map(acte => `
+      <div class="prescription-item" style="margin-bottom:8px; padding:10px; border-radius:8px; background:#f5faff;">
+        <p><b>💉 Type :</b> ${acte.type || "N/A"}</p>
+        <p><b>👨‍⚕️ Réalisé par :</b> ${acte.realisateur || "?"}</p>
+        <p><b>📅 Date :</b> ${acte.date || "?"}</p>
+        ${acte.remarque ? `<p><b>💬 Remarque :</b> ${acte.remarque}</p>` : ""}
+      </div>
+	  <button class="btn-delete" onclick="supprimerActe(${i})">🗑</button>
+    `).join("");
 
-    // 🔹 Charge les actes depuis la sous-collection
-    const actesSnap = await db
-      .collection("patients")
-      .doc(patientId)
-      .collection("hospitalisations")
-      .doc(hospiId)
-      .collection("actes")
-      .orderBy("date", "desc")
-      .get();
-
-    if (actesSnap.empty) {
-      container.innerHTML = "<p>Aucun acte enregistré pour ce séjour.</p>";
-      return;
-    }
-
-    // 🔹 Affichage des actes
-    container.innerHTML = "";
-    actesSnap.forEach(doc => {
-      const acte = doc.data();
-      const div = document.createElement("div");
-      div.className = "prescription-item";
-      div.innerHTML = `
-        <div>
-          <strong>${acte.type || "Acte inconnu"}</strong><br>
-          👨‍⚕️ ${acte.realisateur || "–"}<br>
-          📅 ${acte.date || "–"}<br>
-          💬 ${acte.remarque || ""}
-        </div>
-      `;
-      container.appendChild(div);
-    });
-
-  } catch (err) {
-    console.error("Erreur chargement actes :", err);
-    container.innerHTML = "<p style='color:red;'>⚠️ Erreur lors du chargement des actes</p>";
+    document.getElementById("actesListe").innerHTML = liste || "<i>Aucun acte enregistré.</i>";
+  } catch (e) {
+    console.error("Erreur lors du chargement des actes :", e);
+    document.getElementById("actesListe").innerHTML = "<i>Erreur de chargement.</i>";
   }
 }
 
 
-
-
-// fonction utilitaire pour supprimer un acte
-async function supprimerActe(patientId, hospiId, acteId) {
-  if (!confirm("Supprimer cet acte ?")) return;
+async function supprimerActe(indexActe) {
   try {
-    await db.collection("patients")
-      .doc(patientId)
-      .collection("hospitalisations")
-      .doc(hospiId)
-      .collection("actes")
-      .doc(acteId)
-      .delete();
+    if (!confirm("Supprimer cet acte ?")) return;
+
+    // Charger le document patient
+    const snap = await patientRef.get();
+    if (!snap.exists) {
+      afficherBulle("❌ Patient introuvable", "alerte");
+      return;
+    }
+
+    const data = snap.data();
+    const hospIndex = data.hospitalisationIndex ?? 0;
+    const hospitalisations = data.hospitalisations || [];
+    const hosp = hospitalisations[hospIndex];
+
+    if (!hosp || !hosp.actes) {
+      afficherBulle("❌ Aucun acte à supprimer", "alerte");
+      return;
+    }
+
+    // Supprimer l'acte à l'indice donné
+    hosp.actes.splice(indexActe, 1);
+
+    // Mettre à jour Firestore
+    hospitalisations[hospIndex] = hosp;
+    await patientRef.update({ hospitalisations });
+
     afficherBulle("🗑️ Acte supprimé", "administratif");
-    await chargerActes(patientId); // 🔄 refresh
+    await chargerActes(); // 🔄 Rafraîchir la liste à l’écran
   } catch (err) {
     console.error("Erreur suppression acte :", err);
     afficherBulle("❌ Erreur lors de la suppression", "alerte");
   }
 }
+
 async function chargerRealisateurs() {
   const select = document.getElementById("selectRealisateur");
   select.innerHTML = "<option>⏳ Chargement...</option>";
@@ -2985,6 +2973,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
