@@ -498,40 +498,41 @@ window.pdfBase64 = pdfBase64; // stocké globalement pour EmailJS
 
 }
 document.getElementById("btnEnvoyerMail").addEventListener("click", async function() {
-	await genererPDF();
-      // Récupération des infos du patient (exemple depuis variables JS)
-      const patient_nom = window.patientData.nom || "";      
-      const patient_prenom = window.patientData.prenom || ""; 
-      const to_email = window.patientData.email || "patient@example.com";
+    await genererPDF();
 
-      // Exemple de PDF encodé en base64 (à remplacer par ton PDF)
-      const attachmentBase64 = window.pdfBase64 || ""; // tu dois générer ton PDF en base64
-if (!to_email) {
-  alert("Le patient n’a pas d’adresse e-mail enregistrée.");
-  return;
-}
+    const patient_nom = window.patientData.nom || "";      
+    const patient_prenom = window.patientData.prenom || ""; 
+    const to_email = window.patientData.email || "";
 
-      // Envoi du mail
-      emailjs.send(
-          "service_o07vuso",       // Service ID
-          "template_juigshl",      // Template ID
-          {
-              to_email: to_email,
-              subject: "Votre compte-rendu d'hospitalisation",
-              patient_nom: patient_nom,
-              patient_prenom: patient_prenom,
-              message: "Bonjour, votre compte-rendu est disponible.",
-              attachment: attachmentBase64
-          }
-      )
-      .then(function(response) {
-          alert("E-mail envoyé avec succès !");
-          console.log("SUCCESS!", response.status, response.text);
-      }, function(error) {
-          alert("Erreur lors de l'envoi du mail : " + JSON.stringify(error));
-          console.log("FAILED...", error);
-      });
-  });
+    if (!to_email) {
+        alert("❌ Aucune adresse e-mail n’est enregistrée pour ce patient.");
+        console.error("EmailJS: aucun destinataire");
+        return;
+    }
+
+    const attachmentBase64 = window.pdfBase64 || "";
+
+    emailjs.send(
+        "service_o07vuso",
+        "template_juigshl",
+        {
+            to_email: to_email,
+            subject: "Votre compte-rendu d'hospitalisation",
+            patient_nom: patient_nom,
+            patient_prenom: patient_prenom,
+            message: "Bonjour, votre compte-rendu est disponible.",
+            attachment: attachmentBase64
+        }
+    )
+    .then(function(response) {
+        alert("📨 E-mail envoyé avec succès !");
+        console.log("SUCCESS!", response.status, response.text);
+    }, function(error) {
+        alert("⚠️ Erreur lors de l'envoi du mail : " + error.text);
+        console.log("FAILED...", error);
+    });
+});
+
 	
 // Gestion du bouton valider
 document.getElementById("validerBtn").addEventListener("click", async () => {
@@ -662,6 +663,7 @@ let medecinNom = "";
  
 </body>
 </html>
+
 
 
 
