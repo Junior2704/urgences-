@@ -16791,7 +16791,12 @@ function hideLoadingModal() {
     console.log("✅ Lien Firestore :", lienPdf);
 
     // 5️⃣ Envoi de l’e-mail via EmailJS
-    const to_email = document.getElementById("patient-mail") || "";
+   const to_email = document.getElementById("patient-mail")?.value.trim() || "";
+if (!to_email || !to_email.includes("@")) {
+  hideLoadingModal();
+  afficherBulle("⚠️ Adresse e-mail invalide ou absente. Impossible d’envoyer le message.", "alerte");
+  return;
+}
     const patient_nom = window.patientData?.nom || "";
     const patient_prenom = window.patientData?.prenom || "";
 
