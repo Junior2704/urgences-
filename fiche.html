@@ -1481,6 +1481,11 @@ async function chargerPatient(patientId) {
 
       // 🔹 Évolution aux urgences
       document.getElementById("evolutionTexte").value = hospi.evolution || "";
+
+		if (hospi.sortie) {
+  afficherSortieListe(hospi.sortie);
+}
+
 	}
    const hospiSnap = await db.collection("patients")
       .doc(patientId)
@@ -2973,6 +2978,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
