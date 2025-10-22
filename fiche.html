@@ -1499,6 +1499,7 @@ async function chargerPatient(patientId) {
     // Services et Réalisateurs
     chargerServices();
     chargerRealisateurs();
+	 
 
   } catch (err) {
     console.error("Erreur chargement patient :", err);
@@ -2231,50 +2232,12 @@ async function chargerRealisateurs() {
 }
 
 
-async function afficherActesRealises(filtreType = "tous") {
-  const doc = await patientRef.get();
-  const data = doc.data();
-	console.log("Données patient :", data);
-console.log("hospitalisationIndex :", data.hospitalisationIndex);
-console.log("hospitalisations :", data.hospitalisations);
-  const index = data.hospitalisationIndex ?? 0;
-	console.log("Index hospitalisation :", index);
-  const actes = data.hospitalisations?.[index]?.actes_realises || [];
-  tousLesActesRealises = actes;
-
-  const container = document.getElementById("listeActesRealises");
-  const liste = filtreType === "tous" ? actes : actes.filter(a => a.type === filtreType);
-
-  if (liste.length === 0) {
-    container.innerHTML = `
-      <p style="color:#999; font-style:italic;">
-        Aucun acte enregistré pour ce patient.
-      </p>`;
-    return;
-  }
-
-  container.innerHTML = "";
-
-  liste.forEach((a, i) => {
-    const div = document.createElement("div");
-    div.style.marginBottom = "10px";
-    div.innerHTML = `
-      <strong>${a.date}</strong> <br>
-	  <span style="color:#0078d4">💉Acte : ${a.type}</span><br>
-      👨‍⚕️ Réalisé par : <strong>${a.realisateur}</strong><br>
-      💬 Remarque : <em>${a.remarque || "–"}</em><br>
-      <button class="bouton-supprimer" onclick="supprimerActeRealise(${i})">🗑 Supprimer</button>
-      <hr/>
-    `;
-    container.appendChild(div);
-  });
-}
 
 function ajouterFiltreTypeActe() {
   const select = document.createElement("select");
   select.id = "filtreTypeActe";
   select.innerHTML = `<option value="tous">Tous les types</option>`;
-  document.getElementById("listeActesRealises").before(select);
+  document.getElementById("actesListe").before(select);
 
   const typesUniques = [...new Set(tousLesActesRealises.map(a => a.type))];
   typesUniques.forEach(type => {
@@ -2285,7 +2248,7 @@ function ajouterFiltreTypeActe() {
   });
 
   select.addEventListener("change", (e) => {
-    afficherActesRealises(e.target.value);
+    chargerActes(patientID);
   });
 }
 
@@ -3004,6 +2967,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
