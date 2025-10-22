@@ -414,8 +414,7 @@ function setRapportValide(val) {
   document.getElementById("validerBtn").style.display = val ? "none" : "inline-block";
 	envoyerMailBtn.style.display = val ? "inline-block" : "none";
 }
-
-async function genererPDF() {
+async function creerPDF(telecharger = false) {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
   const marginLeft = 15;
@@ -423,81 +422,90 @@ async function genererPDF() {
   const lineHeight = 7;
   const pageHeight = doc.internal.pageSize.height;
 
-  const logoUrl = "https://junior2704.github.io/urgences-/logo.jpg" 
+  const logoUrl = "https://junior2704.github.io/urgences-/logo.jpg";
   const img = new Image();
   img.src = logoUrl;
-  img.crossOrigin = "anonymous";
 
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     img.onload = () => {
-      doc.addImage(img, 'PNG', marginLeft, y, 40, 40);
-      y += 30;
+      try {
+        // 🔹 Logo
+        doc.addImage(img, "JPEG", marginLeft, y, 40, 40);
+        y += 30;
 
-      // Titre
-      doc.setFontSize(18);
-      doc.setTextColor("#1a73e8");
-      doc.text("Compte-rendu passage aux Urgences", marginLeft + 50, y);
-      y += 15;
-
-      // Ligne séparation
-      doc.setDrawColor(26, 115, 232);
-      doc.setLineWidth(0.8);
-      doc.line(marginLeft, y, 195, y);
-      y += 10;
-
-      // Fonction utilitaire pour ajouter un bloc texte
-      function addBlock(titre, contenu) {
-        doc.setFontSize(14);
+        // 🔹 Titre
+        doc.setFontSize(18);
         doc.setTextColor("#1a73e8");
-        doc.text(titre, marginLeft, y);
-        y += lineHeight;
+        doc.text("Compte-rendu de passage aux Urgences", marginLeft + 50, y);
+        y += 15;
 
-        doc.setFontSize(11);
-        doc.setTextColor("#000000");
-
-        const splitText = doc.splitTextToSize(contenu || "—", 180);
-        for (let i = 0; i < splitText.length; i++) {
-          if (y > pageHeight - 20) {
-            doc.addPage();
-            y = 15;
-          }
-          doc.text(splitText[i], marginLeft, y);
-          y += lineHeight;
-        }
-
-        y += lineHeight;
-        doc.setDrawColor(200, 200, 200);
-        doc.setLineWidth(0.6);
+        // 🔹 Ligne bleue
+        doc.setDrawColor(26, 115, 232);
+        doc.setLineWidth(0.8);
         doc.line(marginLeft, y, 195, y);
         y += 10;
+
+        // 🔹 Fonction utilitaire
+        function addBlock(titre, contenu) {
+          doc.setFontSize(14);
+          doc.setTextColor("#1a73e8");
+          doc.text(titre, marginLeft, y);
+          y += lineHeight;
+
+          doc.setFontSize(11);
+          doc.setTextColor("#000000");
+
+          const splitText = doc.splitTextToSize(contenu || "—", 180);
+          for (let i = 0; i < splitText.length; i++) {
+            if (y > pageHeight - 20) {
+              doc.addPage();
+              y = 15;
+            }
+            doc.text(splitText[i], marginLeft, y);
+            y += lineHeight;
+          }
+
+          y += lineHeight;
+          doc.setDrawColor(200, 200, 200);
+          doc.setLineWidth(0.6);
+          doc.line(marginLeft, y, 195, y);
+          y += 10;
+        }
+
+        // 🔹 Ajouter les blocs depuis le formulaire
+        addBlock("Identité du patient", document.getElementById("identite")?.value?.trim());
+        addBlock("Hospitalisation", document.getElementById("hospitalisation")?.value?.trim());
+        addBlock("Dossier Médical", document.getElementById("medical")?.value?.trim());
+        addBlock("Évolution aux urgences", document.getElementById("evolution")?.value?.trim());
+        addBlock("Constantes Vitales", document.getElementById("constantes")?.value?.trim());
+        addBlock("Examens Complémentaires", document.getElementById("examens")?.value?.trim());
+        addBlock("Actes réalisés", document.getElementById("actes")?.value?.trim());
+        addBlock("Sortie", document.getElementById("sortie")?.value?.trim());
+
+        // 🔹 Signature
+        const signatureText = `${window.medecinNom || "Dr Non renseigné"}\n${window.medecinSpecialite || ""}`;
+        const pageWidth = doc.internal.pageSize.width;
+        const splitSignature = doc.splitTextToSize(signatureText, 60);
+        doc.text(splitSignature, pageWidth - 75, pageHeight - 30);
+
+        // 🔹 Génération du PDF
+        const pdfData = doc.output("datauristring");
+        window.pdfBase64 = pdfData.split(",")[1];
+        console.log("✅ PDF généré, taille base64:", window.pdfBase64.length);
+
+        // 📥 Si téléchargement demandé
+        if (telecharger) {
+          doc.save("rapport_hospitalisation.pdf");
+          console.log("📄 Téléchargement lancé");
+        }
+
+        resolve(window.pdfBase64);
+      } catch (error) {
+        reject(error);
       }
-
-      // Ajouter tous les blocs
-      addBlock("Identité du patient", document.getElementById("identite").value.trim());
-      addBlock("Hospitalisation", document.getElementById("hospitalisation").value.trim());
-      addBlock("Dossier Médical", document.getElementById("medical").value.trim());
-      addBlock("Évolution aux urgences", document.getElementById("evolution").value.trim());
-      addBlock("Constantes Vitales", document.getElementById("constantes").value.trim());
-      addBlock("Examens Complémentaires", document.getElementById("examens").value.trim());
-      addBlock("Actes réalisés", document.getElementById("actes").value.trim());
-      addBlock("Sortie", document.getElementById("sortie").value.trim());
-
-      // Signature
-      const signatureText = `${medecinNom || "Dr Non renseigné"}\n${medecinSpecialite || ""}`;
-      const pageWidth = doc.internal.pageSize.width;
-      const splitSignature = doc.splitTextToSize(signatureText, 60);
-      doc.text(splitSignature, pageWidth - 75, pageHeight - 30);
-
-      // ✅ Maintenant seulement : export du PDF
-      const pdfData = doc.output("datauristring");
-      window.pdfBase64 = pdfData.split(",")[1];
-
-      // Optionnel : téléchargement local
-      // doc.save("rapport_hospitalisation.pdf");
-
-      console.log("✅ PDF généré, taille base64:", window.pdfBase64.length);
-      resolve(window.pdfBase64);
     };
+
+    img.onerror = () => reject(new Error("Erreur de chargement du logo."));
   });
 }
 
@@ -533,7 +541,7 @@ function base64ToBlob(base64, type = "application/pdf") {
 document.getElementById("btnEnvoyerMail").addEventListener("click", async function () {
   try {
     console.log("📄 Génération du PDF...");
-    const pdfBase64 = await genererPDF();
+    const pdfBase64 = await ();
     console.log("PDF généré, taille base64:", pdfBase64.length);
 
     // 1️⃣ Création d’un ID unique
@@ -587,7 +595,7 @@ document.getElementById("validerBtn").addEventListener("click", async () => {
   }
 });
 
-document.getElementById("telechargerBtn").addEventListener("click", genererPDF);
+document.getElementById("telechargerBtn").addEventListener("click", creerPDF(True));
 	document.getElementById("imprimerBtn").addEventListener("click", () => window.print());
 
 // Au chargement
@@ -707,6 +715,7 @@ let medecinNom = "";
 
 </body>
 </html>
+
 
 
 
