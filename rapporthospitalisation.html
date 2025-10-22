@@ -499,7 +499,7 @@ window.pdfBase64 = pdfBase64; // stocké globalement pour EmailJS
 }
 document.getElementById("btnEnvoyerMail").addEventListener("click", async function() {
     await genererPDF();
-
+const pdfData = "data:application/pdf;base64," + window.pdfBase64;
     const patient_nom = window.patientData.nom || "";      
     const patient_prenom = window.patientData.prenom || ""; 
     const to_email = window.patientData.email || "";
@@ -521,11 +521,12 @@ document.getElementById("btnEnvoyerMail").addEventListener("click", async functi
             patient_nom: patient_nom,
             patient_prenom: patient_prenom,
             message: "Bonjour, votre compte-rendu est disponible.",
-            attachment: attachmentBase64
+            
         }
+		{ attachments: [pdfData] }
     )
     .then(function(response) {
-        alert("📨 E-mail envoyé avec succès !");
+        afficherBulle("📨 E-mail envoyé avec succès !",adminsitratif);
         console.log("SUCCESS!", response.status, response.text);
     }, function(error) {
         alert("⚠️ Erreur lors de l'envoi du mail : " + error.text);
@@ -663,6 +664,7 @@ let medecinNom = "";
  
 </body>
 </html>
+
 
 
 
