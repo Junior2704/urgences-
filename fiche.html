@@ -2686,24 +2686,39 @@ async function chargerActes(patientId) {
   container.innerHTML = "<p>⏳ Chargement des actes...</p>";
 
   try {
-    const doc = await db.collection("patients").doc(patientId).get();
-    if (!doc.exists) {
-      container.innerHTML = "<p style='color:red;'>❌ Patient introuvable.</p>";
+    // Récupérer le dernier séjour hospitalisation
+    const hospiSnap = await db.collection("patients")
+      .doc(patientId)
+      .collection("hospitalisations")
+      .orderBy("dateAdmission", "desc")
+      .limit(1)
+      .get();
+
+    if (hospiSnap.empty) {
+      container.innerHTML = "<p>Aucune hospitalisation trouvée.</p>";
       return;
     }
 
-    const data = doc.data();
-    const index = data.hospitalisationIndex ?? 0; // hospitalisation active
-    const hospi = data.hospitalisations?.[index];
+    const hospiDoc = hospiSnap.docs[0];
+    const hospiId = hospiDoc.id;
 
-    if (!hospi || !hospi.actes || hospi.actes.length === 0) {
+    // Charger les actes dans la sous-collection
+    const actesSnap = await db.collection("patients")
+      .doc(patientId)
+      .collection("hospitalisations")
+      .doc(hospiId)
+      .collection("actes")
+      .orderBy("date", "desc")
+      .get();
+
+    if (actesSnap.empty) {
       container.innerHTML = "<p>Aucun acte enregistré pour ce séjour.</p>";
       return;
     }
 
-    // --- Affichage des actes ---
     container.innerHTML = "";
-    hospi.actes.forEach((acte) => {
+    actesSnap.forEach(doc => {
+      const acte = doc.data();
       const div = document.createElement("div");
       div.className = "prescription-item";
       div.innerHTML = `
@@ -2726,13 +2741,14 @@ async function chargerActes(patientId) {
 
 
 
+
 // fonction utilitaire pour supprimer un acte
 async function supprimerActe(patientId, hospiId, acteId) {
   if (!confirm("Supprimer cet acte ?")) return;
   try {
     await db.collection("patients")
       .doc(patientId)
-      .collection("hospitalisation")
+      .collection("hospitalisations")
       .doc(hospiId)
       .collection("actes")
       .doc(acteId)
@@ -2967,6 +2983,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
