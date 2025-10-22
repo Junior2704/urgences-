@@ -16286,7 +16286,10 @@ function filterMedicaments() {
   const filtres = medicaments.filter(m => m.toLowerCase().includes(search));
   afficherMedicaments(filtres);
 }
-if (!window.prescriptionItems) {
+
+function addMedicamentToPrescription(med) {
+  // Si le tableau global n'existe pas, on le crée
+  if (!window.prescriptionItems) {
     window.prescriptionItems = [];
   }
 
@@ -16311,6 +16314,7 @@ if (!window.prescriptionItems) {
   // Mettre à jour infos patient dans l'ordonnance
   updatePatientDisplay();
 }
+
 
 		// Mise à jour affichage ordonnance avec édition possible
 		function updatePrescriptionDisplay() {
