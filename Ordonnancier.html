@@ -383,6 +383,10 @@
 			</select>
 		</div>
 		<div class="form-group">
+			<label for="patient-mail">Adresse email</label>
+			<input type="text" id="patient-mail" placeholder="Facultatif" readonly />
+		</div>
+		<div class="form-group">
 			<form class="vidal-search" action="https://www.vidal.fr/recherche.html" method="get" target="_blank">
   <input type="text" name="query" placeholder="Rechercher sur le Vidal">
   <button type="submit">Rechercher</button>
@@ -16212,33 +16216,7 @@
 			</div>
 		</div>
 	</div>
-<!-- Modale d'envoi email -->
-<div id="emailModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:999;">
-  <div style="background:white; padding:20px; width:400px; margin:10% auto; border-radius:10px;">
-    <h2>Envoyer l'ordonnance par email</h2>
-    <label for="emailSelect">Choisissez l'adresse email :</label>
-    <select id="emailSelect" style="width:100%; margin-bottom:10px;"></select>
 
-    <label for="emailSubject">Sujet :</label>
-    <input id="emailSubject" value="Ordonnance" style="width:100%; margin-bottom:10px;" />
-
-    <label for="emailBody">Message :</label>
-    <textarea id="emailBody" rows="5" style="width:100%; margin-bottom:10px;">
-Bonjour,
-
-Veuillez trouver ci-joint votre ordonnance;
-N'hésitez-pas à répondre à ce mail si vous avez une question.
-Bonne continuation,
-Cordialement,
-
-
-    </textarea>
-
-
-    <button onclick="sendEmailWithPDF()">Envoyer</button>
-    <button onclick="closeEmailModal()">Annuler</button>
-  </div>
-</div>
 	
 
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -16278,6 +16256,7 @@ const envoyerMailBtn = document.getElementById("btnEnvoyerMail");
         document.getElementById("patient-first-name").value = data.prenom || "";
         document.getElementById("patient-last-name").value = data.nom || "";
         document.getElementById("patient-birthdate").value = data.dateNaissance || "";
+		document.getElementById("patient-mail").value = data.mail || "";
         document.getElementById("sexe").value = data.sexe || "M";
         const age = calculerAge(data.dateNaissance);
         document.getElementById("patient-age").value = age;
@@ -16812,7 +16791,7 @@ function hideLoadingModal() {
     console.log("✅ Lien Firestore :", lienPdf);
 
     // 5️⃣ Envoi de l’e-mail via EmailJS
-    const to_email = window.patientData?.email || "";
+    const to_email = document.getElementById("patient-mail") || "";
     const patient_nom = window.patientData?.nom || "";
     const patient_prenom = window.patientData?.prenom || "";
 
