@@ -6,6 +6,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -137,6 +138,10 @@
     <button type="button" id="validerBtn">✅ Valider</button>
     <button type="button" id="telechargerBtn">📥 Télécharger PDF</button>
     <button type="button" id="imprimerBtn">🖨️ Imprimer</button>
+	  <button id="btnEnvoyerMail" style="padding:10px 20px; background-color:#004AAD; color:white; border:none; border-radius:5px; cursor:pointer;">
+  Envoyer le compte-rendu par e-mail
+</button>
+
   </div>
 </form>
 
@@ -173,7 +178,18 @@ function calculerAge(dateStr) {
   const ageDt = new Date(diffMs);
   return Math.abs(ageDt.getUTCFullYear() - 1970);
 }
-
+  const envoyerMailBtn = document.createElement("button");
+  envoyerMailBtn.textContent = "📧 Envoyer le rapport par e-mail";
+  envoyerMailBtn.style.backgroundColor = "#ff9800";
+  envoyerMailBtn.style.color = "white";
+  envoyerMailBtn.style.display = "none";
+  envoyerMailBtn.style.borderRadius = "6px";
+  envoyerMailBtn.style.padding = "12px 24px";
+  envoyerMailBtn.style.fontWeight = "600";
+  document.querySelector(".button-group").appendChild(envoyerMailBtn);
+	  let pdfBlob = null;
+  let patientEmail = "";
+	
 // Adaptation hauteur textarea au contenu
 function autoResizeTextarea(el) {
   el.style.height = "auto";
@@ -190,6 +206,10 @@ async function chargerDepuisFirestore() {
   const data = doc.data();
   const index = data.hospitalisationIndex ?? 0;
   const hospi = data.hospitalisations?.[index] || {};
+emailjs.init("CZapZCcxYfJ8-acLS"); // à remplacer par ton ID EmailJS
+
+
+patientEmail = data.email || "";
 
   const sexe = data.sexe || '';
   const nom = data.nom || '';
@@ -304,6 +324,7 @@ function setRapportValide(val) {
   document.getElementById("telechargerBtn").style.display = val ? "inline-block" : "none";
   document.getElementById("imprimerBtn").style.display = val ? "inline-block" : "none";
   document.getElementById("validerBtn").style.display = val ? "none" : "inline-block";
+	envoyerMailBtn.style.display = val ? "inline-block" : "none";
 }
 
 // Génération PDF avec titres et paragraphes stylés + logo
@@ -386,8 +407,40 @@ const signatureText = `${medecinNom}\n${medecinSpecialite}`;
     // Sauvegarder PDF
     doc.save("rapport d'hospitalisation.pdf");
   };
+	pdfBlob = doc.output("blob");
+    return pdfBlob;
 }
+document.getElementById("btnEnvoyerMail").addEventListener("click", function() {
+      // Récupération des infos du patient (exemple depuis variables JS)
+      const patient_nom = window.patientData.nom || "";      
+      const patient_prenom = window.patientData.prenom || ""; 
+      const to_email = window.patientData.email || "patient@example.com";
 
+      // Exemple de PDF encodé en base64 (à remplacer par ton PDF)
+      const attachmentBase64 = window.pdfBase64 || ""; // tu dois générer ton PDF en base64
+
+      // Envoi du mail
+      emailjs.send(
+          "service_o07vuso",       // Service ID
+          "template_juigshl",      // Template ID
+          {
+              to_email: to_email,
+              subject: "Votre compte-rendu d'hospitalisation",
+              patient_nom: patient_nom,
+              patient_prenom: patient_prenom,
+              message: "Bonjour, votre compte-rendu est disponible.",
+              attachment: attachmentBase64
+          }
+      )
+      .then(function(response) {
+          alert("E-mail envoyé avec succès !");
+          console.log("SUCCESS!", response.status, response.text);
+      }, function(error) {
+          alert("Erreur lors de l'envoi du mail : " + JSON.stringify(error));
+          console.log("FAILED...", error);
+      });
+  });
+	
 // Gestion du bouton valider
 document.getElementById("validerBtn").addEventListener("click", async () => {
   if(confirm("Confirmez-vous la validation et figer ce rapport ?")){
@@ -512,6 +565,35 @@ let medecinNom = "";
     }
   }
 });
+	envoyerMailBtn.addEventListener("click", async () => {
+    if (!patientEmail) {
+      afficherBulle("❌Aucune adresse e-mail trouvée pour ce patient", "alerte");
+      return;
+    }
+
+    await genererPDF();
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      const base64PDF = reader.result.split(",")[1];
+
+      const templateParams = {
+        to_email: patientEmail,
+        subject: "Votre rapport d'hospitalisation",
+        message: "Bonjour, veuillez trouver ci-joint votre rapport d'hospitalisation.",
+        attachment: base64PDF
+      };
+
+      emailjs.send("service_o07vuso", "template_juigshl", templateParams)
+        .then(() => {
+          afficherBulle("📨 E-mail envoyé au patient avec succès", "administratif");
+        })
+        .catch((err) => {
+          console.error(err);
+          afficherBulle("⚠️ Erreur lors de l'envoi de l'e-mail", "alerte");
+        });
+    };
+    reader.readAsDataURL(pdfBlob);
+  });
 </script>
   <div id="choixRapportModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.4); z-index:10000; align-items:center; justify-content:center;">
   <div style="background:white; padding:30px; border-radius:10px; width:90%; max-width:500px; box-shadow:0 5px 15px rgba(0,0,0,0.3); text-align:center;">
@@ -523,4 +605,5 @@ let medecinNom = "";
 </div>
 </body>
 </html>
+
 
