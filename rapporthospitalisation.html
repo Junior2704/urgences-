@@ -203,6 +203,37 @@
     <button id="btnFermerModal" class="btnModal fermer">❌ Fermer</button>
   </div>
 </div>
+<!-- 🔷 Modale de chargement -->
+<div id="loadingModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 backdrop-blur-sm hidden z-50">
+  <div class="bg-white rounded-2xl shadow-lg p-8 text-center w-80 animate-fade-in">
+    <img src="https://junior2704.github.io/urgences-/logo.jpg" alt="Logo hôpital" class="h-16 mx-auto mb-4">
+    <div class="loader mx-auto mb-4"></div>
+    <p class="text-gray-700 font-medium">Envoi du compte-rendu en cours...</p>
+  </div>
+</div>
+
+<!-- 🔹 Animation du loader -->
+<style>
+.loader {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #1a73e8;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+@keyframes fade-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+</style>
 
 <form id="formRapport">
   <label for="identite">Identité</label>
@@ -392,6 +423,13 @@ async function enregistrerDansFirestore() {
   };
   await patientRef.update({ hospitalisations });
 }
+function showLoadingModal() {
+  document.getElementById("loadingModal").classList.remove("hidden");
+}
+
+function hideLoadingModal() {
+  document.getElementById("loadingModal").classList.add("hidden");
+}
 
 // Rendre les champs readonly et adapter style
 function setRapportValide(val) {
@@ -540,6 +578,7 @@ function base64ToBlob(base64, type = "application/pdf") {
 
 document.getElementById("btnEnvoyerMail").addEventListener("click", async function () {
   try {
+	   showLoadingModal();
     console.log("📄 Génération du PDF...");
     const pdfBase64 = await creerPDF(false);
     console.log("PDF généré, taille base64:", pdfBase64.length);
@@ -575,9 +614,10 @@ document.getElementById("btnEnvoyerMail").addEventListener("click", async functi
       message:
         "Bonjour, votre compte-rendu d’hospitalisation est disponible via le lien ci-dessous (valide 7 jours).",
     });
-
-    alert("📨 E-mail envoyé avec le lien vers le rapport !");
+hideLoadingModal();
+    afficherBulle("📨 E-mail envoyé avec le lien vers le rapport !","administratif");
   } catch (err) {
+	  hideLoadingModal();
     console.error("❌ Erreur d'envoi :", err);
     alert("Erreur : " + err.message);
   }
@@ -716,6 +756,7 @@ let medecinNom = "";
 
 </body>
 </html>
+
 
 
 
