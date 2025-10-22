@@ -766,7 +766,42 @@ header {
   color: #333;
 }
 
+  .vidal-search {
+    display: flex;
+    justify-content: center; /* centre horizontalement sur la page */
+    align-items: center;
+    margin: 20px 0;
+    font-family: Arial, sans-serif;
+  }
 
+  /* Input de recherche */
+  .vidal-search input[type="text"] {
+    padding: 10px;
+    font-size: 16px;
+    border: 2px solid #d32f2f; /* rouge Vidal */
+    border-right: none; /* pour que le bouton soit collé */
+    border-radius: 4px 0 0 4px; /* coins arrondis côté gauche */
+    outline: none;
+    width: 300px;
+  }
+
+  /* Bouton de recherche */
+  .vidal-search button {
+    padding: 10px 20px;
+    background-color: #d32f2f; /* rouge Vidal */
+    color: white;
+    font-size: 16px;
+    border: 2px solid #d32f2f;
+    border-radius: 0 4px 4px 0; /* coins arrondis côté droit */
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+
+  /* Effet au survol */
+  .vidal-search button:hover {
+    background-color: #b71c1c; /* rouge plus foncé au survol */
+    border-color: #b71c1c;
+  }
   </style>
 </head>
 <body>
@@ -1141,8 +1176,8 @@ header {
   <hr>
   <h4>📄 Documents</h4>
 	<br><br>
-<form action="https://www.vidal.fr/recherche/" method="get" target="_blank">
-  <input type="text" name="q" placeholder="Rechercher un médicament...">
+<form class="vidal-search" action="https://www.vidal.html/recherche/" method="get" target="_blank">
+  <input type="text" name="query" placeholder="Rechercher sur le Vidal">
   <button type="submit">Rechercher</button>
 </form>
 
@@ -2965,6 +3000,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
