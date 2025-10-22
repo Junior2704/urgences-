@@ -817,7 +817,7 @@ header {
 
 <header>
   <div class="left-header">
-    <h2>Fiche Patient</h2>
+ <h2 id="patientName">Fiche Patient</h2>
 	   <span id="currentTime"></span>
 		
   </div>
@@ -1388,9 +1388,12 @@ function updateTime() {
     const formatted = now.toLocaleString(); // date + heure locale
     document.getElementById('currentTime').textContent = formatted;
 }
-
+function updatePatientHeader() {
+    const age = calculerAge(dateNaissance);
+    document.getElementById('patientName').textContent = `${prenom} ${nom} (${age} ans)`;
+}
 // Mettre à jour immédiatement
-updateTime();
+
 
 // Puis toutes les secondes
 setInterval(updateTime, 1000);
@@ -2933,7 +2936,8 @@ document.addEventListener("DOMContentLoaded", () => {
     afficherBulle("❌ Aucun patientId fourni dans l’URL", "alerte");
   }
 });
-
+updateTime();
+	updatePatientHeader();
 // Ligne de test de fin
 console.log("Script terminé correctement ✅");
 </script>
@@ -3017,6 +3021,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
