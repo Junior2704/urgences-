@@ -57,6 +57,86 @@
       cursor: pointer;
       font-weight: 600;
     }
+	    .modal {
+    display: none; /* affichée dynamiquement par JS */
+    position: fixed;
+    z-index: 999;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.45);
+    justify-content: center;
+    align-items: center;
+  }
+
+  /* Boîte centrale */
+  .modal-content {
+    background: #f8f9fa;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    padding: 30px;
+    width: 90%;
+    max-width: 500px;
+    text-align: center;
+    animation: zoomIn 0.25s ease;
+  }
+
+  @keyframes zoomIn {
+    from { transform: scale(0.8); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+
+  .modal-content h2 {
+    margin-bottom: 10px;
+    color: #2c3e50;
+  }
+
+  .modal-content p {
+    color: #555;
+    font-size: 1rem;
+    margin-bottom: 20px;
+  }
+
+  .modal-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .btnModal {
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+
+  .btnModal.ouvrir {
+    background-color: #007bff;
+    color: white;
+  }
+
+  .btnModal.ouvrir:hover {
+    background-color: #0056b3;
+  }
+
+  .btnModal.ecraser {
+    background-color: #28a745;
+    color: white;
+  }
+
+  .btnModal.ecraser:hover {
+    background-color: #1e7e34;
+  }
+
+  .btnModal.fermer {
+    background-color: #6c757d;
+    color: white;
+    margin-top: 10px;
+  }
+
+  .btnModal.fermer:hover {
+    background-color: #5a6268;
+  }
     #validerBtn {
       background-color: #28a745;
       color: white;
@@ -108,7 +188,19 @@
 
 <h1>📋 Rapport d'hospitalisation</h1>
 
+<div id="choixRapportModal" class="modal">
+  <div class="modal-content">
+    <h2>Choix du rapport</h2>
+    <p>Souhaitez-vous ouvrir un rapport existant ou en créer un nouveau ?</p>
 
+    <div class="modal-buttons">
+      <button id="btnOuvrir" class="btnModal ouvrir">📂 Ouvrir un rapport existant</button>
+      <button id="btnEcraser" class="btnModal ecraser">📝 Créer un nouveau rapport</button>
+    </div>
+
+    <button id="btnFermerModal" class="btnModal fermer">❌ Fermer</button>
+  </div>
+</div>
 <form id="formRapport">
   <label for="identite">Identité</label>
   <textarea id="identite"></textarea>
@@ -138,7 +230,7 @@
     <button type="button" id="validerBtn">✅ Valider</button>
     <button type="button" id="telechargerBtn">📥 Télécharger PDF</button>
     <button type="button" id="imprimerBtn">🖨️ Imprimer</button>
-	  <button id="btnEnvoyerMail" style="padding:10px 20px; background-color:#004AAD; color:white; border:none; border-radius:5px; cursor:pointer;">
+	  <button type="button" id="btnEnvoyerMail" style="padding:10px 20px; background-color:#004AAD; color:white; border:none; border-radius:5px; cursor:pointer;">
   Envoyer le compte-rendu par e-mail
 </button>
 
@@ -160,16 +252,16 @@ const firebaseConfig = {
    apiKey: "AIzaSyBKp5-7NNy0Gyl0tNbDgD-BxucYdg8ArWo",
   authDomain: "urgences-a8ed4.firebaseapp.com",
   projectId: "urgences-a8ed4",
-  storageBucket: "urgences-a8ed4.firebasestorage.app",
+storageBucket: "urgences-a8ed4.appspot.com",
   messagingSenderId: "392921498200",
   appId: "1:392921498200:web:7ccce767332c67c697c02d",
   measurementId: "G-C74MK2KYDL"
 };
-
+emailjs.init("CZapZCcxYfJ8-acLS"); // à remplacer par ton ID EmailJS
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const patientRef = db.collection("patients").doc(patientId);
-
+const envoyerMailBtn = document.getElementById("btnEnvoyerMail");
 let rapportValide = true; // flag validation
 
 // Calcul âge simple
@@ -185,7 +277,7 @@ function autoResizeTextarea(el) {
   el.style.height = "auto";
   el.style.height = (el.scrollHeight) + "px";
 }
-const envoyerMailBtn = document.getElementById("btnEnvoyerMail");
+
 
 // Charger données depuis Firestore
 async function chargerDepuisFirestore() {
@@ -197,10 +289,11 @@ async function chargerDepuisFirestore() {
   const data = doc.data();
   const index = data.hospitalisationIndex ?? 0;
   const hospi = data.hospitalisations?.[index] || {};
-emailjs.init("CZapZCcxYfJ8-acLS"); // à remplacer par ton ID EmailJS
 
 
-patientEmail = data.email || "";
+
+let patientEmail = data.email || "";
+
 
   const sexe = data.sexe || '';
   const nom = data.nom || '';
@@ -599,6 +692,7 @@ let medecinNom = "";
 </div>
 </body>
 </html>
+
 
 
 
