@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Téléchargement du rapport</title>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBKp5-7NNy0Gyl0tNbDgD-BxucYdg8ArWo",
+  authDomain: "urgences-a8ed4.firebaseapp.com",
+  projectId: "urgences-a8ed4",
+  storageBucket: "urgences-a8ed4.firebasestorage.app",
+  messagingSenderId: "392921498200",
+  appId: "1:392921498200:web:7ccce767332c67c697c02d",
+  measurementId: "G-C74MK2KYDL"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    async function downloadPDF() {
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get("id");
+      if (!id) {
+        document.body.innerHTML = "<h2>❌ Lien invalide</h2>";
+        return;
+      }
+
+      const docRef = doc(db, "pdfs", id);
+      const snapshot = await getDoc(docRef);
+
+      if (!snapshot.exists()) {
+        document.body.innerHTML = "<h2>❌ Ce lien n’existe plus</h2>";
+        return;
+      }
+
+      const data = snapshot.data();
+      const base64 = data.pdfBase64;
+      const binary = atob(base64);
+      const array = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) {
+        array[i] = binary.charCodeAt(i);
+      }
+      const blob = new Blob([array], { type: "application/pdf" });
+      const url = URL.createObjectURL(blob);
+
+      // Téléchargement automatique
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "rapport_hospitalisation.pdf";
+      a.click();
+      URL.revokeObjectURL(url);
+
+      document.body.innerHTML = "<h2>✅ Téléchargement lancé</h2>";
+      setTimeout(() => window.close(), 2000);
+    }
+
+    downloadPDF();
+  </script>
+</head>
+<body style="font-family: sans-serif; text-align: center; margin-top: 40px;">
+  <h2>Chargement du rapport...</h2>
+</body>
+</html>
