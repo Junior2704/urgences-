@@ -530,41 +530,51 @@ function base64ToBlob(base64, type = "application/pdf") {
 
 
 
-document.getElementById("btnEnvoyerMail").addEventListener("click", async function() {
-  // 1️⃣ Génère le PDF
-  const pdfBase64 = await genererPDF();
+document.getElementById("btnEnvoyerMail").addEventListener("click", async function () {
+  try {
+    console.log("📄 Génération du PDF...");
+    const pdfBase64 = await genererPDF();
+    console.log("PDF généré, taille base64:", pdfBase64.length);
 
-  // 2️⃣ Crée un ID unique
-  let idUnique;
-  do {
-    idUnique = Math.random().toString(36).substring(2, 10);
-    const docRef = await db.collection("liens_pdfs").doc(idUnique).get();
-  } while (docRef.exists);
+    // 1️⃣ Création d’un ID unique
+    let idUnique;
+    let docSnap;
+    do {
+      idUnique = Math.random().toString(36).substring(2, 10);
+      docSnap = await db.collection("liens_pdfs").doc(idUnique).get();
+    } while (docSnap.exists);
 
-  // 3️⃣ Enregistre dans Firestore
-  await db.collection("liens_pdfs").doc(idUnique).set({
-    base64: pdfBase64,
-    dateCreation: firebase.firestore.FieldValue.serverTimestamp()
-  });
+    // 2️⃣ Enregistrement du PDF dans Firestore
+    await db.collection("liens_pdfs").doc(idUnique).set({
+      base64: pdfBase64,
+      dateCreation: firebase.firestore.FieldValue.serverTimestamp(),
+    });
 
-  // 4️⃣ Construit le lien vers ton site GitHub Pages
-  const lienPdf = `https://junior2704.github.io/monpdf.html?id=${idUnique}`;
+    // 3️⃣ Construction du lien
+    const lienPdf = `https://junior2704.github.io/urgences-/monpdf.html?id=${idUnique}`;
+    console.log("✅ Lien Firestore :", lienPdf);
 
-  // 5️⃣ Envoie l'e-mail
-  const to_email = window.patientData.email || "";
-  const patient_nom = window.patientData.nom || "";
-  const patient_prenom = window.patientData.prenom || "";
+    // 4️⃣ Envoi de l’email
+    const to_email = window.patientData?.email || "";
+    const patient_nom = window.patientData?.nom || "";
+    const patient_prenom = window.patientData?.prenom || "";
 
-  await emailjs.send("service_o07vuso", "template_juigshl", {
-    to_email,
-    patient_nom,
-    patient_prenom,
-    lien_compte_rendu: lienPdf,
-    message: "Bonjour, votre compte-rendu d’hospitalisation est disponible via le lien ci-dessous (valide 7 jours)."
-  });
+    await emailjs.send("service_o07vuso", "template_juigshl", {
+      to_email,
+      patient_nom,
+      patient_prenom,
+      lien_compte_rendu: lienPdf,
+      message:
+        "Bonjour, votre compte-rendu d’hospitalisation est disponible via le lien ci-dessous (valide 7 jours).",
+    });
 
-  alert("📨 E-mail envoyé avec le lien vers le rapport !");
+    alert("📨 E-mail envoyé avec le lien vers le rapport !");
+  } catch (err) {
+    console.error("❌ Erreur d'envoi :", err);
+    alert("Erreur : " + err.message);
+  }
 });
+
 
 
 
@@ -697,6 +707,7 @@ let medecinNom = "";
 
 </body>
 </html>
+
 
 
 
