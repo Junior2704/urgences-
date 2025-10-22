@@ -580,6 +580,12 @@ document.getElementById("btnEnvoyerMail").addEventListener("click", async functi
       docSnap = await db.collection("liens_pdfs").doc(idUnique).get();
     } while (docSnap.exists);
 // 🔹 Récupération du nom du document
+const doc = await patientRef.get();
+  if (!doc.exists) {
+    afficherBulle("❌Patient non trouvé","alerte");
+    return;
+  }
+  const data = doc.data();
     const firstName = data.prenom || "";
     const lastName = data.nom || "";
     const fileName = `Rapport d'hospitalisation - ${firstName || ""} ${lastName || ""}.pdf`;
