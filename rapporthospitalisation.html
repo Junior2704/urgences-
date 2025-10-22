@@ -238,7 +238,7 @@
 </form>
 
 <script>
-
+const envoyerMailBtn = document.getElementById("btnEnvoyerMail");
 // Champs du rapport
 const champs = ["identite", "hospitalisation", "medical", "evolution", "constantes", "examens", "actes", "sortie"];
 const patientId = new URLSearchParams(window.location.search).get("id");
@@ -261,7 +261,7 @@ emailjs.init("CZapZCcxYfJ8-acLS"); // à remplacer par ton ID EmailJS
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const patientRef = db.collection("patients").doc(patientId);
-const envoyerMailBtn = document.getElementById("btnEnvoyerMail");
+
 let rapportValide = true; // flag validation
 
 // Calcul âge simple
@@ -496,7 +496,7 @@ const pdfBase64 = doc.output('datauristring').split(',')[1]; // On enlève "data
 window.pdfBase64 = pdfBase64; // stocké globalement pour EmailJS
 
 }
-document.getElementById("btnEnvoyerMail").addEventListener("click", function() {
+document.getElementById("btnEnvoyerMail").addEventListener("click", async function() {
 	await genererPDF();
       // Récupération des infos du patient (exemple depuis variables JS)
       const patient_nom = window.patientData.nom || "";      
@@ -593,8 +593,8 @@ function convertirDateEnFrancais(dateISO) {
       const docSnap = await getDoc(doc(db, "medecins", user.uid));
       if (docSnap.exists()) {
         const data = docSnap.data();
-        document.getElementById("nom-medecin").textContent = data.nom || "Médecin";
-        document.getElementById("specialite").textContent = data.specialite || "";
+        document.getElementById("nom-medecin") = data.nom || "Médecin";
+        document.getElementById("specialite") = data.specialite || "";
       }
     }
   });
@@ -692,6 +692,7 @@ let medecinNom = "";
 </div>
 </body>
 </html>
+
 
 
 
