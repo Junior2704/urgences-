@@ -519,6 +519,7 @@ async function uploadRapportToFileIO(pdfBlob) {
 
 
 document.getElementById("btnEnvoyerMail").addEventListener("click", async function() {
+	await genererPDF();
   const byteCharacters = atob(window.pdfBase64);
   const byteNumbers = new Array(byteCharacters.length);
   for (let i = 0; i < byteCharacters.length; i++) {
@@ -675,6 +676,7 @@ let medecinNom = "";
  
 </body>
 </html>
+
 
 
 
