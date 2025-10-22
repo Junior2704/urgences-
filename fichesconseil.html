@@ -95,11 +95,37 @@
         padding: 18px 20px;
       }
     }
+    /* --- Barre de recherche --- */
+.search-container {
+  display: flex;
+  justify-content: center;
+  margin: 20px auto 40px;
+}
+
+#searchInput {
+  width: 90%;
+  max-width: 600px;
+  padding: 14px 18px;
+  border: 2px solid #3182ce;
+  border-radius: 8px;
+  font-size: 1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+#searchInput:focus {
+  outline: none;
+  border-color: #2b6cb0;
+  box-shadow: 0 6px 16px rgba(49, 130, 206, 0.3);
+}
+
   </style>
 </head>
 <body>
   <h1>Fiches conseils – Sortie des urgences</h1>
-
+<div class="search-container">
+    <input type="text" id="searchInput" placeholder="Rechercher une fiche (ex: asthme, fracture...)" />
+  </div>
   <!-- TRAUMATOLOGIE -->
   <h2>Traumatologie</h2>
   <div class="fiche-list">
@@ -161,4 +187,27 @@
   </div>
 
 </body>
+  <script>
+  // --- Filtrage dynamique des fiches ---
+  const searchInput = document.getElementById('searchInput');
+
+  searchInput.addEventListener('input', () => {
+    const filter = searchInput.value.toLowerCase();
+    const fiches = document.querySelectorAll('.fiche-item');
+
+    fiches.forEach(fiche => {
+      const title = fiche.querySelector('h3').textContent.toLowerCase();
+      fiche.style.display = title.includes(filter) ? '' : 'none';
+    });
+
+    // Masquer les catégories si aucune fiche visible
+    document.querySelectorAll('h2').forEach(sectionTitle => {
+      const section = sectionTitle.nextElementSibling;
+      const visibleCards = section.querySelectorAll('.fiche-item:not([style*="display: none"])');
+      sectionTitle.style.display = visibleCards.length ? '' : 'none';
+    });
+  });
+</script>
+
 </html>
+
