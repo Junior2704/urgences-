@@ -185,6 +185,7 @@ function autoResizeTextarea(el) {
   el.style.height = "auto";
   el.style.height = (el.scrollHeight) + "px";
 }
+const envoyerMailBtn = document.getElementById("btnEnvoyerMail");
 
 // Charger données depuis Firestore
 async function chargerDepuisFirestore() {
@@ -211,6 +212,7 @@ patientEmail = data.email || "";
   const motif = hospi.motif || '';
   const moyen = hospi.moyen || '';
   const adresse = data.adresse || '';
+window.patientData = data;
 
   document.getElementById("identite").value =
     `${sexe} ${prenom} ${nom}, \nNé(e) le ${dateNaissance2}, ${age} \n${adresse}\nCIP (Code d'Identification Patient) : ${patientId}`;
@@ -402,6 +404,7 @@ window.pdfBase64 = pdfBase64; // stocké globalement pour EmailJS
 
 }
 document.getElementById("btnEnvoyerMail").addEventListener("click", function() {
+	await genererPDF();
       // Récupération des infos du patient (exemple depuis variables JS)
       const patient_nom = window.patientData.nom || "";      
       const patient_prenom = window.patientData.prenom || ""; 
@@ -516,9 +519,9 @@ let medecinNom = "";
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
         const data = docSnap.data();
-        const medecinNom = data.nom || "";
-        const medecinSpecialite = data.specialite || "";
-        const medecinLieu = data.lieu || "";
+         medecinNom = data.nom || "";
+        medecinSpecialite = data.specialite || "";
+         medecinLieu = data.lieu || "";
 
         // Met à jour aussi les variables globales sur window
         window.medecinNom = medecinNom;
@@ -596,6 +599,7 @@ let medecinNom = "";
 </div>
 </body>
 </html>
+
 
 
 
