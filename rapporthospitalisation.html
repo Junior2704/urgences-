@@ -503,7 +503,7 @@ async function uploadRapportToFileIO(pdfBlob) {
   const formData = new FormData();
   formData.append("file", pdfBlob, "rapport.pdf");
 
-  const response = await fetch("https://proxy-upload.onrender.com", { 
+  const response = await fetch("https://proxy-upload.onrender.com/upload", { 
     method: "POST",
     body: formData
   });
@@ -514,6 +514,7 @@ async function uploadRapportToFileIO(pdfBlob) {
   console.log("Lien généré :", result.link);
   return result.link;
 }
+
 
 
 document.getElementById("btnEnvoyerMail").addEventListener("click", async function() {
@@ -675,6 +676,7 @@ let medecinNom = "";
  
 </body>
 </html>
+
 
 
 
