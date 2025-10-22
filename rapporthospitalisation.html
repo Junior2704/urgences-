@@ -423,14 +423,13 @@ async function genererPDF() {
   const lineHeight = 7;
   const pageHeight = doc.internal.pageSize.height;
 
-  const logoUrl = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBxAHEhUQBxMVFhUWFRYYFhYWFxoVFhkbFRUbFhYWFhYYHCggGx0lGxgWJTEiJSktLi4vFx8zODMtOCgtLisBCgoKDg0OGxAQGzUlHyYwLS03LS8tLSs1LS01Mi0tMCsrLy8vLS0rLS0vLS0tLS0tLS0tLS0tLS8vLS0tLS0tLf/AABEIAOEA4QMBEQACEQEDEQH..." // ton image base64
+  const logoUrl = "https://junior2704.github.io/urgences-/logo.jpg" 
   const img = new Image();
   img.src = logoUrl;
   img.crossOrigin = "anonymous";
 
   return new Promise((resolve) => {
     img.onload = () => {
-      // === Début du contenu une fois le logo chargé ===
       doc.addImage(img, 'PNG', marginLeft, y, 40, 40);
       y += 30;
 
@@ -698,6 +697,7 @@ let medecinNom = "";
 
 </body>
 </html>
+
 
 
 
