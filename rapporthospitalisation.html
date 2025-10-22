@@ -187,8 +187,7 @@ function calculerAge(dateStr) {
   envoyerMailBtn.style.padding = "12px 24px";
   envoyerMailBtn.style.fontWeight = "600";
   document.querySelector(".button-group").appendChild(envoyerMailBtn);
-	  let pdfBlob = null;
-  let patientEmail = "";
+
 	
 // Adaptation hauteur textarea au contenu
 function autoResizeTextarea(el) {
@@ -407,8 +406,9 @@ const signatureText = `${medecinNom}\n${medecinSpecialite}`;
     // Sauvegarder PDF
     doc.save("rapport d'hospitalisation.pdf");
   };
-	pdfBlob = doc.output("blob");
-    return pdfBlob;
+const pdfBase64 = doc.output('datauristring').split(',')[1]; // On enlève "data:application/pdf;base64,"
+window.pdfBase64 = pdfBase64; // stocké globalement pour EmailJS
+
 }
 document.getElementById("btnEnvoyerMail").addEventListener("click", function() {
       // Récupération des infos du patient (exemple depuis variables JS)
@@ -605,5 +605,6 @@ let medecinNom = "";
 </div>
 </body>
 </html>
+
 
 
