@@ -2887,6 +2887,7 @@ function updatePatientHeader() {
     document.getElementById('patientName').textContent = `${prenom} ${nom} (${age} ans)`;
 }
 function updateTitle() {
+	const dateNaissance = document.getElementById("adminNaissance")?.value || "";
     document.title = `${prenom} ${nom} ${dateNaissance} (${age} ans)`;
 }
 
@@ -2978,6 +2979,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
