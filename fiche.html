@@ -232,31 +232,7 @@
       flex: 1;
       min-width: 150px;
     }
-    .corps {
-      max-width: 320px;
-      margin-top: 10px;
-      position: relative;
-      user-select: none;
-    }
-    #corps-img {
-      width: 100%;
-      border-radius: 12px;
-      cursor: crosshair;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-    }
-    .annotation {
-      position: absolute;
-      background: #0078d4cc;
-      color: white;
-      padding: 3px 6px;
-      border-radius: 6px;
-      font-size: 12px;
-      pointer-events: none;
-      white-space: nowrap;
-      user-select: none;
-      transform: translate(-50%, -120%);
-      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-    }
+    .
     #historique {
       max-width: 600px;
       background: #fff;
@@ -2258,7 +2234,11 @@ async function chargerRealisateurs() {
 async function afficherActesRealises(filtreType = "tous") {
   const doc = await patientRef.get();
   const data = doc.data();
+	console.log("Données patient :", data);
+console.log("hospitalisationIndex :", data.hospitalisationIndex);
+console.log("hospitalisations :", data.hospitalisations);
   const index = data.hospitalisationIndex ?? 0;
+	console.log("Index hospitalisation :", index);
   const actes = data.hospitalisations?.[index]?.actes_realises || [];
   tousLesActesRealises = actes;
 
@@ -2933,8 +2913,7 @@ function updatePatientHeader() {
     document.getElementById('patientName').textContent = `${prenom} ${nom} (${age} ans)`;
 }
 function updateTitle() {
-    const age = calculerAge(dateNaissance);
-    document.title = `${prenom} ${nom} (${age} ans)`;
+    document.title = `${prenom} ${nom} ${dateNaissance} (${age} ans)`;
 }
 
 	
@@ -3025,6 +3004,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
