@@ -1,47 +1,51 @@
 // index.js
 import express from "express";
 import multer from "multer";
-import fetch from "node-fetch";
 import cors from "cors";
+import axios from "axios";
+import FormData from "form-data";
 
 const app = express();
 const upload = multer();
 
-// ✅ Autoriser ton site GitHub Pages à utiliser ce proxy
 app.use(cors({
   origin: "https://junior2704.github.io"
 }));
 
-// ✅ Route test
-app.get("/", (req, res) => res.send("✅ Proxy Render vers Transfer.sh opérationnel"));
+app.get("/", (req, res) =>
+  res.send("✅ Proxy Render vers GoFile.io opérationnel")
+);
 
-// ✅ Route d’upload
 app.post("/upload", upload.single("file"), async (req, res) => {
   try {
-    if (!req.file) {
-      return res.status(400).json({ error: "Aucun fichier reçu" });
-    }
+    if (!req.file) return res.status(400).json({ error: "Aucun fichier reçu" });
 
-    // 🔹 Envoi direct du fichier à Transfer.sh
-    const response = await fetch("https://transfer.sh/rapport.pdf", {
-      method: "PUT",
-      body: req.file.buffer
+    // 🔹 création du formulaire multipart
+    const formData = new FormData();
+    formData.append("file", req.file.buffer, "rapport.pdf");
+
+    // 🔹 upload vers GoFile.io
+    const response = await axios.post("https://store1.gofile.io/uploadFile", formData, {
+      headers: formData.getHeaders(),
+      maxBodyLength: Infinity
     });
 
-    const link = await response.text();
-    console.log("✅ Lien Transfer.sh :", link);
+    const result = response.data;
 
-    if (!link.startsWith("https://")) {
-      return res.status(500).json({ error: "Réponse invalide de transfer.sh", details: link });
+    if (result.status !== "ok") {
+      return res.status(500).json({ error: "Erreur GoFile.io", details: result });
     }
 
-    res.json({ link: link.trim() });
+    const link = result.data.downloadPage;
+    console.log("✅ Lien GoFile.io :", link);
+    res.json({ link });
   } catch (err) {
-    console.error("Erreur proxy:", err);
+    console.error("Erreur proxy:", err.message);
     res.status(500).json({ error: err.message });
   }
 });
 
-// ✅ Démarrer le serveur
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`✅ Proxy Render actif sur le port ${PORT}`));
+app.listen(PORT, () =>
+  console.log(`✅ Proxy Render actif sur le port ${PORT}`)
+);
