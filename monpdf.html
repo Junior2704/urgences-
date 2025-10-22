@@ -2,57 +2,192 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Téléchargement du rapport</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Téléchargement de votre rapport</title>
+
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Roboto, Arial, sans-serif;
+      background-color: #f4f7fb;
+      color: #333;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+
+    .card {
+      background: white;
+      padding: 40px;
+      border-radius: 14px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+      max-width: 400px;
+      width: 90%;
+      animation: fadeIn 0.5s ease;
+    }
+
+    img {
+      height: 60px;
+      margin-bottom: 20px;
+    }
+
+    h2 {
+      color: #0066cc;
+      margin-top: 0;
+      font-size: 1.4rem;
+    }
+
+    p {
+      font-size: 15px;
+      line-height: 1.5;
+      color: #555;
+    }
+
+    .loader {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #0066cc;
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      margin: 20px auto;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .success {
+      color: #009e60;
+      font-weight: 500;
+    }
+
+    .error {
+      color: #c0392b;
+      font-weight: 500;
+    }
+  </style>
 </head>
+
 <body>
-  <p>Téléchargement en cours...</p>
+  <div class="card" id="content">
+    <img src="https://junior2704.github.io/urgences-/logo.jpg" alt="Logo Hôpital">
+    <h2>Chargement de votre rapport...</h2>
+    <div class="loader"></div>
+    <p>Merci de patienter quelques instants.</p>
+  </div>
+
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyBKp5-7NNy0Gyl0tNbDgD-BxucYdg8ArWo",
       authDomain: "urgences-a8ed4.firebaseapp.com",
       projectId: "urgences-a8ed4"
     };
+
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
     async function telechargerPDF() {
-      const id = new URLSearchParams(window.location.search).get("id");
-      if (!id) {
-        document.body.innerHTML = "<p>❌ Lien invalide.</p>";
-        return;
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const id = params.get("id");
+
+        // 🔒 Sécurité : ID requis
+        if (!id || !/^[a-z0-9]+$/i.test(id)) {
+          showError("Lien invalide ou corrompu.");
+          return;
+        }
+
+        // 🔍 Récupération du PDF
+        const docSnap = await db.collection("liens_pdfs").doc(id).get();
+        if (!docSnap.exists) {
+          showError("Ce lien a expiré ou n’existe plus.");
+          return;
+        }
+
+        const data = docSnap.data();
+        if (!data.base64) {
+          showError("Le document est introuvable.");
+          return;
+        }
+
+        // ✅ Conversion Base64 → PDF
+        const blob = base64ToBlob(data.base64, "application/pdf");
+        const url = URL.createObjectURL(blob);
+
+        // 🧾 Téléchargement automatique
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "rapport_hospitalisation.pdf";
+        a.style.display = "none";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+
+        // Message de succès
+        showSuccess("Votre rapport a été téléchargé avec succès.");
+
+        // 🔐 Option : supprimer le document Firestore après téléchargement
+        await db.collection("liens_pdfs").doc(id).delete();
+
+        // Fermeture automatique
+        setTimeout(() => window.close(), 3000);
+
+      } catch (err) {
+        console.error(err);
+        showError("Une erreur est survenue. Le lien est peut-être expiré.");
       }
+    }
 
-      const doc = await db.collection("liens_pdfs").doc(id).get();
-      if (!doc.exists) {
-        document.body.innerHTML = "<p>⏳ Ce lien a expiré ou est invalide.</p>";
-        return;
-      }
+    // Utilitaires d’affichage
+    function showSuccess(msg) {
+      const card = document.getElementById("content");
+      card.innerHTML = `
+        <img src="https://junior2704.github.io/urgences-/logo.jpg" alt="Logo Hôpital">
+        <h2 class="success">✅ Téléchargement réussi</h2>
+        <p>${msg}</p>
+        <p style="font-size:13px;color:#888;">Cette fenêtre va se fermer automatiquement.</p>
+      `;
+    }
 
-      const base64 = doc.data().base64;
-      const blob = base64ToBlob(base64, "application/pdf");
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "rapport_hospitalisation.pdf";
-      a.click();
-
-      // Optionnel : fermer après 3 secondes
-      setTimeout(() => window.close(), 3000);
+    function showError(msg) {
+      const card = document.getElementById("content");
+      card.innerHTML = `
+        <img src="https://junior2704.github.io/urgences-/logo.jpg" alt="Logo Hôpital">
+        <h2 class="error">⚠️ Erreur</h2>
+        <p>${msg}</p>
+        <p style="font-size:13px;color:#888;">Si le problème persiste, contactez le service technique.</p>
+      `;
     }
 
     function base64ToBlob(base64, type) {
-      const binary = atob(base64);
-      const len = binary.length;
-      const buffer = new ArrayBuffer(len);
-      const view = new Uint8Array(buffer);
-      for (let i = 0; i < len; i++) {
-        view[i] = binary.charCodeAt(i);
+      try {
+        const binary = atob(base64);
+        const len = binary.length;
+        const buffer = new ArrayBuffer(len);
+        const view = new Uint8Array(buffer);
+        for (let i = 0; i < len; i++) view[i] = binary.charCodeAt(i);
+        return new Blob([view], { type });
+      } catch (err) {
+        showError("Erreur lors du décodage du fichier.");
+        throw err;
       }
-      return new Blob([view], { type });
     }
 
+    // Lancer automatiquement
     telechargerPDF();
   </script>
 </body>
