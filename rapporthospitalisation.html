@@ -567,8 +567,9 @@ function base64ToBlob(base64, type = "application/pdf") {
 
 document.getElementById("btnEnvoyerMail").addEventListener("click", async function () {
   try {
-	   showLoadingModal();
+    showLoadingModal();
     console.log("📄 Génération du PDF...");
+
     const pdfBase64 = await creerPDF(false);
     console.log("PDF généré, taille base64:", pdfBase64.length);
 
@@ -579,49 +580,64 @@ document.getElementById("btnEnvoyerMail").addEventListener("click", async functi
       idUnique = Math.random().toString(36).substring(2, 10);
       docSnap = await db.collection("liens_pdfs").doc(idUnique).get();
     } while (docSnap.exists);
-// 🔹 Récupération du nom du document
-const doc = await patientRef.get();
-  if (!doc.exists) {
-    afficherBulle("❌Patient non trouvé","alerte");
-    return;
-  }
-  const data = doc.data();
+
+    // 🔹 Récupération du nom du patient
+    const doc = await patientRef.get();
+    if (!doc.exists) {
+      afficherBulle("❌Patient non trouvé","alerte");
+      return;
+    }
+    const data = doc.data();
     const firstName = data.prenom || "";
     const lastName = data.nom || "";
-    const fileName = `Rapport d'hospitalisation - ${firstName || ""} ${lastName || ""}.pdf`;
+    const to_email = data.email || "";
+
+    const fileName = `Rapport d'hospitalisation - ${firstName} ${lastName}.pdf`;
+
     // 2️⃣ Enregistrement du PDF dans Firestore
     await db.collection("liens_pdfs").doc(idUnique).set({
       base64: pdfBase64,
       nomFichier: fileName,
       dateCreation: firebase.firestore.FieldValue.serverTimestamp(),
-     
     });
 
     // 3️⃣ Construction du lien
     const lienPdf = `https://junior2704.github.io/urgences-/monpdf.html?id=${idUnique}`;
     console.log("✅ Lien Firestore :", lienPdf);
 
-    // 4️⃣ Envoi de l’email
-    const to_email = window.patientData?.email || "";
-    const patient_nom = window.patientData?.nom || "";
-    const patient_prenom = window.patientData?.prenom || "";
-
-    await emailjs.send("service_o07vuso", "template_juigshl", {
-      to_email,
-      patient_nom,
-      patient_prenom,
+    // 4️⃣ Envoi via ton API Render
+    const templateName = "CR"; // Nom du modèle CR dans Firestore
+    const variables = {
+      patient_nom: lastName,
+      patient_prenom: firstName,
       lien_compte_rendu: lienPdf,
-      message:
-        "Bonjour, votre compte-rendu d’hospitalisation est disponible via le lien ci-dessous (valide 7 jours).",
+      message: "Bonjour, votre compte-rendu d’hospitalisation est disponible via le lien ci-dessous (valide 7 jours)."
+    };
+
+    const response = await fetch("https://mail-api.onrender.com/send-email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        key: 10876
+        template: templateName,
+        to: to_email,
+        variables: variables
+      })
     });
-hideLoadingModal();
+
+    const result = await response.json();
+    console.log("✅ Résultat API :", result);
+
+    hideLoadingModal();
     afficherBulle("📨 E-mail envoyé avec le lien vers le rapport !","administratif");
+
   } catch (err) {
-	  hideLoadingModal();
+    hideLoadingModal();
     console.error("❌ Erreur d'envoi :", err);
     alert("Erreur : " + err.message);
   }
 });
+
 
 
 
@@ -757,6 +773,7 @@ let medecinNom = "";
 
 </body>
 </html>
+
 
 
 
