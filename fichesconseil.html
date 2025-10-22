@@ -1,10 +1,9 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<link rel="icon" type="image/jpeg" href="logo.jpg">
-
   <meta charset="UTF-8" />
   <title>Fiches conseils – Sortie des urgences</title>
+  <link rel="icon" type="image/jpeg" href="logo.jpg">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
 
@@ -15,14 +14,25 @@
       padding: 40px 20px;
       color: #333;
     }
+
     h1 {
       text-align: center;
       font-weight: 700;
       color: #1a202c;
-      margin-bottom: 40px;
+      margin-bottom: 50px;
       font-size: 2.5rem;
       letter-spacing: -0.02em;
     }
+
+    h2 {
+      max-width: 900px;
+      margin: 50px auto 20px;
+      color: #2b6cb0;
+      font-size: 1.6rem;
+      border-left: 5px solid #2b6cb0;
+      padding-left: 10px;
+    }
+
     .fiche-list {
       max-width: 900px;
       margin: 0 auto;
@@ -30,6 +40,7 @@
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
       gap: 24px;
     }
+
     .fiche-item {
       background: #fff;
       padding: 24px 28px;
@@ -40,16 +51,19 @@
       justify-content: space-between;
       transition: transform 0.25s ease, box-shadow 0.25s ease;
     }
+
     .fiche-item:hover {
       transform: translateY(-5px);
       box-shadow: 0 12px 32px rgb(0 0 0 / 0.12);
     }
+
     .fiche-item h3 {
       font-size: 1.25rem;
       font-weight: 600;
       margin: 0 0 16px;
       color: #2d3748;
     }
+
     .fiche-item a {
       text-align: center;
       background-color: #3182ce;
@@ -62,17 +76,21 @@
       box-shadow: 0 4px 12px rgb(49 130 206 / 0.4);
       transition: background-color 0.3s ease, box-shadow 0.3s ease;
     }
+
     .fiche-item a:hover {
       background-color: #2c5282;
       box-shadow: 0 6px 16px rgb(44 82 130 / 0.6);
     }
+
     @media (max-width: 480px) {
       body {
         padding: 20px 10px;
       }
+
       h1 {
         font-size: 1.8rem;
       }
+
       .fiche-item {
         padding: 18px 20px;
       }
@@ -81,90 +99,66 @@
 </head>
 <body>
   <h1>Fiches conseils – Sortie des urgences</h1>
-  <div class="fiche-list">
-    <div class="fiche-item">
-      <h3>Points de suture</h3>
-      <a href="fiche_conseil_-_points_de_suture.pdf" target="_blank" rel="noopener noreferrer">📄 Ouvrir</a>
-    </div>
-    <div class="fiche-item">
-      <h3>AVC</h3>
-      <a href="fiche_conseil_-_avc.pdf" target="_blank" rel="noopener noreferrer">📄 Ouvrir</a>
-    </div>
-    <div class="fiche-item">
-      <h3>Entorse</h3>
-      <a href="fiche_conseil_-_entorse.pdf" target="_blank" rel="noopener noreferrer">📄 Ouvrir</a>
-    </div>
-    <div class="fiche-item">
-      <h3>Fracture</h3>
-      <a href="fiches_conseils/fiche_conseil_-_fracture.pdf" target="_blank" rel="noopener noreferrer">📄 Ouvrir</a>
-    </div>
-    <div class="fiche-item">
-      <h3>Brûlure</h3>
-      <a href="fiche_conseil_-_brûlure.pdf" target="_blank" rel="noopener noreferrer">📄 Ouvrir</a>
-    </div>
-    <div class="fiche-item">
-      <h3>Plaie simple</h3>
-      <a href="fiche_conseil_-_plaie_simple.pdf" target="_blank" rel="noopener noreferrer">📄 Ouvrir</a>
-    </div>
-    <div class="fiche-item">
-      <h3>Piqûre d’insecte</h3>
-      <a href="fiche_conseil_-_piqûre_dinsecte.pdf" target="_blank" rel="noopener noreferrer">📄 Ouvrir</a>
-    </div>
-    <div class="fiche-item">
-      <h3>Morsure</h3>
-      <a href="fiche_conseil_-_morsure.pdf" target="_blank" rel="noopener noreferrer">📄 Ouvrir</a>
-    </div>
-    <div class="fiche-item">
-      <h3>Infection urinaire</h3>
-      <a href="fiche_conseil_-_infection_urinaire.pdf" target="_blank" rel="noopener noreferrer">📄 Ouvrir</a>
-    </div>
-    <div class="fiche-item">
-      <h3>Crise d’asthme</h3>
-      <a href="fiche_conseil_-_crise_dasthme.pdf" target="_blank" rel="noopener noreferrer">📄 Ouvrir</a>
-    </div>
-	<div class="fiche-item">
-      <h3>Suivi asthme</h3>
-      <a href="fiche_conseil_-_suivi_dasthme.pdf" target="_blank" rel="noopener noreferrer">📄 Ouvrir</a>
-    </div>
-    <div class="fiche-item">
-      <h3>Malaise hypoglycémique</h3>
-      <a href="fiche_conseil_-_malaise_hypoglycemique.pdf" target="_blank" rel="noopener noreferrer">📄 Ouvrir</a>
-    </div>
-    <div class="fiche-item">
-      <h3>Fièvre chez l’enfant</h3>
-      <a href="fiche_conseil_-_fièvre_chez_lenfant.pdf" target="_blank" rel="noopener noreferrer">📄 Ouvrir</a>
-    </div>
-    <div class="fiche-item">
-      <h3>Gastro-entérite</h3>
-      <a href="fiche_conseil_-_gastro-enterite.pdf" target="_blank" rel="noopener noreferrer">📄 Ouvrir</a>
-    </div>
-    <div class="fiche-item">
-      <h3>Vomissements</h3>
-      <a href="fiche_conseil_-_vomissements.pdf" target="_blank" rel="noopener noreferrer">📄 Ouvrir</a>
-    </div>
-    <div class="fiche-item">
-      <h3>Chute sans traumatisme</h3>
-      <a href="fiche_conseil_-_chute_sans_traumatisme.pdf" target="_blank" rel="noopener noreferrer">📄 Ouvrir</a>
-    </div>
-	<div class="fiche-item">
-      <h3>Malaise avec PC</h3>
-      <a href="fiche_conseil_-_malaise_avec_PC.pdf" target="_blank" rel="noopener noreferrer">📄 Ouvrir</a>
-    </div>
-	<div class="fiche-item">
-      <h3>Traumatise Cranien</h3>
-      <a href="fiche_conseil_-_TC.pdf" target="_blank" rel="noopener noreferrer">📄 Ouvrir</a>
-    </div>
-	<div class="fiche-item">
-      <h3>Plâtre en plâtre</h3>
-      <a href="fiche_conseil_-_plâtre_-_plâtre.pdf" target="_blank" rel="noopener noreferrer">📄 Ouvrir</a>
-    </div>
 
-	<div class="fiche-item">
-      <h3>Plâtre en résine</h3>
-      <a href="fiche_conseil_-_plâtre_-_résine.pdf" target="_blank" rel="noopener noreferrer">📄 Ouvrir</a>
-</div>
- </div>
+  <!-- TRAUMATOLOGIE -->
+  <h2>Traumatologie</h2>
+  <div class="fiche-list">
+    <div class="fiche-item"><h3>Fracture</h3><a href="fiche_conseil_-_fracture.pdf" target="_blank">📄 Ouvrir</a></div>
+    <div class="fiche-item"><h3>Entorse</h3><a href="fiche_conseil_-_entorse.pdf" target="_blank">📄 Ouvrir</a></div>
+    <div class="fiche-item"><h3>Entorse cervicale</h3><a href="fiche_conseil_-_entorse_cervicale.pdf" target="_blank">📄 Ouvrir</a></div>
+    <div class="fiche-item"><h3>Traumatisme crânien</h3><a href="fiche_conseil_-_TC.pdf" target="_blank">📄 Ouvrir</a></div>
+    <div class="fiche-item"><h3>Chute sans traumatisme</h3><a href="fiche_conseil_-_chute_sans_traumatisme.pdf" target="_blank">📄 Ouvrir</a></div>
+    <div class="fiche-item"><h3>Contusion / Hématome</h3><a href="fiche_conseil_-_contusion_hematome.pdf" target="_blank">📄 Ouvrir</a></div>
+    <div class="fiche-item"><h3>Plâtre en plâtre</h3><a href="fiche_conseil_-_plâtre_-_plâtre.pdf" target="_blank">📄 Ouvrir</a></div>
+    <div class="fiche-item"><h3>Plâtre en résine</h3><a href="fiche_conseil_-_plâtre_-_résine.pdf" target="_blank">📄 Ouvrir</a></div>
+    <div class="fiche-item"><h3>Traumatisme du nez</h3><a href="fiche_conseil_-_traumatisme_nez.pdf" target="_blank">📄 Ouvrir</a></div>
+  </div>
+
+  <!-- INFECTIEUX -->
+  <h2>Infectieux</h2>
+  <div class="fiche-list">
+    <div class="fiche-item"><h3>Infection urinaire</h3><a href="fiche_conseil_-_infection_urinaire.pdf" target="_blank">📄 Ouvrir</a></div>
+    <div class="fiche-item"><h3>Angine / Pharyngite</h3><a href="fiche_conseil_-_angine.pdf" target="_blank">📄 Ouvrir</a></div>
+    <div class="fiche-item"><h3>Otite</h3><a href="fiche_conseil_-_otite.pdf" target="_blank">📄 Ouvrir</a></div>
+    <div class="fiche-item"><h3>Infection cutanée</h3><a href="fiche_conseil_-_infection_cutanee.pdf" target="_blank">📄 Ouvrir</a></div>
+    <div class="fiche-item"><h3>Colique néphrétique</h3><a href="fiche_conseil_-_colique_nephretique.pdf" target="_blank">📄 Ouvrir</a></div>
+    <div class="fiche-item"><h3>Gastro-entérite</h3><a href="fiche_conseil_-_gastro-enterite.pdf" target="_blank">📄 Ouvrir</a></div>
+    <div class="fiche-item"><h3>Fièvre chez l’enfant</h3><a href="fiche_conseil_-_fièvre_chez_lenfant.pdf" target="_blank">📄 Ouvrir</a></div>
+  </div>
+
+  <!-- RESPIRATOIRE -->
+  <h2>Respiratoire</h2>
+  <div class="fiche-list">
+    <div class="fiche-item"><h3>Crise d’asthme</h3><a href="fiche_conseil_-_crise_dasthme.pdf" target="_blank">📄 Ouvrir</a></div>
+    <div class="fiche-item"><h3>Suivi asthme</h3><a href="fiche_conseil_-_suivi_dasthme.pdf" target="_blank">📄 Ouvrir</a></div>
+    <div class="fiche-item"><h3>Bronchiolite du nourrisson</h3><a href="fiche_conseil_-_bronchiolite.pdf" target="_blank">📄 Ouvrir</a></div>
+  </div>
+
+  <!-- DOULEUR ET URGENCES INTERNES -->
+  <h2>Douleurs et urgences internes</h2>
+  <div class="fiche-list">
+    <div class="fiche-item"><h3>Lombalgie aiguë</h3><a href="fiche_conseil_-_lombalgie_aigue.pdf" target="_blank">📄 Ouvrir</a></div>
+    <div class="fiche-item"><h3>Douleur abdominale</h3><a href="fiche_conseil_-_douleur_abdominale.pdf" target="_blank">📄 Ouvrir</a></div>
+    <div class="fiche-item"><h3>Intoxication médicamenteuse</h3><a href="fiche_conseil_-_intoxication_medicament.pdf" target="_blank">📄 Ouvrir</a></div>
+    <div class="fiche-item"><h3>Accident d’exposition au sang (AES)</h3><a href="fiche_conseil_-_aes.pdf" target="_blank">📄 Ouvrir</a></div>
+  </div>
+
+  <!-- PEDIATRIE -->
+  <h2>Pédiatrie</h2>
+  <div class="fiche-list">
+    <div class="fiche-item"><h3>Convulsions fébriles</h3><a href="fiche_conseil_-_convulsions_febriles.pdf" target="_blank">📄 Ouvrir</a></div>
+  </div>
+
+  <!-- DIVERS -->
+  <h2>Divers</h2>
+  <div class="fiche-list">
+    <div class="fiche-item"><h3>Malaise vagal</h3><a href="fiche_conseil_-_malaise_vagal.pdf" target="_blank">📄 Ouvrir</a></div>
+    <div class="fiche-item"><h3>Hyperventilation / Crise d’angoisse</h3><a href="fiche_conseil_-_hyperventilation.pdf" target="_blank">📄 Ouvrir</a></div>
+    <div class="fiche-item"><h3>Épistaxis (saignement de nez)</h3><a href="fiche_conseil_-_epistaxis.pdf" target="_blank">📄 Ouvrir</a></div>
+    <div class="fiche-item"><h3>Irritation oculaire / corps étranger</h3><a href="fiche_conseil_-_irritation_oculaire.pdf" target="_blank">📄 Ouvrir</a></div>
+    <div class="fiche-item"><h3>Surveillance après traumatisme (scanner normal)</h3><a href="fiche_conseil_-_surveillance_post_trauma.pdf" target="_blank">📄 Ouvrir</a></div>
+    <div class="fiche-item"><h3>Sortie après hospitalisation courte</h3><a href="fiche_conseil_-_sortie_hospitalisation.pdf" target="_blank">📄 Ouvrir</a></div>
+  </div>
 
 </body>
 </html>
-
