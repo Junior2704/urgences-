@@ -541,7 +541,7 @@ function base64ToBlob(base64, type = "application/pdf") {
 document.getElementById("btnEnvoyerMail").addEventListener("click", async function () {
   try {
     console.log("📄 Génération du PDF...");
-    const pdfBase64 = await creerPDF(False);
+    const pdfBase64 = await creerPDF(false);
     console.log("PDF généré, taille base64:", pdfBase64.length);
 
     // 1️⃣ Création d’un ID unique
@@ -716,6 +716,7 @@ let medecinNom = "";
 
 </body>
 </html>
+
 
 
 
