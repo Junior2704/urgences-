@@ -818,6 +818,7 @@ header {
 <header>
   <div class="left-header">
     <h2>Fiche Patient</h2>
+	   <span id="currentTime"></span>
   </div>
   <div class="right-header">
     Connecté en tant que <b><span id="nom-medecin"></span></b> (<span id="specialite"></span>)
@@ -1383,12 +1384,17 @@ function openTab(tabId, event) {
 }
 function updateTime() {
     const now = new Date();
-    const formatted = now.toLocaleString(); // format local avec date et heure
-    document.title = "Fiche Patient - " + formatted;
+    const formatted = now.toLocaleString(); // date + heure locale
+    document.getElementById('currentTime').textContent = formatted;
 }
 
-// mettre à jour toutes les secondes
+// Mettre à jour immédiatement
+updateTime();
+
+// Puis toutes les secondes
 setInterval(updateTime, 1000);
+
+	
   function calculerAge(dateNaissance) {
     const birth = new Date(dateNaissance);
     const now = new Date();
@@ -3010,6 +3016,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
