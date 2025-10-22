@@ -2680,7 +2680,42 @@ document.getElementById("btnVoirRawData").addEventListener("click", async () => 
 document.getElementById("closeRawData").addEventListener("click", () => {
   document.getElementById("modalRawData").style.display = "none";
 });
+async function chargerExamens() {
+  try {
+    const snap = await patientRef.get();
+    if (!snap.exists) return;
 
+    const data = snap.data();
+    const hosp = data.hospitalisations?.[data.hospitalisationIndex];
+    if (!hosp || !hosp.examens) {
+      document.getElementById("examensListe").innerHTML = "<i>Aucun examen enregistré.</i>";
+      return;
+    }
+
+    const liste = hosp.examens.map(ex => `
+      <div class="examen-encart" style="margin-bottom:8px; padding:10px; border-radius:8px; background:${ex.realise ? '#eaf9ea' : '#f5faff'};">
+        <p><b>☢️Type :</b> ${ex.type || "N/A"}</p>
+        <p><b>💬Commentaire :</b> ${ex.commentaire || ""}</p>
+        <p><b>📅Date demande :</b> ${ex.dateDemande || "?"}</p>
+        ${ex.realise ? `<p><b>✅ Réalisé le :</b> ${ex.dateRealisation || "?"}</p>
+		<p><b>📄Compte rendu :</b> ${ex.compteRendu || ""}</p>` : ""}
+      </div>
+    `).join("");
+
+    document.getElementById("examensListe").innerHTML = liste || "<i>Aucun examen enregistré.</i>";
+  } catch (e) {
+    console.error("Erreur lors du chargement des examens :", e);
+    document.getElementById("examensListe").innerHTML = "<i>Erreur de chargement.</i>";
+  }
+}
+
+const originalOpenTab = window.openTab;
+window.openTab = function(tabName, evt) {
+  originalOpenTab(tabName, evt);
+  if (tabName === "tab-exam-actes") {
+    chargerExamens();
+  }
+};
 async function chargerActes() {
   try {
     const snap = await patientRef.get();
@@ -2778,42 +2813,7 @@ async function chargerRealisateurs() {
   }
 }
 // --- Fonction pour charger et afficher les examens ---
-async function chargerExamens() {
-  try {
-    const snap = await patientRef.get();
-    if (!snap.exists) return;
 
-    const data = snap.data();
-    const hosp = data.hospitalisations?.[data.hospitalisationIndex];
-    if (!hosp || !hosp.examens) {
-      document.getElementById("examensListe").innerHTML = "<i>Aucun examen enregistré.</i>";
-      return;
-    }
-
-    const liste = hosp.examens.map(ex => `
-      <div class="examen-encart" style="margin-bottom:8px; padding:10px; border-radius:8px; background:${ex.realise ? '#eaf9ea' : '#f5faff'};">
-        <p><b>☢️Type :</b> ${ex.type || "N/A"}</p>
-        <p><b>💬Commentaire :</b> ${ex.commentaire || ""}</p>
-        <p><b>📅Date demande :</b> ${ex.dateDemande || "?"}</p>
-        ${ex.realise ? `<p><b>✅ Réalisé le :</b> ${ex.dateRealisation || "?"}</p>
-		<p><b>📄Compte rendu :</b> ${ex.compteRendu || ""}</p>` : ""}
-      </div>
-    `).join("");
-
-    document.getElementById("examensListe").innerHTML = liste || "<i>Aucun examen enregistré.</i>";
-  } catch (e) {
-    console.error("Erreur lors du chargement des examens :", e);
-    document.getElementById("examensListe").innerHTML = "<i>Erreur de chargement.</i>";
-  }
-}
-
-const originalOpenTab = window.openTab;
-window.openTab = function(tabName, evt) {
-  originalOpenTab(tabName, evt);
-  if (tabName === "tab-exam-actes") {
-    chargerExamens();
-  }
-};
 async function remplirDepuisAncienneHospi(champ) {
   try {
     const doc = await patientRef.get();
@@ -2973,6 +2973,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
