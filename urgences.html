@@ -826,7 +826,9 @@ function rechargerPlan() {
    document.querySelectorAll(".patient").forEach(p => p.remove());
   chargerPatients();
 }
-
+setInterval(() => {
+            location.reload();
+        }, 120000);
   chargerPatients();
 </script>
 <script type="module">
