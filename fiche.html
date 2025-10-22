@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-	<script src="http://www.vidal.fr/includes/javascript/vidal/widget/WidgetVidal.js"></script>
+
 <link rel="icon" type="image/jpeg" href="logo.jpg">
 
   <meta charset="UTF-8" />
@@ -1141,10 +1141,11 @@ header {
   <hr>
   <h4>📄 Documents</h4>
 	<br><br>
-	<div data-role="widget_vidal"
-     data-width="300"
-     data-height="30"
-     data-padding="5">
+<form action="https://www.vidal.fr/recherche/" method="get" target="_blank">
+  <input type="text" name="q" placeholder="Rechercher un médicament...">
+  <button type="submit">Rechercher</button>
+</form>
+
 </div>
   <button id="btnRapportHospi">📃 Rapport d'hospitalisation</button>
 	<br><br>
@@ -2964,6 +2965,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
