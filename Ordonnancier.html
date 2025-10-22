@@ -16291,24 +16291,32 @@ function filterMedicaments() {
 		// Variables globales
 		let prescriptionItems = [];
 
-		function addMedicamentToPrescription(med) {
-			// Demander posologie et durée
-			const posology = prompt(`💊 Entrez la posologie pour ${med} :`);
-			
-			const duration = prompt(`⏱️ Entrez la durée du traitement pour ${med} (en jours) :`);
-			
+		if (!window.prescriptionItems) {
+    window.prescriptionItems = [];
+  }
 
-			// Ajouter à prescription temporaire
-			prescriptionItems.push({ medicament: med, posology, duration });
+  // Demander posologie et durée
+  const posology = prompt(`💊 Entrez la posologie pour ${med} :`);
+  const duration = prompt(`⏱️ Entrez la durée du traitement pour ${med} (en jours) :`);
 
-			updatePrescriptionDisplay();
+  // Ajouter à la prescription globale
+  window.prescriptionItems.push({
+    medicament: med,
+    posology: posology || "—",
+    duration: duration || ""
+  });
 
-			// Afficher la section ordonnance si cachée
-			document.getElementById("prescription").style.display = "block";
+  console.log("🩺 Médicament ajouté :", window.prescriptionItems);
 
-			// Mettre à jour infos patient dans l'ordonnance
-			updatePatientDisplay();
-		}
+  updatePrescriptionDisplay();
+
+  // Afficher la section ordonnance si cachée
+  document.getElementById("prescription").style.display = "block";
+
+  // Mettre à jour infos patient dans l'ordonnance
+  updatePatientDisplay();
+}
+
 
 		// Mise à jour affichage ordonnance avec édition possible
 		function updatePrescriptionDisplay() {
@@ -16449,11 +16457,6 @@ async function genererOrdo(telecharger = false) {
   const lineHeight = 8;
   const pageHeight = doc.internal.pageSize.height;
 
-  // 🔹 Logo en base64
-  const logoUrl = "https://junior2704.github.io/urgences-/logo.jpg";
-  const img = new Image();
-  img.src = logoUrl;
-  img.crossOrigin = "anonymous";
 
   return new Promise((resolve, reject) => {
     img.onload = () => {
@@ -16506,6 +16509,8 @@ async function genererOrdo(telecharger = false) {
 
         // === PRESCRIPTIONS ===
         const items = window.prescriptionItems || [];
+		console.log("💊 prescriptionItems :", window.prescriptionItems);
+
         if (Array.isArray(items) && items.length > 0) {
           items.forEach((item) => {
             const medicament = item.medicament || "Médicament non spécifié";
@@ -16544,7 +16549,6 @@ async function genererOrdo(telecharger = false) {
           const fileName = `Ordonnance - ${firstName || ""} ${lastName || ""}.pdf`;
           doc.save(fileName);
           console.log("📄 Téléchargement lancé");
-          setTimeout(() => window.close(), 2000); // se ferme après 2s
         }
 
         resolve(window.pdfBase64);
