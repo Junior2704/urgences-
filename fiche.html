@@ -10,798 +10,224 @@
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
   <style>
-	  #dossierMedical input[type="text"],
-#dossierMedical input[type="number"] {
-  width: 100%;   /* occupe toute la largeur */
-}
-.bouton-ancienne {
-  all: unset;
-  cursor: pointer;
-  font-size: 1em;
-  margin-left: 5px;
-  color: #2c7be5;   /* bleu */
-  background: transparent !important; /* 👈 reste transparent */
-}
-
-.bouton-ancienne:hover,
-.bouton-ancienne:focus,
-.bouton-ancienne:active {
-  color: #1b4f9c;   /* un bleu plus foncé pour l'effet visuel */
-  background: transparent !important; /* 👈 pas de fond */
-  text-decoration: none; /* pas de soulignement */
-  outline: none;  /* pas de bordure focus */
-  box-shadow: none; /* pas d’ombre */
-}
-
-
-	  hr {
-  border: none;
-  height: 4px;
-  background-color: #0078d4; 
-  border-radius: 2px;
-  margin: 20px 0;
-}
-
-	 .tabs {
-  display: flex;          /* aligne les boutons sur une ligne */
-  width: 100%;            /* prend toute la largeur */
-}
-
-.tabs {
-  display: flex;
-  width: 100%;
-}
-
-.tablink {
-  flex: 1;
-  text-align: center;
-  padding: 12px;
-  border: none;
-  cursor: pointer;
-  background: #2196f3;      /* bleu normal */
-  color: white;             /* texte blanc */
-  font-size: 16px;
-  transition: transform 0.2s, background 0.2s;
-}
-
-.tablink:hover {
-  background: #1976d2;      /* bleu plus foncé */
-  transform: scale(1.05);   /* zoom léger */
-}
-
-.tablink.active {
-  background: #2196f3;      /* même bleu */
-  color: black;             /* texte noir pour l’actif */
-  font-weight: bold;
-  transform: scale(1.08);   /* zoom un peu plus marqué */
-}
-
-
-
-.tab-content {
-  display: none;
-  width: 100%;       /* occupe toute la largeur */
-  max-width: none;   /* enlève la limite de largeur */
-  box-sizing: border-box;
-}
-.close-tab {
-  all: unset;
-  cursor: pointer;
-  color: #c62828;     /* rouge vif */
-  font-size: 20px;
-  font-weight: bold;
-  line-height: 1;
-  background: transparent !important;  /* 👈 force pas de fond */
-  transition: transform 0.2s ease, color 0.2s ease;
-}
-
-.close-tab:hover,
-.close-tab:focus,
-.close-tab:active {
-  transform: scale(1.3);
-  color: #e53935;            /* rouge plus clair */
-  background: transparent !important; /* 👈 bloque le bleu moche */
-  outline: none;             /* pas de contour par défaut */
-  box-shadow: none;          /* supprime glow éventuel */
-}
-
-#hospitalisationsContent .card {
-  margin-bottom: 20px;
-  padding: 15px;
-  border-left: 6px solid #0078d4;
-}
-#hospitalisationsContent h3 {
-  margin-top: 0;
-  color: #0078d4;
-}
-#hospitalisationsContent .entry {
-  background: #f9f9f9;
-  padding: 8px;
-  border-radius: 6px;
-  margin-bottom: 8px;
-}
-
-.tab-content .card,
-#historique,
-#dossierMedical,
-#examensListe,
-#actesListe {
-  max-width: none !important;  /* supprime la limite de largeur */
-  width: 100% !important;      /* étire les blocs */
-}
-
-
-
-#dossierMedical textarea,
-#tab-dossier textarea,
-#evolutionTexte {
-  border-radius: 10px;
-  border: 1px solid #ccc;
-  padding: 8px 12px;
-}
-
-#tab-dossier textarea {
-  width: 100% !important;
-  box-sizing: border-box;
-  min-height: 120px;
-}
-
-#tab-dossier .card {
-  max-width: none !important;
-  width: 100% !important;
-}
-
-    body {
-      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-      background: #f4f6f8;
-      margin: 0;
-      padding: 20px;
-      color: #333;
-    }
-	  #dossierMedical input[type="text"],
-#dossierMedical input[type="number"] {
-  width: 100%;
-}
-	
-	.bouton-horloge {
-  all: unset;
-  cursor: pointer;
-  font-size: 1.1em;
-  line-height: 1;
-  margin-left: 5px;
-  color: #555;
-}
-.bouton-horloge:hover,
-.bouton-horloge:focus {
-  outline: none;
-  box-shadow: none;
-  background-color: transparent; 
-}
-
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-    }
-    header h2 {
-      margin: 0;
-      color: #0078d4;
-    }
-    button, select, input[type="text"], input[type="number"] {
-      font-size: 1rem;
-      padding: 8px 12px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      outline: none;
-      transition: border-color 0.3s ease;
-    }
-    button {
-      background-color: #0078d4;
-      color: white;
-      cursor: pointer;
-      border: none;
-      margin-right: 10px;
-    }
-    button:hover {
-      background-color: #005ea2;
-    }
-    .card {
-      background: white;
-      border-radius: 10px;
-      box-shadow: 0 3px 8px rgba(0,0,0,0.1);
-      padding: 20px;
-      margin-bottom: 25px;
-      max-width: 600px;
-    }
-    label {
-      display: block;
-      margin-bottom: 5px;
-      font-weight: 600;
-      color: #555;
-    }
-    .field-group {
-      margin-bottom: 15px;
-    }
-    .inline-fields {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-    .inline-fields > div {
-      flex: 1;
-      min-width: 150px;
-    }
-    .corps {
-      max-width: 320px;
-      margin-top: 10px;
-      position: relative;
-      user-select: none;
-    }
-    #corps-img {
-      width: 100%;
-      border-radius: 12px;
-      cursor: crosshair;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-    }
-    .annotation {
-      position: absolute;
-      background: #0078d4cc;
-      color: white;
-      padding: 3px 6px;
-      border-radius: 6px;
-      font-size: 12px;
-      pointer-events: none;
-      white-space: nowrap;
-      user-select: none;
-      transform: translate(-50%, -120%);
-      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-    }
-    #historique {
-      max-width: 600px;
-      background: #fff;
-      border-radius: 10px;
-      box-shadow: 0 3px 8px rgba(0,0,0,0.1);
-      padding: 15px;
-      max-height: 250px;
-      overflow: visible;
-    }
-    .entry {
-      border-left: 4px solid #0078d4;
-      padding-left: 10px;
-      margin-bottom: 12px;
-      font-size: 14px;
-      color: #444;
-    }
-    .entry strong {
-      display: block;
-      font-weight: 700;
-      margin-bottom: 3px;
-      color: #0078d4;
-    }
-    .modal-overlay {
-      position: fixed;
-      top:0; left:0; right:0; bottom:0;
-      background: rgba(0,0,0,0.35);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-    }
-    .modal {
-  background: white;
-  border-radius: 12px;
-  padding: 25px;
-  width: 90%;
-  max-width: 400px;
-  max-height: 90vh;         /* Limite la hauteur à 90% de la fenêtre */
-  overflow-y: auto;         /* Affiche un ascenseur vertical si besoin */
-  box-shadow: 0 4px 15px rgba(0,0,0,0.25);
-}
-
-    .modal h3 {
-      margin-top: 0;
-      margin-bottom: 15px;
-      color: #0078d4;
-    }
-    .modal label {
-      font-weight: 600;
-      margin-bottom: 6px;
-      display: block;
-    }
-    .modal input[type="text"], .modal select, .modal textarea {
-      width: 100%;
-      box-sizing: border-box;
-      margin-bottom: 15px;
-      padding: 8px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      font-size: 1rem;
-      resize: vertical;
-    }
-    .modal textarea {
-      min-height: 80px;
-    }
-    .modal-buttons {
-      text-align: right;
-    }
-    .modal-buttons button {
-      margin-left: 10px;
-      min-width: 90px;
-    }
-button {
-  all: unset;
-  display: inline-block;
-  padding: 10px 16px;
-  font-size: 1rem;
-  border-radius: 8px;
-  min-width: 120px;
-  text-align: center;
-  font-weight: 500;
-  background-color: #0078d4;
-  color: white;
-  cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-button:hover {
-  background-color: #005ea2;
-  transform: translateY(-1px);
-}
-
-/* Boutons secondaires */
-button.secondary {
-  background-color: #6c757d;
-}
-
-button.secondary:hover {
-  background-color: #5a6268;
-}
-
-/* Boutons de validation */
-button.success {
-  background-color: #28a745;
-}
-
-button.success:hover {
-  background-color: #218838;
-}
-
-/* Boutons d’alerte / suppression */
-button.danger {
-  background-color: #dc3545;
-}
-
-button.danger:hover {
-  background-color: #c82333;
-}
-	  
-/* 🧾 MODALE HISTORIQUE PLEIN ÉCRAN */
-#modalRawData.modal-overlay {
-  display: none;
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background-color: rgba(0, 0, 0, 0.6);
-  z-index: 2000;
-  justify-content: center;
-  align-items: center;
-}
-
-#modalRawData .modal {
-  width: 90%;
-  max-width: 800px;
-  max-height: 90vh;
-  overflow-y: auto;
-  background: #fff;
-  padding: 30px;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-}
-
-
-/* Bouton de fermeture (coin supérieur droit) */
-#closeRawData {
-  position: absolute;  
-  top: 10px;          
-  right: 10px;      
-  font-size: 28px;
-  color: #c62828;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  z-index: 5000;         
-  transition: transform 0.2s ease, color 0.2s ease;
-}
-
-/* En-tête de la modale */
-#modalRawData h2 {
-  color: #0078d4;
-  margin-top: 0;
-  text-align: center;
-  font-size: 1.8em;
-  border-bottom: 4px solid #0078d4;
-  padding-bottom: 10px;
-}
-
-
-
-#closeRawData:hover {
-  transform: scale(1.2);
-  color: #ff5252;
-}
-
-/* Cartes d’hospitalisation */
-#hospitalisationsContent {
-  margin-top: 30px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-#hospitalisationsContent .card {
-  background: #f9f9f9;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 3px 8px rgba(0,0,0,0.15);
-  border-left: 8px solid #0078d4;
-}
-
-#hospitalisationsContent h3 {
-  color: #0078d4;
-  margin-top: 10px;
-  margin-bottom: 8px;
-}
-
-#hospitalisationsContent p {
-  margin: 5px 0;
-  line-height: 1.5;
-  white-space: pre-wrap; /* conserve les sauts de ligne */
-  color: #333;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: scale(0.98); }
-  to { opacity: 1; transform: scale(1); }
-}
-
-
-
-/* Pour groupes de boutons côte à côte */
-.button-group {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-.inline-fields {
-  display: flex;
-  gap: 20px; /* espace entre les champs */
-  flex-wrap: wrap; /* pour que ça passe à la ligne si trop étroit */
-}
-
-.field-group {
-  display: flex;
-  flex-direction: column;
-  min-width: 150px; /* largeur mini des champs */
-}
-.bouton-supprimer {
-  background-color: #e0e0e0;
-  color: #555;
-  border: none;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  cursor: pointer;
-  margin-left: 4px;
-}
-.bouton-supprimer:hover {
-  background-color: #ccc;
-}
-
-html, body {
-  margin: 0;
-  padding: 0;
-  height: 100vh;
-
-}
-
-body {
-  display: block;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-}
-
-main {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  padding: 10px;
-  overflow: auto;
-  flex: 1;
-  justify-content: flex-start;
-  align-content: flex-start;
-}
-
-.card {
-  flex: 1 1 300px;
-  max-height: 300px;
-  overflow: auto;
-  box-sizing: border-box;
-  padding: 10px;
-  margin: 0;
-}
-#bubble-container {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  z-index: 9999;
-  align-items: flex-end;
-}
-	.bubble {
-  max-width: 300px;
-  padding: 10px 15px;
-  border-radius: 8px;
-  color: white;
-  font-family: sans-serif;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-  animation: fadeout 0.5s ease-in-out 1.5s forwards;
-  word-wrap: break-word;
-  text-align: left;
-}
-
-.administratif {
-  background-color: #2196F3; /* bleu */
-}
-
-.alerte {
-  background-color: #f44336; /* rouge */
-}
-
-@keyframes fadeout {
-  to {
-    opacity: 0;
-    transform: translateX(-20px);
-  }
-}
-
-.exam-button {
-  background-color: #007BFF;
-  color: white;
-  padding: 12px;
-  width: 100%;
-  border: none;
-  border-radius: 6px;
-  margin-top: 10px;
-  cursor: pointer;
-  font-size: 16px;
-}
-.exam-button:hover {
-  background-color: #0056b3;
-}
-.sub-list {
-  display: none;
-  margin-top: 10px;
-  padding-left: 10px;
-}
-.sub-list label {
-  display: block;
-  margin: 5px 0;
-  cursor: pointer;
-}
-.prescription-item {
-  background: #eef;
-  padding: 10px;
-  margin: 5px 0;
-  border-radius: 6px;
-  display: flex;
-  justify-content: space-between;
-}
-.btn-delete {
-  background-color: red;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  padding: 5px 10px;
-  cursor: pointer;
-}
-
-/* Modale Gestion Administrative plein écran */
-#modalAdmin.modal-overlay {
-  display: none;
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background-color: rgba(0, 0, 0, 0.6);
-  z-index: 2000;
-  justify-content: center;
-  align-items: center;
-}
-
-#modalAdmin .modal {
-  width: 90%;
-  max-width: 800px;
-  max-height: 90vh;
-  overflow-y: auto;
-  background: #fff;
-  padding: 30px;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-}
-
-.btn-admin {
-  background-color: #5cb85c; 
-  color: white;
-  border: none;
-  padding: 10px 16px;
-  font-size: 1rem;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.15);
-}
-
-.btn-admin:hover {
-  background-color: #218838;
-  transform: translateY(-1px);
-}
-#modalCloture.modal-overlay {
-  z-index: 3000; /* plus haut que #modalAdmin */
-}
-#modalActe.modal-overlay {
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 3000;
-  display: none;
-  justify-content: center;
-  align-items: center;
-}
-
-#modalActe .modal {
-  width: 95%;
-  max-width: none;
-  max-height: 95vh;
-  height: 95vh;
-  overflow-y: auto;
-  border-radius: 12px;
-  background: white;
-  padding: 25px;
-}
-#loadingOverlay {
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 10000;
-  flex-direction: column;
-  color: white;
-  font-family: 'Segoe UI', sans-serif;
-  font-size: 1.2rem;
-  pointer-events: all;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-.spinner {
-  width: 60px;
-  height: 60px;
-  border: 6px solid #f3f3f3;
-  border-top: 6px solid #3498db;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 20px;
-}
-#dossierMedical {
-  max-height: 300px;
-  overflow-y: auto;
-}
-
-#dossierMedical .contenu-dossier-medical {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-#dossierMedical textarea {
-  resize: vertical;
-  min-height: 60px;
-}
-#evolutionTexte {
-width: 100%;
-  box-sizing: border-box;
-  min-height: 500px;
-  resize: vertical;
-}
+	 /* Inputs text et number */
+/* =========================== */
+/* Inputs text et number */
+/* =========================== */
+#dossierMedical input[type="text"],
+#dossierMedical input[type="number"],
 input[type="text"],
 input[type="date"],
-select {
+select,
+textarea {
   width: 100%;
-  padding: 8px 12px;
-  margin: 6px 0;
-  border: 1px solid #ccc;
-  border-radius: 8px;
   box-sizing: border-box;
-  font-size: 16px;
+  font-size: clamp(0.875rem, 1vw, 1rem);
+  padding: clamp(0.5em, 1vw, 0.75em);
+  border-radius: 0.5em;
+  border: 1px solid #ccc;
   font-family: inherit;
-  appearance: none; /* pour uniformiser certains navigateurs */
   background-color: #fff;
-}
-input.text1 {
-  width: 120px;   /* largeur fixe, tu peux changer */
-  display: inline-block;
-}
-	  input.text2 {
-  width: 200px;   /* largeur fixe, tu peux changer */
-  display: inline-block;
-}
-input[type="date"]::-webkit-inner-spin-button,
-input[type="date"]::-webkit-calendar-picker-indicator {
-  filter: invert(0.5); /* optionnel : améliore l'intégration dans les thèmes clairs/foncés */
+  resize: vertical;
+  margin: 0.375em 0;
+  appearance: none;
 }
 
-label {
-  display: block;
-  margin-top: 10px;
-  font-weight: bold;
+/* Largeurs spécifiques remplacées par % */
+input.text1 { width: 20%; min-width: 80px; display: inline-block; }
+input.text2 { width: 35%; min-width: 120px; display: inline-block; }
+
+/* =========================== */
+/* Boutons */
+/* =========================== */
+button, .bouton-ancienne, .bouton-horloge, .btn-delete, .btn-admin, .exam-button, .bouton-supprimer {
+  cursor: pointer;
+  font-size: clamp(0.875rem, 1vw, 1rem);
+  border-radius: 0.5em;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  box-sizing: border-box;
+  display: inline-block;
+  text-align: center;
 }
+
+/* Bouton principal */
+button {
+  background-color: #0078d4;
+  color: white;
+  border: none;
+  padding: clamp(0.5em, 1vw, 0.75em) clamp(0.75em, 2vw, 1em);
+  min-width: clamp(80px, 15vw, 120px);
+  box-shadow: 0 0.125em 0.25em rgba(0,0,0,0.1);
+}
+
+button:hover { background-color: #005ea2; transform: translateY(-1px); }
+
+/* Boutons secondaires */
+button.secondary { background-color: #6c757d; }
+button.secondary:hover { background-color: #5a6268; }
+
+/* Boutons succès */
+button.success { background-color: #28a745; }
+button.success:hover { background-color: #218838; }
+
+/* Boutons danger */
+button.danger { background-color: #dc3545; }
+button.danger:hover { background-color: #c82333; }
+
+/* Bouton ancienne */
+.bouton-ancienne {
+  all: unset;
+  color: #2c7be5;
+  background: transparent !important;
+  margin-left: 0.3em;
+}
+.bouton-ancienne:hover,
+.bouton-ancienne:focus,
+.bouton-ancienne:active { color: #1b4f9c; }
+
+/* Bouton horloge */
+.bouton-horloge { all: unset; color: #555; margin-left: 0.3em; }
+.bouton-horloge:hover, .bouton-horloge:focus { outline: none; background-color: transparent; }
+
+/* Boutons suppression */
+.bouton-supprimer { background-color: #e0e0e0; color: #555; padding: 0.125em 0.375em; font-size: 0.75rem; margin-left: 0.25em; }
+.bouton-supprimer:hover { background-color: #ccc; }
+
+/* =========================== */
+/* Header */
+/* =========================== */
 header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 20px;
-  background-color: #f5f5f5; /* optionnel, pour une meilleure lisibilité */
+  padding: 0.625em 1.25em;
+  background-color: #f5f5f5;
   border-bottom: 1px solid #ccc;
 }
 
-.left-header h2 {
-  margin: 0;
+header h2 { margin: 0; color: #0078d4; }
+.right-header { font-size: 0.9em; color: #333; }
+
+/* =========================== */
+/* Tabs */
+/* =========================== */
+.tabs { display: flex; width: 100%; flex-wrap: wrap; }
+.tablink {
+  flex: 1 1 auto;
+  text-align: center;
+  padding: clamp(0.5em, 1vw, 0.75em);
+  border: none;
+  cursor: pointer;
+  background: #2196f3;
+  color: white;
+  font-size: clamp(0.9rem, 1vw, 1rem);
+  transition: transform 0.2s, background 0.2s;
+}
+.tablink:hover { background: #1976d2; transform: scale(1.05); }
+.tablink.active { background: #2196f3; color: black; font-weight: bold; transform: scale(1.08); }
+
+/* Tab content */
+.tab-content { display: none; width: 100%; max-width: none; box-sizing: border-box; }
+
+/* =========================== */
+/* Close tab */
+.close-tab {
+  all: unset; cursor: pointer; color: #c62828; font-size: clamp(1.25rem,2vw,1.25rem);
+  font-weight: bold; line-height:1; background: transparent !important; transition: transform 0.2s, color 0.2s;
+}
+.close-tab:hover, .close-tab:focus, .close-tab:active { transform: scale(1.3); color:#e53935; }
+
+/* =========================== */
+/* Card / Containers */
+.card {
+  background: white;
+  border-radius: 0.625em;
+  box-shadow: 0 0.1875em 0.5em rgba(0,0,0,0.1);
+  padding: 1.25em;
+  margin-bottom: 1.5625em;
+  flex: 1 1 300px;
+  max-width: 100%;
+  overflow: auto;
+  box-sizing: border-box;
 }
 
-.right-header {
-  font-size: 0.9em;
-  color: #333;
+/* Historique */
+#historique { max-width: 600px; background: #fff; border-radius: 0.625em; box-shadow:0 0.1875em 0.5em rgba(0,0,0,0.1); padding:0.9375em; max-height:250px; overflow: visible; }
+.entry { border-left:0.25em solid #0078d4; padding-left:0.625em; margin-bottom:0.75em; font-size:0.875rem; color:#444; }
+.entry strong { display:block; font-weight:700; margin-bottom:0.1875em; color:#0078d4; }
+
+/* =========================== */
+/* Form groups / inline fields */
+.field-group { display:flex; flex-direction:column; margin-bottom:0.9375em; min-width:150px; }
+.inline-fields { display:flex; gap:1.25em; flex-wrap:wrap; }
+.inline-fields > div { flex:1 1 clamp(150px,20%,300px); }
+
+/* =========================== */
+/* Corps humain */
+.corps { max-width:320px; margin-top:0.625em; position:relative; user-select:none; }
+#corps-img { width:100%; border-radius:0.75em; cursor:crosshair; box-shadow:0 0.125em 0.375em rgba(0,0,0,0.15); }
+.annotation { position:absolute; background:#0078d4cc; color:white; padding:0.1875em 0.375em; border-radius:0.375em; font-size:0.75rem; pointer-events:none; white-space:nowrap; transform:translate(-50%,-120%); box-shadow:0 0.0625em 0.1875em rgba(0,0,0,0.3); }
+
+/* =========================== */
+/* Modales */
+.modal-overlay {
+  position: fixed; top:0; left:0; right:0; bottom:0;
+  background: rgba(0,0,0,0.35); display:none; justify-content:center; align-items:center; z-index:1000;
+}
+.modal {
+  background:white; border-radius:0.75em; padding:1.5625em; width:90%; max-width:800px; max-height:90vh; overflow-y:auto; box-shadow:0 0.25em 0.9375em rgba(0,0,0,0.25);
+}
+.modal h3 { margin-top:0; margin-bottom:0.9375em; color:#0078d4; }
+.modal label { font-weight:600; margin-bottom:0.375em; display:block; }
+.modal input, .modal select, .modal textarea { width:100%; box-sizing:border-box; margin-bottom:0.9375em; padding:0.5em; border-radius:0.375em; border:1px solid #ccc; font-size:clamp(0.875rem,1vw,1rem); resize:vertical; }
+.modal textarea { min-height:80px; }
+.modal-buttons { text-align:right; }
+.modal-buttons button { margin-left:0.625em; min-width:90px; }
+
+/* =========================== */
+/* Spécial - Exam / prescription / hospitalisation */
+.exam-button { background-color:#007BFF; color:white; padding:0.75em; width:100%; border:none; border-radius:0.375em; margin-top:0.625em; font-size:1rem; cursor:pointer; }
+.exam-button:hover { background-color:#0056b3; }
+
+.prescription-item { background:#eef; padding:0.625em; margin:0.3125em 0; border-radius:0.375em; display:flex; justify-content:space-between; }
+.btn-delete { background-color:red; color:white; border:none; border-radius:0.375em; padding:0.3125em 0.625em; cursor:pointer; }
+
+.sub-list { display:none; margin-top:0.625em; padding-left:0.625em; }
+.sub-list label { display:block; margin:0.3125em 0; cursor:pointer; }
+
+/* =========================== */
+/* Loading overlay */
+#loadingOverlay {
+  position:fixed; top:0; left:0; right:0; bottom:0;
+  background: rgba(0,0,0,0.7);
+  display:flex; justify-content:center; align-items:center; flex-direction:column;
+  z-index:10000; color:white; font-family:'Segoe UI', sans-serif; font-size:clamp(1rem,1.5vw,1.2rem); pointer-events:all;
+}
+.spinner { width:60px; height:60px; border:6px solid #f3f3f3; border-top:6px solid #3498db; border-radius:50%; animation:spin 1s linear infinite; margin-bottom:1.25em; }
+@keyframes spin { 0% {transform:rotate(0deg);} 100% {transform:rotate(360deg);} }
+
+/* =========================== */
+/* Vidéal Search */
+.vidal-search { display:flex; align-items:center; margin:1.25em 0; font-family:Arial,sans-serif; }
+.vidal-search input[type="text"] { padding:0.625em; font-size:1rem; border:2px solid #d32f2f; border-right:none; border-radius:0.25em 0 0 0.25em; width:100%; max-width:300px; }
+.vidal-search button { padding:0.625em 1.25em; background:#d32f2f; color:white; font-size:1rem; border:2px solid #d32f2f; border-radius:0 0.25em 0.25em 0; cursor:pointer; }
+.vidal-search button:hover { background:#b71c1c; border-color:#b71c1c; }
+
+/* =========================== */
+/* Animations */
+@keyframes fadeIn { from{opacity:0; transform:scale(0.98);} to{opacity:1; transform:scale(1);} }
+@keyframes fadeout { to { opacity:0; transform:translateX(-20px); } }
+
+/* =========================== */
+/* Media Queries pour petits écrans */
+@media (max-width: 768px) {
+  .inline-fields { flex-direction: column; }
+  header { flex-direction: column; align-items:flex-start; }
+  button { width:100%; margin-bottom:0.5em; }
+  .card { min-width:100%; }
 }
 
-  .vidal-search {
-    display: flex;
-   
-    align-items: center;
-    margin: 20px 0;
-    font-family: Arial, sans-serif;
-  }
 
-  /* Input de recherche */
-  .vidal-search input[type="text"] {
-    padding: 10px;
-    font-size: 16px;
-    border: 2px solid #d32f2f; /* rouge Vidal */
-    border-right: none; /* pour que le bouton soit collé */
-    border-radius: 4px 0 0 4px; /* coins arrondis côté gauche */
-    outline: none;
-    width: 300px;
-  }
-
-  /* Bouton de recherche */
-  .vidal-search button {
-    padding: 10px 20px;
-    background-color: #d32f2f; /* rouge Vidal */
-    color: white;
-    font-size: 16px;
-    border: 2px solid #d32f2f;
-    border-radius: 0 4px 4px 0; /* coins arrondis côté droit */
-    cursor: pointer;
-    transition: background-color 0.3s;
-  }
-
-  /* Effet au survol */
-  .vidal-search button:hover {
-    background-color: #b71c1c; /* rouge plus foncé au survol */
-    border-color: #b71c1c;
-  }
   </style>
 </head>
 <body>
@@ -3000,6 +2426,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
