@@ -718,12 +718,16 @@ document.getElementById("btnEnvoyerMail").addEventListener("click", async functi
       .replace("{{patient_nom}}", lastName)
       .replace("{{lien_compte_rendu}}", lienPdf);
 
-    // 6️⃣ Envoi via EmailJS
-    await emailjs.send("service_o07vuso", "template_vj03i4u", {
-      to_email: emailPatient,
-      html_message: htmlMessage,
-      subject: "Votre rapport d'hopsitalisation est disponible !"
-    });
+ await fetch("https://tonserveur.com/send-mail", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    to: emailPatient,
+    subject: "Votre rapport d'hospitalisation est disponible !",
+    html: htmlMessage,
+  }),
+});
+
 
     hideLoadingModal();
     afficherBulle("📨 E-mail envoyé avec succès au patient !", "administratif");
@@ -871,6 +875,7 @@ let medecinNom = "";
 
 </body>
 </html>
+
 
 
 
