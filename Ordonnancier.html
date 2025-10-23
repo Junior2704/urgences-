@@ -16841,7 +16841,14 @@ document.getElementById("btnEnvoyerMail").addEventListener("click", async functi
     }
 
     const html_message = `
-  <title>Ordonnance médicale disponible</title>
+  !DOCTYPE html>
+  <html lang="fr">
+  <head>
+    <meta charset="UTF-8">
+    
+
+  <title>Compte-rendu d’hospitalisation</title>
+    </head>
 <body style="margin:0; padding:0; background-color:#f4f6f9; font-family:'Segoe UI', Roboto, Arial, sans-serif; color:#333;">
   <table width="100%" cellpadding="0" cellspacing="0" style="max-width:640px; margin:auto; background:white; border-radius:10px; box-shadow:0 3px 10px rgba(0,0,0,0.08); overflow:hidden;">
     
@@ -16857,47 +16864,45 @@ document.getElementById("btnEnvoyerMail").addEventListener("click", async functi
     <!-- Corps du message -->
     <tr>
       <td style="padding:30px;">
-        <h2 style="color:#0057a4; font-weight:600; margin-top:0;">Votre ordonnance médicale</h2>
+        <h2 style="color:#0057a4; font-weight:600; margin-top:0;">Votre compte-rendu d’hospitalisation</h2>
 
         <p style="font-size:16px; line-height:1.6;">
           Bonjour <strong>{{patient_prenom}} {{patient_nom}}</strong>,
         </p>
 
         <p style="font-size:15px; line-height:1.6; color:#555;">
-          Votre ordonnance médicale a été établie par le médecin responsable à la suite de votre passage aux urgences.
-          Ce document contient la liste des traitements prescrits ainsi que les posologies à suivre.
+          L'ordonannce de votre médecin est mainteant disponible au téléchargement.
+		  Ce document est strictement personnnel. Il vous permet d'acheter les médicaments prescrits en pharmacie ou dans un magasin approprié.
+		  Pour toute question relative à votre Ordonnance, n'hésitez pas à nous contacter le service des Urgences par e-mail : <a href="mailto:urgences.hopj@gmail.com" style="color:#0057a4;">urgences.hopj@gmail.com</a>
         </p>
 
         <!-- Bouton principal -->
         <div style="text-align:center; margin:30px 0;">
           <a href="{{lien_compte_rendu}}" 
              style="background-color:#0057a4; color:white; padding:14px 32px; text-decoration:none; border-radius:8px; font-weight:500; display:inline-block;">
-            🩺 Consulter l’ordonnance
+            🔗 Télécharger l'ordonnance
           </a>
         </div>
+<p style="font-size:15px; line-height:1.6; color:#555;">
+        ⚠️ Ce document est valable 7 jours, au-delà de ce delai, vous ne pourrez plus y acceder et l'hôpital ne sera pas en mesure de vous en fournir une copie.
 
-        <p style="font-size:15px; line-height:1.6; color:#555;">
-          ⚠️ Ce lien est valable <strong>7 jours</strong>. Passé ce délai, le document ne sera plus accessible pour des raisons de confidentialité.
-        </p>
 
         <p style="font-size:14px; color:#777;">
-          Si vous rencontrez des difficultés pour consulter votre document, merci de contacter le service des Urgences à l’adresse suivante : 
-          <a href="mailto:urgences.hopj@gmail.com" style="color:#0057a4;">urgences.hopj@gmail.com</a>
+          Si vous rencontrez des difficultés pour consulter le document, merci de contacter le service des Urgences par e-mail : <a href="mailto:urgences.hopj@gmail.com" style="color:#0057a4;">urgences.hopj@gmail.com</a>
         </p>
 
         <hr style="border:none; border-top:1px solid #e0e0e0; margin:30px 0;">
 
         <p style="font-size:13px; color:#999; text-align:center;">
-          Service des Urgences<br>
+          Service des Urgences <br>
+        
           <em>Cet e-mail a été généré automatiquement, merci de ne pas y répondre.</em>
         </p>
       </td>
     </tr>
   </table>
-
-
-
-    `;
+</body>
+</html>`;
 
     // 7️⃣ Envoi via EmailJS
     await emailjs.send("service_o07vuso", "template_vj03i4u", {

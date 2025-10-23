@@ -654,7 +654,12 @@ document.getElementById("btnEnvoyerMail").addEventListener("click", async functi
 
     // 5️⃣ Construction du corps de mail dynamique
     const htmlMessage = `
-    
+!DOCTYPE html>
+  <html lang="fr">
+  <head>
+    <meta charset="UTF-8">
+   
+ 
   <title>Compte-rendu d’hospitalisation</title>
 </head>
 <body style="margin:0; padding:0; background-color:#f4f6f9; font-family:'Segoe UI', Roboto, Arial, sans-serif; color:#333;">
@@ -681,13 +686,15 @@ document.getElementById("btnEnvoyerMail").addEventListener("click", async functi
         <p style="font-size:15px; line-height:1.6; color:#555;">
           Le compte-rendu de votre hospitalisation a été validé par le médecin responsable et est désormais disponible.
           Ce document récapitule votre prise en charge, les examens effectués, ainsi que les recommandations médicales à suivre.
+          		  Pour toute question relative à votre compte-rendu, n'hésitez pas à nous contacter le service des Urgences par e-mail : <a href="mailto:urgences.hopj@gmail.com" style="color:#0057a4;">urgences.hopj@gmail.com</a>
+
         </p>
 
         <!-- Bouton principal -->
         <div style="text-align:center; margin:30px 0;">
           <a href="{{lien_compte_rendu}}" 
              style="background-color:#0057a4; color:white; padding:14px 32px; text-decoration:none; border-radius:8px; font-weight:500; display:inline-block;">
-            🔗 Consulter le compte-rendu
+            🔗 Télécharger le compte-rendu
           </a>
         </div>
 <p style="font-size:15px; line-height:1.6; color:#555;">
@@ -709,8 +716,8 @@ document.getElementById("btnEnvoyerMail").addEventListener("click", async functi
     </tr>
   </table>
 </body>
-
-    `;
+ </body>
+  </html>`;
 
     // 6️⃣ Envoi via EmailJS (modèle générique)
     await emailjs.send("service_o07vuso", "template_vj03i4u", {
