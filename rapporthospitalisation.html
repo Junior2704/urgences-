@@ -653,7 +653,7 @@ document.getElementById("btnEnvoyerMail").addEventListener("click", async functi
     const lienPdf = `https://junior2704.github.io/urgences-/monpdf.html?id=${idUnique}`;
     console.log("✅ Lien Firestore :", lienPdf);
 
-    // 5️⃣ Construction du corps de mail dynamique (avec remplacement des variables)
+    // 5️⃣ Corps du mail dynamique
     let htmlMessage = `
 <!DOCTYPE html>
 <html lang="fr">
@@ -675,25 +675,25 @@ document.getElementById("btnEnvoyerMail").addEventListener("click", async functi
         <h2 style="color:#0057a4; font-weight:600; margin-top:0;">Votre compte-rendu d’hospitalisation</h2>
 
         <p style="font-size:16px; line-height:1.6;">
-          Bonjour <strong>{{patient_prenom}} {{patient_nom}}</strong>,
+          Bonjour <strong>${firstName} ${lastName}</strong>,
         </p>
 
         <p style="font-size:15px; line-height:1.6; color:#555;">
           Le compte-rendu de votre hospitalisation a été validé par le médecin responsable et est désormais disponible.
           Ce document récapitule votre prise en charge, les examens effectués, ainsi que les recommandations médicales à suivre.
-          		  Pour toute question relative à votre Ordonnance, n'hésitez pas à nous contacter le service des Urgences par e-mail : <a href="mailto:urgences.hopj@gmail.com" style="color:#0057a4;">urgences.hopj@gmail.com</a>
-
+          Pour toute question relative à votre Ordonnance, n'hésitez pas à nous contacter le service des Urgences par e-mail : 
+          <a href="mailto:urgences.hopj@gmail.com" style="color:#0057a4;">urgences.hopj@gmail.com</a>
         </p>
 
         <div style="text-align:center; margin:30px 0;">
-          <a href="{{lien_compte_rendu}}" 
+          <a href="${lienPdf}" 
              style="background-color:#0057a4; color:white; padding:14px 32px; text-decoration:none; border-radius:8px; font-weight:500; display:inline-block;">
             🔗 Télécharger le compte-rendu
           </a>
         </div>
 
         <p style="font-size:15px; line-height:1.6; color:#555;">
-          ⚠️ Ce document est valable 7 jours. Au-delà, il ne sera plus accessible pour des raisons de confidentialité et l'hôpital ne sera pas en mesure de vous en fournir une copie.
+          ⚠️ Ce document est valable 7 jours. Au-delà de ce délai, il ne sera plus accessible pour des raisons de confidentialité et l'hôpital ne sera pas en mesure de vous en fournir une copie.
         </p>
 
         <p style="font-size:14px; color:#777;">
@@ -712,19 +712,45 @@ document.getElementById("btnEnvoyerMail").addEventListener("click", async functi
 </body>
 </html>`;
 
-    // Remplacement des variables dynamiques
-    htmlMessage = htmlMessage
-      .replace("{{patient_prenom}}", firstName)
-      .replace("{{patient_nom}}", lastName)
-      .replace("{{lien_compte_rendu}}", lienPdf);
+    // 6️⃣ Configuration de tes comptes EmailJS
+    const comptesEmailJS = [
+      { serviceID: "service_o07vuso", templateID: "template_vj03i4u", publicKey: "CZapZCcxYfJ8-acLS" }, // compte principal
+      { serviceID: "service_o3i8ac9", templateID: "template_0wbzbwe", publicKey: "j5G-06rjQm0P6wriE" }  // compte de secours
+    ];
 
- await emailjs.send("service_o07vuso", "template_vj03i4u", {
-      to_email: to_email,
-      html_message: html_message,
-	  subject: "Votre commpte-rendu d'hopsitalisation est disponible !"
-    });
+    // 7️⃣ Fonction d’envoi avec fallback
+    let mailEnvoye = false;
+    let derniereErreur = "";
 
+    for (const compte of comptesEmailJS) {
+      try {
+        console.log(`📨 Tentative d’envoi via ${compte.serviceID}...`);
+        await emailjs.send(compte.serviceID, compte.templateID, {
+          to_email: emailPatient,
+          html_message: htmlMessage,
+          subject: "Votre compte-rendu d'hospitalisation est disponible !"
+        }, compte.publicKey);
 
+        console.log(`✅ E-mail envoyé avec succès via ${compte.serviceID}`);
+        mailEnvoye = true;
+        break;
+      } catch (error) {
+        console.warn(`⚠️ Échec avec ${compte.serviceID}:`, error.text || error);
+        derniereErreur = error.text || "";
+
+        // Vérifie si c’est une erreur de quota
+        if (derniereErreur && derniereErreur.toLowerCase().includes("quota")) {
+          console.log("🔁 Quota dépassé, essai avec le compte suivant...");
+        } else {
+          console.log("❌ Erreur non liée au quota, arrêt du processus.");
+          break;
+        }
+      }
+    }
+
+    if (!mailEnvoye) {
+      throw new Error("Aucun e-mail n’a pu être envoyé. Détail : " + derniereErreur);
+    }
 
     hideLoadingModal();
     afficherBulle("📨 E-mail envoyé avec succès au patient !", "administratif");
