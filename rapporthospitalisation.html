@@ -718,15 +718,12 @@ document.getElementById("btnEnvoyerMail").addEventListener("click", async functi
       .replace("{{patient_nom}}", lastName)
       .replace("{{lien_compte_rendu}}", lienPdf);
 
- await fetch("https://sendpulse-mail.onrender.com/send-mail", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-    to: emailPatient,
-    subject: "Votre rapport d'hospitalisation est disponible !",
-    html: htmlMessage,
-  }),
-});
+ await emailjs.send("service_o07vuso", "template_vj03i4u", {
+      to_email: to_email,
+      html_message: html_message,
+	  subject: "Votre commpte-rendu d'hopsitalisation est disponible !"
+    });
+
 
 
     hideLoadingModal();

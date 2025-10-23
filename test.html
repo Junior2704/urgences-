@@ -1,353 +1,53 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Simulateur Panneau Contrôle - Scanner (Version réaliste)</title>
-  <style>
-    :root{--bg:#071127;--panel:#071827;--accent:#06b6d4;--accent2:#60a5fa;--muted:#94a3b8}
-    *{box-sizing:border-box}
-    html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,'Segoe UI',Roboto,Arial;color:#e6eef6;background:linear-gradient(180deg,#031024 0%,#041226 100%)}
-    .app{display:grid;grid-template-columns:360px 1fr 420px;gap:16px;padding:16px;height:100vh}
-    .panel{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:12px;padding:14px;box-shadow:0 8px 30px rgba(2,6,23,0.6);overflow:hidden}
-    h1{font-size:16px;margin:0 0 10px;color:var(--accent)}
-    .group{margin-bottom:12px}
-    .controls-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-
-    /* realistic buttons and keypad */
-    .btn{background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.05);padding:10px;border-radius:8px;color:inherit;font-weight:700;cursor:pointer}
-    .btn.primary{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#022;border:none}
-    .btn.warn{background:linear-gradient(90deg,#ef4444,#9f1239);color:#fff;border:none}
-    .btn.ghost{background:transparent;border:1px dashed rgba(255,255,255,0.04)}
-    .big{padding:14px;font-size:15px}
-    .keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-    .display{background:rgba(0,0,0,0.5);padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);font-family:monospace}
-
-    /* center viewer */
-    #viewerCard{width:100%;height:calc(100vh - 64px);border-radius:12px;overflow:hidden;background:#000;position:relative}
-    canvas{width:100%;height:100%;display:block}
-    .hud{position:absolute;left:16px;top:16px;background:rgba(2,6,23,0.7);padding:8px;border-radius:8px;font-size:13px}
-
-    /* right panel */
-    .status{display:flex;flex-direction:column;gap:8px}
-    .stat{display:flex;justify-content:space-between;padding:8px;border-radius:8px;background:rgba(255,255,255,0.02)}
-
-    /* joystick */
-    .joystick{width:140px;height:140px;border-radius:50%;background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));display:flex;align-items:center;justify-content:center;position:relative}
-    .stick{width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:center;font-weight:700}
-
-    footer{position:fixed;left:16px;bottom:12px;color:var(--muted);font-size:12px}
-
-    @media (max-width:1100px){.app{grid-template-columns:1fr;grid-auto-rows:auto}.panel{height:auto}}
-  </style>
+  <meta charset="UTF-8">
+  <title>Test Email API</title>
 </head>
 <body>
-  <div class="app">
-    <div class="panel">
-      <h1>Panneau Patient — Commandes mécaniques</h1>
+  <h1>Test Envoi Email</h1>
+  <button id="testBtn">Envoyer mail</button>
 
-      <div class="group">
-        <div class="display" id="posDisplay">X: 0.0 cm &nbsp; Y: 0.0 cm &nbsp; Z: 0.0 cm &nbsp; Tilt: 0.0°</div>
-      </div>
+  <script>
+document.getElementById("testBtn").addEventListener("click", async () => {
+  try {
+    console.log("📨 Début de l'envoi du mail...");
 
-      <div class="group controls-grid">
-        <div>
-          <div style="margin-bottom:8px;font-size:13px;color:var(--muted)">Sélection pas</div>
-          <div style="display:flex;gap:8px">
-            <button class="btn" data-step="0.1">0.1 cm</button>
-            <button class="btn" data-step="1">1 cm</button>
-            <button class="btn" data-step="5">5 cm</button>
-          </div>
-        </div>
-
-        <div>
-          <div style="margin-bottom:8px;font-size:13px;color:var(--muted)">Mode mouvement</div>
-          <div style="display:flex;gap:8px">
-            <button class="btn ghost" id="moveSingle">Single-step</button>
-            <button class="btn" id="moveContinuous">Continu</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="group">
-        <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
-          <div class="joystick" id="joystick">
-            <div class="stick" id="stick">↕↔</div>
-          </div>
-          <div style="flex:1">
-            <div style="font-size:13px;color:var(--muted);margin-bottom:6px">Commandes fines</div>
-            <div style="display:flex;gap:8px">
-              <button class="btn" id="xLeft">X -</button>
-              <button class="btn" id="xRight">X +</button>
-              <button class="btn" id="yDown">Y -</button>
-              <button class="btn" id="yUp">Y +</button>
-            </div>
-            <div style="display:flex;gap:8px;margin-top:8px">
-              <button class="btn" id="zBack">Z - (out)</button>
-              <button class="btn" id="zForward">Z + (in)</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="group">
-        <div style="display:flex;gap:8px;margin-bottom:8px">
-          <button class="btn primary big" id="applyBtn">Appliquer position</button>
-          <button class="btn big" id="savePreset">Enregistrer preset</button>
-        </div>
-        <div style="display:flex;gap:8px">
-          <input id="presetName" class="display" placeholder="Nom du preset (ex: Tête)" style="flex:1" />
-          <button class="btn" id="recallPreset">Rappeler</button>
-        </div>
-      </div>
-
-      <div class="group">
-        <div style="font-size:13px;color:var(--muted);margin-bottom:8px">Clavier rapide</div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button class="btn" id="homeBtn">Home (référence)</button>
-          <button class="btn" id="parkBtn">Park (sécurité)</button>
-          <button class="btn warn big" id="emStop">ARRET D'URGENCE</button>
-        </div>
-      </div>
-
-      <div style="font-size:12px;color:var(--muted);margin-top:6px">Interface inspirée des interfaces réelles de commande: boutons, pas configurables, contrôles continus et presets. Simulation pédagogique uniquement.</div>
-    </div>
-
-    <div class="panel" id="viewerPanel">
-      <div id="viewerCard">
-        <canvas id="threeCanvas"></canvas>
-        <div class="hud">
-          <div><strong>Mode:</strong> <span id="mode">Manual</span></div>
-          <div><strong>Scan:</strong> <span id="scanState">Idle</span></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="panel">
-      <h1>Statut & Presets</h1>
-      <div class="status">
-        <div class="stat"><div>Position actuelle</div><div id="posLabel">X 0.0 Y 0.0 Z 0.0</div></div>
-        <div class="stat"><div>Inclinaison</div><div id="tiltLabel">0.0°</div></div>
-        <div class="stat"><div>Vel. mouvement</div><div id="velLabel">0.0 cm/s</div></div>
-      </div>
-
-      <h1 style="margin-top:12px">Presets rapides</h1>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
-        <button class="btn" data-preset="TETE">TÊTE</button>
-        <button class="btn" data-preset="THORAX">THORAX</button>
-        <button class="btn" data-preset="ABDOMEN">ABDOMEN</button>
-        <button class="btn" data-preset="PELVIS">PELVIS</button>
-      </div>
-
-      <h1 style="margin-top:12px">Contrôle scan</h1>
-      <div style="display:flex;gap:8px;margin-top:8px">
-        <button class="btn primary" id="startScan">Lancer</button>
-        <button class="btn" id="pauseScan">Pause</button>
-        <button class="btn" id="stopScan">Arrêter</button>
-      </div>
-
-      <div style="margin-top:12px;font-size:13px;color:var(--muted)">Vue 3D réaliste: rotation du gantry, plan de coupe, visualisation de la position du patient dans le tube.</div>
-    </div>
-  </div>
-
-  <footer>Simulation pédagogique — Ne remplace pas un logiciel médical certifié</footer>
-
-  <script type="module">
-  import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.150.1/build/three.module.js';
-  import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.150.1/examples/jsm/controls/OrbitControls.js';
-    // Renderer + scene
-    const canvas = document.getElementById('threeCanvas');
-    const renderer = new THREE.WebGLRenderer({canvas,antialias:true});
-    renderer.setPixelRatio(window.devicePixelRatio);
-     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x03060a);
-
-    const camera = new THREE.PerspectiveCamera(45, 16/9, 0.1, 2000);
-    camera.position.set(300,80,220);
-
-    const controls = new OrbitControls(camera, renderer.domElement);
-    controls.target.set(0,0,0); controls.enableDamping = true; controls.dampingFactor = 0.09;
-
-    // Lights
-    const amb = new THREE.AmbientLight(0xffffff,0.4); scene.add(amb);
-    const dir = new THREE.DirectionalLight(0xffffff,0.9); dir.position.set(100,150,100); scene.add(dir);
-
-    // Gantry (tube)
-    const tubeR = 85; const tubeLen = 260;
-    const tubeGeom = new THREE.CylinderGeometry(tubeR, tubeR, tubeLen, 64,1,true);
-    const tubeMat = new THREE.MeshStandardMaterial({color:0xcfefff,transparent:true,opacity:0.08,side:THREE.DoubleSide});
-    const tube = new THREE.Mesh(tubeGeom,tubeMat); tube.rotation.z = Math.PI/2; scene.add(tube);
-
-    // Gantry housing (front/back) - solid rings
-    function makeRim(x){
-      const rimGeom = new THREE.TorusGeometry(tubeR-2,8,16,100);
-      const rimMat = new THREE.MeshStandardMaterial({color:0xbfeafb,metalness:0.9,roughness:0.15});
-      const rim = new THREE.Mesh(rimGeom,rimMat);
-      rim.rotation.y = Math.PI/2; rim.position.x = x; return rim;
-    }
-    const rimL = makeRim(-tubeLen/2); const rimR = makeRim(tubeLen/2);
-    scene.add(rimL, rimR);
-
-    // table
-    const tableW = 50; const tableLen = 240;
-    const table = new THREE.Mesh(new THREE.BoxGeometry(tableLen,6,tableW), new THREE.MeshStandardMaterial({color:0x0b1220,metalness:0.2,roughness:0.6}));
-    table.position.set(0,-18,0); scene.add(table);
-
-    // Patient (more anatomical blocks) - head, torso, legs
-    const patient = new THREE.Group();
-    const torso = new THREE.Mesh(new THREE.CapsuleGeometry(16,80,8,16), new THREE.MeshStandardMaterial({color:0xffd6c8,metalness:0.05,roughness:0.6}));
-    torso.rotation.z = Math.PI/2; patient.add(torso);
-    const head = new THREE.Mesh(new THREE.SphereGeometry(14,24,16), torso.material); head.position.set(50,0,0); patient.add(head);
-    const legs = new THREE.Mesh(new THREE.CapsuleGeometry(12,60,6,12), torso.material); legs.rotation.z = Math.PI/2; legs.position.set(-70,0,0); patient.add(legs);
-
-    // Add subtle markers (radiopaque markers) on patient
-    const markerMat = new THREE.MeshStandardMaterial({color:0xff0000,metalness:0.7,roughness:0.2});
-    const m1 = new THREE.Mesh(new THREE.SphereGeometry(2.2,12,8), markerMat); m1.position.set(0,16,10); patient.add(m1);
-    const m2 = m1.clone(); m2.position.set(20,16,-8); patient.add(m2);
-
-    patient.position.set(0,-12,0);
-    scene.add(patient);
-
-    // Slice plane (to simulate CT slice) - moving plane through patient
-    const sliceSize = 160;
-    const sliceGeo = new THREE.PlaneGeometry(sliceSize, sliceSize);
-    const sliceMat = new THREE.MeshBasicMaterial({color:0x00ffcc,transparent:true,opacity:0.08,side:THREE.DoubleSide});
-    const slice = new THREE.Mesh(sliceGeo, sliceMat); slice.rotation.y = Math.PI/2; slice.position.x = 0; scene.add(slice);
-
-    // Depth ruler (visual) along Z
-    const ruler = new THREE.Group();
-    for(let i=-120;i<=120;i+=10){
-      const h = (i%50===0)?6:3; const g = new THREE.BoxGeometry(2,h,1);
-      const m = new THREE.Mesh(g, new THREE.MeshStandardMaterial({color:0x9fb7c8})); m.position.set(i, -12 + 15, 28); ruler.add(m);
-    }
-    ruler.rotation.z = Math.PI/2; scene.add(ruler);
-
-    // state (units: cm)
-    const state = {x:0,y:0,z:0,tilt:0,step:1,continuous:false,vel:0};
-
-    // helpers
-    function applyState(){
-      // Map Z to patient position X in scene (patientGroup X is longitudinal)
-      patient.position.set(state.z, -12 + state.y, state.x);
-      patient.rotation.z = THREE.MathUtils.degToRad(state.tilt);
-      slice.position.x = state.z;
-      // update UI
-      document.getElementById('posDisplay').innerText = `X: ${state.x.toFixed(1)} cm  Y: ${state.y.toFixed(1)} cm  Z: ${state.z.toFixed(1)} cm  Tilt: ${state.tilt.toFixed(1)}°`;
-      document.getElementById('posLabel').innerText = `X ${state.x.toFixed(1)} Y ${state.y.toFixed(1)} Z ${state.z.toFixed(1)}`;
-      document.getElementById('tiltLabel').innerText = `${state.tilt.toFixed(1)}°`;
-      document.getElementById('velLabel').innerText = `${state.vel.toFixed(2)} cm/s`;
-    }
-    applyState();
-
-    // resize
-    function resize(){
-      const rect = canvas.parentElement.getBoundingClientRect();
-      renderer.setSize(rect.width, rect.height); camera.aspect = rect.width/rect.height; camera.updateProjectionMatrix();
-    }
-    window.addEventListener('resize', resize); resize();
-
-    // animate
-    const clock = new THREE.Clock();
-    let gantrySpin = 0;
-    function animate(){
-      requestAnimationFrame(animate);
-      const dt = clock.getDelta(); controls.update();
-      // rotate rim when scanning
-      if(document.getElementById('scanState').innerText === 'Running'){
-        rimL.rotation.x += dt*6; rimR.rotation.x += dt*6; gantrySpin += dt*50; slice.material.opacity = 0.12 + 0.06*Math.sin(gantrySpin*0.1);
-      }
-      renderer.render(scene, camera);
-    }
-    animate();
-
-    // UI interactions (buttons not sliders)
-    // step selection
-    document.querySelectorAll('[data-step]').forEach(b=>{
-      b.addEventListener('click', ()=>{ state.step = parseFloat(b.dataset.step); document.querySelectorAll('[data-step]').forEach(x=>x.classList.remove('primary')); b.classList.add('primary'); });
-    });
-    // default 1 cm
-    document.querySelector('[data-step="1"]').classList.add('primary');
-
-    // movement mode
-    document.getElementById('moveContinuous').addEventListener('click', ()=>{ state.continuous = !state.continuous; document.getElementById('moveContinuous').classList.toggle('primary', state.continuous); document.getElementById('moveSingle').classList.toggle('ghost', state.continuous); });
-
-    // movement functions
-    function moveAxis(axis, delta){
-      state[axis] = Math.round((state[axis] + delta)*10)/10; applyState();
-    }
-    // buttons
-    document.getElementById('xLeft').addEventListener('click', ()=> moveAxis('x', -state.step));
-    document.getElementById('xRight').addEventListener('click', ()=> moveAxis('x', state.step));
-    document.getElementById('yDown').addEventListener('click', ()=> moveAxis('y', -state.step));
-    document.getElementById('yUp').addEventListener('click', ()=> moveAxis('y', state.step));
-    document.getElementById('zBack').addEventListener('click', ()=> moveAxis('z', -state.step));
-    document.getElementById('zForward').addEventListener('click', ()=> moveAxis('z', state.step));
-
-    // tilt via double buttons using keyboard modifiers
-    window.addEventListener('keydown', (e)=>{
-      if(e.key==='[') { state.tilt = Math.max(-15, state.tilt - state.step); applyState(); }
-      if(e.key===']') { state.tilt = Math.min(15, state.tilt + state.step); applyState(); }
-      // space toggles scan
-      if(e.key===' ') { e.preventDefault(); toggleScan(); }
+    // Appel à l'API
+    const res = await fetch("https://mail-km8qshonl-louis-projects-44a0ae73.vercel.app/api/send-email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        key: "10876",
+        template: "CR",
+        to: "louisdabadie9@gmail.com",
+        variables: {
+          patient_nom: "Dupont",
+          patient_prenom: "Jean",
+          lien_compte_rendu: "https://exemple.com/monpdf"
+        }
+      })
     });
 
-    // joystick (simple click and hold directional movement)
-    const joystick = document.getElementById('joystick');
-    let joystickInterval = null;
-    joystick.addEventListener('pointerdown', (ev)=>{
-      joystick.setPointerCapture(ev.pointerId);
-      const rect = joystick.getBoundingClientRect();
-      const cx = rect.left + rect.width/2; const cy = rect.top + rect.height/2;
-      const dx = (ev.clientX - cx); const dy = (ev.clientY - cy);
-      const nx = Math.sign(dx); const ny = -Math.sign(dy);
-      joystickInterval = setInterval(()=>{ moveAxis('x', nx*state.step); moveAxis('y', ny*state.step); }, 150);
-    });
-    ['pointerup','pointercancel','pointerleave'].forEach(ev=>joystick.addEventListener(ev, ()=>{ if(joystickInterval) clearInterval(joystickInterval); joystickInterval = null; }));
+    console.log("⏳ Requête envoyée, attente de la réponse...");
 
-    // apply button (safety checks simulated)
-    document.getElementById('applyBtn').addEventListener('click', ()=>{ flash('Position appliquée',1000); });
-
-    // presets (save/recall in-memory)
-    const presets = {};
-    document.getElementById('savePreset').addEventListener('click', ()=>{
-      const name = document.getElementById('presetName').value || 'Preset' + (Object.keys(presets).length+1);
-      presets[name] = {...state}; flash(`Preset '${name}' enregistré`,1200);
-    });
-    document.getElementById('recallPreset').addEventListener('click', ()=>{
-      const name = document.getElementById('presetName').value;
-      if(!name || !presets[name]) return flash('Preset introuvable',1200,true);
-      Object.assign(state, presets[name]); applyState(); flash(`Preset '${name}' rappelé`,1200);
-    });
-    document.querySelectorAll('[data-preset]').forEach(b=>{ b.addEventListener('click', ()=>{ const p = b.dataset.preset; if(p==='TETE'){ state.z = 40; state.y=0; state.x=0; state.tilt=0;} if(p==='THORAX'){ state.z=10; state.y=0; state.x=0; state.tilt=0;} if(p==='ABDOMEN'){ state.z=-20; state.y=0; state.x=0; state.tilt=0;} if(p==='PELVIS'){ state.z=-45; state.y=0; state.x=0; state.tilt=0;} applyState(); flash(`Preset rapide ${p} appliqué`,900); }); });
-
-    // home & park
-    document.getElementById('homeBtn').addEventListener('click', ()=>{ state.x=0; state.y=0; state.z=0; state.tilt=0; applyState(); flash('Référence HOME OK',900); });
-    document.getElementById('parkBtn').addEventListener('click', ()=>{ state.x=0; state.y=-10; state.z=-80; state.tilt=0; applyState(); flash('Patient mis en position PARK',1000); });
-
-    // emergency stop
-    document.getElementById('emStop').addEventListener('click', ()=>{ state.continuous=false; document.getElementById('moveContinuous').classList.remove('primary'); flash('ARRET D\'URGENCE exécuté',2200,true); });
-
-    // scan controls
-    function setScanRunning(v){ document.getElementById('scanState').innerText = v? 'Running' : 'Idle'; document.getElementById('mode').innerText = v? 'Auto' : 'Manual'; }
-    let scanAnim = null;
-    function startScan(){ if(document.getElementById('scanState').innerText==='Running') return flash('Scan déjà en cours',900); setScanRunning(true); flash('Scan démarré',900);
-      const start = state.z; const target = 60; const duration = 7000; const t0 = performance.now();
-      function step(now){ const p = Math.min(1,(now-t0)/duration); state.z = start + (target-start)* (p<0.5? (4*p*p*p) : (1-Math.pow(-2*p+2,3)/2)); applyState(); if(p<1) scanAnim = requestAnimationFrame(step); else { setTimeout(()=>{ // reverse
-            const t1 = performance.now(); const from=state.z; const to=-60; const dur2=7000; function rev(now2){ const q = Math.min(1,(now2-t1)/dur2); state.z = from + (to-from)*(q<0.5? (4*q*q*q) : (1-Math.pow(-2*q+2,3)/2)); applyState(); if(q<1) scanAnim = requestAnimationFrame(rev); else { setScanRunning(false); flash('Scan terminé',1200); } } scanAnim = requestAnimationFrame(rev); },400); } }
-      scanAnim = requestAnimationFrame(step);
+    // Lecture de la réponse
+    if (!res.ok) {
+      const text = await res.text();
+      console.error("❌ Erreur HTTP :", res.status, text);
+      return;
     }
-    function pauseScan(){ if(document.getElementById('scanState').innerText!=='Running') return flash('Aucun scan en cours',900); if(scanAnim) cancelAnimationFrame(scanAnim); setScanRunning(false); flash('Scan en pause',900); }
-    function stopScan(){ if(document.getElementById('scanState').innerText!=='Running') return flash('Aucun scan en cours',900); if(scanAnim) cancelAnimationFrame(scanAnim); setScanRunning(false); flash('Scan stoppé',900); }
-    document.getElementById('startScan').addEventListener('click', startScan);
-    document.getElementById('pauseScan').addEventListener('click', pauseScan);
-    document.getElementById('stopScan').addEventListener('click', stopScan);
-    function toggleScan(){ if(document.getElementById('scanState').innerText==='Running') pauseScan(); else startScan(); }
 
-    // small flash messages
-    function flash(text,ms=1000,alert=false){ const el = document.createElement('div'); el.style.position='absolute'; el.style.left='50%'; el.style.top='12px'; el.style.transform='translateX(-50%)'; el.style.padding='10px 14px'; el.style.borderRadius='8px'; el.style.zIndex=999; el.style.fontWeight=800; el.style.background = alert? 'linear-gradient(90deg,#ef4444,#9f1239)' : 'linear-gradient(90deg,#06b6d4,#60a5fa)'; el.style.color = alert? '#fff' : '#022'; el.innerText = text; document.body.appendChild(el); setTimeout(()=>{ el.style.transition='opacity 300ms'; el.style.opacity=0; setTimeout(()=>el.remove(),350); }, ms); }
+    const data = await res.json();
+    console.log("✅ Réponse reçue :", data);
 
-    // initial UI
-    applyState();
+    alert("✅ Mail envoyé ! Vérifie ta boîte de réception.");
+
+  } catch (err) {
+    console.error("❌ Erreur lors de l'envoi du mail :", err);
+  }
+});
+
   </script>
 </body>
 </html>
