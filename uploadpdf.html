@@ -148,7 +148,7 @@
     <!-- Boutons d’action -->
     <div>
       <button id="btnLien">🔗 Créer un lien d'accès patient</button>
-      
+      <button id="btnEmail">📧 Envoyer par E-mail le document</button>
     </div>
   </div>
 
@@ -224,8 +224,118 @@
     function closeModal() {
       document.getElementById("emailModal").style.display = "none";
     }
+// 🔹 Envoi du lien par e-mail (modèle générique)
+document.getElementById("sendEmailBtn").addEventListener("click", async () => {
+  const to_email = document.getElementById("emailInput").value.trim();
+
+  if (!to_email || !to_email.includes("@")) {
+    alert("❌ Adresse e-mail invalide.");
+    return;
+  }
+
+  if (!pdfBase64) {
+    alert("❌ Aucun fichier PDF à envoyer.");
+    return;
+  }
+
+  // 1️⃣ Génération d’un ID unique Firestore
+  let idUnique, docSnap;
+  do {
+    idUnique = Math.random().toString(36).substring(2, 10);
+    docSnap = await db.collection("liens_pdfs").doc(idUnique).get();
+  } while (docSnap.exists);
+
+  // 2️⃣ Enregistrement du PDF dans Firestore
+  await db.collection("liens_pdfs").doc(idUnique).set({
+    base64: pdfBase64,
+    nomFichier: fileName || "document.pdf",
+    dateCreation: firebase.firestore.FieldValue.serverTimestamp(),
+  });
+
+  // 3️⃣ Création du lien de consultation
+  const lienPdf = `https://junior2704.github.io/urgences-/monpdf.html?id=${idUnique}`;
+  console.log("✅ Lien Firestore :", lienPdf);
+
+  // 4️⃣ Modèle d’e-mail générique (avec ton logo)
+  const htmlMessage = `
+  <!DOCTYPE html>
+  <html lang="fr">
+  <head>
+    <meta charset="UTF-8">
+    <title>Document disponible</title>
+  </head>
+  <body style="margin:0; padding:0; background-color:#f4f6f9; font-family:'Segoe UI', Roboto, Arial, sans-serif; color:#333;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="max-width:640px; margin:auto; background:white; border-radius:10px; box-shadow:0 3px 10px rgba(0,0,0,0.08); overflow:hidden;">
+      
+      <!-- Bandeau bleu -->
+      <tr>
+        <td style="background-color:#0057a4; padding:24px; text-align:center;">
+          <img src="https://junior2704.github.io/urgences-/logo.jpg" alt="Logo Hôpital" style="height:60px; display:block; margin:0 auto 10px auto;">
+          <h1 style="color:white; font-size:22px; margin:0;">Centre Hospitalier</h1>
+          <p style="color:#dce6f3; margin:6px 0 0; font-size:14px;">Service des Urgences</p>
+        </td>
+      </tr>
+
+      <!-- Corps -->
+      <tr>
+        <td style="padding:30px;">
+          <h2 style="color:#0057a4; font-weight:600; margin-top:0;">Nouveau document disponible</h2>
+
+          <p style="font-size:16px; line-height:1.6;">
+            Bonjour,
+          </p>
+
+          <p style="font-size:15px; line-height:1.6; color:#555;">
+            Un document est désormais disponible via le lien sécurisé ci-dessous.
+            Vous pouvez le consulter ou le télécharger directement.
+          </p>
+
+          <div style="text-align:center; margin:30px 0;">
+            <a href="${lienPdf}" 
+               style="background-color:#0057a4; color:white; padding:14px 32px; text-decoration:none; border-radius:8px; font-weight:500; display:inline-block;">
+              📄 Consulter le document
+            </a>
+          </div>
+
+          <p style="font-size:14px; color:#777;">
+            ⚠️ Ce lien est valide 7 jours. Passé ce délai, le document sera automatiquement supprimé du serveur.
+          </p>
+
+          <p style="font-size:14px; color:#777;">
+            Si vous rencontrez des difficultés, veuillez contacter le service à l’adresse suivante :
+            <a href="mailto:urgences.hopj@gmail.com" style="color:#0057a4;">urgences.hopj@gmail.com</a>
+          </p>
+
+          <hr style="border:none; border-top:1px solid #e0e0e0; margin:30px 0;">
+
+          <p style="font-size:13px; color:#999; text-align:center;">
+            Service des Urgences<br>
+            <em>Cet e-mail a été généré automatiquement, merci de ne pas y répondre.</em>
+          </p>
+        </td>
+      </tr>
+    </table>
+  </body>
+  </html>`;
+
+  // 5️⃣ Envoi via EmailJS
+  try {
+    await emailjs.send("service_o07vuso", "template_vj03i4u", {
+      to_email,
+      lien_compte_rendu: lienPdf,
+      message_html: htmlMessage,
+    });
+
+    alert("✅ E-mail envoyé avec succès !");
+    closeModal();
+  } catch (error) {
+    console.error("❌ Erreur EmailJS :", error);
+    alert("Erreur lors de l’envoi de l’e-mail : " + error.message);
+  }
+});
 
     
   </script>
 </body>
 </html>
+
