@@ -203,40 +203,83 @@
     <button id="btnFermerModal" class="btnModal fermer">❌ Fermer</button>
   </div>
 </div>
-<!-- 🔷 Modale de chargement -->
-<div id="loadingModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 backdrop-blur-sm hidden z-50">
-  <div class="bg-white rounded-2xl shadow-lg p-8 text-center w-80 animate-fade-in">
-    <img src="https://junior2704.github.io/urgences-/logo.jpg" alt="Logo hôpital" class="h-16 mx-auto mb-4">
-    <div class="loader mx-auto mb-4"></div>
-    <p class="text-gray-700 font-medium">Envoi du compte-rendu en cours...</p>
+<!-- 🔷 MODALE DE CHARGEMENT -->
+<div id="loadingModal" class="modal">
+  <div class="modal-content">
+    <img src="https://junior2704.github.io/urgences-/logo.jpg" alt="Logo hôpital" class="logo">
+    <div class="loader"></div>
+    <p>Envoi du compte-rendu en cours...</p>
   </div>
 </div>
 
-<!-- 🔹 Animation du loader -->
 <style>
+/* --- Arrière-plan plein écran --- */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(6px);
+  display: none; /* masquée par défaut */
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+/* --- Boîte centrale --- */
+.modal-content {
+  background: #fff;
+  padding: 30px 40px;
+  border-radius: 16px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+  text-align: center;
+  width: 320px;
+  animation: fadeIn 0.3s ease;
+}
+
+/* --- Logo --- */
+.modal-content .logo {
+  height: 70px;
+  margin-bottom: 20px;
+}
+
+/* --- Texte --- */
+.modal-content p {
+  color: #333;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+/* --- Loader --- */
 .loader {
   border: 4px solid #f3f3f3;
   border-top: 4px solid #1a73e8;
   border-radius: 50%;
-  width: 40px;
-  height: 40px;
+  width: 45px;
+  height: 45px;
+  margin: 15px auto;
   animation: spin 1s linear infinite;
 }
-  #loadingModal.hidden {
-    display: none;
-  }
+
+/* --- Animations --- */
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
-@keyframes fade-in {
-  from { opacity: 0; transform: scale(0.95); }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.9); }
   to { opacity: 1; transform: scale(1); }
 }
-.animate-fade-in {
-  animation: fade-in 0.3s ease-out;
+
+/* --- États JS --- */
+#loadingModal.show {
+  display: flex;
 }
 </style>
+
 
 <form id="formRapport">
   <label for="identite">Identité</label>
@@ -427,12 +470,13 @@ async function enregistrerDansFirestore() {
   await patientRef.update({ hospitalisations });
 }
 function showLoadingModal() {
-  document.getElementById("loadingModal").classList.remove("hidden");
+  document.getElementById("loadingModal").classList.add("show");
 }
 
 function hideLoadingModal() {
-  document.getElementById("loadingModal").classList.add("hidden");
+  document.getElementById("loadingModal").classList.remove("show");
 }
+
 
 // Rendre les champs readonly et adapter style
 function setRapportValide(val) {
@@ -773,6 +817,7 @@ let medecinNom = "";
 
 </body>
 </html>
+
 
 
 
