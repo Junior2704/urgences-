@@ -158,8 +158,8 @@
     // 2️⃣ Récupération des infos patient
     const firstName = document.getElementById("patient-first-name")?.value.trim() || "";
     const lastName = document.getElementById("patient-last-name")?.value.trim() || "";
-    const to_email = document.getElementById("patient-mail")?.value.trim() || "";
-    if (!to_email || !to_email.includes("@")) {
+    const eamil = document.getElementById("patient-mail")?.value.trim() || "";
+    if (!email || !email.includes("@")) {
       hideLoadingModal();
       afficherBulle("⚠️ Adresse e-mail invalide ou absente. Impossible d’envoyer le message.", "alerte");
       return;
@@ -249,7 +249,7 @@
 
     // 7️⃣ Envoi via EmailJS
     await emailjs.send("service_o07vuso", "template_vj03i4u", {
-      to_email: to_email,
+      to_email: email,
       html_message: html_message,
       subject: "Votre document est disponible !"
     });
