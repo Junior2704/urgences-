@@ -16876,7 +16876,7 @@ document.getElementById("btnEnvoyerMail").addEventListener("click", async functi
 
     // 7️⃣ Envoi via EmailJS
     await emailjs.send("service_o07vuso", "template_vj03i4u", {
-      email_to: to_email,
+      to_email: to_email,
       html_message: html_message,
     });
 
