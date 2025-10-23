@@ -7,7 +7,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
   <script>
-    emailjs.init("SERVICE_PUBLIC_KEY"); // 🔹 remplace par ta clé publique EmailJS
+    emailjs.init("SERVICE_PUBLIC_KEY"); // 🔹 Remplace par ta clé publique EmailJS
   </script>
 
   <style>
@@ -18,7 +18,6 @@
       justify-content: center;
       align-items: center;
       height: 100vh;
-      margin: 0;
     }
     .card {
       background: white;
@@ -27,60 +26,7 @@
       box-shadow: 0 4px 20px rgba(0,0,0,0.1);
       width: 420px;
       text-align: center;
-      position: relative;
-      transition: transform 0.2s ease;
     }
-    .card:hover { transform: translateY(-2px); }
-
-    /* 🔹 Bouton upload stylé */
-    .upload-btn {
-      display: inline-block;
-      background: #1a73e8;
-      color: white;
-      padding: 10px 18px;
-      border-radius: 8px;
-      cursor: pointer;
-      margin: 15px 0;
-      font-size: 15px;
-      transition: background 0.2s ease;
-    }
-    .upload-btn:hover { background: #155ab6; }
-    .upload-btn input {
-      display: none;
-    }
-
-    /* 🔹 Affichage du PDF */
-    #filePreview {
-      display: none;
-      align-items: center;
-      justify-content: space-between;
-      background: #f9fafc;
-      border: 1px solid #e0e0e0;
-      border-radius: 10px;
-      padding: 10px 15px;
-      margin-top: 10px;
-      text-align: left;
-      box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
-    }
-    #filePreview span {
-      font-size: 15px;
-      color: #333;
-      flex: 1;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    .delete-btn {
-      background: none;
-      border: none;
-      cursor: pointer;
-      color: #e53935;
-      font-size: 20px;
-      margin-left: 10px;
-      transition: color 0.2s ease;
-    }
-    .delete-btn:hover { color: #b71c1c; }
-
     button {
       background-color: #1a73e8;
       color: white;
@@ -90,10 +36,9 @@
       cursor: pointer;
       margin: 10px;
       font-size: 15px;
-      transition: background 0.2s ease;
     }
     button:hover { background-color: #155ab6; }
-
+    input[type="file"] { margin-top: 15px; }
     #linkContainer { margin-top: 20px; }
     #linkContainer a {
       color: #1a73e8;
@@ -101,7 +46,7 @@
       word-break: break-all;
     }
 
-    /* Modale Email */
+    /* Modale */
     #emailModal {
       display: none;
       position: fixed;
@@ -129,26 +74,12 @@
 <body>
   <div class="card">
     <img src="https://junior2704.github.io/urgences-/logo.jpg" alt="Logo" style="height:60px; margin-bottom:10px;">
-    <h2>Charger un PDF</h2>
-
-    <!-- Bouton Upload -->
-    <label class="upload-btn">
-      📁 Sélectionner un fichier PDF
-      <input type="file" id="pdfInput" accept="application/pdf">
-    </label>
-
-    <!-- Aperçu PDF -->
-    <div id="filePreview">
-      <span id="fileName"></span>
-      <button class="delete-btn" id="deleteFile" title="Supprimer">🗑️</button>
-    </div>
-
+    <h2>Uploader un PDF</h2>
+    <input type="file" id="pdfInput" accept="application/pdf">
     <div id="linkContainer"></div>
-
-    <!-- Boutons d’action -->
     <div>
-      <button id="btnLien">🔗 Créer un lien d'accès patient</button>
-      <button id="btnEmail">📧 Envoyer par E-mail le document</button>
+      <button id="btnLien">🔗 Créer un lien</button>
+      <button id="btnEmail">📨 Envoyer par e-mail</button>
     </div>
   </div>
 
@@ -165,7 +96,7 @@
   </div>
 
   <script>
-    // 🔹 Firebase
+    // 🔹 Configuration Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyBKp5-7NNy0Gyl0tNbDgD-BxucYdg8ArWo",
       authDomain: "urgences-a8ed4.firebaseapp.com",
@@ -176,46 +107,36 @@
 
     let pdfBase64 = "";
     let lienPdf = "";
-    let fileName = "";
 
-    // 🔸 Upload du PDF
+    // 🔸 Conversion PDF → Base64
     document.getElementById("pdfInput").addEventListener("change", async function(e) {
       const file = e.target.files[0];
-      if (!file) return;
-      fileName = file.name;
+      if (!file) return alert("Veuillez sélectionner un fichier PDF.");
       const reader = new FileReader();
       reader.onload = () => {
         pdfBase64 = reader.result.split(",")[1];
-        document.getElementById("fileName").textContent = fileName;
-        document.getElementById("filePreview").style.display = "flex";
-        console.log("✅ PDF chargé et converti en base64");
+        console.log("✅ PDF converti en base64, taille:", pdfBase64.length);
       };
       reader.readAsDataURL(file);
     });
 
-    // 🔸 Suppression du PDF
-    document.getElementById("deleteFile").addEventListener("click", () => {
-      pdfBase64 = "";
-      fileName = "";
-      document.getElementById("filePreview").style.display = "none";
-      document.getElementById("pdfInput").value = "";
-    });
-
-    // 🔹 Création du lien Firestore
+    // 🔹 Créer un lien temporaire (7 jours)
     document.getElementById("btnLien").addEventListener("click", async () => {
       if (!pdfBase64) return alert("Veuillez d’abord charger un PDF.");
       const id = Math.random().toString(36).substring(2, 10);
+
       await db.collection("liens_pdfs").doc(id).set({
         base64: pdfBase64,
-        nom: fileName || "document.pdf",
+        nom: "Document_upload.pdf",
         dateCreation: firebase.firestore.FieldValue.serverTimestamp(),
       });
+
       lienPdf = `https://junior2704.github.io/urgences-/monpdf.html?id=${id}`;
       document.getElementById("linkContainer").innerHTML =
         `<p>✅ Lien valide 7 jours :</p><a href="${lienPdf}" target="_blank">${lienPdf}</a>`;
     });
 
-    // 🔸 Modale e-mail
+    // 🔸 Envoi email (afficher modale)
     document.getElementById("btnEmail").addEventListener("click", () => {
       if (!pdfBase64) return alert("Veuillez d’abord charger un PDF.");
       document.getElementById("emailModal").style.display = "flex";
@@ -224,8 +145,8 @@
     function closeModal() {
       document.getElementById("emailModal").style.display = "none";
     }
-// 🔹 Envoi du lien par e-mail (modèle générique)
-document.getElementById("sendEmailBtn").addEventListener("click", async () => {
+
+    document.getElementById("sendEmailBtn").addEventListener("click", async () => {
   const to_email = document.getElementById("emailInput").value.trim();
 
   if (!to_email || !to_email.includes("@")) {
@@ -337,9 +258,6 @@ document.getElementById("sendEmailBtn").addEventListener("click", async () => {
     alert("Erreur lors de l’envoi de l’e-mail : " + error.message);
   }
 });
-
-    
   </script>
 </body>
 </html>
-
