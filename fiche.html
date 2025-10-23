@@ -1172,6 +1172,8 @@ header {
   <button id="btnVersSynthese">📄 Certificat médical</button>
 	<br><br>
   <button id="btnVersFiches">📄 Fiches Conseils</button>
+	<br><br>
+  <button id="btnVersPdf">📄 création d'accès PDF patient</button>
 </div>
 
 
@@ -2070,6 +2072,9 @@ document.getElementById("btnVersExs").addEventListener("click", () => {
   });
   document.getElementById("btnVersFiches").addEventListener("click", () => {
     window.open(`fichesconseil.html`, '_blank');
+  });
+document.getElementById("btnVersPdf").addEventListener("click", () => {
+    window.open(`uploadpdf.html`, '_blank');
   });
 
 
@@ -2979,6 +2984,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
