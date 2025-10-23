@@ -611,68 +611,90 @@ function base64ToBlob(base64, type = "application/pdf") {
 
 document.getElementById("btnEnvoyerMail").addEventListener("click", async function () {
   try {
-	   showLoadingModal();
+    showLoadingModal();
     console.log("📄 Génération du PDF...");
     const pdfBase64 = await creerPDF(false);
     console.log("PDF généré, taille base64:", pdfBase64.length);
 
     // 1️⃣ Création d’un ID unique
-    let idUnique;
-    let docSnap;
+    let idUnique, docSnap;
     do {
       idUnique = Math.random().toString(36).substring(2, 10);
       docSnap = await db.collection("liens_pdfs").doc(idUnique).get();
     } while (docSnap.exists);
-// 🔹 Récupération du nom du document
-const doc = await patientRef.get();
-  if (!doc.exists) {
-    afficherBulle("❌Patient non trouvé","alerte");
-    return;
-  }
-  const data = doc.data();
+
+    // 2️⃣ Récupération infos patient
+    const doc = await patientRef.get();
+    if (!doc.exists) {
+      afficherBulle("❌ Patient non trouvé", "alerte");
+      return;
+    }
+    const data = doc.data();
     const firstName = data.prenom || "";
     const lastName = data.nom || "";
-    const fileName = `Rapport d'hospitalisation - ${firstName || ""} ${lastName || ""}.pdf`;
-    // 2️⃣ Enregistrement du PDF dans Firestore
+    const emailPatient = data.email || "";
+    const fileName = `Rapport d'hospitalisation - ${firstName} ${lastName}.pdf`;
+
+    if (!emailPatient || !emailPatient.includes("@")) {
+      hideLoadingModal();
+      afficherBulle("⚠️ Adresse e-mail invalide ou absente.", "alerte");
+      return;
+    }
+
+    // 3️⃣ Enregistrement du PDF dans Firestore
     await db.collection("liens_pdfs").doc(idUnique).set({
       base64: pdfBase64,
       nomFichier: fileName,
       dateCreation: firebase.firestore.FieldValue.serverTimestamp(),
-     
     });
 
-    // 3️⃣ Construction du lien
+    // 4️⃣ Lien d’accès temporaire
     const lienPdf = `https://junior2704.github.io/urgences-/monpdf.html?id=${idUnique}`;
     console.log("✅ Lien Firestore :", lienPdf);
 
-    // 4️⃣ Envoi de l’email
-    const to_email = window.patientData?.email || "";
-    const patient_nom = window.patientData?.nom || "";
-    const patient_prenom = window.patientData?.prenom || "";
+    // 5️⃣ Construction du corps de mail dynamique
+    const htmlMessage = `
+    <table width="100%" cellpadding="0" cellspacing="0" style="max-width:640px;margin:auto;background:#fff;border-radius:10px;box-shadow:0 3px 10px rgba(0,0,0,0.08);overflow:hidden;font-family:'Segoe UI',Roboto,Arial,sans-serif;color:#333;">
+      <tr>
+        <td style="background-color:#0057a4;padding:24px;text-align:center;">
+          <img src="https://junior2704.github.io/urgences-/logo.jpg" alt="Logo Hôpital" style="height:60px;margin:0 auto 10px auto;display:block;">
+          <h1 style="color:white;font-size:22px;margin:0;">Centre Hospitalier</h1>
+          <p style="color:#dce6f3;margin:6px 0 0;font-size:14px;">Service des Urgences</p>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:30px;">
+          <h2 style="color:#0057a4;font-weight:600;margin-top:0;">${fileName}</h2>
+          <p style="font-size:16px;line-height:1.6;">Bonjour <strong>${firstName} ${lastName}</strong>,</p>
+          <p style="font-size:15px;line-height:1.6;color:#555;">
+            Votre document est désormais disponible. Vous pouvez le consulter ou le télécharger ci-dessous :
+          </p>
+          <div style="text-align:center;margin:30px 0;">
+            <a href="${lienPdf}" style="background-color:#0057a4;color:white;padding:14px 32px;text-decoration:none;border-radius:8px;font-weight:500;display:inline-block;">
+              📄 Consulter le document
+            </a>
+          </div>
+          <p style="font-size:14px;line-height:1.6;color:#555;">
+            ⚠️ Ce lien est valable <strong>7 jours</strong>. Passé ce délai, il sera supprimé automatiquement.
+          </p>
+          <hr style="border:none;border-top:1px solid #e0e0e0;margin:30px 0;">
+          <p style="font-size:13px;color:#999;text-align:center;">
+            Service des Urgences — <em>Cet e-mail est généré automatiquement, merci de ne pas y répondre.</em>
+          </p>
+        </td>
+      </tr>
+    </table>
+    `;
 
-    await emailjs.send("service_o07vuso", "template_juigshl", {
-      to_email,
-      patient_nom,
-      patient_prenom,
-      lien_compte_rendu: lienPdf,
-      message:
-        "Bonjour, votre compte-rendu d’hospitalisation est disponible via le lien ci-dessous (valide 7 jours).",
+    // 6️⃣ Envoi via EmailJS (modèle générique)
+    await emailjs.send("service_o07vuso", "template_general", {
+      to_email: emailPatient,
+      subject: "Votre document hospitalier est disponible",
+      html_message: htmlMessage,
     });
-hideLoadingModal();
-    afficherBulle("📨 E-mail envoyé avec le lien vers le rapport !","administratif");
-  } catch (err) {
-	  hideLoadingModal();
-    console.error("❌ Erreur d'envoi :", err);
-    alert("Erreur : " + err.message);
-  }
-});
-
-
-    const result = await response.json();
-    console.log("✅ Résultat API :", result);
 
     hideLoadingModal();
-    afficherBulle("📨 E-mail envoyé avec le lien vers le rapport !","administratif");
+    afficherBulle("📨 E-mail envoyé avec succès au patient !", "administratif");
 
   } catch (err) {
     hideLoadingModal();
@@ -816,6 +838,7 @@ let medecinNom = "";
 
 </body>
 </html>
+
 
 
 
