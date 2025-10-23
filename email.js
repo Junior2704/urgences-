@@ -4,8 +4,8 @@ import fetch from "node-fetch";
 const app = express();
 app.use(express.json());
 
-const CLIENT_ID = "TON_CLIENT_ID_SENDPULSE";
-const CLIENT_SECRET = "TON_CLIENT_SECRET_SENDPULSE";
+const CLIENT_ID = "2791ee5cd2fe86363b423d1ca0da4c8e";
+const CLIENT_SECRET = "c154f218aa3d57f0de5f4ffc72ee7fb9";
 
 let cachedToken = "";
 let tokenExpiry = 0;
@@ -46,7 +46,7 @@ app.post("/send-mail", async (req, res) => {
       body: JSON.stringify({
         email: {
           subject,
-          from: { email: "no-reply@tonhopital.fr", name: "Centre Hospitalier" },
+          from: { email: "no-reply@serviceurgences.fr", name: "Service des Urgences" },
           to: [{ email: to }],
           html,
         },
