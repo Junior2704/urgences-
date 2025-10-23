@@ -720,7 +720,7 @@ document.getElementById("btnEnvoyerMail").addEventListener("click", async functi
 
     // 6️⃣ Envoi via EmailJS
     await emailjs.send("service_o07vuso", "template_vj03i4u", {
-      email_to: emailPatient,
+      to_email: emailPatient,
       html_message: htmlMessage,
       subject: "Votre rapport d'hopsitalisation est disponible !"
     });
