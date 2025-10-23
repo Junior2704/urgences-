@@ -3,11 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <title>Uploader un PDF</title>
+
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
+
+  <!-- EmailJS -->
   <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
   <script>
-    emailjs.init("SERVICE_PUBLIC_KEY"); // 🔹 Remplace par ta clé publique EmailJS
+    emailjs.init("SERVICE_PUBLIC_KEY"); // 🔹 remplace par ta clé publique EmailJS
   </script>
 
   <style>
@@ -18,6 +22,7 @@
       justify-content: center;
       align-items: center;
       height: 100vh;
+      margin: 0;
     }
     .card {
       background: white;
@@ -36,6 +41,7 @@
       cursor: pointer;
       margin: 10px;
       font-size: 15px;
+      transition: background-color 0.3s ease;
     }
     button:hover { background-color: #155ab6; }
     input[type="file"] { margin-top: 15px; }
@@ -46,8 +52,8 @@
       word-break: break-all;
     }
 
-    /* Modale */
-    #emailModal {
+    /* Modale email */
+    #emailModal, #loadingModal {
       display: none;
       position: fixed;
       inset: 0;
@@ -55,6 +61,7 @@
       backdrop-filter: blur(2px);
       justify-content: center;
       align-items: center;
+      z-index: 100;
     }
     .modal-content {
       background: white;
@@ -68,6 +75,21 @@
     @keyframes fadeIn {
       from {opacity: 0; transform: scale(0.95);}
       to {opacity: 1; transform: scale(1);}
+    }
+
+    /* Loader animation */
+    .loader {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #1a73e8;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 20px auto;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
   </style>
 </head>
@@ -88,15 +110,25 @@
     <div class="modal-content">
       <h3>Envoi du lien</h3>
       <p>Entrez l’adresse e-mail du destinataire :</p>
-      <input type="email" id="emailInput" placeholder="exemple@mail.com" style="padding:8px; width:90%; border:1px solid #ccc; border-radius:6px;">
+      <input type="email" id="emailInput" placeholder="exemple@mail.com"
+             style="padding:8px; width:90%; border:1px solid #ccc; border-radius:6px;">
       <br><br>
       <button id="sendEmailBtn">Envoyer</button>
       <button onclick="closeModal()" style="background:#ccc;">Annuler</button>
     </div>
   </div>
 
+  <!-- Modale de chargement -->
+  <div id="loadingModal">
+    <div class="modal-content">
+      <img src="https://junior2704.github.io/urgences-/logo.jpg" alt="Logo" style="height:60px; margin-bottom:10px;">
+      <div class="loader"></div>
+      <p>Envoi de l’e-mail en cours...</p>
+    </div>
+  </div>
+
   <script>
-    // 🔹 Configuration Firebase
+    // === Configuration Firebase ===
     const firebaseConfig = {
       apiKey: "AIzaSyBKp5-7NNy0Gyl0tNbDgD-BxucYdg8ArWo",
       authDomain: "urgences-a8ed4.firebaseapp.com",
@@ -108,7 +140,7 @@
     let pdfBase64 = "";
     let lienPdf = "";
 
-    // 🔸 Conversion PDF → Base64
+    // === Conversion PDF → Base64 ===
     document.getElementById("pdfInput").addEventListener("change", async function(e) {
       const file = e.target.files[0];
       if (!file) return alert("Veuillez sélectionner un fichier PDF.");
@@ -120,7 +152,7 @@
       reader.readAsDataURL(file);
     });
 
-    // 🔹 Créer un lien temporaire (7 jours)
+    // === Créer un lien temporaire (7 jours) ===
     document.getElementById("btnLien").addEventListener("click", async () => {
       if (!pdfBase64) return alert("Veuillez d’abord charger un PDF.");
       const id = Math.random().toString(36).substring(2, 10);
@@ -136,57 +168,46 @@
         `<p>✅ Lien valide 7 jours :</p><a href="${lienPdf}" target="_blank">${lienPdf}</a>`;
     });
 
-    // 🔸 Envoi email (afficher modale)
+    // === Afficher la modale email ===
     document.getElementById("btnEmail").addEventListener("click", () => {
       if (!pdfBase64) return alert("Veuillez d’abord charger un PDF.");
       document.getElementById("emailModal").style.display = "flex";
     });
-
     function closeModal() {
       document.getElementById("emailModal").style.display = "none";
     }
 
-    document.getElementById("btnEnvoyerMail").addEventListener("click", async function () {
-  try {
-    showLoadingModal();
-    console.log("📄 Génération du PDF (ordonnance)...");
-
-    // 1️⃣ Génération du PDF sans téléchargement
-    const pdfBase64 = await genererOrdo(false);
-    console.log("✅ PDF généré, taille base64:", pdfBase64.length);
-
-    // 2️⃣ Récupération des infos patient
-    const firstName = document.getElementById("patient-first-name")?.value.trim() || "";
-    const lastName = document.getElementById("patient-last-name")?.value.trim() || "";
-    const eamil = document.getElementById("patient-mail")?.value.trim() || "";
-    if (!email || !email.includes("@")) {
-      hideLoadingModal();
-      afficherBulle("⚠️ Adresse e-mail invalide ou absente. Impossible d’envoyer le message.", "alerte");
-      return;
+    // === Modale de chargement ===
+    function showLoadingModal() {
+      document.getElementById("loadingModal").style.display = "flex";
+    }
+    function hideLoadingModal() {
+      document.getElementById("loadingModal").style.display = "none";
     }
 
-    const fileName = `Document.pdf`;
+    // === Envoi du mail ===
+    document.getElementById("sendEmailBtn").addEventListener("click", async () => {
+      const to_email = document.getElementById("emailInput").value.trim();
+      if (!to_email || !to_email.includes("@")) {
+        alert("Adresse e-mail invalide.");
+        return;
+      }
 
-    // 3️⃣ Création d’un ID unique Firestore
-    let idUnique, docSnap;
-    do {
-      idUnique = Math.random().toString(36).substring(2, 10);
-      docSnap = await db.collection("liens_pdfs").doc(idUnique).get();
-    } while (docSnap.exists);
+      closeModal();
+      showLoadingModal();
 
-    // 4️⃣ Enregistrement du PDF dans Firestore
-    await db.collection("liens_pdfs").doc(idUnique).set({
-      base64: pdfBase64,
-      nomFichier: fileName,
-      dateCreation: firebase.firestore.FieldValue.serverTimestamp(),
-    });
+      try {
+        // 1️⃣ Création lien Firebase
+        const id = Math.random().toString(36).substring(2, 10);
+        await db.collection("liens_pdfs").doc(id).set({
+          base64: pdfBase64,
+          nom: "Document_upload.pdf",
+          dateCreation: firebase.firestore.FieldValue.serverTimestamp(),
+        });
+        const lienPdf = `https://junior2704.github.io/urgences-/monpdf.html?id=${id}`;
 
-    // 5️⃣ Lien vers le PDF (valide 7 jours)
-    const lienPdf = `https://junior2704.github.io/urgences-/monpdf.html?id=${idUnique}`;
-    console.log("✅ Lien PDF :", lienPdf);
-
-    // 6️⃣ Modèle d’e-mail HTML (avec remplacement dynamique)
-    let html_message = `
+        // 2️⃣ Modèle HTML du mail
+        const html_message = `
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -242,28 +263,24 @@
   </table>
 </body>
 </html>`;
-
-    // 🔹 Remplacement dynamique
-    html_message = html_message
+html_message = html_message
       .replace("{{lien_compte_rendu}}", lienPdf);
 
-    // 7️⃣ Envoi via EmailJS
-    await emailjs.send("service_o07vuso", "template_vj03i4u", {
-      to_email: email,
-      html_message: html_message,
-      subject: "Votre document est disponible !"
+        //3️⃣ Envoi EmailJS
+        await emailjs.send("service_o07vuso", "template_vj03i4u", {
+          to_email,
+          html_message,
+          subject: "Votre document est disponible",
+        });
+
+        hideLoadingModal();
+        alert("📨 E-mail envoyé avec succès !");
+      } catch (err) {
+        hideLoadingModal();
+        console.error("❌ Erreur :", err);
+        alert("Erreur : " + err.message);
+      }
     });
-
-    hideLoadingModal();
-    afficherBulle("📨 E-mail d’ordonnance envoyé avec succès !", "administratif");
-
-  } catch (err) {
-    hideLoadingModal();
-    console.error("❌ Erreur d'envoi :", err);
-    alert("Erreur : " + err.message);
-  }
-});
-
   </script>
 </body>
 </html>
