@@ -1851,7 +1851,7 @@ document.getElementById("btnSaveConst").addEventListener("click", async () => {
       afficherBulle("❌Numéro de scope manquant", "alerte");
       return;
     }
-    window.open(`scope.html?num=${encodeURIComponent(numero)}`, "_blank");
+    window.open(`scope.html?id=${encodeURIComponent(patientId)}`, "_blank");
   });
 }
 
@@ -2979,6 +2979,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
