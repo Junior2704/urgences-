@@ -263,9 +263,9 @@
   </table>
 </body>
 </html>`;
-html_message = html_message
+// Remplacement des variables dynamiques
+    htmlMessage = htmlMessage
       .replace("{{lien_compte_rendu}}", lienPdf);
-
         //3️⃣ Envoi EmailJS
         await emailjs.send("service_o07vuso", "template_vj03i4u", {
           to_email,
