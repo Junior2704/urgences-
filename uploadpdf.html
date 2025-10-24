@@ -166,6 +166,7 @@
     <img src="https://junior2704.github.io/urgences-/logo.jpg" alt="Logo" style="height:60px; margin-bottom:10px;">
     <h2>Uploader un PDF</h2>
    <label for="pdfInput" class="custom-file-upload">📁 Choisir un fichier PDF</label>
+   <br>
 <input type="file" id="pdfInput" accept="application/pdf">
 <div id="fileNameDisplay">Aucun fichier sélectionné</div>
     <div id="linkContainer"></div>
@@ -520,102 +521,160 @@ document.getElementById("btnEnvoyerMail").addEventListener("click", async functi
     alert("Erreur : " + err.message);
   }
 });
-document.getElementById("confirmEmails").addEventListener("click", async () => {
-  const checkedBoxes = document.querySelectorAll("#emailCheckboxes input[type='checkbox']:checked");
-  let destinataires = Array.from(checkedBoxes).map(cb => cb.value);
-
-  const otherChecked = document.getElementById("otherEmailCheck").checked;
-  const otherEmail = document.getElementById("otherEmailInput").value.trim();
-
-  if (otherChecked && otherEmail) destinataires.push(otherEmail);
-
-  if (destinataires.length === 0) {
-    alert("Veuillez cocher au moins une adresse e-mail.");
-    return;
-  }
-
-  closeEmailSelectModal();
-  showLoadingModal();
-
+document.getElementById("confirmEmails").addEventListener("click", async function () {
   try {
-    const doc = await patientRef.get();
-    const data = doc.data();
-    const firstName = data.prenom || "";
-    const lastName = data.nom || "";
+    showLoadingModal();
 
-    // Génération d’un lien Firestore unique
+    // 🔍 Récupère les cases cochées
+    const checkedBoxes = document.querySelectorAll("#emailCheckboxes input[type='checkbox']:checked");
+    let destinataires = Array.from(checkedBoxes).map(cb => cb.value);
+
+    const otherChecked = document.getElementById("otherEmailCheck").checked;
+    const otherEmail = document.getElementById("otherEmailInput").value.trim();
+    if (otherChecked && otherEmail) destinataires.push(otherEmail);
+
+    if (destinataires.length === 0) {
+      hideLoadingModal();
+      alert("Veuillez cocher au moins une adresse e-mail.");
+      return;
+    }
+
+    console.log("📧 Envoi à :", destinataires.join(", "));
+
+    // 1️⃣ Création d’un ID unique
     let idUnique, docSnap;
     do {
       idUnique = Math.random().toString(36).substring(2, 10);
       docSnap = await db.collection("liens_pdfs").doc(idUnique).get();
     } while (docSnap.exists);
 
+    // 2️⃣ Récupération infos patient
+    const doc = await patientRef.get();
+    if (!doc.exists) {
+      afficherBulle("❌ Patient non trouvé", "alerte");
+      hideLoadingModal();
+      return;
+    }
+
+    const data = doc.data();
+    const firstName = data.prenom || "";
+    const lastName = data.nom || "";
+    const fileName = nomPdf || `Document - ${firstName} ${lastName}.pdf`;
+
+    // 3️⃣ Enregistrement du PDF dans Firestore
     await db.collection("liens_pdfs").doc(idUnique).set({
       base64: pdfBase64,
-      nom: nomPdf || "Document.pdf",
+      nom: fileName,
       dateCreation: firebase.firestore.FieldValue.serverTimestamp(),
     });
 
+    // 4️⃣ Lien d’accès temporaire
     const lienPdf = `https://junior2704.github.io/urgences-/monpdf.html?id=${idUnique}`;
+    console.log("✅ Lien Firestore :", lienPdf);
 
-    // Contenu du mail (identique à ton template)
-    const htmlMessage = `
-      <p>Bonjour,</p>
-      <p>Un document est disponible pour téléchargement :</p>
-      <p><a href="${lienPdf}">${lienPdf}</a></p>
-      <p>Ce lien est valable 7 jours.</p>`;
+    // 5️⃣ Corps du mail dynamique (reprend ton template complet)
+    let htmlMessage = `
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Votre document</title>
+</head>
+<body style="margin:0; padding:0; background-color:#f4f6f9; font-family:'Segoe UI', Roboto, Arial, sans-serif; color:#333;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="max-width:640px; margin:auto; background:white; border-radius:10px; box-shadow:0 3px 10px rgba(0,0,0,0.08); overflow:hidden;">
+    <tr>
+      <td style="background-color:#0057a4; padding:24px; text-align:center;">
+        <img src="https://junior2704.github.io/urgences-/logo.jpg" alt="Logo Hôpital" style="height:60px; display:block; margin:0 auto 10px auto;">
+        <h1 style="color:white; font-size:22px; margin:0;">Centre Hospitalier</h1>
+        <p style="color:#dce6f3; margin:6px 0 0; font-size:14px;">Service des Urgences</p>
+      </td>
+    </tr>
+    <tr>
+      <td style="padding:30px;">
+        <h2 style="color:#0057a4; font-weight:600; margin-top:0;">Votre document</h2>
+        <p style="font-size:16px; line-height:1.6;">
+          Bonjour ${firstName} ${lastName},
+        </p>
+        <p style="font-size:15px; line-height:1.6; color:#555;">
+          Votre médecin vous a envoyé un document intitulé <strong>${fileName}</strong>.
+          Celui-ci est disponible au téléchargement grâce au lien suivant :
+        </p>
+        <div style="text-align:center; margin:30px 0;">
+          <a href="${lienPdf}" 
+             style="background-color:#0057a4; color:white; padding:14px 32px; text-decoration:none; border-radius:8px; font-weight:500; display:inline-block;">
+            🔗 Télécharger le document
+          </a>
+        </div>
+        <p style="font-size:15px; line-height:1.6; color:#555;">
+          ⚠️ Ce lien est valable 7 jours. Au-delà, il ne sera plus accessible pour des raisons de confidentialité.
+        </p>
+        <p style="font-size:14px; color:#777;">
+          Pour toute question, contactez le service des Urgences :
+          <a href="mailto:urgences.hopj@gmail.com" style="color:#0057a4;">urgences.hopj@gmail.com</a>
+        </p>
+        <hr style="border:none; border-top:1px solid #e0e0e0; margin:30px 0;">
+        <p style="font-size:13px; color:#999; text-align:center;">
+          Service des Urgences<br>
+          <em>Cet e-mail a été généré automatiquement, merci de ne pas y répondre.</em>
+        </p>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
 
-    // Comptes EmailJS (inchangés)
+    // 6️⃣ Configuration de tes comptes EmailJS
     const comptesEmailJS = [
       { serviceID: "service_o07vuso", templateID: "template_vj03i4u", publicKey: "CZapZCcxYfJ8-acLS" },
       { serviceID: "service_o3i8ac9", templateID: "template_0wbzbwe", publicKey: "j5G-06rjQm0P6wriE" },
       { serviceID: "service_qij0y5a", templateID: "template_3qdes3p", publicKey: "nh2zkdRVJcGcE-Jwe" }
     ];
 
-    // Envoi à chaque destinataire
+    // 7️⃣ Envoi à chaque destinataire avec fallback sur plusieurs comptes
     for (const email of destinataires) {
       let mailEnvoye = false;
+      let derniereErreur = "";
+
       for (const compte of comptesEmailJS) {
         try {
+          console.log(`📨 Tentative d’envoi à ${email} via ${compte.serviceID}...`);
           await emailjs.send(compte.serviceID, compte.templateID, {
             to_email: email,
             html_message: htmlMessage,
-            subject: "Votre document est disponible"
+            subject: "Votre document est disponible !"
           }, compte.publicKey);
+
+          console.log(`✅ E-mail envoyé à ${email} via ${compte.serviceID}`);
+          afficherBulle(`📨 E-mail envoyé à ${email}`, "administratif");
           mailEnvoye = true;
           break;
-        } catch (err) {
-          console.warn("Erreur EmailJS:", err);
+        } catch (error) {
+          console.warn(`⚠️ Échec avec ${compte.serviceID}:`, error.text || error);
+          derniereErreur = error.text || "";
+
+          if (derniereErreur.toLowerCase().includes("quota")) {
+            console.log("🔁 Quota dépassé, essai avec le compte suivant...");
+          } else {
+            break;
+          }
         }
       }
-      if (mailEnvoye) afficherBulle(`📨 Envoyé à ${email}`, "administratif");
-      else afficherBulle(`❌ Échec d'envoi à ${email}`, "alerte");
+
+      if (!mailEnvoye) {
+        afficherBulle(`❌ Échec d'envoi à ${email}`, "alerte");
+      }
     }
 
-  } catch (err) {
-    console.error("Erreur:", err);
-    alert("Erreur lors de l’envoi : " + err.message);
-  } finally {
     hideLoadingModal();
+    afficherBulle("📨 Envois terminés !", "administratif");
+
+  } catch (err) {
+    hideLoadingModal();
+    console.error("❌ Erreur d'envoi :", err);
+    alert("Erreur : " + err.message);
   }
 });
 
-   chargerDepuisFirestore()
-   function afficherBulle(texte, type) {
-    let container = document.getElementById('bubble-container');
-    if (!container) {
-      container = document.createElement('div');
-      container.id = 'bubble-container';
-      document.body.appendChild(container);
-    }
-    const bulle = document.createElement('div');
-    bulle.className = `bubble ${type}`;
-    bulle.textContent = texte;
-    container.appendChild(bulle);
-    setTimeout(() => {
-      bulle.remove();
-    }, 3000);
-  }
   </script>
 </body>
 </html>
