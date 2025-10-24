@@ -16299,7 +16299,7 @@ emailjs.init("CZapZCcxYfJ8-acLS");
   firebase.initializeApp(firebaseConfig);
 db = firebase.firestore(); 
   await remplirInfosPatientDepuisFirestore();
-
+const patientRef = db.collection("patients").doc(patientId);
   prescriptionItems = [];
 const envoyerMailBtn = document.getElementById("btnEnvoyerMail");
   function getIdFromURL() {
