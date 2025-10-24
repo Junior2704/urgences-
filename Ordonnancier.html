@@ -16296,12 +16296,19 @@ let db;
     measurementId: "G-C74MK2KYDL"
   };
 emailjs.init("CZapZCcxYfJ8-acLS");
-  firebase.initializeApp(firebaseConfig);
-db = firebase.firestore(); 
-const id = getIdFromURL();
+  const db = firebase.firestore();
+const urlParams = new URLSearchParams(window.location.search);
+const patientId = urlParams.get("id");
+
+if (!patientId) {
+  alert("⚠️ Aucun ID patient dans l’URL !");
+  throw new Error("patientId manquant");
+}
+
+const patientRef = db.collection("patients").doc(patientId);
+console.log("📁 patientRef initialisé :", patientRef.path);
     
   await remplirInfosPatientDepuisFirestore();
-const patientRef = db.collection("patients").doc(id);
   prescriptionItems = [];
 const envoyerMailBtn = document.getElementById("btnEnvoyerMail");
   function getIdFromURL() {
