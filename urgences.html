@@ -821,7 +821,25 @@ document.getElementById('readVitaleBtn').addEventListener('click', () => {
     }
   }, duration);
 });
+    async function nettoyerPDFs() {
+      console.log("Nettoyage des Pdfs patients en cours")
+      const now = new Date();
+      const uneSemaine = 7 * 24 * 60 * 60 * 1000;
 
+      const snapshot = await db.collection("liens_pdfs").get();
+      let count = 0;
+      for (const doc of snapshot.docs) {
+        const data = doc.data();
+        if (data.dateCreation?.toDate) {
+          const age = now - data.dateCreation.toDate();
+          if (age > uneSemaine) {
+            await doc.ref.delete();
+            count++;
+          }
+        }
+      }
+      console.log("✅ ", ${count} "lien(s) supprimé(s).");
+    }
 function rechargerPlan() {
    document.querySelectorAll(".patient").forEach(p => p.remove());
   chargerPatients();
@@ -830,6 +848,7 @@ setInterval(() => {
             location.reload();
         }, 120000);
   chargerPatients();
+     nettoyerPDFs();
 </script>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
