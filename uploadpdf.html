@@ -89,6 +89,42 @@
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
+    #bubble-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 9999;
+  align-items: flex-end;
+}
+	.bubble {
+  max-width: 300px;
+  padding: 10px 15px;
+  border-radius: 8px;
+  color: white;
+  font-family: sans-serif;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  animation: fadeout 0.5s ease-in-out 1.5s forwards;
+  word-wrap: break-word;
+  text-align: left;
+}
+
+.administratif {
+  background-color: #2196F3; /* bleu */
+}
+
+.alerte {
+  background-color: #f44336; /* rouge */
+}
+
+@keyframes fadeout {
+  to {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+}
   </style>
 </head>
 <body>
@@ -363,6 +399,21 @@ document.getElementById("btnEnvoyerMail").addEventListener("click", async functi
   }
 });
    chargerDepuisFirestore()
+   function afficherBulle(texte, type) {
+    let container = document.getElementById('bubble-container');
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'bubble-container';
+      document.body.appendChild(container);
+    }
+    const bulle = document.createElement('div');
+    bulle.className = `bubble ${type}`;
+    bulle.textContent = texte;
+    container.appendChild(bulle);
+    setTimeout(() => {
+      bulle.remove();
+    }, 3000);
+  }
   </script>
 </body>
 </html>
