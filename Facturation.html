@@ -383,6 +383,75 @@ document.getElementById('downloadPdfBtn').addEventListener('click', () => {
     <div id="progressBar" style="height: 100%; width: 0%; background: white; transition: width 5s linear;"></div>
   </div>
 </div>
+<script>
+  // 🔹 Initialisation Firebase (si pas déjà faite)
+  const firebaseConfig = {
+    apiKey: "AIzaSyA***************", // 🔧 mets ta config Firebase ici
+    authDomain: "********.firebaseapp.com",
+    projectId: "********",
+  };
+  if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+  }
+  const db = firebase.firestore();
+
+  // 🔹 Fonction utilitaire pour afficher une bulle
+  function afficherBulle(message, type = "administratif") {
+    const container = document.getElementById("bubble-container") || (() => {
+      const c = document.createElement("div");
+      c.id = "bubble-container";
+      document.body.appendChild(c);
+      return c;
+    })();
+
+    const bubble = document.createElement("div");
+    bubble.className = `bubble ${type}`;
+    bubble.innerHTML = message;
+    container.appendChild(bubble);
+
+    setTimeout(() => bubble.remove(), 4000);
+  }
+
+  // 🔹 Récupérer l’ID patient depuis l’URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const patientId = urlParams.get("id");
+
+  // 🔹 Préremplir les champs du formulaire depuis Firestore
+  async function chargerPatient() {
+    if (!patientId) {
+      afficherBulle("⚠️ Aucun identifiant patient fourni dans l’URL.", "alerte");
+      return;
+    }
+
+    try {
+      const patientRef = db.collection("patients").doc(patientId);
+      const doc = await patientRef.get();
+
+      if (!doc.exists) {
+        afficherBulle("❌ Patient introuvable dans la base.", "alerte");
+        return;
+      }
+
+      const data = doc.data();
+      console.log("✅ Données patient :", data);
+
+      // Remplir les champs du formulaire
+      document.getElementById("lastName").value = data.nom || "";
+      document.getElementById("firstName").value = data.prenom || "";
+      if (data.dateNaissance) {
+        document.getElementById("birthDate").value = data.dateNaissance;
+      }
+
+      afficherBulle("✅ Patient chargé automatiquement", "administratif");
+    } catch (err) {
+      console.error("Erreur Firestore :", err);
+      afficherBulle("⚠️ Erreur lors du chargement du patient.", "alerte");
+    }
+  }
+
+  // 🔹 Exécuter au chargement de la page
+  window.addEventListener("DOMContentLoaded", chargerPatient);
+</script>
 
 </body>
 </html>
