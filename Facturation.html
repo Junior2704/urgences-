@@ -64,18 +64,19 @@
 #emailSelectModal.show {
   display: flex;
 }
-
 #emailSelectModal .modal-content {
-  width: 380px;
-  max-width: 90%;
+  width: 680px;                 /* 🔹 élargie par défaut */
+  max-width: 95vw;              /* 🔹 limite à presque toute la largeur de l’écran */
   background: linear-gradient(to bottom right, #ffffff, #f9fafc);
   border-radius: 16px;
-  padding: 28px 26px 22px;
+  padding: 32px 36px 28px;
   box-shadow: 0 8px 40px rgba(0, 0, 0, 0.18);
   border: 1px solid rgba(0, 0, 0, 0.06);
   animation: slideUpModal 0.35s ease-out;
   transform-origin: center;
+  text-align: left;             /* 🔹 le texte utilise mieux la largeur */
 }
+
 
 #emailSelectModal h3 {
   text-align: center;
@@ -186,7 +187,12 @@
   }
 }
 
-    @media (max-width:720px){ form{ padding:16px; } .btn-container{ flex-direction:column; align-items:stretch; } .flex{ flex-direction:column; align-items:flex-start; gap:6px; } }
+@media (max-width: 720px) {
+  #emailSelectModal .modal-content {
+    width: 95%;
+    padding: 22px 18px;
+  }
+}
   </style>
 </head>
 <body>
