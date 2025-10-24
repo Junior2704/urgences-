@@ -159,9 +159,9 @@
   </div>
 </div>
 
-<!-- Modale de sélection des e-mails (copiée/adaptée du rapport) -->
-<div id="emailSelectModal">
-  <div class="modal-content">
+<!-- Modale de sélection des e-mails -->
+<div id="emailSelectModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); backdrop-filter:blur(2px); justify-content:center; align-items:center; z-index:200;">
+  <div class="modal-content" style="width:340px; text-align:left;">
     <h3 style="text-align:center;">📧 Choisissez les destinataires</h3>
     <form id="emailSelectForm">
       <div id="emailCheckboxes"></div>
@@ -172,23 +172,88 @@
       <input type="email" id="otherEmailInput" placeholder="exemple@mail.com"
              style="margin-top:5px; padding:6px; width:100%; border:1px solid #ccc; border-radius:6px;" disabled>
       <br><br>
-      <div style="display:flex; gap:10px; justify-content:center;">
-        <button type="button" onclick="closeEmailSelectModal()" style="background:#ccc; padding:8px 12px; border-radius:6px; border:none;">Annuler</button>
-        <button type="button" id="confirmEmails" style="background:#004AAD; color:white; padding:8px 12px; border-radius:6px; border:none;">Envoyer</button>
-      </div>
+      
+      <button type="button" onclick="closeEmailSelectModal()" style="background:#ccc;">Annuler</button>
+      <button type="button" id="confirmEmails">Envoyer</button>
     </form>
   </div>
 </div>
 
-<!-- Loading modal during email sending (copied from rapport) -->
-<div id="loadingModal" class="modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); justify-content:center; align-items:center; z-index:9999;">
-  <div class="modal-content" style="width:320px; text-align:center;">
-    <img src="logo.jpg" alt="Logo hôpital" style="height:70px; margin-bottom:12px;">
-    <div class="loader" style="border:4px solid #f3f3f3; border-top:4px solid #1a73e8; border-radius:50%; width:45px; height:45px; margin:10px auto; animation:spin 1s linear infinite;"></div>
-    <p>Envoi de la facture en cours...</p>
+<!-- 🔷 MODALE DE CHARGEMENT -->
+<div id="loadingModal" class="loadingModal">
+  <div class="modal-content">
+    <img src="https://junior2704.github.io/urgences-/logo.jpg" alt="Logo hôpital" class="logo">
+    <div class="loader"></div>
+    <p>Envoi du compte-rendu en cours...</p>
   </div>
 </div>
 
+<style>
+/* --- Arrière-plan plein écran --- */
+.loadingModal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(6px);
+  display: none; /* masquée par défaut */
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+/* --- Boîte centrale --- */
+.loadingModal-content {
+  background: #fff;
+  padding: 30px 40px;
+  border-radius: 16px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+  text-align: center;
+  width: 320px;
+  animation: fadeIn 0.3s ease;
+}
+
+/* --- Logo --- */
+.loadingModal-content .logo {
+  height: 70px;
+  margin-bottom: 20px;
+}
+
+/* --- Texte --- */
+.loadingModal-content p {
+  color: #333;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+/* --- Loader --- */
+.loader {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #1a73e8;
+  border-radius: 50%;
+  width: 45px;
+  height: 45px;
+  margin: 15px auto;
+  animation: spin 1s linear infinite;
+}
+
+/* --- Animations --- */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* --- États JS --- */
+#loadingModal.show {
+  display: flex;
+}
 <!-- notification bubbles -->
 <div id="bubble-container"></div>
 
@@ -428,7 +493,7 @@
         <div style="display:flex; gap:12px; align-items:center;">
           <img src="logo.jpg" alt="Logo" style="height:70px; object-fit:contain;">
           <div>
-            <div style="font-size:18px; font-weight:800; color:#111;">Centre Urgences - Clinique</div>
+            <div style="font-size:18px; font-weight:800; color:#111;">Centre Hospitalier - Service des Urgences</div>
             <div style="font-size:13px; color:#555; margin-top:6px;">Adresse clinique • 00 00 00 00 00 • contact@clinique.example</div>
           </div>
         </div>
@@ -447,9 +512,9 @@
           <div style="font-size:13px; color:#555; margin-top:6px;">Mode paiement : ${paiement}</div>
         </div>
         <div style="flex:1; text-align:right;">
-          <div style="font-weight:700; color:#333;">Clinique / Prestataire :</div>
-          <div style="margin-top:8px; font-size:14px;">Centre Urgences - Clinique</div>
-          <div style="font-size:13px; color:#555;">SIRET: 000 000 000 00000</div>
+          <div style="font-weight:700; color:#333;">centre Hospitalier</div>
+          <div style="margin-top:8px; font-size:14px;">Service des Uregnces</div>
+        
         </div>
       </div>
 
@@ -487,7 +552,7 @@
       </div>
 
       <div style="margin-top:28px; border-top:1px dashed #e6e9ec; padding-top:10px; font-size:12px; color:#777;">
-        Centre Urgences • Adresse complète • Tél: 00 00 00 00 00 • contact@clinique.example
+        Centre Hospitalier • Service des urgences • urgences.hopj@gamil.com
       </div>
     </div>
   `;
@@ -593,9 +658,8 @@
       }
 
       closeEmailSelectModal();
-      // show loading modal
-      document.getElementById("loadingModal").style.display = "flex";
-
+      showLoadingModal()
+      
 // --- 1) Génération du PDF via creerFacture(false) ---
 const pdfBlob = await creerFacture(false);
 if (!pdfBlob) throw new Error("Erreur lors de la génération du PDF.");
@@ -668,7 +732,8 @@ if (!pdfBlob) throw new Error("Erreur lors de la génération du PDF.");
         </p>
 
         <p style="font-size:15px; line-height:1.6; color:#555;">
-          La facture relative à votre prise en charge est disponible. Montant total : <strong>${parseFloat(grandTotalElem.textContent || '0').toFixed(2)} €</strong>.
+          La facture (d'un montant de <strong>${parseFloat(grandTotalElem.textContent || '0').toFixed(2)} €</strong>) relative à votre prise en charge est disponible.
+          Vous pouvez la cosulter et la télécharger en cliquant sur le lien ci-dessous.
         </p>
 
         <div style="text-align:center; margin:30px 0;">
@@ -728,13 +793,13 @@ if (!pdfBlob) throw new Error("Erreur lors de la génération du PDF.");
       }
 
       // --- 5) Fin & UI updates ---
-      document.getElementById("loadingModal").style.display = "none";
+      hideLoadingModal()
       afficherBulle("📨 Envois terminés !", "administratif");
       // reload to reset UI (optionnel)
      // setTimeout(() => location.reload(true), 1500);
 
     } catch (err) {
-      document.getElementById("loadingModal").style.display = "none";
+      hideLoadingModal()
       console.error("Erreur confirmEmails :", err);
       alert("Erreur lors de l'envoi : " + (err.message || err));
     }
@@ -758,8 +823,13 @@ if (!pdfBlob) throw new Error("Erreur lors de la génération du PDF.");
   updateTotals();
 
   // hide loading modal helper if needed
-  function showLoadingModal(){ document.getElementById("loadingModal").style.display = "flex"; }
-  function hideLoadingModal(){ document.getElementById("loadingModal").style.display = "none"; }
-</script>
+  function showLoadingModal() {
+  document.getElementById("loadingModal").classList.add("show");
+}
+
+function hideLoadingModal() {
+  document.getElementById("loadingModal").classList.remove("show");
+}
+  </script>
 </body>
 </html>
