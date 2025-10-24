@@ -376,6 +376,7 @@ function autoResizeTextarea(el) {
   el.style.height = (el.scrollHeight) + "px";
 }
 
+let pdfBase64 = "";
 
 // Charger données depuis Firestore
 async function chargerDepuisFirestore() {
@@ -627,159 +628,6 @@ function base64ToBlob(base64, type = "application/pdf") {
 
 
 
-document.getElementById("btnEnvoyerMail").addEventListener("click", async function () {
-  try {
-    showLoadingModal();
-    console.log("📄 Génération du PDF...");
-    const pdfBase64 = await creerPDF(false);
-    console.log("✅ PDF généré, taille base64:", pdfBase64.length);
-
-    // 1️⃣ Création d’un ID unique
-    let idUnique, docSnap;
-    do {
-      idUnique = Math.random().toString(36).substring(2, 10);
-      docSnap = await db.collection("liens_pdfs").doc(idUnique).get();
-    } while (docSnap.exists);
-
-    // 2️⃣ Récupération infos patient
-    const doc = await patientRef.get();
-    if (!doc.exists) {
-      afficherBulle("❌ Patient non trouvé", "alerte");
-      return;
-    }
-
-    const data = doc.data();
-    const firstName = data.prenom || "";
-    const lastName = data.nom || "";
-    const emailPatient = data.email || "";
-    const fileName = `Rapport d'hospitalisation - ${firstName} ${lastName}.pdf`;
-
-    if (!emailPatient || !emailPatient.includes("@")) {
-      hideLoadingModal();
-      afficherBulle("⚠️ Adresse e-mail invalide ou absente.", "alerte");
-      return;
-    }
-
-    // 3️⃣ Enregistrement du PDF dans Firestore
-    await db.collection("liens_pdfs").doc(idUnique).set({
-      base64: pdfBase64,
-      nomFichier: fileName,
-      dateCreation: firebase.firestore.FieldValue.serverTimestamp(),
-    });
-
-    // 4️⃣ Lien d’accès temporaire
-    const lienPdf = `https://junior2704.github.io/urgences-/monpdf.html?id=${idUnique}`;
-    console.log("✅ Lien Firestore :", lienPdf);
-
-    // 5️⃣ Corps du mail dynamique
-    let htmlMessage = `
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8">
-  <title>Compte-rendu d’hospitalisation</title>
-</head>
-<body style="margin:0; padding:0; background-color:#f4f6f9; font-family:'Segoe UI', Roboto, Arial, sans-serif; color:#333;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="max-width:640px; margin:auto; background:white; border-radius:10px; box-shadow:0 3px 10px rgba(0,0,0,0.08); overflow:hidden;">
-    <tr>
-      <td style="background-color:#0057a4; padding:24px; text-align:center;">
-        <img src="https://junior2704.github.io/urgences-/logo.jpg" alt="Logo Hôpital" style="height:60px; display:block; margin:0 auto 10px auto;">
-        <h1 style="color:white; font-size:22px; margin:0;">Centre Hospitalier</h1>
-        <p style="color:#dce6f3; margin:6px 0 0; font-size:14px;">Service des Urgences</p>
-      </td>
-    </tr>
-    <tr>
-      <td style="padding:30px;">
-        <h2 style="color:#0057a4; font-weight:600; margin-top:0;">Votre compte-rendu d’hospitalisation</h2>
-
-        <p style="font-size:16px; line-height:1.6;">
-          Bonjour <strong>${firstName} ${lastName}</strong>,
-        </p>
-
-        <p style="font-size:15px; line-height:1.6; color:#555;">
-          Le compte-rendu de votre hospitalisation a été validé par le médecin responsable et est désormais disponible.
-          Ce document récapitule votre prise en charge, les examens effectués, ainsi que les recommandations médicales à suivre.
-          Pour toute question relative à votre compte-rendu, n'hésitez pas à nous contacter le service des Urgences par e-mail : 
-          <a href="mailto:urgences.hopj@gmail.com" style="color:#0057a4;">urgences.hopj@gmail.com</a>
-        </p>
-
-        <div style="text-align:center; margin:30px 0;">
-          <a href="${lienPdf}" 
-             style="background-color:#0057a4; color:white; padding:14px 32px; text-decoration:none; border-radius:8px; font-weight:500; display:inline-block;">
-            🔗 Télécharger le compte-rendu
-          </a>
-        </div>
-
-        <p style="font-size:15px; line-height:1.6; color:#555;">
-          ⚠️ Ce document est valable 7 jours. Au-delà de ce délai, il ne sera plus accessible pour des raisons de confidentialité et l'hôpital ne sera pas en mesure de vous en fournir une copie.
-        </p>
-
-        <p style="font-size:14px; color:#777;">
-          Si vous rencontrez des difficultés, merci de contacter le service des Urgences :
-          <a href="mailto:urgences.hopj@gmail.com" style="color:#0057a4;">urgences.hopj@gmail.com</a>
-        </p>
-
-        <hr style="border:none; border-top:1px solid #e0e0e0; margin:30px 0;">
-        <p style="font-size:13px; color:#999; text-align:center;">
-          Service des Urgences<br>
-          <em>Cet e-mail a été généré automatiquement, merci de ne pas y répondre.</em>
-        </p>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>`;
-
-    // 6️⃣ Configuration de tes comptes EmailJS
-    const comptesEmailJS = [
-      { serviceID: "service_o07vuso", templateID: "template_vj03i4u", publicKey: "CZapZCcxYfJ8-acLS" }, // compte principal (louisd9)
-      { serviceID: "service_o3i8ac9", templateID: "template_0wbzbwe", publicKey: "j5G-06rjQm0P6wriE" } ,// compte de secours (urgences.hopj)
-      { serviceID: "service_qij0y5a", templateID: "template_3qdes3p", publicKey: "nh2zkdRVJcGcE-Jwe" } // compte de secours (louislebest09)
-    ];
-
-    // 7️⃣ Fonction d’envoi avec fallback
-    let mailEnvoye = false;
-    let derniereErreur = "";
-
-    for (const compte of comptesEmailJS) {
-      try {
-        console.log(`📨 Tentative d’envoi via ${compte.serviceID}...`);
-        await emailjs.send(compte.serviceID, compte.templateID, {
-          to_email: emailPatient,
-          html_message: htmlMessage,
-          subject: "Votre compte-rendu d'hospitalisation est disponible !"
-        }, compte.publicKey);
-
-        console.log(`✅ E-mail envoyé avec succès via ${compte.serviceID}`);
-        mailEnvoye = true;
-        break;
-      } catch (error) {
-        console.warn(`⚠️ Échec avec ${compte.serviceID}:`, error.text || error);
-        derniereErreur = error.text || "";
-
-        // Vérifie si c’est une erreur de quota
-        if (derniereErreur && derniereErreur.toLowerCase().includes("quota")) {
-          console.log("🔁 Quota dépassé, essai avec le compte suivant...");
-        } else {
-          console.log("❌ Erreur non liée au quota, arrêt du processus.");
-          break;
-        }
-      }
-    }
-
-    if (!mailEnvoye) {
-      throw new Error("Aucun e-mail n’a pu être envoyé. Détail : " + derniereErreur);
-    }
-
-    hideLoadingModal();
-    afficherBulle("📨 E-mail envoyé avec succès au patient !", "administratif");
-
-  } catch (err) {
-    hideLoadingModal();
-    console.error("❌ Erreur d'envoi :", err);
-    alert("Erreur : " + err.message);
-  }
-});
 
 
 
@@ -838,161 +686,153 @@ function closeEmailSelectModal() {
 document.getElementById("otherEmailCheck").addEventListener("change", (e) => {
   document.getElementById("otherEmailInput").disabled = !e.target.checked;
 });
+// Ouvre la modale de sélection d'emails (ne génère pas encore le PDF)
 document.getElementById("btnEnvoyerMail").addEventListener("click", async () => {
-  if (!pdfBase64) return alert("Veuillez d’abord charger un PDF.");
+  // pas de pdfBase64 préexistant dans cette page — on générera le PDF au moment de l'envoi
   const doc = await patientRef.get();
-  if (!doc.exists) return afficherBulle("❌ Patient introuvable", "alerte");
+  if (!doc.exists) {
+    afficherBulle("❌ Patient introuvable", "alerte");
+    return;
+  }
   const data = doc.data();
-  const emails = data.email || "";
+  const emails = data.email || ""; // chaîne formatée "a@x.com//b@y.fr"
+  console.log("📧 Emails trouvés (dossier) :", emails);
   openEmailSelectModal(emails);
 });
+
 document.getElementById("confirmEmails").addEventListener("click", async function () {
   try {
-    showLoadingModal();
-
-    // 🔍 Récupère les cases cochées
+    // Récupère les adresses sélectionnées dans la modale
     const checkedBoxes = document.querySelectorAll("#emailCheckboxes input[type='checkbox']:checked");
-    let destinataires = Array.from(checkedBoxes).map(cb => cb.value);
+    let destinataires = Array.from(checkedBoxes).map(cb => cb.value.trim());
 
     const otherChecked = document.getElementById("otherEmailCheck").checked;
     const otherEmail = document.getElementById("otherEmailInput").value.trim();
     if (otherChecked && otherEmail) destinataires.push(otherEmail);
 
     if (destinataires.length === 0) {
-      hideLoadingModal();
       alert("Veuillez cocher au moins une adresse e-mail.");
       return;
     }
 
-    console.log("📧 Envoi à :", destinataires.join(", "));
+    closeEmailSelectModal();
+    showLoadingModal();
 
-    // 1️⃣ Création d’un ID unique
+    // --- 1) Génération du PDF via ta fonction existante creerPDF()
+    console.log("📄 Génération du PDF via creerPDF()...");
+    const pdfBase64 = await creerPDF(false); // renvoie le base64
+    console.log("✅ PDF généré, taille base64:", pdfBase64.length);
+
+    // --- 2) Création d'un ID unique pour Firestore
     let idUnique, docSnap;
     do {
       idUnique = Math.random().toString(36).substring(2, 10);
       docSnap = await db.collection("liens_pdfs").doc(idUnique).get();
     } while (docSnap.exists);
 
-    // 2️⃣ Récupération infos patient
+    // --- 3) Récupération des infos patient pour nommer le fichier
     const doc = await patientRef.get();
     if (!doc.exists) {
-      afficherBulle("❌ Patient non trouvé", "alerte");
       hideLoadingModal();
+      afficherBulle("❌ Patient non trouvé", "alerte");
       return;
     }
-
     const data = doc.data();
     const firstName = data.prenom || "";
     const lastName = data.nom || "";
-    const fileName = nomPdf || `Document - ${firstName} ${lastName}.pdf`;
+    const fileName = nomPdf && nomPdf.trim() ? nomPdf.trim() : `Rapport d'hospitalisation - ${firstName} ${lastName}.pdf`;
 
-    // 3️⃣ Enregistrement du PDF dans Firestore
+    // --- 4) Enregistrement dans Firestore
     await db.collection("liens_pdfs").doc(idUnique).set({
       base64: pdfBase64,
-      nom: fileName,
+      nomFichier: fileName,
       dateCreation: firebase.firestore.FieldValue.serverTimestamp(),
     });
 
-    // 4️⃣ Lien d’accès temporaire
     const lienPdf = `https://junior2704.github.io/urgences-/monpdf.html?id=${idUnique}`;
     console.log("✅ Lien Firestore :", lienPdf);
 
-    // 5️⃣ Corps du mail
+    // --- 5) Prépare le corps du mail (template HTML comme avant)
     const htmlMessage = `
 <!DOCTYPE html>
 <html lang="fr">
-<head>
-  <meta charset="UTF-8">
-  <title>Votre document</title>
-</head>
-<body style="margin:0; padding:0; background-color:#f4f6f9; font-family:'Segoe UI', Roboto, Arial, sans-serif; color:#333;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="max-width:640px; margin:auto; background:white; border-radius:10px; box-shadow:0 3px 10px rgba(0,0,0,0.08); overflow:hidden;">
-    <tr>
-      <td style="background-color:#0057a4; padding:24px; text-align:center;">
-        <img src="https://junior2704.github.io/urgences-/logo.jpg" alt="Logo Hôpital" style="height:60px; display:block; margin:0 auto 10px auto;">
-        <h1 style="color:white; font-size:22px; margin:0;">Centre Hospitalier</h1>
-        <p style="color:#dce6f3; margin:6px 0 0; font-size:14px;">Service des Urgences</p>
-      </td>
-    </tr>
-    <tr>
-      <td style="padding:30px;">
-        <h2 style="color:#0057a4; font-weight:600; margin-top:0;">Votre document</h2>
-        <p style="font-size:16px; line-height:1.6;">
-          Bonjour ${firstName} ${lastName},
-        </p>
-        <p style="font-size:15px; line-height:1.6; color:#555;">
-          Votre médecin vous a envoyé un document intitulé <strong>${fileName}</strong>.
-          Il est disponible au téléchargement via le lien ci-dessous :
-        </p>
-        <div style="text-align:center; margin:30px 0;">
-          <a href="${lienPdf}" 
-             style="background-color:#0057a4; color:white; padding:14px 32px; text-decoration:none; border-radius:8px; font-weight:500; display:inline-block;">
-            🔗 Télécharger le document
-          </a>
-        </div>
-        <p style="font-size:15px; line-height:1.6; color:#555;">
-          ⚠️ Ce lien est valable 7 jours. Passé ce délai, il sera supprimé pour des raisons de confidentialité.
-        </p>
-        <p style="font-size:14px; color:#777;">
-          Pour toute question, contactez le service des Urgences :
-          <a href="mailto:urgences.hopj@gmail.com" style="color:#0057a4;">urgences.hopj@gmail.com</a>
-        </p>
-        <hr style="border:none; border-top:1px solid #e0e0e0; margin:30px 0;">
-        <p style="font-size:13px; color:#999; text-align:center;">
-          Service des Urgences<br>
-          <em>Cet e-mail a été généré automatiquement, merci de ne pas y répondre.</em>
-        </p>
-      </td>
-    </tr>
+<head><meta charset="utf-8"><title>Compte-rendu d’hospitalisation</title></head>
+<body style="margin:0;padding:0;background:#f4f6f9;font-family:'Segoe UI',Arial;color:#333;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="max-width:640px;margin:auto;background:white;border-radius:10px;overflow:hidden;">
+    <tr><td style="background:#0057a4;padding:20px;text-align:center;">
+      <img src="https://junior2704.github.io/urgences-/logo.jpg" alt="Logo" style="height:60px;display:block;margin:0 auto;">
+      <h1 style="color:#fff;margin:10px 0 0;font-size:20px;">Centre Hospitalier</h1>
+      <p style="color:#dce6f3;margin:0;font-size:13px;">Service des Urgences</p>
+    </td></tr>
+    <tr><td style="padding:25px;">
+      <h2 style="color:#0057a4;margin-top:0;">Votre compte-rendu d’hospitalisation</h2>
+      <p>Bonjour <strong>${firstName} ${lastName}</strong>,</p>
+      <p>Le compte-rendu de votre hospitalisation a été validé et est disponible : <strong>${fileName}</strong>.</p>
+      <div style="text-align:center;margin:20px 0;">
+        <a href="${lienPdf}" style="background:#0057a4;color:#fff;padding:12px 24px;text-decoration:none;border-radius:8px;display:inline-block;">🔗 Télécharger le compte-rendu</a>
+      </div>
+      <p style="font-size:13px;color:#555;">⚠️ Ce lien est valable 7 jours.</p>
+      <p style="font-size:13px;color:#777;">Contact : <a href="mailto:urgences.hopj@gmail.com">urgences.hopj@gmail.com</a></p>
+      <hr style="border:none;border-top:1px solid #eaeaea;margin:18px 0;">
+      <p style="font-size:12px;color:#999;text-align:center;">Service des Urgences — Cet e-mail est automatique, ne pas répondre.</p>
+    </td></tr>
   </table>
 </body>
 </html>`;
 
-    // 6️⃣ Multi-compte EmailJS
+    // --- 6) Multi-compte EmailJS (fallback)
     const comptesEmailJS = [
       { serviceID: "service_o07vuso", templateID: "template_vj03i4u", publicKey: "CZapZCcxYfJ8-acLS" },
       { serviceID: "service_o3i8ac9", templateID: "template_0wbzbwe", publicKey: "j5G-06rjQm0P6wriE" },
       { serviceID: "service_qij0y5a", templateID: "template_3qdes3p", publicKey: "nh2zkdRVJcGcE-Jwe" }
     ];
 
-    // 7️⃣ Envoi à chaque destinataire
+    // --- 7) Envoi pour chaque destinataire (une requête EmailJS par adresse)
     for (const email of destinataires) {
-      let mailEnvoye = false;
-      let derniereErreur = "";
+      const emailTrim = email.trim();
+      if (!emailTrim || !emailTrim.includes("@")) {
+        afficherBulle(`Adresse invalide : ${emailTrim}`, "alerte");
+        continue;
+      }
 
+      let envoye = false;
+      let derniereErreur = "";
       for (const compte of comptesEmailJS) {
         try {
-          console.log(`📨 Envoi à ${email} via ${compte.serviceID}`);
+          console.log(`📨 Envoi à ${emailTrim} via ${compte.serviceID}...`);
           await emailjs.send(compte.serviceID, compte.templateID, {
-            to_email: email,
-            html_message: htmlMessage,
-            subject: "Votre document est disponible !"
+            to_email: emailTrim,
+            subject: "Votre compte-rendu d'hospitalisation est disponible",
+            html_message: htmlMessage
           }, compte.publicKey);
 
-          afficherBulle(`📨 E-mail envoyé à ${email}`, "administratif");
-          mailEnvoye = true;
+          afficherBulle(`📨 Envoyé : ${emailTrim}`, "administratif");
+          envoye = true;
           break;
-        } catch (error) {
-          console.warn(`⚠️ Échec avec ${compte.serviceID}:`, error.text || error);
-          derniereErreur = error.text || "";
+        } catch (err) {
+          console.warn(`⚠️ Échec ${compte.serviceID} -> ${err && err.text ? err.text : err}`);
+          derniereErreur = err && err.text ? err.text : String(err);
+          // si erreur de quota, on essaye le compte suivant, sinon on sort de la boucle comptes
           if (derniereErreur.toLowerCase().includes("quota")) continue;
           else break;
         }
       }
 
-      if (!mailEnvoye) afficherBulle(`❌ Échec d'envoi à ${email}`, "alerte");
+      if (!envoye) afficherBulle(`❌ Échec d'envoi à ${emailTrim}`, "alerte");
     }
 
     hideLoadingModal();
     afficherBulle("📨 Envois terminés !", "administratif");
+    // recharge la page pour réinitialiser l'UI (optionnel)
     setTimeout(() => location.reload(true), 2000);
 
   } catch (err) {
     hideLoadingModal();
-    console.error("❌ Erreur d'envoi :", err);
-    alert("Erreur : " + err.message);
+    console.error("Erreur confirmEmails :", err);
+    alert("Erreur lors de l'envoi : " + (err.message || err));
   }
 });
+
 
 function afficherBulle(texte, type) {
     let container = document.getElementById('bubble-container');
