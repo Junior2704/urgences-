@@ -126,6 +126,12 @@
   </div>
 
   <script>
+    const patientId = new URLSearchParams(window.location.search).get("id");
+
+if (!patientId) {
+  afficherBulle("❌ID patient manquant dans l'URL", "alerte");
+  throw new Error("ID manquant");
+}
     // === Configuration Firebase ===
     const firebaseConfig = {
       apiKey: "AIzaSyBKp5-7NNy0Gyl0tNbDgD-BxucYdg8ArWo",
