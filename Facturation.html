@@ -600,9 +600,6 @@
 const pdfBlob = await creerFacture(false);
 if (!pdfBlob) throw new Error("Erreur lors de la génération du PDF.");
       
-      // Génère blob puis base64
-      const pdfBlob = await html2pdf().set(opt).from(container).outputPdf('blob');
-      container.remove();
 
       const pdfBase64 = await new Promise((resolve, reject) => {
         const reader = new FileReader();
