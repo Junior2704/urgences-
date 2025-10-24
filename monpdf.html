@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mon document</title>
-<link rel="icon" type="image/jpeg" href="logo.jpg">
+  <title>Consultation du rapport</title>
+
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
@@ -36,6 +36,7 @@
       flex-direction: column;
       align-items: center;
       gap: 20px;
+      padding: 20px;
     }
 
     .error img {
@@ -73,10 +74,12 @@
 
         const data = docSnap.data();
         const base64 = data.base64;
-        const blob = base64ToBlob(base64, "application/pdf");
-        const url = URL.createObjectURL(blob);
 
-        document.body.innerHTML = `<iframe src="${url}" title="Aperçu du PDF"></iframe>`;
+        // ✅ Utiliser un lien data: pour compatibilité mobile
+        const pdfUrl = `data:application/pdf;base64,${base64}`;
+
+        // Affiche le PDF plein écran
+        document.body.innerHTML = `<iframe src="${pdfUrl}" title="Aperçu du PDF"></iframe>`;
       } catch (err) {
         console.error(err);
         showError("⚠️ Erreur lors du chargement du document.");
@@ -86,19 +89,11 @@
     function showError(msg) {
       document.body.innerHTML = `
         <div class="error">
+          <img src="https://junior2704.github.io/urgences-/logo.jpg" alt="Logo Hôpital">
           <p>${msg}</p>
           <p style="font-size:13px;color:#888;">Veuillez vérifier le lien ou contacter le service technique.</p>
         </div>
       `;
-    }
-
-    function base64ToBlob(base64, type) {
-      const binary = atob(base64);
-      const len = binary.length;
-      const buffer = new ArrayBuffer(len);
-      const view = new Uint8Array(buffer);
-      for (let i = 0; i < len; i++) view[i] = binary.charCodeAt(i);
-      return new Blob([view], { type });
     }
 
     afficherPDF();
