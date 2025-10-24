@@ -49,6 +49,40 @@
       text-decoration: none;
       word-break: break-all;
     }
+/* === Bouton d'upload stylé === */
+.custom-file-upload {
+  display: inline-block;
+  padding: 10px 18px;
+  background-color: #1a73e8;
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  font-size: 15px;
+}
+.custom-file-upload:hover {
+  background-color: #155ab6;
+}
+
+/* Cache l'input file d'origine */
+#pdfInput {
+  display: none;
+}
+
+/* Affichage du nom de fichier */
+#fileNameDisplay {
+  margin-top: 10px;
+  font-size: 14px;
+  color: #333;
+  background: #f1f3f4;
+  padding: 8px 12px;
+  border-radius: 6px;
+  display: inline-block;
+  max-width: 90%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
     /* Modale email */
     #emailModal, #loadingModal {
@@ -131,7 +165,9 @@
   <div class="card">
     <img src="https://junior2704.github.io/urgences-/logo.jpg" alt="Logo" style="height:60px; margin-bottom:10px;">
     <h2>Uploader un PDF</h2>
-    <input type="file" id="pdfInput" accept="application/pdf">
+   <label for="pdfInput" class="custom-file-upload">📁 Choisir un fichier PDF</label>
+<input type="file" id="pdfInput" accept="application/pdf">
+<div id="fileNameDisplay">Aucun fichier sélectionné</div>
     <div id="linkContainer"></div>
     <div>
       <button id="btnLien">🔗 Créer un lien</button>
@@ -227,10 +263,13 @@ document.getElementById("pdfInput").addEventListener("change", async function(e)
   const file = e.target.files[0];
   if (!file) return alert("Veuillez sélectionner un fichier PDF.");
 
+  // Affiche le nom du fichier choisi
+  document.getElementById("fileNameDisplay").textContent = file.name;
+
   // Ouvre la modale pour modifier le nom
   openFileNameModal(file.name);
 
-  // On prépare la lecture du PDF
+  // Lecture du fichier pour conversion base64
   const reader = new FileReader();
   reader.onload = () => {
     pdfBase64 = reader.result.split(",")[1];
@@ -238,6 +277,7 @@ document.getElementById("pdfInput").addEventListener("change", async function(e)
   };
   reader.readAsDataURL(file);
 });
+
 document.getElementById("btnValiderNom").addEventListener("click", () => {
   nomPdf = document.getElementById("fileNameInput").value.trim() || "Document.pdf";
   closeFileNameModal();
