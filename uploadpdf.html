@@ -194,9 +194,7 @@ const patientEmail = data.email || "";
   const sexe = data.sexe || '';
   const nom = data.nom || '';
   const prenom = data.prenom || '';
-  const dateNaissance = data.dateNaissance || '';
-  const dateNaissance2 = convertirDateEnFrancais(dateNaissance)
-  const age = dateNaissance ? `${calculerAge(dateNaissance)} ans` : '';
+ 
   const dateDebut=hospi.dateDebut || '';
   const motif = hospi.motif || '';
   const moyen = hospi.moyen || '';
