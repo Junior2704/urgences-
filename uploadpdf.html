@@ -134,10 +134,33 @@
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
+const patientRef = db.collection("patients").doc(patientId);
 
     let pdfBase64 = "";
     let lienPdf = "";
 
+async function chargerDepuisFirestore() {
+  const doc = await patientRef.get();
+  if (!doc.exists) {
+    afficherBulle("❌Patient non trouvé","alerte");
+    return;
+  }
+  const data = doc.data();
+  const index = data.hospitalisationIndex ?? 0;
+  const hospi = data.hospitalisations?.[index] || {};
+const patientEmail = data.email || "";
+  const sexe = data.sexe || '';
+  const nom = data.nom || '';
+  const prenom = data.prenom || '';
+  const dateNaissance = data.dateNaissance || '';
+  const dateNaissance2 = convertirDateEnFrancais(dateNaissance)
+  const age = dateNaissance ? `${calculerAge(dateNaissance)} ans` : '';
+  const dateDebut=hospi.dateDebut || '';
+  const motif = hospi.motif || '';
+  const moyen = hospi.moyen || '';
+  const adresse = data.adresse || '';
+window.patientData = data;
+}
     // === Conversion PDF → Base64 ===
     document.getElementById("pdfInput").addEventListener("change", async function(e) {
       const file = e.target.files[0];
@@ -186,7 +209,6 @@ document.getElementById("btnEnvoyerMail").addEventListener("click", async functi
   try {
     showLoadingModal();
     console.log("📄 Génération du PDF...");
-    const pdfBase64 = await creerPDF(false);
     console.log("✅ PDF généré, taille base64:", pdfBase64.length);
 
     // 1️⃣ Création d’un ID unique
@@ -207,7 +229,7 @@ document.getElementById("btnEnvoyerMail").addEventListener("click", async functi
     const firstName = data.prenom || "";
     const lastName = data.nom || "";
     const emailPatient = data.email || "";
-    const fileName = `Rapport d'hospitalisation - ${firstName} ${lastName}.pdf`;
+    const fileName = `Document - ${firstName} ${lastName}.pdf`;
 
     if (!emailPatient || !emailPatient.includes("@")) {
       hideLoadingModal();
@@ -334,7 +356,7 @@ document.getElementById("btnEnvoyerMail").addEventListener("click", async functi
     alert("Erreur : " + err.message);
   }
 });
-   
+   chargerDepuisFirestore()
   </script>
 </body>
 </html>
