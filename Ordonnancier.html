@@ -21,7 +21,86 @@
   font-size: 16px;           
   transition: background-color 0.3s ease;
 }
+.modal {
+    display: none; /* affichée dynamiquement par JS */
+    position: fixed;
+    z-index: 999;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.45);
+    justify-content: center;
+    align-items: center;
+  }
 
+  /* Boîte centrale */
+  .modal-content {
+    background: #f8f9fa;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    padding: 30px;
+    width: 90%;
+    max-width: 500px;
+    text-align: center;
+    animation: zoomIn 0.25s ease;
+  }
+
+  @keyframes zoomIn {
+    from { transform: scale(0.8); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+
+  .modal-content h2 {
+    margin-bottom: 10px;
+    color: #2c3e50;
+  }
+
+  .modal-content p {
+    color: #555;
+    font-size: 1rem;
+    margin-bottom: 20px;
+  }
+
+  .modal-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .btnModal {
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+
+  .btnModal.ouvrir {
+    background-color: #007bff;
+    color: white;
+  }
+
+  .btnModal.ouvrir:hover {
+    background-color: #0056b3;
+  }
+
+  .btnModal.ecraser {
+    background-color: #28a745;
+    color: white;
+  }
+
+  .btnModal.ecraser:hover {
+    background-color: #1e7e34;
+  }
+
+  .btnModal.fermer {
+    background-color: #6c757d;
+    color: white;
+    margin-top: 10px;
+  }
+
+  .btnModal.fermer:hover {
+    background-color: #5a6268;
+  }
 #new-prescription-btn:hover {
   background-color: #218838; 
 }
@@ -17011,10 +17090,16 @@ document.getElementById("confirmEmails").addEventListener("click", async functio
       for (const compte of comptesEmailJS) {
         try {
           console.log(`📨 Envoi à ${emailTrim} via ${compte.serviceID}...`);
+		  // Remplacement manuel des balises {{…}}
+const htmlFinal = htmlMessage
+  .replace(/{{patient_prenom}}/g, firstName)
+  .replace(/{{patient_nom}}/g, lastName)
+  .replace(/{{lien_compte_rendu}}/g, lienPdf);
+
           await emailjs.send(compte.serviceID, compte.templateID, {
             to_email: emailTrim,
             subject: "Votre ordonnance est disponible !",
-            html_message: htmlMessage
+            html_message: htmlFinal
           }, compte.publicKey);
 
           afficherBulle(`📨 Envoyé : ${emailTrim}`, "administratif");

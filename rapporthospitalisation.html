@@ -814,6 +814,11 @@ document.getElementById("confirmEmails").addEventListener("click", async functio
       for (const compte of comptesEmailJS) {
         try {
           console.log(`📨 Envoi à ${emailTrim} via ${compte.serviceID}...`);
+          const htmlFinal = htmlMessage
+  .replace(/{{patient_prenom}}/g, firstName)
+  .replace(/{{patient_nom}}/g, lastName)
+  .replace(/{{lien_compte_rendu}}/g, lienPdf);
+
           await emailjs.send(compte.serviceID, compte.templateID, {
             to_email: emailTrim,
             subject: "Votre compte-rendu d'hospitalisation est disponible",
