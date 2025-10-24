@@ -207,6 +207,24 @@
     <button onclick="closeFileNameModal()" style="background:#ccc;">Annuler</button>
   </div>
 </div>
+<!-- Modale de sélection des e-mails -->
+<div id="emailSelectModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); backdrop-filter:blur(2px); justify-content:center; align-items:center; z-index:200;">
+  <div class="modal-content" style="width:340px; text-align:left;">
+    <h3 style="text-align:center;">📧 Choisissez les destinataires</h3>
+    <form id="emailSelectForm">
+      <div id="emailCheckboxes"></div>
+      <hr style="margin:15px 0;">
+      <label style="display:flex; align-items:center; gap:6px;">
+        <input type="checkbox" id="otherEmailCheck"> Autre destinataire :
+      </label>
+      <input type="email" id="otherEmailInput" placeholder="exemple@mail.com"
+             style="margin-top:5px; padding:6px; width:100%; border:1px solid #ccc; border-radius:6px;" disabled>
+      <br><br>
+      <button type="button" id="confirmEmails">Envoyer</button>
+      <button type="button" onclick="closeEmailSelectModal()" style="background:#ccc;">Annuler</button>
+    </form>
+  </div>
+</div>
 
   <script>
     const patientId = new URLSearchParams(window.location.search).get("id");
@@ -283,6 +301,35 @@ document.getElementById("btnValiderNom").addEventListener("click", () => {
   closeFileNameModal();
   afficherBulle(`✅ Nom choisi : ${nomPdf}`, "administratif");
 });
+function openEmailSelectModal(emailsString) {
+  const modal = document.getElementById("emailSelectModal");
+  const container = document.getElementById("emailCheckboxes");
+  container.innerHTML = "";
+
+  const emails = (emailsString || "").split("//").filter(e => e.includes("@"));
+  if (emails.length === 0) {
+    container.innerHTML = "<p style='color:#777;'>Aucune adresse trouvée pour ce patient.</p>";
+  } else {
+    emails.forEach((email, i) => {
+      const id = "emailCheck_" + i;
+      container.innerHTML += `
+        <label style="display:flex; align-items:center; gap:6px; margin:6px 0;">
+          <input type="checkbox" id="${id}" value="${email}" checked>
+          ${email}
+        </label>`;
+    });
+  }
+
+  modal.style.display = "flex";
+}
+
+function closeEmailSelectModal() {
+  document.getElementById("emailSelectModal").style.display = "none";
+}
+
+document.getElementById("otherEmailCheck").addEventListener("change", (e) => {
+  document.getElementById("otherEmailInput").disabled = !e.target.checked;
+});
 
     // === Créer un lien temporaire (7 jours) ===
     document.getElementById("btnLien").addEventListener("click", async () => {
@@ -300,11 +347,17 @@ document.getElementById("btnValiderNom").addEventListener("click", () => {
         `<p>✅ Lien valide 7 jours :</p><a href="${lienPdf}" target="_blank">${lienPdf}</a>`;
     });
 
-    // === Afficher la modale email ===
-    document.getElementById("btnEmail").addEventListener("click", () => {
-      if (!pdfBase64) return alert("Veuillez d’abord charger un PDF.");
-      document.getElementById("emailModal").style.display = "flex";
-    });
+document.getElementById("btnEmail").addEventListener("click", async () => {
+  if (!pdfBase64) return alert("Veuillez d’abord charger un PDF.");
+
+  const doc = await patientRef.get();
+  if (!doc.exists) return afficherBulle("❌ Patient introuvable", "alerte");
+
+  const data = doc.data();
+  const emails = data.email || "";
+  openEmailSelectModal(emails);
+});
+
     function closeModal() {
       document.getElementById("emailModal").style.display = "none";
     }
@@ -467,6 +520,86 @@ document.getElementById("btnEnvoyerMail").addEventListener("click", async functi
     alert("Erreur : " + err.message);
   }
 });
+document.getElementById("confirmEmails").addEventListener("click", async () => {
+  const checkedBoxes = document.querySelectorAll("#emailCheckboxes input[type='checkbox']:checked");
+  let destinataires = Array.from(checkedBoxes).map(cb => cb.value);
+
+  const otherChecked = document.getElementById("otherEmailCheck").checked;
+  const otherEmail = document.getElementById("otherEmailInput").value.trim();
+
+  if (otherChecked && otherEmail) destinataires.push(otherEmail);
+
+  if (destinataires.length === 0) {
+    alert("Veuillez cocher au moins une adresse e-mail.");
+    return;
+  }
+
+  closeEmailSelectModal();
+  showLoadingModal();
+
+  try {
+    const doc = await patientRef.get();
+    const data = doc.data();
+    const firstName = data.prenom || "";
+    const lastName = data.nom || "";
+
+    // Génération d’un lien Firestore unique
+    let idUnique, docSnap;
+    do {
+      idUnique = Math.random().toString(36).substring(2, 10);
+      docSnap = await db.collection("liens_pdfs").doc(idUnique).get();
+    } while (docSnap.exists);
+
+    await db.collection("liens_pdfs").doc(idUnique).set({
+      base64: pdfBase64,
+      nom: nomPdf || "Document.pdf",
+      dateCreation: firebase.firestore.FieldValue.serverTimestamp(),
+    });
+
+    const lienPdf = `https://junior2704.github.io/urgences-/monpdf.html?id=${idUnique}`;
+
+    // Contenu du mail (identique à ton template)
+    const htmlMessage = `
+      <p>Bonjour,</p>
+      <p>Un document est disponible pour téléchargement :</p>
+      <p><a href="${lienPdf}">${lienPdf}</a></p>
+      <p>Ce lien est valable 7 jours.</p>`;
+
+    // Comptes EmailJS (inchangés)
+    const comptesEmailJS = [
+      { serviceID: "service_o07vuso", templateID: "template_vj03i4u", publicKey: "CZapZCcxYfJ8-acLS" },
+      { serviceID: "service_o3i8ac9", templateID: "template_0wbzbwe", publicKey: "j5G-06rjQm0P6wriE" },
+      { serviceID: "service_qij0y5a", templateID: "template_3qdes3p", publicKey: "nh2zkdRVJcGcE-Jwe" }
+    ];
+
+    // Envoi à chaque destinataire
+    for (const email of destinataires) {
+      let mailEnvoye = false;
+      for (const compte of comptesEmailJS) {
+        try {
+          await emailjs.send(compte.serviceID, compte.templateID, {
+            to_email: email,
+            html_message: htmlMessage,
+            subject: "Votre document est disponible"
+          }, compte.publicKey);
+          mailEnvoye = true;
+          break;
+        } catch (err) {
+          console.warn("Erreur EmailJS:", err);
+        }
+      }
+      if (mailEnvoye) afficherBulle(`📨 Envoyé à ${email}`, "administratif");
+      else afficherBulle(`❌ Échec d'envoi à ${email}`, "alerte");
+    }
+
+  } catch (err) {
+    console.error("Erreur:", err);
+    alert("Erreur lors de l’envoi : " + err.message);
+  } finally {
+    hideLoadingModal();
+  }
+});
+
    chargerDepuisFirestore()
    function afficherBulle(texte, type) {
     let container = document.getElementById('bubble-container');
