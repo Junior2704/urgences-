@@ -10,79 +10,47 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <!-- EmailJS (même version que dans ton rapport) -->
+  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
 
   <style>
     :root{
-      --primary:#007bff;
-      --accent:#17a2b8;
-      --success:#28a745;
-      --danger:#dc3545;
-      --muted:#6c757d;
-      --card:#ffffff;
+      --primary:#007bff; --accent:#17a2b8; --success:#28a745; --danger:#dc3545; --muted:#6c757d; --card:#ffffff;
     }
-    body{
-      font-family: "Segoe UI", Roboto, Arial, sans-serif;
-      background: linear-gradient(90deg,#f4f6f8,#e9ecef);
-      margin:0; padding:24px; color:#222;
-    }
+    body{ font-family:"Segoe UI", Roboto, Arial, sans-serif; background: linear-gradient(90deg,#f4f6f8,#e9ecef); margin:0; padding:24px; color:#222;}
     h1{ text-align:center; margin:6px 0 18px; }
-    form{
-      max-width:1000px; margin:0 auto; background:var(--card); padding:22px; border-radius:12px;
-      box-shadow:0 8px 30px rgba(0,0,0,0.08);
-    }
+    form{ max-width:1000px; margin:0 auto; background:var(--card); padding:22px; border-radius:12px; box-shadow:0 8px 30px rgba(0,0,0,0.08); }
     label{ display:block; margin-top:12px; font-weight:700; color:#333; }
-    input, select {
-      width:100%; padding:10px; margin-top:6px; border-radius:8px; border:1px solid #d3d7db;
-      box-sizing:border-box; font-size:15px;
-    }
+    input, select { width:100%; padding:10px; margin-top:6px; border-radius:8px; border:1px solid #d3d7db; box-sizing:border-box; font-size:15px; }
     input:disabled, select:disabled{ background:#f7f7f7; color:#777; }
     .btn-container{ display:flex; gap:10px; margin-top:18px; flex-wrap:wrap; }
-    .button{
-      background:var(--success); color:#fff; border:none; padding:10px 16px; border-radius:8px;
-      cursor:pointer; font-weight:700; box-shadow:0 2px 8px rgba(0,0,0,0.08);
-    }
+    .button{ background:var(--success); color:#fff; border:none; padding:10px 16px; border-radius:8px; cursor:pointer; font-weight:700; box-shadow:0 2px 8px rgba(0,0,0,0.08); }
     .button.secondary{ background:var(--accent); }
     .button.danger{ background:var(--danger); }
     .button.warning{ background:#ffc107; color:#111; }
     .button[disabled]{ opacity:0.6; cursor:not-allowed; }
-
     table{ width:100%; border-collapse:collapse; margin-top:18px; }
     th,td{ border:1px solid #e6e9ec; padding:10px; text-align:center; font-size:14px; }
     th{ background:#f7f9fb; font-weight:700; color:#333; }
     .price, .lineTotal{ font-weight:700; color:#111; }
-
     #grandTotal{ font-size:16px; font-weight:800; color:var(--primary); }
-
-    /* small helpers */
     .muted{ color:var(--muted); font-size:13px; }
     .flex{ display:flex; gap:10px; align-items:center; }
     .right{ margin-left:auto; }
-
-    /* popup */
-    #processingPopup{
-      display:none; position:fixed; left:50%; transform:translateX(-50%); top:18px;
-      background:var(--primary); color:#fff; padding:14px 20px; border-radius:10px; z-index:9999;
-      box-shadow:0 10px 30px rgba(0,0,0,0.12);
-    }
+    #processingPopup{ display:none; position:fixed; left:50%; transform:translateX(-50%); top:18px; background:var(--primary); color:#fff; padding:14px 20px; border-radius:10px; z-index:9999; box-shadow:0 10px 30px rgba(0,0,0,0.12); }
     #progressBar{ height:8px; width:0%; background:#fff; border-radius:6px; transition:width 2.2s linear; margin-top:10px; }
-
-    /* vitale modal */
     #vitaleModal{ display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:10000; justify-content:center; align-items:center; }
     #vitaleModal .box{ background:#fff; padding:28px; border-radius:12px; text-align:center; width:320px; box-shadow:0 12px 32px rgba(0,0,0,0.18); }
     .spinner{ width:48px; height:48px; border-radius:50%; border:6px solid #eee; border-top-color:var(--primary); margin:0 auto 12px; animation:spin 1s linear infinite; }
     @keyframes spin{ to{ transform:rotate(360deg);} }
-
-    /* bubbles notifications */
     #bubble-container{ position:fixed; top:20px; right:20px; display:flex; flex-direction:column; gap:10px; z-index:11000; }
     .bubble{ padding:10px 14px; border-radius:8px; color:#fff; box-shadow:0 6px 20px rgba(0,0,0,0.12); max-width:320px; }
     .administratif{ background:#2196F3; } .alerte{ background:#f44336; }
-
-    /* responsive */
-    @media (max-width:720px){
-      form{ padding:16px; }
-      .btn-container{ flex-direction:column; align-items:stretch; }
-      .flex{ flex-direction:column; align-items:flex-start; gap:6px; }
-    }
+    /* modal email (copié du rapport) */
+    #emailSelectModal{ display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); backdrop-filter:blur(2px); justify-content:center; align-items:center; z-index:200; }
+    #emailSelectModal .modal-content{ width:340px; text-align:left; padding:20px; border-radius:12px; background:#fff; box-shadow:0 8px 30px rgba(0,0,0,0.12);}
+    #emailSelectModal h3{ text-align:center; margin-top:0; }
+    @media (max-width:720px){ form{ padding:16px; } .btn-container{ flex-direction:column; align-items:stretch; } .flex{ flex-direction:column; align-items:flex-start; gap:6px; } }
   </style>
 </head>
 <body>
@@ -170,6 +138,8 @@
   <div class="btn-container" style="margin-top:18px;">
     <button type="button" id="validateBtn" class="button secondary">✅ Valider le paiement</button>
     <button type="button" id="downloadPdfBtn" class="button" style="display:none;">📄 Télécharger la facture (PDF)</button>
+    <!-- bouton d'envoi email : apparait en même temps que téléchargement -->
+    <button type="button" id="sendEmailBtn" class="button" style="display:none; background:#004AAD;">📧 Envoyer par e-mail</button>
   </div>
 </form>
 
@@ -189,11 +159,44 @@
   </div>
 </div>
 
+<!-- Modale de sélection des e-mails (copiée/adaptée du rapport) -->
+<div id="emailSelectModal">
+  <div class="modal-content">
+    <h3 style="text-align:center;">📧 Choisissez les destinataires</h3>
+    <form id="emailSelectForm">
+      <div id="emailCheckboxes"></div>
+      <hr style="margin:15px 0;">
+      <label style="display:flex; align-items:center; gap:6px;">
+        <input type="checkbox" id="otherEmailCheck"> Autre destinataire :
+      </label>
+      <input type="email" id="otherEmailInput" placeholder="exemple@mail.com"
+             style="margin-top:5px; padding:6px; width:100%; border:1px solid #ccc; border-radius:6px;" disabled>
+      <br><br>
+      <div style="display:flex; gap:10px; justify-content:center;">
+        <button type="button" onclick="closeEmailSelectModal()" style="background:#ccc; padding:8px 12px; border-radius:6px; border:none;">Annuler</button>
+        <button type="button" id="confirmEmails" style="background:#004AAD; color:white; padding:8px 12px; border-radius:6px; border:none;">Envoyer</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Loading modal during email sending (copied from rapport) -->
+<div id="loadingModal" class="modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); justify-content:center; align-items:center; z-index:9999;">
+  <div class="modal-content" style="width:320px; text-align:center;">
+    <img src="logo.jpg" alt="Logo hôpital" style="height:70px; margin-bottom:12px;">
+    <div class="loader" style="border:4px solid #f3f3f3; border-top:4px solid #1a73e8; border-radius:50%; width:45px; height:45px; margin:10px auto; animation:spin 1s linear infinite;"></div>
+    <p>Envoi de la facture en cours...</p>
+  </div>
+</div>
+
 <!-- notification bubbles -->
 <div id="bubble-container"></div>
 
 <script>
-  // ---------- Firebase config (inchangé) ----------
+  // -------- EmailJS init (comme dans rapport) ----------
+  emailjs.init("CZapZCcxYfJ8-acLS"); // même clé publique que dans rapport
+
+  // -------- Firebase config (inchangé) ----------
   const firebaseConfig = {
     apiKey: "AIzaSyBKp5-7NNy0Gyl0tNbDgD-BxucYdg8ArWo",
     authDomain: "urgences-a8ed4.firebaseapp.com",
@@ -205,13 +208,13 @@
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
 
-  // ---------- Helpers & UI ----------
+  // ---------- UI helpers & variables ----------
   const itemsTable = document.querySelector('#itemsTable tbody');
   const grandTotalElem = document.getElementById('grandTotal');
   const addItemBtn = document.getElementById('addItemBtn');
   const ageDisplay = document.getElementById('ageDisplay');
   const birthDateInput = document.getElementById('birthDate');
-  let currentFactureId = null; // stocke l'ID après validation
+  let currentFactureId = null; // id Firestore après validation
 
   function calculateAge(birthDate){
     if(!birthDate) return '';
@@ -248,8 +251,6 @@
     row.querySelector('.qty').addEventListener('input', updateTotals);
     row.querySelector('.removeBtn').addEventListener('click', () => { row.remove(); updateTotals(); });
   }
-
-  // set listeners for initial row(s)
   itemsTable.querySelectorAll('tr').forEach(addListeners);
   addItemBtn.addEventListener('click', () => {
     const row = itemsTable.insertRow();
@@ -258,7 +259,6 @@
         <select class="serviceSelect">
           <option value="" data-price="0">-- Choisir --</option>
           <option value="Forfait urgences" data-price="29">Forfait urgences - 29€</option>
-          <option value="Forfait urgences mineur" data-price="19">Forfait urgences mineur - 19€</option>
           <option value="Analyse sanguine" data-price="45">Analyse sanguine - 45€</option>
           <option value="Radiographie" data-price="10">Radiographie - 10€</option>
         </select>
@@ -287,6 +287,8 @@
             document.getElementById('birthDate').value = d.toISOString().split('T')[0];
             ageDisplay.textContent = `Âge : ${calculateAge(d.toISOString().split('T')[0])} ans`;
           }
+          // stocke patient data global pour utiliser les emails
+          window.patientData = data;
           afficherBulle(`👤 Patient chargé : ${data.prenom || ''} ${data.nom || ''}`, 'administratif');
         } else {
           afficherBulle('❌ Patient introuvable (id:'+id+')','alerte');
@@ -312,7 +314,12 @@
   });
 
   function afficherBulle(message, type='administratif'){
-    const container = document.getElementById('bubble-container');
+    let container = document.getElementById('bubble-container');
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'bubble-container';
+      document.body.appendChild(container);
+    }
     const div = document.createElement('div');
     div.className = 'bubble ' + (type || 'administratif');
     div.textContent = message;
@@ -368,13 +375,15 @@
       // Enregistrement Firestore
       const ref = await db.collection('factures').add(factureData);
       currentFactureId = ref.id;
+
       // fin animation & lock
       setTimeout(()=> {
         popup.style.display = 'none';
         afficherBulle('✅ Paiement validé (ID: ' + currentFactureId + ')', 'administratif');
         verrouillerFormulaire();
-        // afficher bouton PDF
+        // afficher boutons PDF et envoi email
         document.getElementById('downloadPdfBtn').style.display = 'inline-block';
+        document.getElementById('sendEmailBtn').style.display = 'inline-block';
       }, 1200);
     } catch (err) {
       console.error('Erreur enregistrement facture', err);
@@ -384,9 +393,9 @@
   });
 
   function verrouillerFormulaire(){
-    // Désactive tous les inputs/selects et boutons (sauf downloadPdfBtn)
+    // Désactive tous les inputs/selects et boutons (sauf downloadPdfBtn & sendEmailBtn)
     document.querySelectorAll('#invoiceForm input, #invoiceForm select, #invoiceForm button').forEach(el => {
-      if(el.id === 'downloadPdfBtn') return;
+      if(el.id === 'downloadPdfBtn' || el.id === 'sendEmailBtn') return;
       el.disabled = true;
     });
     // Hide remove buttons visually
@@ -395,9 +404,8 @@
     document.getElementById('validateBtn').style.display = 'none';
   }
 
-  // ---------- Génération PDF (modèle professionnel) ----------
-  document.getElementById('downloadPdfBtn').addEventListener('click', async () => {
-    // Reconstruire un HTML propre pour la facture (meilleur rendu PDF)
+  // ---------- Génération PDF (modèle professionnel, identique à avant) ----------
+  async function buildInvoiceHtmlAndContainer() {
     const nom = document.getElementById('lastName').value || '';
     const prenom = document.getElementById('firstName').value || '';
     const naissance = document.getElementById('birthDate').value || '';
@@ -412,10 +420,8 @@
       return { service, qty, pu, total };
     }).filter(p => p.service);
 
-    // Calculs (ici simple, TTC déjà sur l'UI)
     const totalTTC = parseFloat(grandTotalElem.textContent || '0').toFixed(2);
 
-    // Construire HTML facture (pro)
     const invoiceHtml = `
       <div style="font-family:Arial,Helvetica,sans-serif;color:#222; padding:24px; max-width:800px; margin:auto;">
         <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:4px solid ${'#007bff'}; padding-bottom:12px;">
@@ -486,43 +492,272 @@
       </div>
     `;
 
-    // Créer un conteneur invisible, y injecter le html, exporter en pdf via html2pdf, puis cleanup
     const container = document.createElement('div');
     container.style.display = 'block';
-    container.style.padding = '0';
-    container.style.margin = '0';
     container.innerHTML = invoiceHtml;
     document.body.appendChild(container);
+    return container;
+  }
 
+  // Download PDF button (uses html2pdf and cleans up)
+  document.getElementById('downloadPdfBtn').addEventListener('click', async () => {
+    const container = await buildInvoiceHtmlAndContainer();
     const opt = {
       margin:       0.5,
-      filename:     `facture_${factureNum}.pdf`,
+      filename:     `facture_${Date.now()}.pdf`,
       image:        { type: 'jpeg', quality: 0.98 },
       html2canvas:  { scale: 2, useCORS: true },
       jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
     };
-
-    // Sauvegarde PDF
     try {
       await html2pdf().set(opt).from(container).save();
     } catch (err) {
-      console.error('Erreur génération PDF', err);
+      console.error('Erreur PDF', err);
       afficherBulle('❌ Erreur génération PDF', 'alerte');
     } finally {
       container.remove();
     }
   });
 
-  // ---------- Reset ----------
+  // ---------- Email sending system (copié/adapté du rapport) ----------
+  // comptes EmailJS multi-comptes (identiques au rapport)
+  const comptesEmailJS = [
+    { serviceID: "service_o07vuso", templateID: "template_general", publicKey: "CZapZCcxYfJ8-acLS" },
+    { serviceID: "service_o3i8ac9", templateID: "template_general", publicKey: "j5G-06rjQm0P6wriE" },
+    { serviceID: "service_qij0y5a", templateID: "template_general", publicKey: "nh2zkdRVJcGcE-Jwe" }
+  ];
+
+  function openEmailSelectModal(emailsString) {
+    const modal = document.getElementById("emailSelectModal");
+    const container = document.getElementById("emailCheckboxes");
+    container.innerHTML = "";
+
+    const emails = (emailsString || "").split("//").filter(e => e.includes("@"));
+    if (emails.length === 0) {
+      container.innerHTML = "<p style='color:#777;'>Aucune adresse trouvée pour ce patient.</p>";
+    } else {
+      emails.forEach((email, i) => {
+        const id = "emailCheck_" + i;
+        container.innerHTML += `
+          <label style="display:flex; align-items:center; gap:6px; margin:6px 0;">
+            <input type="checkbox" id="${id}" value="${email}" checked>
+            ${email}
+          </label>`;
+      });
+    }
+
+    modal.style.display = "flex";
+  }
+
+  function closeEmailSelectModal() {
+    document.getElementById("emailSelectModal").style.display = "none";
+  }
+
+  document.getElementById("otherEmailCheck").addEventListener("change", (e) => {
+    document.getElementById("otherEmailInput").disabled = !e.target.checked;
+  });
+
+  // Click on "Envoyer par e-mail" opens modal prefilled with patient emails (if any)
+  document.getElementById('sendEmailBtn').addEventListener('click', async () => {
+    // get patient stored emails (string like "a@x.com//b@y.fr") from patientData if present
+    const patientData = window.patientData || {};
+    const emails = patientData.email || ""; // same format as in rapport
+    openEmailSelectModal(emails);
+  });
+
+  // confirmEmails handler (copied/adapted)
+  document.getElementById('confirmEmails').addEventListener('click', async function () {
+    try {
+      // Récupère les adresses sélectionnées dans la modale
+      const checkedBoxes = document.querySelectorAll("#emailCheckboxes input[type='checkbox']:checked");
+      let destinataires = Array.from(checkedBoxes).map(cb => cb.value.trim());
+
+      const otherChecked = document.getElementById("otherEmailCheck").checked;
+      const otherEmail = document.getElementById("otherEmailInput").value.trim();
+      if (otherChecked && otherEmail) destinataires.push(otherEmail);
+
+      if (destinataires.length === 0) {
+        alert("Veuillez cocher au moins une adresse e-mail.");
+        return;
+      }
+
+      closeEmailSelectModal();
+      // show loading modal
+      document.getElementById("loadingModal").style.display = "flex";
+
+      // --- 1) Génération du PDF en base64 via html2pdf (à la volée) ---
+      const container = await buildInvoiceHtmlAndContainer();
+      const opt = {
+        margin:       0.5,
+        filename:     `temp.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true },
+        jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+      };
+
+      // Génère blob puis base64
+      const pdfBlob = await html2pdf().set(opt).from(container).outputPdf('blob');
+      container.remove();
+
+      const pdfBase64 = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const dataUrl = reader.result;
+          const base64 = dataUrl.split(',')[1];
+          resolve(base64);
+        };
+        reader.onerror = (e) => reject(e);
+        reader.readAsDataURL(pdfBlob);
+      });
+
+      // --- 2) Création d'un ID unique et enregistrement dans Firestore (collection 'liens_pdfs') ---
+      let idUnique, docSnap;
+      do {
+        idUnique = Math.random().toString(36).substring(2, 10);
+        docSnap = await db.collection("liens_pdfs").doc(idUnique).get();
+      } while (docSnap.exists);
+
+      // Get patient name for filename
+      const patientDocId = new URLSearchParams(window.location.search).get('id');
+      let firstName = document.getElementById('firstName').value || '';
+      let lastName = document.getElementById('lastName').value || '';
+      if (patientDocId) {
+        try {
+          const pd = await db.collection('patients').doc(patientDocId).get();
+          if (pd.exists) {
+            const pdata = pd.data();
+            firstName = pdata.prenom || firstName;
+            lastName = pdata.nom || lastName;
+          }
+        } catch (e) { /* ignore */ }
+      }
+
+      const dateFact = new Date().toLocaleDateString('fr-FR');
+      const fileName = `Facture - ${firstName} ${lastName} - ${dateFact}.pdf`;
+
+      await db.collection("liens_pdfs").doc(idUnique).set({
+        base64: pdfBase64,
+        nomFichier: fileName,
+        dateCreation: firebase.firestore.FieldValue.serverTimestamp(),
+      });
+
+      const lienPdf = `https://junior2704.github.io/urgences-/monpdf.html?id=${idUnique}`;
+
+      // --- 3) Préparer le message HTML (template similaire au rapport, adapté pour facture) ---
+      const htmlMessage = `
+<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="utf-8"></head>
+<body style="margin:0; padding:0; background-color:#f4f6f9; font-family:'Segoe UI', Roboto, Arial, sans-serif; color:#333;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="max-width:640px; margin:auto; background:white; border-radius:10px; box-shadow:0 3px 10px rgba(0,0,0,0.08); overflow:hidden;">
+    <tr>
+      <td style="background-color:#0057a4; padding:24px; text-align:center;">
+        <img src="https://junior2704.github.io/urgences-/logo.jpg" alt="Logo Hôpital" style="height:60px; display:block; margin:0 auto 10px auto;">
+        <h1 style="color:white; font-size:22px; margin:0;">Centre Hospitalier</h1>
+        <p style="color:#dce6f3; margin:6px 0 0; font-size:14px;">Service des Urgences</p>
+      </td>
+    </tr>
+    <tr>
+      <td style="padding:30px;">
+        <h2 style="color:#0057a4; font-weight:600; margin-top:0;">Votre facture est disponible</h2>
+
+        <p style="font-size:16px; line-height:1.6;">
+          Bonjour <strong>${firstName} ${lastName}</strong>,
+        </p>
+
+        <p style="font-size:15px; line-height:1.6; color:#555;">
+          La facture relative à votre prise en charge est disponible. Montant total : <strong>${parseFloat(grandTotalElem.textContent || '0').toFixed(2)} €</strong>.
+        </p>
+
+        <div style="text-align:center; margin:30px 0;">
+          <a href="${lienPdf}" 
+             style="background-color:#0057a4; color:white; padding:14px 32px; text-decoration:none; border-radius:8px; font-weight:500; display:inline-block;">
+            🔗 Voir la facture
+          </a>
+        </div>
+
+        <p style="font-size:15px; line-height:1.6; color:#555;">
+          ⚠️ Ce lien reste actif 7 jours. Pour des raisons de confidentialité, la facture ne sera plus accessible après ce délai.
+        </p>
+
+        <hr style="border:none; border-top:1px solid #e0e0e0; margin:30px 0;">
+        <p style="font-size:13px; color:#999; text-align:center;">
+          Service des Urgences<br>
+          <em>Cet e-mail a été généré automatiquement, merci de ne pas y répondre.</em>
+        </p>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+
+      // --- 4) Envoi vers chaque destinataire via multi comptes EmailJS (template_general) ---
+      for (const email of destinataires) {
+        const emailTrim = email.trim();
+        if (!emailTrim || !emailTrim.includes("@")) {
+          afficherBulle(`Adresse invalide : ${emailTrim}`, "alerte");
+          continue;
+        }
+
+        let envoye = false;
+        let derniereErreur = "";
+        for (const compte of comptesEmailJS) {
+          try {
+            console.log(`📨 Envoi à ${emailTrim} via ${compte.serviceID}...`);
+            await emailjs.send(compte.serviceID, compte.templateID, {
+              to_email: emailTrim,
+              subject: `Votre facture - ${firstName} ${lastName}`,
+              html_message: htmlMessage
+            }, compte.publicKey);
+
+            afficherBulle(`📨 Envoyé : ${emailTrim}`, "administratif");
+            envoye = true;
+            break;
+          } catch (err) {
+            console.warn(`⚠️ Échec ${compte.serviceID} -> ${err && err.text ? err.text : err}`);
+            derniereErreur = err && err.text ? err.text : String(err);
+            // si erreur de quota, on essaye le compte suivant
+            if (derniereErreur.toLowerCase().includes("quota")) continue;
+            else break;
+          }
+        }
+
+        if (!envoye) afficherBulle(`❌ Échec d'envoi à ${emailTrim}`, "alerte");
+      }
+
+      // --- 5) Fin & UI updates ---
+      document.getElementById("loadingModal").style.display = "none";
+      afficherBulle("📨 Envois terminés !", "administratif");
+      // reload to reset UI (optionnel)
+      setTimeout(() => location.reload(true), 1500);
+
+    } catch (err) {
+      document.getElementById("loadingModal").style.display = "none";
+      console.error("Erreur confirmEmails :", err);
+      alert("Erreur lors de l'envoi : " + (err.message || err));
+    }
+  });
+
+  // ---------- Utilities ----------
+  function convertirDateEnFrancais(dateISO) {
+    if (!dateISO) return '';
+    const [annee, mois, jour] = dateISO.split("-");
+    return `${jour}/${mois}/${annee}`;
+  }
+
+  // Reset button
   document.getElementById('resetBtn').addEventListener('click', () => {
     if(!confirm('Réinitialiser le formulaire ? Toutes les modifications non enregistrées seront perdues.')) return;
     window.location.href = window.location.pathname; // recharge sans params
   });
 
-  // Petit update automatique des totaux si le user modifie (au cas où)
+  // auto totals recalc
   document.getElementById('invoiceForm').addEventListener('input', updateTotals);
-  // initial totals calc
   updateTotals();
+
+  // hide loading modal helper if needed
+  function showLoadingModal(){ document.getElementById("loadingModal").style.display = "flex"; }
+  function hideLoadingModal(){ document.getElementById("loadingModal").style.display = "none"; }
 </script>
 </body>
 </html>
