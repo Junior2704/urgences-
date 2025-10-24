@@ -110,17 +110,7 @@
       <input id="birthDate" type="date" required>
       <div id="ageDisplay" class="muted"></div>
     </div>
-    <div>
-      <label for="paymentMode">Mode de paiement :</label>
-      <select id="paymentMode" required>
-        <option value="">-- Choisir --</option>
-        <option>💶 Espèces</option>
-        <option>💳 Carte bancaire</option>
-        <option>✍️ Chèque</option>
-        <option>🆔 Carte Vitale</option>
-        <option>🏥 Hospitalisation</option>
-      </select>
-    </div>
+    
   </div>
 
   <h2 style="margin-top:18px;">🩺 Prestations</h2>
@@ -166,7 +156,17 @@
     <button type="button" id="addItemBtn" class="button">➕ Ajouter une prestation</button>
     <div class="right muted" style="margin-left:auto;">(Les champs deviennent non modifiables après validation)</div>
   </div>
-
+<div>
+      <label for="paymentMode">Mode de paiement :</label>
+      <select id="paymentMode" required>
+        <option value="">-- Choisir --</option>
+        <option>💶 Espèces</option>
+        <option>💳 Carte bancaire</option>
+        <option>✍️ Chèque</option>
+        <option>🆔 Carte Vitale</option>
+        <option>🏥 Hospitalisation</option>
+      </select>
+    </div>
   <div class="btn-container" style="margin-top:18px;">
     <button type="button" id="validateBtn" class="button secondary">✅ Valider le paiement</button>
     <button type="button" id="downloadPdfBtn" class="button" style="display:none;">📄 Télécharger la facture (PDF)</button>
@@ -422,8 +422,8 @@
           <div style="display:flex; gap:12px; align-items:center;">
             <img src="logo.jpg" alt="Logo" style="height:70px; object-fit:contain;">
             <div>
-              <div style="font-size:18px; font-weight:800; color:#111;">Centre Urgences - Clinique</div>
-              <div style="font-size:13px; color:#555; margin-top:6px;">Adresse clinique • 00 00 00 00 00 • contact@clinique.example</div>
+              <div style="font-size:18px; font-weight:800; color:#111;">Centre Hospitalier - Service des Urgences</div>
+              <div style="font-size:13px; color:#555; margin-top:6px;">Les urgences sont ouvertes 7j/7 - 24h/24</div>
             </div>
           </div>
           <div style="text-align:right;">
@@ -481,7 +481,7 @@
         </div>
 
         <div style="margin-top:28px; border-top:1px dashed #e6e9ec; padding-top:10px; font-size:12px; color:#777;">
-          Centre Urgences • Adresse complète • Tél: 00 00 00 00 00 • contact@clinique.example
+          Centre Hospitalier • Service des Urgences • Mail : urgences.hopj@gamil.com
         </div>
       </div>
     `;
