@@ -674,7 +674,21 @@ document.getElementById("confirmEmails").addEventListener("click", async functio
     alert("Erreur : " + err.message);
   }
 });
-
+function afficherBulle(texte, type) {
+    let container = document.getElementById('bubble-container');
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'bubble-container';
+      document.body.appendChild(container);
+    }
+    const bulle = document.createElement('div');
+    bulle.className = `bubble ${type}`;
+    bulle.textContent = texte;
+    container.appendChild(bulle);
+    setTimeout(() => {
+      bulle.remove();
+    }, 3000);
+  }
   </script>
 </body>
 </html>
