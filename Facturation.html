@@ -36,15 +36,9 @@
       width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ccc;
       margin-top: 5px; box-sizing: border-box;
     }
-    input:disabled, select:disabled {
-      background-color: #f7f7f7; color: #666;
-    }
-    table {
-      width: 100%; border-collapse: collapse; margin-top: 20px;
-    }
-    th, td {
-      border: 1px solid #ddd; padding: 8px; text-align: center;
-    }
+    input:disabled, select:disabled { background-color: #f7f7f7; color: #666; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
     th { background-color: #f1f1f1; }
     .button {
       background-color: #28a745; color: white; border: none; border-radius: 6px;
@@ -61,6 +55,7 @@
     .btn-container {
       display: flex; gap: 10px; margin-top: 25px; flex-wrap: wrap;
     }
+
     #bubble-container {
       position: fixed; top: 20px; right: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 9999;
     }
@@ -83,6 +78,24 @@
       height: 8px; width: 0%; background: white; transition: width 2.5s linear;
       margin-top: 10px; border-radius: 4px;
     }
+
+    #vitaleModal {
+      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 10000;
+    }
+    #vitaleModal .box {
+      background: white; padding: 30px; border-radius: 12px; text-align: center;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+    .spinner {
+      border: 6px solid #f3f3f3;
+      border-top: 6px solid #007bff;
+      border-radius: 50%;
+      width: 50px; height: 50px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 15px;
+    }
+    @keyframes spin { 0%{transform:rotate(0)} 100%{transform:rotate(360deg)} }
   </style>
 </head>
 <body>
@@ -93,6 +106,7 @@
   <div class="btn-container">
     <a href="urgences.html" class="button">↩️ Retour Urgences</a>
     <button type="button" id="resetBtn" class="button danger">❌ Réinitialiser</button>
+    <button type="button" id="readVitaleBtn" class="button">🆔 Lecture Carte Vitale</button>
   </div>
 
   <label>Nom :</label>
@@ -158,8 +172,16 @@
   </div>
 </div>
 
+<!-- Modal Carte Vitale -->
+<div id="vitaleModal">
+  <div class="box">
+    <div class="spinner"></div>
+    <div style="font-size:18px;font-weight:600;">Lecture Carte Vitale en cours...</div>
+  </div>
+</div>
+
 <script>
-  // Firebase (inchangé)
+  // Initialisation Firebase
   const firebaseConfig = {
     apiKey: "AIzaSyBKp5-7NNy0Gyl0tNbDgD-BxucYdg8ArWo",
     authDomain: "urgences-a8ed4.firebaseapp.com",
@@ -171,11 +193,36 @@
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
 
-  // Gestion dynamique des prestations
+  // --- Chargement patient depuis l'URL ---
+  window.addEventListener('DOMContentLoaded', async () => {
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get('id');
+    if (id) {
+      try {
+        const doc = await db.collection('patients').doc(id).get();
+        if (doc.exists) {
+          const data = doc.data();
+          document.getElementById('lastName').value = data.nom || '';
+          document.getElementById('firstName').value = data.prenom || '';
+          if (data.dateNaissance) {
+            const d = data.dateNaissance.toDate ? data.dateNaissance.toDate() : new Date(data.dateNaissance);
+            document.getElementById('birthDate').value = d.toISOString().split('T')[0];
+          }
+          afficherBulle(`👤 Patient chargé : ${data.prenom} ${data.nom}`, "administratif");
+        } else {
+          afficherBulle("❌ Patient introuvable", "alerte");
+        }
+      } catch (e) {
+        console.error(e);
+        afficherBulle("⚠️ Erreur de chargement patient", "alerte");
+      }
+    }
+  });
+
+  // --- Calcul des totaux ---
   const itemsTable = document.querySelector('#itemsTable tbody');
   const grandTotalElem = document.getElementById('grandTotal');
   const addItemBtn = document.getElementById('addItemBtn');
-
   function updateLine(row) {
     const select = row.querySelector('.serviceSelect');
     const qty = parseFloat(row.querySelector('.qty').value) || 0;
@@ -183,7 +230,6 @@
     row.querySelector('.price').textContent = price.toFixed(2);
     row.querySelector('.lineTotal').textContent = (qty * price).toFixed(2);
   }
-
   function updateTotals() {
     let total = 0;
     itemsTable.querySelectorAll('tr').forEach(row => {
@@ -192,7 +238,6 @@
     });
     grandTotalElem.textContent = total.toFixed(2);
   }
-
   function addListeners(row) {
     row.querySelector('.serviceSelect').addEventListener('change', updateTotals);
     row.querySelector('.qty').addEventListener('input', updateTotals);
@@ -218,14 +263,40 @@
     updateTotals();
   });
 
-  // Valider paiement
+  // --- Lecture Carte Vitale simulée ---
+  document.getElementById('readVitaleBtn').addEventListener('click', () => {
+    const modal = document.getElementById('vitaleModal');
+    modal.style.display = 'flex';
+    const duration = 3000 + Math.random() * 4000;
+    setTimeout(() => {
+      modal.style.display = 'none';
+      const success = Math.random() < 0.8;
+      if (success) afficherBulle("✅ Lecture Carte Vitale réussie !", "administratif");
+      else afficherBulle("❌ Erreur lecture Carte Vitale. Réessayez.", "alerte");
+    }, duration);
+  });
+
+  function afficherBulle(texte, type) {
+    let container = document.getElementById('bubble-container');
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'bubble-container';
+      document.body.appendChild(container);
+    }
+    const bulle = document.createElement('div');
+    bulle.className = `bubble ${type}`;
+    bulle.textContent = texte;
+    container.appendChild(bulle);
+    setTimeout(() => bulle.remove(), 3000);
+  }
+
+  // --- Validation paiement ---
   document.getElementById('validateBtn').addEventListener('click', async () => {
     updateTotals();
     const nom = document.getElementById('lastName').value.trim();
     const prenom = document.getElementById('firstName').value.trim();
     const dateNaiss = document.getElementById('birthDate').value;
     const paiement = document.getElementById('paymentMode').value;
-
     if (!nom || !prenom || !dateNaiss || !paiement) {
       alert("⚠️ Veuillez remplir tous les champs.");
       return;
@@ -249,20 +320,18 @@
       date: new Date().toISOString()
     };
 
-    // Animation validation
     const popup = document.getElementById('processingPopup');
     popup.style.display = 'block';
     const bar = document.getElementById('progressBar');
     bar.style.width = '0%';
     setTimeout(() => bar.style.width = '100%', 100);
 
-    // Enregistrement Firestore
     const ref = await db.collection('factures').add(facture);
     const factureId = ref.id;
 
     setTimeout(() => {
       popup.style.display = 'none';
-      alert(`✅ Facture validée (ID: ${factureId})`);
+      afficherBulle(`✅ Paiement validé (ID: ${factureId})`, "administratif");
       verrouillerFormulaire();
       document.getElementById('downloadPdfBtn').style.display = 'inline-block';
     }, 2500);
@@ -274,7 +343,7 @@
     });
   }
 
-  // Téléchargement PDF
+  // --- PDF ---
   document.getElementById('downloadPdfBtn').addEventListener('click', () => {
     const element = document.getElementById('invoiceForm');
     const opt = {
@@ -287,8 +356,6 @@
     html2pdf().set(opt).from(element).save();
   });
 
-  // Réinitialisation
+  // --- Réinitialisation ---
   document.getElementById('resetBtn').addEventListener('click', () => window.location.reload());
-</script>
-</body>
-</html>
+</script
