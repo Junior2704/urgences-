@@ -204,8 +204,9 @@
     <p>Vous pouvez modifier le nom avant enregistrement :</p>
     <input type="text" id="fileNameInput" style="padding:8px; width:90%; border:1px solid #ccc; border-radius:6px;">
     <br><br>
-    <button id="btnValiderNom">Valider</button>
+    
     <button onclick="closeFileNameModal()" style="background:#ccc;">Annuler</button>
+    <button id="btnValiderNom">Valider</button>
   </div>
 </div>
 <!-- Modale de sélection des e-mails -->
@@ -221,8 +222,9 @@
       <input type="email" id="otherEmailInput" placeholder="exemple@mail.com"
              style="margin-top:5px; padding:6px; width:100%; border:1px solid #ccc; border-radius:6px;" disabled>
       <br><br>
-      <button type="button" id="confirmEmails">Envoyer</button>
+      
       <button type="button" onclick="closeEmailSelectModal()" style="background:#ccc;">Annuler</button>
+      <button type="button" id="confirmEmails">Envoyer</button>
     </form>
   </div>
 </div>
@@ -339,7 +341,7 @@ document.getElementById("otherEmailCheck").addEventListener("change", (e) => {
 
       await db.collection("liens_pdfs").doc(id).set({
         base64: pdfBase64,
-        nomFichier nomPdf || "Document_upload.pdf",
+        nomFichier: nomPdf || "Document_upload.pdf",
         dateCreation: firebase.firestore.FieldValue.serverTimestamp(),
       });
 
