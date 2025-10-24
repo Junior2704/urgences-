@@ -424,10 +424,7 @@
 				<option value="L'enfant">L'enfant</option>
 			</select>
 		</div>
-		<div class="form-group">
-			<label for="patient-mail">Adresse email</label>
-			<input type="text" id="patient-mail" placeholder="Facultatif" readonly />
-		</div>
+		
 		<div class="form-group">
 			<form class="vidal-search" action="https://www.vidal.fr/recherche.html" method="get" target="_blank">
   <input type="text" name="query" placeholder="Rechercher sur le Vidal">
@@ -16341,7 +16338,7 @@ const envoyerMailBtn = document.getElementById("btnEnvoyerMail");
         document.getElementById("patient-first-name").value = data.prenom || "";
         document.getElementById("patient-last-name").value = data.nom || "";
         document.getElementById("patient-birthdate").value = data.dateNaissance || "";
-		document.getElementById("patient-mail").value = data.email || "";
+		
         document.getElementById("sexe").value = data.sexe || "M";
         const age = calculerAge(data.dateNaissance);
         document.getElementById("patient-age").value = age;
@@ -16937,28 +16934,59 @@ document.getElementById("confirmEmails").addEventListener("click", async functio
 
     // --- 5) Prépare le corps du mail (template HTML comme avant)
     const htmlMessage = `
-<!DOCTYPE html>
+<<!DOCTYPE html>
 <html lang="fr">
-<head><meta charset="utf-8"><title>Ordonnance</title></head>
-<body style="margin:0;padding:0;background:#f4f6f9;font-family:'Segoe UI',Arial;color:#333;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="max-width:640px;margin:auto;background:white;border-radius:10px;overflow:hidden;">
-    <tr><td style="background:#0057a4;padding:20px;text-align:center;">
-      <img src="https://junior2704.github.io/urgences-/logo.jpg" alt="Logo" style="height:60px;display:block;margin:0 auto;">
-      <h1 style="color:#fff;margin:10px 0 0;font-size:20px;">Centre Hospitalier</h1>
-      <p style="color:#dce6f3;margin:0;font-size:13px;">Service des Urgences</p>
-    </td></tr>
-    <tr><td style="padding:25px;">
-      <h2 style="color:#0057a4;margin-top:0;">Votre ordonnance</h2>
-      <p>Bonjour <strong>${firstName} ${lastName}</strong>,</p>
-      <p>Votre ordonnance a été validé et est disponible : <strong>${fileName}</strong>.</p>
-      <div style="text-align:center;margin:20px 0;">
-        <a href="${lienPdf}" style="background:#0057a4;color:#fff;padding:12px 24px;text-decoration:none;border-radius:8px;display:inline-block;">🔗 Télécharger le compte-rendu</a>
-      </div>
-      <p style="font-size:13px;color:#555;">⚠️ Ce lien est valable 7 jours.</p>
-      <p style="font-size:13px;color:#777;">Contact : <a href="mailto:urgences.hopj@gmail.com">urgences.hopj@gmail.com</a></p>
-      <hr style="border:none;border-top:1px solid #eaeaea;margin:18px 0;">
-      <p style="font-size:12px;color:#999;text-align:center;">Service des Urgences — Cet e-mail est automatique, ne pas répondre.</p>
-    </td></tr>
+<head>
+  <meta charset="UTF-8">
+  <title>Ordonnance médicale</title>
+</head>
+<body style="margin:0; padding:0; background-color:#f4f6f9; font-family:'Segoe UI', Roboto, Arial, sans-serif; color:#333;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="max-width:640px; margin:auto; background:white; border-radius:10px; box-shadow:0 3px 10px rgba(0,0,0,0.08); overflow:hidden;">
+    <tr>
+      <td style="background-color:#1a73e8; padding:24px; text-align:center;">
+        <img src="https://junior2704.github.io/urgences-/logo.jpg" alt="Logo Hôpital" style="height:60px; display:block; margin:0 auto 10px auto;">
+        <h1 style="color:white; font-size:22px; margin:0;">Centre Hospitalier</h1>
+        <p style="color:#dce6f3; margin:6px 0 0; font-size:14px;">Service des Urgences</p>
+      </td>
+    </tr>
+
+    <tr>
+      <td style="padding:30px;">
+        <h2 style="color:#1a73e8; font-weight:600; margin-top:0;">Votre ordonnance médicale</h2>
+
+        <p style="font-size:16px; line-height:1.6;">
+          Bonjour <strong>{{patient_prenom}} {{patient_nom}}</strong>,
+        </p>
+
+        <p style="font-size:15px; line-height:1.6; color:#555;">
+          Votre ordonnance vient d’être validée par le médecin responsable et est désormais disponible.
+          Elle vous permettra d’obtenir les médicaments prescrits en pharmacie ou en établissement agréé.
+        </p>
+
+        <div style="text-align:center; margin:30px 0;">
+          <a href="{{lien_compte_rendu}}" 
+             style="background-color:#1a73e8; color:white; padding:14px 32px; text-decoration:none; border-radius:8px; font-weight:500; display:inline-block;">
+            🩺 Télécharger l'ordonnance
+          </a>
+        </div>
+
+        <p style="font-size:15px; line-height:1.6; color:#555;">
+          ⚠️ Ce lien reste actif 7 jours pour garantir la confidentialité de vos données.
+          Au-delà, le document sera automatiquement supprimé.
+        </p>
+
+        <p style="font-size:14px; color:#777;">
+          Pour toute question, merci de contacter le service des Urgences :
+          <a href="mailto:urgences.hopj@gmail.com" style="color:#1a73e8;">urgences.hopj@gmail.com</a>
+        </p>
+
+        <hr style="border:none; border-top:1px solid #e0e0e0; margin:30px 0;">
+        <p style="font-size:13px; color:#999; text-align:center;">
+          Service des Urgences<br>
+          <em>Cet e-mail a été généré automatiquement, merci de ne pas y répondre.</em>
+        </p>
+      </td>
+    </tr>
   </table>
 </body>
 </html>`;
