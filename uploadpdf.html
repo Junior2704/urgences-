@@ -160,6 +160,17 @@
       <p>Envoi de l’e-mail en cours...</p>
     </div>
   </div>
+<!-- Modale pour nom du fichier -->
+<div id="fileNameModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); backdrop-filter:blur(2px); justify-content:center; align-items:center; z-index:100;">
+  <div class="modal-content">
+    <h3>Nom du fichier</h3>
+    <p>Vous pouvez modifier le nom avant enregistrement :</p>
+    <input type="text" id="fileNameInput" style="padding:8px; width:90%; border:1px solid #ccc; border-radius:6px;">
+    <br><br>
+    <button id="btnValiderNom">Valider</button>
+    <button onclick="closeFileNameModal()" style="background:#ccc;">Annuler</button>
+  </div>
+</div>
 
   <script>
     const patientId = new URLSearchParams(window.location.search).get("id");
@@ -201,17 +212,37 @@ const patientEmail = data.email || "";
   const adresse = data.adresse || '';
 window.patientData = data;
 }
-    // === Conversion PDF → Base64 ===
-    document.getElementById("pdfInput").addEventListener("change", async function(e) {
-      const file = e.target.files[0];
-      if (!file) return alert("Veuillez sélectionner un fichier PDF.");
-      const reader = new FileReader();
-      reader.onload = () => {
-        pdfBase64 = reader.result.split(",")[1];
-        console.log("✅ PDF converti en base64, taille:", pdfBase64.length);
-      };
-      reader.readAsDataURL(file);
-    });
+let nomPdf = ""; // contiendra le nom du PDF choisi
+
+function openFileNameModal(defaultName) {
+  document.getElementById("fileNameInput").value = defaultName;
+  document.getElementById("fileNameModal").style.display = "flex";
+}
+
+function closeFileNameModal() {
+  document.getElementById("fileNameModal").style.display = "none";
+}
+
+document.getElementById("pdfInput").addEventListener("change", async function(e) {
+  const file = e.target.files[0];
+  if (!file) return alert("Veuillez sélectionner un fichier PDF.");
+
+  // Ouvre la modale pour modifier le nom
+  openFileNameModal(file.name);
+
+  // On prépare la lecture du PDF
+  const reader = new FileReader();
+  reader.onload = () => {
+    pdfBase64 = reader.result.split(",")[1];
+    console.log("✅ PDF converti en base64, taille:", pdfBase64.length);
+  };
+  reader.readAsDataURL(file);
+});
+document.getElementById("btnValiderNom").addEventListener("click", () => {
+  nomPdf = document.getElementById("fileNameInput").value.trim() || "Document.pdf";
+  closeFileNameModal();
+  afficherBulle(`✅ Nom choisi : ${nomPdf}`, "administratif");
+});
 
     // === Créer un lien temporaire (7 jours) ===
     document.getElementById("btnLien").addEventListener("click", async () => {
@@ -220,7 +251,7 @@ window.patientData = data;
 
       await db.collection("liens_pdfs").doc(id).set({
         base64: pdfBase64,
-        nom: "Document_upload.pdf",
+        nom: nomPdf || "Document_upload.pdf",
         dateCreation: firebase.firestore.FieldValue.serverTimestamp(),
       });
 
@@ -280,7 +311,7 @@ document.getElementById("btnEnvoyerMail").addEventListener("click", async functi
     // 3️⃣ Enregistrement du PDF dans Firestore
     await db.collection("liens_pdfs").doc(idUnique).set({
       base64: pdfBase64,
-      nomFichier: fileName,
+      nom: nomPdf || "Document_upload.pdf",
       dateCreation: firebase.firestore.FieldValue.serverTimestamp(),
     });
 
