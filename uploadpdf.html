@@ -7,12 +7,10 @@
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
-
+<link rel="icon" type="image/jpeg" href="logo.jpg">
   <!-- EmailJS -->
   <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
-  <script>
-    emailjs.init("SERVICE_PUBLIC_KEY"); // 🔹 remplace par ta clé publique EmailJS
-  </script>
+  
 
   <style>
     body {
@@ -113,7 +111,7 @@
       <input type="email" id="emailInput" placeholder="exemple@mail.com"
              style="padding:8px; width:90%; border:1px solid #ccc; border-radius:6px;">
       <br><br>
-      <button id="sendEmailBtn">Envoyer</button>
+      <button id="btnEnvoyerMail">Envoyer</button>
       <button onclick="closeModal()" style="background:#ccc;">Annuler</button>
     </div>
   </div>
