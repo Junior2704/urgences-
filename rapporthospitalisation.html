@@ -933,17 +933,31 @@ function openEmailSelectModal(emailsString) {
 
   // ✅ Active/désactive le champ "autre email"
   document.addEventListener("DOMContentLoaded", () => {
-    const otherCheck = document.getElementById("otherEmailCheck");
-    const otherInput = document.getElementById("otherEmailInput");
+  console.log("✅ DOM entièrement chargé");
 
-    if (otherCheck && otherInput) {
-      otherCheck.addEventListener("change", (e) => {
-        otherInput.disabled = !e.target.checked;
-        if (!e.target.checked) otherInput.value = "";
-      });
-    }
-    document.getElementById("cancelModal").addEventListener("click", closeEmailSelectModal);
-  });
+  // Récupération des éléments
+  const otherCheck = document.getElementById("otherEmailCheck");
+  const otherInput = document.getElementById("otherEmailInput");
+  const cancelBtn = document.getElementById("cancelModal");
+
+  // Gestion du champ "Autre e-mail"
+  if (otherCheck && otherInput) {
+    otherCheck.addEventListener("change", (e) => {
+      otherInput.disabled = !e.target.checked;
+      if (!e.target.checked) otherInput.value = "";
+    });
+  } else {
+    console.warn("⚠️ Élément(s) 'Autre e-mail' manquant(s) dans le DOM");
+  }
+
+  // Gestion du bouton Annuler
+  if (cancelBtn) {
+    cancelBtn.addEventListener("click", closeEmailSelectModal);
+  } else {
+    console.warn("⚠️ Bouton 'Annuler' introuvable dans la modale");
+  }
+});
+
 
 
 /* --- bouton principal --- */
