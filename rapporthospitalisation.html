@@ -478,20 +478,39 @@
     <button id="btnFermerModal" class="btnModal fermer">❌ Fermer</button>
   </div>
 </div>
-<div id="emailSelectModal" class="hidden fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-[1000] flex items-center justify-center">
-  <div class="bg-white rounded-2xl shadow-lg p-6 w-[420px] relative">
-    <h2 class="text-lg font-semibold text-blue-700 mb-4 text-center">Sélectionner les destinataires</h2>
-    <div id="emailCheckboxes" class="space-y-2 mb-4 text-gray-700">
-      <p class="text-gray-500 text-sm">Chargement des adresses...</p>
+
+<div id="emailSelectModal"
+     class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
+  <div class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md animate-fade-in">
+    <h2 class="text-xl font-semibold text-blue-700 mb-4 text-center">
+      ✉️ Sélectionner les destinataires
+    </h2>
+
+    <!-- Liste des adresses connues -->
+    <div id="emailCheckboxes"
+         class="max-h-48 overflow-y-auto border rounded-md p-3 space-y-2 text-gray-700 text-sm mb-4">
+      <!-- Les adresses seront ajoutées ici dynamiquement -->
     </div>
-    <label class="flex items-center gap-2 text-sm text-gray-700 mt-4 mb-2">
-      <input type="checkbox" id="otherEmailCheck"> Ajouter une autre adresse :
+
+    <!-- Ajout d’une autre adresse -->
+    <label class="flex items-center gap-2 mb-2 text-sm text-gray-600">
+      <input type="checkbox" id="otherEmailCheck">
+      Ajouter une autre adresse e-mail
     </label>
-    <input type="email" id="otherEmailInput" placeholder="exemple@domaine.fr"
-           class="w-full border rounded-lg p-2 text-sm" disabled>
-    <div class="flex justify-end gap-3 mt-6">
-      <button id="cancelModal" class="px-3 py-2 text-gray-600 hover:text-gray-800 transition">Annuler</button>
-      <button id="confirmEmails" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Envoyer</button>
+
+    <input type="email" id="otherEmailInput" placeholder="Nouvelle adresse e-mail"
+           class="w-full border rounded-md p-2 text-sm focus:ring focus:ring-blue-200 mb-4" disabled>
+
+    <!-- Boutons -->
+    <div class="flex justify-end gap-3">
+      <button onclick="closeEmailSelectModal()"
+              class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-md text-sm font-medium">
+        Annuler
+      </button>
+      <button id="confirmEmails"
+              class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium">
+        Confirmer
+      </button>
     </div>
   </div>
 </div>
