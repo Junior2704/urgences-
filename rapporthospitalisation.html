@@ -231,21 +231,24 @@
   .flex { display: flex; }
   @keyframes fade-in { from { opacity: 0; transform: scale(0.95);} to { opacity: 1; transform: scale(1);} }
   .animate-fade-in { animation: fade-in 0.2s ease-out; }
-	/* ✅ Correction du centrage et du fond de la modale email */
+/* ✅ Modale email — cachée par défaut, centrée quand affichée */
 #emailSelectModal {
-  position: fixed !important;
-  inset: 0 !important;
-  display: flex !important;
-  justify-content: center !important;
-  align-items: center !important;
-  background-color: rgba(0, 0, 0, 0.5) !important; /* fond assombri */
-  z-index: 9999 !important;
-  margin: 0 !important;
-  transform: none !important;
+  position: fixed;
+  inset: 0;
+  display: none; /* cachée au chargement */
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 9999;
+  margin: 0;
+}
+
+#emailSelectModal.active {
+  display: flex; /* affichée dynamiquement */
 }
 
 #emailSelectModal .bg-white {
-  background-color: #fff !important;
+  background-color: #fff;
   border-radius: 16px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
   padding: 24px;
@@ -922,6 +925,7 @@ let medecinNom = "";
 
 </body>
 </html>
+
 
 
 
