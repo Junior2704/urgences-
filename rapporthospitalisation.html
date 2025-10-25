@@ -879,27 +879,36 @@ function hideLoadingModal() { document.getElementById("loadingModal").classList.
 function openEmailSelectModal(emailsString) {
   const modal = document.getElementById("emailSelectModal");
   const container = document.getElementById("emailCheckboxes");
-  container.innerHTML = "";
 
+  if (!modal) {
+    console.error("❌ Modale emailSelectModal introuvable dans le DOM !");
+    return;
+  }
+
+  container.innerHTML = "";
   const emails = (emailsString || "").split("//").filter(e => e.includes("@"));
+
   if (emails.length === 0) {
-    container.innerHTML = "<p class='text-gray-500 text-sm'>Aucune adresse trouvée pour ce patient.</p>";
+    container.innerHTML = "<p class='text-gray-500'>Aucune adresse trouvée pour ce patient.</p>";
   } else {
     emails.forEach((email, i) => {
       const id = "emailCheck_" + i;
       container.innerHTML += `
-        <label class="flex items-center gap-2 text-gray-700">
+        <label class="flex items-center gap-2 text-sm">
           <input type="checkbox" id="${id}" value="${email}" checked>
-          ${email}
+          <span>${email}</span>
         </label>`;
     });
   }
 
   modal.classList.remove("hidden");
 }
+
 function closeEmailSelectModal() {
-  document.getElementById("emailSelectModal").classList.add("hidden");
+  const modal = document.getElementById("emailSelectModal");
+  if (modal) modal.classList.add("hidden");
 }
+
 
 /* --- événements --- */
 document.getElementById("otherEmailCheck").addEventListener("change", e => {
