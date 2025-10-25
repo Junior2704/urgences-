@@ -877,43 +877,53 @@ window.onload = () => {
 function showLoadingModal() { document.getElementById("loadingModal").classList.remove("hidden"); }
 function hideLoadingModal() { document.getElementById("loadingModal").classList.add("hidden"); }
 function openEmailSelectModal(emailsString) {
-  const modal = document.getElementById("emailSelectModal");
-  const container = document.getElementById("emailCheckboxes");
+    const modal = document.getElementById("emailSelectModal");
+    const container = document.getElementById("emailCheckboxes");
 
-  if (!modal) {
-    console.error("❌ Modale emailSelectModal introuvable dans le DOM !");
-    return;
+    if (!modal) {
+      console.error("❌ Modale emailSelectModal introuvable dans le DOM !");
+      return;
+    }
+
+    container.innerHTML = "";
+    const emails = (emailsString || "").split("//").filter(e => e.includes("@"));
+
+    if (emails.length === 0) {
+      container.innerHTML = "<p class='text-gray-500'>Aucune adresse trouvée pour ce patient.</p>";
+    } else {
+      emails.forEach((email, i) => {
+        const id = "emailCheck_" + i;
+        container.innerHTML += `
+          <label class="flex items-center gap-2 text-sm">
+            <input type="checkbox" id="${id}" value="${email}" checked>
+            <span>${email}</span>
+          </label>`;
+      });
+    }
+
+    modal.classList.remove("hidden");
+    document.body.style.overflow = "hidden"; // bloque le scroll
   }
 
-  container.innerHTML = "";
-  const emails = (emailsString || "").split("//").filter(e => e.includes("@"));
-
-  if (emails.length === 0) {
-    container.innerHTML = "<p class='text-gray-500'>Aucune adresse trouvée pour ce patient.</p>";
-  } else {
-    emails.forEach((email, i) => {
-      const id = "emailCheck_" + i;
-      container.innerHTML += `
-        <label class="flex items-center gap-2 text-sm">
-          <input type="checkbox" id="${id}" value="${email}" checked>
-          <span>${email}</span>
-        </label>`;
-    });
+  // ✅ Ferme la modale
+  function closeEmailSelectModal() {
+    const modal = document.getElementById("emailSelectModal");
+    if (modal) modal.classList.add("hidden");
+    document.body.style.overflow = "auto";
   }
 
-  modal.classList.remove("hidden");
-}
+  // ✅ Active/désactive le champ "autre email"
+  document.addEventListener("DOMContentLoaded", () => {
+    const otherCheck = document.getElementById("otherEmailCheck");
+    const otherInput = document.getElementById("otherEmailInput");
 
-function closeEmailSelectModal() {
-  const modal = document.getElementById("emailSelectModal");
-  if (modal) modal.classList.add("hidden");
-}
-
-
-/* --- événements --- */
-document.getElementById("otherEmailCheck").addEventListener("change", e => {
-  document.getElementById("otherEmailInput").disabled = !e.target.checked;
-});
+    if (otherCheck && otherInput) {
+      otherCheck.addEventListener("change", (e) => {
+        otherInput.disabled = !e.target.checked;
+        if (!e.target.checked) otherInput.value = "";
+      });
+    }
+  });
 document.getElementById("cancelModal").addEventListener("click", closeEmailSelectModal);
 
 /* --- bouton principal --- */
