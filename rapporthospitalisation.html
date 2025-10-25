@@ -942,8 +942,9 @@ function openEmailSelectModal(emailsString) {
         if (!e.target.checked) otherInput.value = "";
       });
     }
+    document.getElementById("cancelModal").addEventListener("click", closeEmailSelectModal);
   });
-document.getElementById("cancelModal").addEventListener("click", closeEmailSelectModal);
+
 
 /* --- bouton principal --- */
 window.addEventListener("DOMContentLoaded", () => {
