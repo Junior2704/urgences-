@@ -478,82 +478,29 @@
     <button id="btnFermerModal" class="btnModal fermer">❌ Fermer</button>
   </div>
 </div>
-<!-- 🔷 MODALE DE CHARGEMENT -->
-<div id="loadingModal" class="loadingModal">
-  <div class="modal-content">
-    <img src="https://junior2704.github.io/urgences-/logo.jpg" alt="Logo hôpital" class="logo">
-    <div class="loader"></div>
-    <p>Envoi du compte-rendu en cours...</p>
+!-- 🔹 Modale de chargement -->
+<div id="loadingModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 backdrop-blur-sm hidden z-50">
+  <div class="bg-white rounded-2xl shadow-lg p-8 text-center w-80 animate-fade-in">
+    <img src="https://junior2704.github.io/urgences-/logo.jpg" alt="Logo hôpital" class="h-16 mx-auto mb-4">
+    <div class="loader mx-auto mb-4"></div>
+    <p class="text-gray-700 font-medium">Envoi du compte-rendu en cours...</p>
   </div>
 </div>
 
 <style>
-/* --- Arrière-plan plein écran --- */
-.loadingModal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.45);
-  backdrop-filter: blur(6px);
-  display: none; /* masquée par défaut */
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-}
-
-/* --- Boîte centrale --- */
-.loadingModal-content {
-  background: #fff;
-  padding: 30px 40px;
-  border-radius: 16px;
-  box-shadow: 0 8px 30px rgba(0,0,0,0.25);
-  text-align: center;
-  width: 320px;
-  animation: fadeIn 0.3s ease;
-}
-
-/* --- Logo --- */
-.loadingModal-content .logo {
-  height: 70px;
-  margin-bottom: 20px;
-}
-
-/* --- Texte --- */
-.loadingModal-content p {
-  color: #333;
-  font-size: 16px;
-  font-weight: 500;
-}
-
-/* --- Loader --- */
 .loader {
   border: 4px solid #f3f3f3;
   border-top: 4px solid #1a73e8;
   border-radius: 50%;
-  width: 45px;
-  height: 45px;
-  margin: 15px auto;
+  width: 40px;
+  height: 40px;
   animation: spin 1s linear infinite;
 }
-
-/* --- Animations --- */
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: scale(0.9); }
-  to { opacity: 1; transform: scale(1); }
-}
-
-/* --- États JS --- */
-#loadingModal.show {
-  display: flex;
-}
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+.animate-fade-in { animation: fade-in 0.3s ease-out; }
+@keyframes fade-in { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
 </style>
+
 
 
 <form id="formRapport">
@@ -585,35 +532,34 @@
     <button type="button" id="validerBtn">✅ Valider</button>
     <button type="button" id="telechargerBtn">📥 Télécharger PDF</button>
     <button type="button" id="imprimerBtn">🖨️ Imprimer</button>
-	  <button type="button" id="btnEnvoyerMail" style="padding:10px 20px; background-color:#004AAD; color:white; border:none; border-radius:5px; cursor:pointer;">
-  Envoyer le compte-rendu par e-mail
+	  <button id="btnEnvoyerMail" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+  📧 Envoyer le compte-rendu par e-mail
 </button>
 </div>
 
   
 </form>
-<!-- Modale de sélection des e-mails -->
-<div id="emailSelectModal">
-  <div class="modal-content">
-    <h3>📧 Choisissez les destinataires</h3>
-    <form id="emailSelectForm">
-      <div id="emailCheckboxes" class="email-options"></div>
+<!-- 🔹 Modale de sélection des e-mails -->
+<div id="emailModal" class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm hidden z-50 flex items-center justify-center">
+  <div class="bg-white rounded-2xl shadow-lg p-6 w-[400px] relative">
+    <h2 class="text-lg font-semibold text-blue-700 mb-4 text-center">Destinataires du compte-rendu</h2>
+    
+    <div id="emailList" class="space-y-3 mb-4">
+      <!-- Les champs d’adresse apparaîtront ici -->
+    </div>
 
-      <hr>
+    <div class="flex items-center justify-between mb-6">
+      <button id="addEmail" class="flex items-center gap-1 text-blue-600 hover:text-blue-800 transition">
+        <span class="text-xl leading-none">+</span> Ajouter une adresse
+      </button>
+    </div>
 
-      <label>
-        <input type="checkbox" id="otherEmailCheck"> Autre destinataire :
-      </label>
-      <input type="email" id="otherEmailInput" placeholder="exemple@mail.com" disabled>
-
-      <div class="modal-actions">
-        <button type="button" class="btn-cancel" onclick="closeEmailSelectModal()">Annuler</button>
-        <button type="button" id="confirmEmails" class="btn-confirm">Envoyer</button>
-      </div>
-    </form>
+    <div class="flex justify-end gap-3">
+      <button id="cancelModal" class="px-3 py-2 text-gray-600 hover:text-gray-800">Annuler</button>
+      <button id="confirmEmails" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Envoyer</button>
+    </div>
   </div>
 </div>
-
 <script>
 const envoyerMailBtn = document.getElementById("btnEnvoyerMail");
 // Champs du rapport
@@ -767,13 +713,7 @@ async function enregistrerDansFirestore() {
   };
   await patientRef.update({ hospitalisations });
 }
-function showLoadingModal() {
-  document.getElementById("loadingModal").classList.add("show");
-}
 
-function hideLoadingModal() {
-  document.getElementById("loadingModal").classList.remove("show");
-}
 
 
 // Rendre les champs readonly et adapter style
@@ -936,6 +876,9 @@ window.onload = () => {
     el.addEventListener("input", () => autoResizeTextarea(el));
   });
 };
+function showLoadingModal() { document.getElementById("loadingModal").classList.remove("hidden"); }
+function hideLoadingModal() { document.getElementById("loadingModal").classList.add("hidden"); }
+
 function openEmailSelectModal(emailsString) {
   const modal = document.getElementById("emailSelectModal");
   const container = document.getElementById("emailCheckboxes");
@@ -943,45 +886,45 @@ function openEmailSelectModal(emailsString) {
 
   const emails = (emailsString || "").split("//").filter(e => e.includes("@"));
   if (emails.length === 0) {
-    container.innerHTML = "<p style='color:#777;'>Aucune adresse trouvée pour ce patient.</p>";
+    container.innerHTML = "<p class='text-gray-500 text-sm'>Aucune adresse trouvée pour ce patient.</p>";
   } else {
     emails.forEach((email, i) => {
       const id = "emailCheck_" + i;
       container.innerHTML += `
-        <label style="display:flex; align-items:center; gap:6px; margin:6px 0;">
+        <label class="flex items-center gap-2 text-gray-700">
           <input type="checkbox" id="${id}" value="${email}" checked>
           ${email}
         </label>`;
     });
   }
 
-  modal.style.display = "flex";
+  modal.classList.remove("hidden");
 }
 
 function closeEmailSelectModal() {
-  document.getElementById("emailSelectModal").style.display = "none";
+  document.getElementById("emailSelectModal").classList.add("hidden");
 }
 
 document.getElementById("otherEmailCheck").addEventListener("change", (e) => {
   document.getElementById("otherEmailInput").disabled = !e.target.checked;
 });
-// Ouvre la modale de sélection d'emails (ne génère pas encore le PDF)
+
+// ========== OUVERTURE DE LA MODALE ==========
 document.getElementById("btnEnvoyerMail").addEventListener("click", async () => {
-  // pas de pdfBase64 préexistant dans cette page — on générera le PDF au moment de l'envoi
   const doc = await patientRef.get();
   if (!doc.exists) {
     afficherBulle("❌ Patient introuvable", "alerte");
     return;
   }
   const data = doc.data();
-  const emails = data.email || ""; // chaîne formatée "a@x.com//b@y.fr"
-  console.log("📧 Emails trouvés (dossier) :", emails);
+  const emails = data.email || "";
+  console.log("📧 Emails trouvés :", emails);
   openEmailSelectModal(emails);
 });
 
+// ========== ENVOI DES E-MAILS ==========
 document.getElementById("confirmEmails").addEventListener("click", async function () {
   try {
-    // Récupère les adresses sélectionnées dans la modale
     const checkedBoxes = document.querySelectorAll("#emailCheckboxes input[type='checkbox']:checked");
     let destinataires = Array.from(checkedBoxes).map(cb => cb.value.trim());
 
@@ -997,31 +940,30 @@ document.getElementById("confirmEmails").addEventListener("click", async functio
     closeEmailSelectModal();
     showLoadingModal();
 
-    // --- 1) Génération du PDF via ta fonction existante creerPDF()
-    console.log("📄 Génération du PDF via creerPDF()...");
-    const pdfBase64 = await creerPDF(false); // renvoie le base64
-    console.log("✅ PDF généré, taille base64:", pdfBase64.length);
+    // 1️⃣ Génération du PDF
+    const pdfBase64 = await creerPDF(false);
 
-    // --- 2) Création d'un ID unique pour Firestore
+    // 2️⃣ Création d’un ID unique Firestore
     let idUnique, docSnap;
     do {
       idUnique = Math.random().toString(36).substring(2, 10);
       docSnap = await db.collection("liens_pdfs").doc(idUnique).get();
     } while (docSnap.exists);
 
-    // --- 3) Récupération des infos patient pour nommer le fichier
+    // 3️⃣ Récupération infos patient
     const doc = await patientRef.get();
     if (!doc.exists) {
       hideLoadingModal();
       afficherBulle("❌ Patient non trouvé", "alerte");
       return;
     }
+
     const data = doc.data();
     const firstName = data.prenom || "";
     const lastName = data.nom || "";
-    const fileName =  `Rapport d'hospitalisation - ${firstName} ${lastName}.pdf`;
+    const fileName = `Rapport d'hospitalisation - ${firstName} ${lastName}.pdf`;
 
-    // --- 4) Enregistrement dans Firestore
+    // 4️⃣ Sauvegarde du PDF dans Firestore
     await db.collection("liens_pdfs").doc(idUnique).set({
       base64: pdfBase64,
       nomFichier: fileName,
@@ -1029,116 +971,77 @@ document.getElementById("confirmEmails").addEventListener("click", async functio
     });
 
     const lienPdf = `https://junior2704.github.io/urgences-/monpdf.html?id=${idUnique}`;
-    console.log("✅ Lien Firestore :", lienPdf);
+    console.log("✅ Lien généré :", lienPdf);
 
-    // --- 5) Prépare le corps du mail (template HTML comme avant)
+    // 5️⃣ Modèle HTML du mail
     const htmlMessage = `
 <!DOCTYPE html>
 <html lang="fr">
-<head>
-  <meta charset="UTF-8">
-  <title>Compte-rendu d’hospitalisation</title>
-</head>
-<body style="margin:0; padding:0; background-color:#f4f6f9; font-family:'Segoe UI', Roboto, Arial, sans-serif; color:#333;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="max-width:640px; margin:auto; background:white; border-radius:10px; box-shadow:0 3px 10px rgba(0,0,0,0.08); overflow:hidden;">
+<head><meta charset="UTF-8"><title>Compte-rendu d’hospitalisation</title></head>
+<body style="margin:0;padding:0;background-color:#f4f6f9;font-family:'Segoe UI',Roboto,Arial,sans-serif;color:#333;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="max-width:640px;margin:auto;background:white;border-radius:10px;box-shadow:0 3px 10px rgba(0,0,0,0.08);overflow:hidden;">
     <tr>
-      <td style="background-color:#0057a4; padding:24px; text-align:center;">
-        <img src="https://junior2704.github.io/urgences-/logo.jpg" alt="Logo Hôpital" style="height:60px; display:block; margin:0 auto 10px auto;">
-        <h1 style="color:white; font-size:22px; margin:0;">Centre Hospitalier</h1>
-        <p style="color:#dce6f3; margin:6px 0 0; font-size:14px;">Service des Urgences</p>
+      <td style="background-color:#0057a4;padding:24px;text-align:center;">
+        <img src="https://junior2704.github.io/urgences-/logo.jpg" style="height:60px;margin:0 auto 10px auto;display:block;">
+        <h1 style="color:white;font-size:22px;margin:0;">Centre Hospitalier</h1>
+        <p style="color:#dce6f3;margin:6px 0 0;font-size:14px;">Service des Urgences</p>
       </td>
     </tr>
     <tr>
       <td style="padding:30px;">
-        <h2 style="color:#0057a4; font-weight:600; margin-top:0;">Votre compte-rendu d’hospitalisation</h2>
-
-        <p style="font-size:16px; line-height:1.6;">
-          Bonjour <strong>${firstName} ${lastName}</strong>,
-        </p>
-
-        <p style="font-size:15px; line-height:1.6; color:#555;">
-          Le compte-rendu de votre hospitalisation a été validé par le médecin responsable et est désormais disponible.
-          Ce document récapitule votre prise en charge, les examens effectués, ainsi que les recommandations médicales à suivre.
-          Pour toute question relative à votre compte-rendu, n'hésitez pas à nous contacter le service des Urgences par e-mail : 
-          <a href="mailto:urgences.hopj@gmail.com" style="color:#0057a4;">urgences.hopj@gmail.com</a>
-        </p>
-
-        <div style="text-align:center; margin:30px 0;">
-          <a href="${lienPdf}" 
-             style="background-color:#0057a4; color:white; padding:14px 32px; text-decoration:none; border-radius:8px; font-weight:500; display:inline-block;">
-            🔗 Voir le compte-rendu
+        <h2 style="color:#0057a4;font-weight:600;margin-top:0;">Votre compte-rendu d’hospitalisation</h2>
+        <p>Bonjour <strong>${firstName} ${lastName}</strong>,</p>
+        <p>Le compte-rendu de votre hospitalisation est désormais disponible.</p>
+        <div style="text-align:center;margin:30px 0;">
+          <a href="${lienPdf}" style="background-color:#0057a4;color:white;padding:14px 32px;text-decoration:none;border-radius:8px;font-weight:500;display:inline-block;">
+            🔗 Télécharger le compte-rendu
           </a>
         </div>
-
-        <p style="font-size:15px; line-height:1.6; color:#555;">
-          ⚠️ Ce lien reste actif 7 jours. Au-delà de ce délai, il ne sera plus accessible pour des raisons de confidentialité et l'hôpital ne sera pas en mesure de vous en fournir une copie.
-        </p>
-
-        <p style="font-size:14px; color:#777;">
-          Si vous rencontrez des difficultés, merci de contacter le service des Urgences :
-          <a href="mailto:urgences.hopj@gmail.com" style="color:#0057a4;">urgences.hopj@gmail.com</a>
-        </p>
-
-        <hr style="border:none; border-top:1px solid #e0e0e0; margin:30px 0;">
-        <p style="font-size:13px; color:#999; text-align:center;">
-          Service des Urgences<br>
-          <em>Cet e-mail a été généré automatiquement, merci de ne pas y répondre.</em>
-        </p>
+        <p style="color:#555;">⚠️ Ce lien est valable 7 jours pour des raisons de confidentialité.</p>
+        <hr style="border:none;border-top:1px solid #e0e0e0;margin:30px 0;">
+        <p style="font-size:13px;color:#999;text-align:center;">Service des Urgences<br>
+        <em>Cet e-mail est automatique, merci de ne pas y répondre.</em></p>
       </td>
     </tr>
   </table>
-</body>
-</html>`;
+</body></html>`;
 
-    // --- 6) Multi-compte EmailJS (fallback)
+    // 6️⃣ Multi-comptes EmailJS
     const comptesEmailJS = [
       { serviceID: "service_o07vuso", templateID: "template_vj03i4u", publicKey: "CZapZCcxYfJ8-acLS" },
       { serviceID: "service_o3i8ac9", templateID: "template_0wbzbwe", publicKey: "j5G-06rjQm0P6wriE" },
       { serviceID: "service_qij0y5a", templateID: "template_3qdes3p", publicKey: "nh2zkdRVJcGcE-Jwe" }
     ];
 
-    // --- 7) Envoi pour chaque destinataire (une requête EmailJS par adresse)
+    // 7️⃣ Envoi à chaque destinataire
     for (const email of destinataires) {
-      const emailTrim = email.trim();
-      if (!emailTrim || !emailTrim.includes("@")) {
-        afficherBulle(`Adresse invalide : ${emailTrim}`, "alerte");
-        continue;
-      }
-
       let envoye = false;
       let derniereErreur = "";
+
       for (const compte of comptesEmailJS) {
         try {
-          console.log(`📨 Envoi à ${emailTrim} via ${compte.serviceID}...`);
-          const htmlFinal = htmlMessage
-  .replace(/{{patient_prenom}}/g, firstName)
-  .replace(/{{patient_nom}}/g, lastName)
-  .replace(/{{lien_compte_rendu}}/g, lienPdf);
-
           await emailjs.send(compte.serviceID, compte.templateID, {
-            to_email: emailTrim,
+            to_email: email,
             subject: "Votre compte-rendu d'hospitalisation est disponible",
             html_message: htmlMessage
           }, compte.publicKey);
 
-          afficherBulle(`📨 Envoyé : ${emailTrim}`, "administratif");
+          afficherBulle(`📨 Envoyé : ${email}`, "administratif");
           envoye = true;
           break;
         } catch (err) {
-          console.warn(`⚠️ Échec ${compte.serviceID} -> ${err && err.text ? err.text : err}`);
-          derniereErreur = err && err.text ? err.text : String(err);
-          // si erreur de quota, on essaye le compte suivant, sinon on sort de la boucle comptes
+          console.warn(`⚠️ Échec via ${compte.serviceID}:`, err);
+          derniereErreur = err.text || err.message || String(err);
           if (derniereErreur.toLowerCase().includes("quota")) continue;
           else break;
         }
       }
 
-      if (!envoye) afficherBulle(`❌ Échec d'envoi à ${emailTrim}`, "alerte");
+      if (!envoye) afficherBulle(`❌ Échec d'envoi à ${email}`, "alerte");
     }
 
     hideLoadingModal();
-    afficherBulle("📨 Envois terminés !", "administratif");
-    // recharge la page pour réinitialiser l'UI (optionnel)
+    afficherBulle("✅ Tous les e-mails ont été traités.", "administratif");
     setTimeout(() => location.reload(true), 2000);
 
   } catch (err) {
