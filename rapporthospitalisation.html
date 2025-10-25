@@ -624,7 +624,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const cancelModal = document.getElementById("cancelModal");
   const confirmModal = document.getElementById("confirmEmails");
 
-  // 🟦 Ouvre la modale avec les emails séparés par //
   function openEmailSelectModal(emailsString) {
   if (!modal || !container) return;
   container.innerHTML = "";
@@ -633,7 +632,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (emails.length === 0) {
     container.innerHTML = "<p class='text-gray-500 text-sm'>Aucune adresse trouvée pour ce patient.</p>";
   } else {
-    emails.forEach((email, i) => {
+    emails.forEach((email) => {
       container.innerHTML += `
         <label class="flex items-center gap-2">
           <input type="checkbox" value="${email}" checked class="accent-blue-600">
@@ -642,9 +641,12 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // ✅ Correction ici :
   modal.classList.remove("hidden");
-  modal.classList.add("flex");
+  modal.classList.remove("flex"); // au cas où
+  modal.style.display = "flex";   // affichage forcé
 }
+
 
   function closeEmailSelectModal() {
     modal.classList.add("hidden");
@@ -899,6 +901,7 @@ let medecinNom = "";
 
 </body>
 </html>
+
 
 
 
