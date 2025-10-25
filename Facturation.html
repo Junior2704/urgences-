@@ -47,8 +47,7 @@
     #bubble-container{ position:fixed; top:20px; right:20px; display:flex; flex-direction:column; gap:10px; z-index:11000; }
     .bubble{ padding:10px 14px; border-radius:8px; color:#fff; box-shadow:0 6px 20px rgba(0,0,0,0.12); max-width:320px; }
     .administratif{ background:#2196F3; } .alerte{ background:#f44336; }
-    /* modal email (copié du rapport) */
-    /* --- MODALE D'ENVOI EMAIL --- */
+    /* --- MODALE D'ENVOI EMAIL (version harmonisée & élégante) --- */
 #emailSelectModal {
   display: none;
   position: fixed;
@@ -64,19 +63,19 @@
 #emailSelectModal.show {
   display: flex;
 }
+
 #emailSelectModal .modal-content {
-  width: 680px;                 /* 🔹 élargie par défaut */
-  max-width: 95vw;              /* 🔹 limite à presque toute la largeur de l’écran */
+  width: 400px; /* ✅ Taille idéale (ni trop large, ni trop serrée) */
+  max-width: 90%;
   background: linear-gradient(to bottom right, #ffffff, #f9fafc);
   border-radius: 16px;
-  padding: 32px 36px 28px;
+  padding: 28px 26px 22px;
   box-shadow: 0 8px 40px rgba(0, 0, 0, 0.18);
   border: 1px solid rgba(0, 0, 0, 0.06);
   animation: slideUpModal 0.35s ease-out;
   transform-origin: center;
-  text-align: left;             /* 🔹 le texte utilise mieux la largeur */
+  text-align: left;
 }
-
 
 #emailSelectModal h3 {
   text-align: center;
@@ -193,6 +192,7 @@
     padding: 22px 18px;
   }
 }
+
   </style>
 </head>
 <body>
