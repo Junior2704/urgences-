@@ -938,7 +938,7 @@ function openEmailSelectModal(emailsString) {
   // Récupération des éléments
   const otherCheck = document.getElementById("otherEmailCheck");
   const otherInput = document.getElementById("otherEmailInput");
-  const cancelBtn = document.getElementById("cancelModal");
+ 
 
   // Gestion du champ "Autre e-mail"
   if (otherCheck && otherInput) {
@@ -950,12 +950,7 @@ function openEmailSelectModal(emailsString) {
     console.warn("⚠️ Élément(s) 'Autre e-mail' manquant(s) dans le DOM");
   }
 
-  // Gestion du bouton Annuler
-  if (cancelBtn) {
-    cancelBtn.addEventListener("click", closeEmailSelectModal);
-  } else {
-    console.warn("⚠️ Bouton 'Annuler' introuvable dans la modale");
-  }
+  
 });
 
 
