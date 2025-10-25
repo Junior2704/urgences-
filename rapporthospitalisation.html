@@ -733,7 +733,7 @@ function setRapportValide(val) {
   document.getElementById("telechargerBtn").style.display = val ? "inline-block" : "none";
   document.getElementById("imprimerBtn").style.display = val ? "inline-block" : "none";
   document.getElementById("validerBtn").style.display = val ? "none" : "inline-block";
-	envoyerMailBtn.style.display = val ? "inline-block" : "none";
+	btnEnvoyerMail.style.display = val ? "inline-block" : "none";
 }
 async function creerPDF(telecharger = false) {
   const { jsPDF } = window.jspdf;
