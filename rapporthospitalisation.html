@@ -559,7 +559,7 @@
 </form>
 
 <script>
-const envoyerMailBtn = document.getElementById("btnEnvoyerMail");
+
 // Champs du rapport
 const champs = ["identite", "hospitalisation", "medical", "evolution", "constantes", "examens", "actes", "sortie"];
 const patientId = new URLSearchParams(window.location.search).get("id");
@@ -908,22 +908,41 @@ document.getElementById("otherEmailCheck").addEventListener("change", e => {
 document.getElementById("cancelModal").addEventListener("click", closeEmailSelectModal);
 
 /* --- bouton principal --- */
-document.getElementById("btnEnvoyerMail").addEventListener("click", async () => {
-  const params = new URLSearchParams(window.location.search);
-  const patientId = params.get("id");
-  if (!patientId) {
-    afficherBulle("❌ Aucun identifiant patient dans l’URL.", "alerte");
+window.addEventListener("DOMContentLoaded", () => {
+
+  const btnEnvoyer = document.getElementById("btnEnvoyerMail");
+  if (!btnEnvoyer) {
+    console.warn("⚠️ Bouton #btnEnvoyerMail introuvable dans le DOM !");
     return;
   }
-  const patientRef = db.collection("patients").doc(patientId);
-  const doc = await patientRef.get();
-  if (!doc.exists) {
-    afficherBulle("❌ Patient introuvable", "alerte");
-    return;
-  }
-  const data = doc.data();
-  openEmailSelectModal(data.email || "");
+
+  btnEnvoyer.addEventListener("click", async () => {
+    console.log("📧 Bouton 'Envoyer par email' cliqué !");
+    showLoadingModal();
+
+    try {
+      const doc = await patientRef.get();
+      if (!doc.exists) {
+        hideLoadingModal();
+        afficherBulle("❌ Patient introuvable", "alerte");
+        return;
+      }
+
+      const data = doc.data();
+      const emails = data.email || "";
+      console.log("📧 Emails du patient :", emails);
+
+      openEmailSelectModal(emails); // Ouvre la modale de choix des adresses
+      hideLoadingModal();
+
+    } catch (err) {
+      hideLoadingModal();
+      console.error("❌ Erreur :", err);
+      alert("Erreur : " + err.message);
+    }
+  });
 });
+
 
 /* --- envoi --- */
 document.getElementById("confirmEmails").addEventListener("click", async () => {
