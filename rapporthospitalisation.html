@@ -1091,10 +1091,14 @@ hideLoadingModal()
     } else {
       const docSnap = await getDoc(doc(db, "medecins", user.uid));
       if (docSnap.exists()) {
-        const data = docSnap.data();
-        document.getElementById("nom-medecin") = data.nom || "Médecin";
-        document.getElementById("specialite") = data.specialite || "";
-      }
+  const data = docSnap.data();
+  const nomElem = document.getElementById("nom-medecin");
+  if (nomElem) nomElem.textContent = data.nom || "Médecin";
+
+  const specElem = document.getElementById("specialite");
+  if (specElem) specElem.textContent = data.specialite || "";
+}
+
     }
   });
 
