@@ -626,25 +626,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // 🟦 Ouvre la modale avec les emails séparés par //
   function openEmailSelectModal(emailsString) {
-    if (!modal || !container) return;
-    container.innerHTML = "";
+  if (!modal || !container) return;
+  container.innerHTML = "";
 
-    const emails = (emailsString || "").split("//").filter(e => e.includes("@"));
-    if (emails.length === 0) {
-      container.innerHTML = "<p class='text-gray-500 text-sm'>Aucune adresse trouvée pour ce patient.</p>";
-    } else {
-      emails.forEach((email, i) => {
-        container.innerHTML += `
-          <label class="flex items-center gap-2">
-            <input type="checkbox" value="${email}" checked class="accent-blue-600">
-            <span>${email}</span>
-          </label>`;
-      });
-    }
-
-    modal.classList.remove("hidden");
-    modal.classList.add("flex");
+  const emails = (emailsString || "").split("//").filter(e => e.includes("@"));
+  if (emails.length === 0) {
+    container.innerHTML = "<p class='text-gray-500 text-sm'>Aucune adresse trouvée pour ce patient.</p>";
+  } else {
+    emails.forEach((email, i) => {
+      container.innerHTML += `
+        <label class="flex items-center gap-2">
+          <input type="checkbox" value="${email}" checked class="accent-blue-600">
+          <span>${email}</span>
+        </label>`;
+    });
   }
+
+  modal.classList.remove("hidden");
+  modal.classList.add("flex");
+}
 
   function closeEmailSelectModal() {
     modal.classList.add("hidden");
@@ -899,6 +899,7 @@ let medecinNom = "";
 
 </body>
 </html>
+
 
 
 
