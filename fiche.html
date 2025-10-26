@@ -864,6 +864,7 @@ header {
   <br><br>
   <button id="btnAdmin" class="btn-admin">🛠 Gestion Administrative</button>
   <button id="btnVoirRawData">🧾 Historique des hospitalisations</button>
+	<button id="btnmailto">📧 Mailto - patient</buttton>
 </div>
 
 
@@ -2077,7 +2078,9 @@ document.getElementById("btnVersPdf").addEventListener("click", () => {
     window.open(`uploadpdf.html?id=${patientId}`, '_blank');
   });
 
-
+document.getElementById("btnmailto").addEventListener("click", () => {
+    window.open(`mailto.html?id=${patientId}`, '_blank');
+  });
 
 // Gestion Administrative
 const modalAdmin = document.getElementById("modalAdmin");
@@ -2984,6 +2987,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
