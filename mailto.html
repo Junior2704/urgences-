@@ -237,51 +237,58 @@
     function closeEmailSelectModal() { hide("emailSelectModal"); }
     function closeMessageModal() { hide("messageModal"); }
 
-    // --- Recherche patients (nom OU prénom) ---
+  // --- Recherche patients insensible à la casse (sans modifier Firestore) ---
 async function searchPatients(query) {
   const resultsContainer = document.getElementById("results");
   resultsContainer.innerHTML = "<li style='padding:8px;color:#555;'>⏳ Recherche en cours...</li>";
 
+  if (!query.trim()) {
+    resultsContainer.innerHTML = "<li style='padding:8px;color:#777;'>Entrez un nom ou prénom...</li>";
+    return;
+  }
+
   try {
-    // 1️⃣ Requête par nom
-    const byNomSnap = await db.collection("patients")
-      .where("nom", ">=", query)
-      .where("nom", "<=", query + "\uf8ff")
-      .get();
+    const lowerQuery = query.toLowerCase();
 
-    // 2️⃣ Requête par prénom
-    const byPrenomSnap = await db.collection("patients")
-      .where("prenom", ">=", query)
-      .where("prenom", "<=", query + "\uf8ff")
-      .get();
+    // 1️⃣ Récupération de tous les patients (ou limite raisonnable)
+    const snapshot = await db.collection("patients").limit(200).get();
 
-    // 3️⃣ Fusion des résultats (suppression des doublons)
-    const patientsMap = new Map();
-    [...byNomSnap.docs, ...byPrenomSnap.docs].forEach(doc => {
-      patientsMap.set(doc.id, doc.data());
+    const patients = [];
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      const nom = data.nom || "";
+      const prenom = data.prenom || "";
+      const fullName = `${prenom} ${nom}`.toLowerCase();
+
+      if (fullName.includes(lowerQuery)) {
+        patients.push({ id: doc.id, data });
+      }
     });
 
-    const patients = Array.from(patientsMap.entries());
-
-    // 4️⃣ Affichage
+    // 2️⃣ Affichage des résultats
     resultsContainer.innerHTML = "";
     if (patients.length === 0) {
       resultsContainer.innerHTML = "<li style='padding:8px;color:#777;'>Aucun patient trouvé.</li>";
       return;
     }
 
-    patients.forEach(([id, data]) => {
+    patients.forEach(({ id, data }) => {
       const li = document.createElement("li");
       li.textContent = `${data.prenom || ""} ${data.nom || ""}`;
       li.style.cursor = "pointer";
+      li.style.padding = "8px";
+      li.style.borderBottom = "1px solid #eee";
+      li.addEventListener("mouseenter", () => li.style.background = "#f4f6f9");
+      li.addEventListener("mouseleave", () => li.style.background = "white");
       li.onclick = () => {
         currentPatient = { id, data };
         openEmailSelectModal(data.email || "");
       };
       resultsContainer.appendChild(li);
     });
+
   } catch (err) {
-    console.error("Erreur de recherche Firestore :", err);
+    console.error("Erreur recherche Firestore :", err);
     resultsContainer.innerHTML = "<li style='padding:8px;color:#f00;'>Erreur de recherche.</li>";
   }
 }
@@ -382,3 +389,4 @@ async function searchPatients(query) {
   </script>
 </body>
 </html>
+
