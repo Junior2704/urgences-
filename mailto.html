@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Recherche Patient – Envoi d’e-mail</title>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
+  <style>
+    body { background-color: #f8fafc; font-family: 'Segoe UI', sans-serif; }
+    .modal-overlay {
+      background-color: rgba(0,0,0,0.5);
+      backdrop-filter: blur(4px);
+    }
+    .animate-fade-in {
+      animation: fade-in 0.3s ease-out;
+    }
+    @keyframes fade-in {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+  </style>
+</head>
+<body class="p-6">
+
+  <!-- 🔍 Barre de recherche -->
+  <div class="max-w-2xl mx-auto bg-white shadow-md rounded-xl p-6">
+    <h1 class="text-2xl font-semibold text-blue-700 mb-4 text-center">📋 Recherche de patients</h1>
+    <input id="searchInput" type="text" placeholder="Rechercher un patient par nom ou prénom..." 
+           class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none">
+
+    <ul id="patientList" class="mt-4 divide-y divide-gray-200"></ul>
+  </div>
+
+  <!-- 💬 Modale d’adresse e-mail -->
+  <div id="emailModal" class="fixed inset-0 hidden items-center justify-center modal-overlay z-50">
+    <div class="bg-white rounded-2xl shadow-lg p-6 w-96 animate-fade-in relative">
+      <h2 class="text-xl font-semibold text-blue-700 mb-4 text-center">Choisir les destinataires</h2>
+      <p id="patientName" class="text-gray-600 mb-3 text-center"></p>
+
+      <div id="emailList" class="space-y-2 mb-4"></div>
+
+      <div class="flex items-center space-x-2 mb-4">
+        <input id="newEmail" type="email" placeholder="Ajouter une autre adresse..." 
+               class="flex-1 border rounded-lg p-2 focus:ring-2 focus:ring-blue-400 outline-none">
+        <button id="addEmail" class="bg-blue-500 text-white rounded-lg px-3 py-2 hover:bg-blue-600">+</button>
+      </div>
+
+      <div class="flex justify-end space-x-2">
+        <button id="cancelModal" class="bg-gray-300 text-gray-800 rounded-lg px-4 py-2 hover:bg-gray-400">Annuler</button>
+        <button id="confirmModal" class="bg-blue-600 text-white rounded-lg px-4 py-2 hover:bg-blue-700">Ouvrir Gmail</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ✅ Configuration Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyBKp5-7NNy0Gyl0tNbDgD-BxucYdg8ArWo",
+      authDomain: "urgences-a8ed4.firebaseapp.com",
+      projectId: "urgences-a8ed4"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const searchInput = document.getElementById("searchInput");
+    const patientList = document.getElementById("patientList");
+    const emailModal = document.getElementById("emailModal");
+    const patientNameEl = document.getElementById("patientName");
+    const emailListEl = document.getElementById("emailList");
+    const confirmModal = document.getElementById("confirmModal");
+    const cancelModal = document.getElementById("cancelModal");
+    const addEmailBtn = document.getElementById("addEmail");
+    const newEmailInput = document.getElementById("newEmail");
+
+    let patients = [];
+    let selectedPatient = null;
+
+    // 🔹 Charger les patients
+    async function chargerPatients() {
+      const snapshot = await db.collection("patients").get();
+      patients = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      afficherPatients(patients);
+    }
+
+    // 🔹 Afficher la liste
+    function afficherPatients(liste) {
+      patientList.innerHTML = "";
+      liste.forEach(p => {
+        const li = document.createElement("li");
+        li.className = "p-3 hover:bg-blue-50 cursor-pointer";
+        li.textContent = `${p.prenom || ''} ${p.nom || ''} (${p.dateNaissance || 'date inconnue'})`;
+        li.addEventListener("dblclick", () => ouvrirModale(p));
+        patientList.appendChild(li);
+      });
+    }
+
+    // 🔹 Recherche
+    searchInput.addEventListener("input", (e) => {
+      const q = e.target.value.toLowerCase();
+      const filtrés = patients.filter(p =>
+        (p.nom && p.nom.toLowerCase().includes(q)) ||
+        (p.prenom && p.prenom.toLowerCase().includes(q))
+      );
+      afficherPatients(filtrés);
+    });
+
+    // 🔹 Ouvrir la modale
+    function ouvrirModale(patient) {
+      selectedPatient = patient;
+      patientNameEl.textContent = `${patient.prenom || ''} ${patient.nom || ''}`;
+      emailListEl.innerHTML = "";
+
+      // ✉️ Gestion des emails séparés par "//"
+      let mails = [];
+      if (patient.email && typeof patient.email === "string") {
+        mails = patient.email.split("//").map(e => e.trim()).filter(e => e.includes("@"));
+      }
+
+      if (mails.length === 0) {
+        emailListEl.innerHTML = "<p class='text-sm text-gray-500'>Aucune adresse e-mail enregistrée.</p>";
+      } else {
+        mails.forEach(email => {
+          const div = document.createElement("div");
+          div.className = "flex items-center space-x-2";
+          div.innerHTML = `
+            <input type="checkbox" class="emailCheck accent-blue-600" value="${email}" checked>
+            <label>${email}</label>
+          `;
+          emailListEl.appendChild(div);
+        });
+      }
+
+      emailModal.classList.remove("hidden");
+      emailModal.classList.add("flex");
+    }
+
+    // 🔹 Ajouter un email manuellement
+    addEmailBtn.addEventListener("click", () => {
+      const val = newEmailInput.value.trim();
+      if (val && val.includes("@")) {
+        const div = document.createElement("div");
+        div.className = "flex items-center space-x-2";
+        div.innerHTML = `
+          <input type="checkbox" class="emailCheck accent-blue-600" value="${val}" checked>
+          <label>${val}</label>
+        `;
+        emailListEl.appendChild(div);
+        newEmailInput.value = "";
+      }
+    });
+
+    // 🔹 Confirmer → ouvrir Gmail
+    confirmModal.addEventListener("click", () => {
+      const checked = [...document.querySelectorAll(".emailCheck:checked")].map(i => i.value);
+      if (checked.length === 0) {
+        alert("Veuillez sélectionner au moins une adresse e-mail.");
+        return;
+      }
+
+      const sujet = encodeURIComponent("Message du Service des Urgences");
+      const corps = encodeURIComponent(`Bonjour ${selectedPatient.prenom},\n\n\nVeuillez croire, Madame, Monsieur, en notre entier dévouement pour votre santé.`);
+      window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${checked.join(',')}&su=${sujet}&body=${corps}`, '_blank');
+      fermerModale();
+    });
+
+    // 🔹 Fermer la modale
+    cancelModal.addEventListener("click", fermerModale);
+    function fermerModale() {
+      emailModal.classList.add("hidden");
+      emailModal.classList.remove("flex");
+    }
+
+    // ✅ Si l’URL contient ?id= → ouvrir la modale pour ce patient
+    async function verifierEtOuvrirParURL() {
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get("id");
+      if (!id) return;
+
+      try {
+        const doc = await db.collection("patients").doc(id).get();
+        if (doc.exists) {
+          const patient = { id: doc.id, ...doc.data() };
+          ouvrirModale(patient);
+        } else {
+          console.warn("⚠️ Aucun patient trouvé pour cet ID :", id);
+        }
+      } catch (err) {
+        console.error("Erreur Firestore :", err);
+      }
+    }
+
+    // 🚀 Initialisation
+    chargerPatients().then(verifierEtOuvrirParURL);
+  </script>
+</body>
+</html>
