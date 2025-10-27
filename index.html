@@ -106,15 +106,30 @@ window.allerAdmin = async function () {
   </style>
 </head>
 <body>
-  <div id="loginBox">
-    <h2>🔐 Connexion</h2>
-    <input type="email" id="email" placeholder="Email" />
-    <input type="password" id="password" placeholder="Mot de passe" />
-    <button onclick="seConnecter()">Se connecter</button>
-      <button onclick="allerAdmin()">Portail de connexion Admin</button>
-    <div id="message"></div>
-    <img src="logo.jpg" alt="Logo" width="200">
-  </div>
+  <div id="loginBox" style="text-align:center; background:white; padding:25px; border-radius:12px; width:350px; margin:auto; box-shadow:0 0 10px rgba(0,0,0,0.1);">
+  <h2>🔐 Connexion</h2>
+
+  <input type="email" id="email" placeholder="Email" style="width:90%;padding:10px;margin:8px 0;border:1px solid #ccc;border-radius:8px;">
+  <input type="password" id="password" placeholder="Mot de passe" style="width:90%;padding:10px;margin:8px 0;border:1px solid #ccc;border-radius:8px;">
+
+  <!-- ✅ Bouton principal (utilisateur) -->
+  <button onclick="seConnecter()" 
+          style="background:#0078d4;color:white;border:none;padding:10px 20px;margin-top:10px;
+                 border-radius:8px;cursor:pointer;width:90%;font-size:16px;">
+    👤 Se connecter
+  </button>
+
+  <!-- ⚙️ Bouton secondaire (admin) -->
+  <button onclick="allerAdmin()" 
+          style="background:#ff9800;color:white;border:none;padding:10px 20px;margin-top:10px;
+                 border-radius:8px;cursor:pointer;width:90%;font-size:16px;">
+    🛠️ Portail Admin
+  </button>
+
+  <div id="message" style="margin-top:10px;color:red;"></div>
+  <img src="logo.jpg" alt="Logo" width="200" style="margin-top:15px;">
+</div>
+
   <script>
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("sw.js").then(() => {
