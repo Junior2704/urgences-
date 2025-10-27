@@ -261,8 +261,8 @@
     <div id="dashboard">
       <div class="card total"><h2 id="total">--</h2><p>Total patients</p></div>
       <div class="card attente"><h2 id="attente">--</h2><p>En salle d’attente</p></div>
-      <div class="card pec"><h2 id="pec">--</h2><p>En prise en charge</p></div>
-      <div class="card couche"><h2 id="couche">--</h2><p>Couchés / Non vus</p></div>
+      <div class="card pec"><h2 id="pec">--</h2><p>En zone de soins</p></div>
+      <div class="card couche"><h2 id="couche">--</h2><p>Urgences relatives</p></div>
       <div class="card critique"><h2 id="critique">--</h2><p>Urgences vitales</p></div>
       <div class="card admin"><h2 id="admin">--</h2><p>Administratif</p></div>
     </div>
@@ -393,16 +393,23 @@ async function updateCounts() {
 
       // Comptages
       if (pos.includes("attente")) counts.attente++;
-      if (pos.includes("couch")) counts.couche++;
+      
       if (gravite.includes("admin")) counts.admin++;
+  if (
+        gravite.includes("p0") ||
+        gravite.includes("p1") ||
+        gravite.includes("p2") 
+ 
+      ) {
+        counts.couche++;
+      }
 
       // ✅ Détection étendue des urgences vitales
       if (
         gravite.includes("vital") ||
         gravite.includes("urgences_vitales") ||
         gravite.includes("urgence vitale") ||
-        gravite.includes("p3") ||
-        gravite.includes("critique")
+        gravite.includes("p3") 
       ) {
         counts.critique++;
       }
