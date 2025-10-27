@@ -1,2 +1,0 @@
-tapper powershell
-puis :  python -m http.server 8000
