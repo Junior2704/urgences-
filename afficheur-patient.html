@@ -314,8 +314,8 @@
 	  <div id="step8" class="step-anim">
         <div class="icon">⚠️</div>
         <div class="title">Attention :</div>
-        <div class="text">Pour une prise en charge optimale, pensez à nous communiquer tous vos antécédents/traitements.
-		N'oubliez-pas de nous communiquer le nom de votre médecin traitant afin que nous puissions lui transmettre les infomations relatives à votre hopistalisation.
+        <div class="text">Pour une prise en charge optimale, pensez à nous communiquer tous vos antécédents médicaux ainsi que vos traitements.
+		Si vous avez un médecin traitant, pensez à nous donner ses coordonnées !
    </div>
       </div>
 <div id="step9" class="step-anim">
@@ -442,7 +442,7 @@ async function updateCounts() {
     setInterval(() => {
       current = (current + 1) % steps.length;
       showStep(current);
-    }, 10000);
+    }, 15000);
 	 function goFullScreen() {
     const doc = document.documentElement;
     if (doc.requestFullscreen) doc.requestFullscreen();
