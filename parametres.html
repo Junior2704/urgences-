@@ -138,6 +138,64 @@
 #passwordModal .modal-content {
   max-width: 400px;
 }
+/* ✏️ Boutons d’édition */
+.btn-edit {
+  background: transparent;
+  border: none;
+  font-size: 18px;
+  margin-left: 8px;
+  cursor: pointer;
+  color: #0078d4;
+  transition: transform 0.2s, color 0.2s;
+}
+.btn-edit:hover {
+  color: #005ea2;
+  transform: scale(1.2);
+}
+
+/* 🔒 Modale de code */
+#modalCode {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 99999; /* 🧩 priorité max */
+  justify-content: center;
+  align-items: center;
+}
+
+#modalCode .modal-content {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 25px;
+  width: 90%;
+  max-width: 380px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+  animation: popIn 0.25s ease;
+  border-top: 5px solid #0078d4;
+  text-align: center;
+}
+
+#modalCode input[type="text"] {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid #ccd6e0;
+  font-size: 1rem;
+  margin-top: 10px;
+}
+
+#modalCode input:focus {
+  border-color: #0078d4;
+  box-shadow: 0 0 0 3px rgba(0, 120, 212, 0.25);
+  outline: none;
+}
+
+@keyframes popIn {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
   </style>
 </head>
 <body>
@@ -173,6 +231,36 @@
     <h2>Services <button class="btn btn-add" onclick="openModal('spécialités')">➕ Ajouter</button></h2>
     <ul id="spécialitésList"></ul>
   </div>
+<!-- 🔐 Codes d’accès -->
+<div class="section">
+  <h2>🔒 Codes d’accès</h2>
+
+  <p>
+    <strong>🧾 Code de Clôture d’Hospitalisation (CCH) :</strong>
+    <span id="afficheCCH">.......</span>
+    <button class="btn-edit" id="btnEditCCH" title="Modifier le CCH">✏️</button>
+  </p>
+
+  <p>
+    <strong>⚙️ Code d’Accès Administratif (CAA) :</strong>
+    <span id="afficheCAA">.......</span>
+    <button class="btn-edit" id="btnEditCAA" title="Modifier le CAA">✏️</button>
+  </p>
+</div>
+
+<!-- 🪟 Modale pour modifier un code -->
+<div class="modal" id="modalCode">
+  <div class="modal-content">
+    <h3 id="titreCode">Modifier le code</h3>
+    <input type="text" id="inputCode" placeholder="Nouveau code..." />
+    <div class="modal-actions">
+      <button class="btn" id="btnAnnulerCode">❌ Annuler</button>
+      <button class="btn btn-add" id="btnValiderCode">✅ Valider</button>
+    </div>
+  </div>
+</div>
+
+
   <section id="nettoyage-section" 
          style="background: #f8fafc; border-radius: 16px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); 
                 padding: 24px; margin: 20px auto; max-width: 700px;">
@@ -486,6 +574,69 @@ let medecinNom = "";
     }
   }
 });
+// --- GESTION CCH & CAA ---
+const docPatientRef = doc(db, "patients", "QhwMJ0mjmUnS8MTNBCFU");
+const spanCCH = document.getElementById("afficheCCH");
+const spanCAA = document.getElementById("afficheCAA");
+const modalCode = document.getElementById("modalCode");
+const titreCode = document.getElementById("titreCode");
+const inputCode = document.getElementById("inputCode");
+const btnAnnulerCode = document.getElementById("btnAnnulerCode");
+const btnValiderCode = document.getElementById("btnValiderCode");
+
+let codeType = null;
+
+// 🔹 Charger les codes
+async function chargerCodes() {
+  const snap = await getDoc(docPatientRef);
+  if (snap.exists()) {
+    const data = snap.data();
+    spanCCH.textContent = data.CCH ? "......." : "Non défini";
+    spanCAA.textContent = data.CAA ? "......." : "Non défini";
+  }
+}
+chargerCodes();
+
+// 🔹 Ouvrir la modale
+document.getElementById("btnEditCCH").addEventListener("click", () => {
+  codeType = "CCH";
+  titreCode.textContent = "Modifier le CCH";
+  inputCode.value = "";
+  modalCode.style.display = "flex";
+  inputCode.focus();
+});
+
+document.getElementById("btnEditCAA").addEventListener("click", () => {
+  codeType = "CAA";
+  titreCode.textContent = "Modifier le CAA";
+  inputCode.value = "";
+  modalCode.style.display = "flex";
+  inputCode.focus();
+});
+
+// 🔹 Fermer la modale
+btnAnnulerCode.addEventListener("click", () => {
+  modalCode.style.display = "none";
+});
+
+// 🔹 Valider la modification
+btnValiderCode.addEventListener("click", async () => {
+  const newCode = inputCode.value.trim();
+  if (!newCode) {
+    afficherBulle("⚠️ Entrez un code valide", "alerte");
+    return;
+  }
+  try {
+    await setDoc(docPatientRef, { [codeType]: newCode }, { merge: true });
+    afficherBulle(`✅ ${codeType} mis à jour`, "administratif");
+    modalCode.style.display = "none";
+    chargerCodes();
+  } catch (e) {
+    console.error("Erreur mise à jour code :", e);
+    afficherBulle("❌ Erreur d’enregistrement", "alerte");
+  }
+});
+
 
 </script>
 </body>
