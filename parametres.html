@@ -197,6 +197,29 @@
     </button>
   </div>
 </section>
+ <section id="nettoyage-section" 
+         style="background: #f8fafc; border-radius: 16px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); 
+                padding: 24px; margin: 20px auto; max-width: 700px;">
+
+  <h2 style="font-size: 22px; color: #1a73e8; font-weight: 600; margin-bottom: 10px;">
+    Afficheur salle-attente
+  </h2>
+
+  <p style="font-size: 15px; color: #555; line-height: 1.6;">
+    Cliquez sur le lien ci-dessous pour ouvrir l'afficheur patient : 
+    IL permet d'afficher le nombre de patients en salle d'attente, en prise ne charge, en urgences vitales,... en fonction des données saisies dans les fiches patients
+    
+  </p>
+
+  <div style="text-align: center; margin-top: 20px;">
+    <button id="btnAfficheur"
+            style="background-color: #1a73e8; color: white; border: none; 
+                   padding: 12px 28px; border-radius: 8px; font-size: 16px; 
+                   font-weight: 500; cursor: pointer; transition: all 0.3s ease;">
+      🔗 Ouvrir l’afficheur
+    </button>
+  </div>
+</section>
   <!-- MODALE -->
   <div class="modal" id="modal">
     <div class="modal-content">
@@ -317,6 +340,9 @@ const container = type === "actes" ? actesListEl : type === "spécialités" ? do
 }
  document.getElementById("btnNettoyage").addEventListener("click", () => {
     window.location.href = "nettoyage.html";
+  });
+   document.getElementById("btnAfficheur").addEventListener("click", () => {
+    window.location.href = "afficheur-patient.html";
   });
 window.updateItem = async (type, index, newValue) => {
   if (type === "actes") actes[index] = newValue;
