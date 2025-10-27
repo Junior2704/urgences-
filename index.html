@@ -54,8 +54,37 @@ window.allerAdmin = async function () {
       window.location.href = `urgences.html?uid=${user.uid}`;
 
     } catch (error) {
-      message.textContent = "Connexion échouée : " + error.message;
-    }
+  let errorMsg = "❌ Erreur de connexion. Veuillez réessayer.";
+
+  switch (error.code) {
+    case "auth/invalid-email":
+      errorMsg = "⚠️ Email invalide. Vérifie l'adresse saisie.";
+      break;
+    case "auth/user-disabled":
+      errorMsg = "🚫 Ce compte a été désactivé. Contacte un administrateur.";
+      break;
+    case "auth/user-not-found":
+      errorMsg = "❌ Aucun compte trouvé avec cet email.";
+      break;
+    case "auth/wrong-password":
+      errorMsg = "🔑 Mot de passe incorrect.";
+      break;
+    case "auth/missing-password":
+      errorMsg = "⚠️ Merci de saisir un mot de passe.";
+      break;
+    case "auth/too-many-requests":
+      errorMsg = "🚨 Trop de tentatives infructueuses. Réessaie plus tard.";
+      break;
+    case "auth/network-request-failed":
+      errorMsg = "📶 Problème de connexion réseau. Vérifie ta connexion Internet.";
+      break;
+    default:
+      errorMsg = "❌ Une erreur est survenue : " + error.message;
+      break;
+  }
+
+  message.textContent = errorMsg;
+}
   };
 </script>
 
