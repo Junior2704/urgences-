@@ -46,6 +46,23 @@
 </head>
 <body>
   <h1>🔐 Panneau d’administration</h1>
+	<h2>➕ Créer un nouvel utilisateur</h2>
+<div id="creationBox" style="background:white;padding:20px;border-radius:10px;box-shadow:0 0 10px rgba(0,0,0,0.1);margin-bottom:30px;">
+  <input type="email" id="newEmail" placeholder="Email *" style="padding:10px;width:220px;margin-right:10px;">
+  <input type="password" id="newPassword" placeholder="Mot de passe *" style="padding:10px;width:160px;margin-right:10px;">
+  <input type="text" id="newNom" placeholder="Nom complet *" style="padding:10px;width:200px;margin-right:10px;">
+  <input type="text" id="newSpecialite" placeholder="Spécialité" style="padding:10px;width:180px;margin-right:10px;">
+  <input type="text" id="newLieu" placeholder="Lieu d'exercice" style="padding:10px;width:180px;margin-right:10px;">
+  <select id="newType" style="padding:10px;margin-right:10px;">
+    <option value="">-- Type --</option>
+    <option value="doc">Médecin</option>
+    <option value="infirmier">Infirmier</option>
+    <option value="AS">Aide Soignant</option>
+  </select>
+  <button id="createUserBtn" style="padding:10px 15px;background:#0078d4;color:white;border:none;border-radius:8px;cursor:pointer;">Créer</button>
+  <div id="createMsg" style="margin-top:10px;font-weight:bold;"></div>
+</div>
+
   <table>
     <thead>
       <tr>
@@ -163,7 +180,69 @@ tbody.appendChild(tr);
         alert("Erreur lors de la suppression.");
       }
     };
-	
+	import { createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { setDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+document.getElementById("createUserBtn").addEventListener("click", async () => {
+  const email = document.getElementById("newEmail").value.trim();
+  const password = document.getElementById("newPassword").value;
+  const nom = document.getElementById("newNom").value.trim();
+  const specialite = document.getElementById("newSpecialite").value.trim();
+  const lieu = document.getElementById("newLieu").value.trim();
+  const type = document.getElementById("newType").value;
+  const msg = document.getElementById("createMsg");
+  msg.style.color = "red";
+  msg.textContent = "";
+
+  if (!email || !password || !nom || !type) {
+    msg.textContent = "⚠️ Champs obligatoires manquants.";
+    return;
+  }
+
+  if (password.length < 6) {
+    msg.textContent = "Le mot de passe doit faire au moins 6 caractères.";
+    return;
+  }
+
+  try {
+    // Création Auth
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
+
+    // Création du doc Firestore
+    await setDoc(doc(db, "medecins", user.uid), {
+      nom,
+      specialite,
+      lieu,
+      type,
+      email,
+      createdAt: new Date(),
+      pages: {
+        urgences: true,
+        accueil: true,
+        certificat_medical: false,
+        facturation: false,
+        fiche: false,
+        fiche_conseil: false,
+        gestionnaire_radiologie: false,
+        ordonnancier: false,
+        parametres: false,
+        prescriptions_examens: false,
+        rapport_hospitalisation: false,
+        admin: false
+      }
+    });
+
+    msg.style.color = "green";
+    msg.textContent = "✅ Compte créé avec succès !";
+    document.querySelectorAll("#creationBox input").forEach(el => el.value = "");
+    document.getElementById("newType").value = "";
+    chargerUtilisateurs(); // rafraîchit le tableau
+  } catch (error) {
+    msg.textContent = "Erreur création compte : " + error.message;
+  }
+});
+
 	chargerUtilisateurs();
 	
 	
@@ -171,3 +250,4 @@ tbody.appendChild(tr);
   </script>
 </body>
 </html>
+
