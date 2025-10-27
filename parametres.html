@@ -244,11 +244,6 @@ async function verifyPassword() {
   }
 }
 
-const app = initializeApp(firebaseConfig);
-
-
-
-
 const actesListEl = document.getElementById('actesList');
 const personnelListEl = document.getElementById('personnelList');
 let actes = [];
@@ -384,7 +379,8 @@ document.getElementById("validerMotDePasse").addEventListener("click", verifyPas
     authDomain: "urgences-a8ed4.firebaseapp.com",
     projectId: "urgences-a8ed4"
   };
-
+const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
 
   onAuthStateChanged(auth, async (user) => {
     if (!user) {
