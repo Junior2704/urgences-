@@ -21,7 +21,9 @@
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
-
+function allerAdmin() {
+    window.location.href = "connexionadmin.html";
+  }
   // --- Fonction de connexion ---
   window.seConnecter = async function () {
     const email = document.getElementById("email").value.trim();
@@ -109,6 +111,7 @@
     <input type="email" id="email" placeholder="Email" />
     <input type="password" id="password" placeholder="Mot de passe" />
     <button onclick="seConnecter()">Se connecter</button>
+      <button onclick="allerAdmin()">Portail de connexion Admin</button>
     <div id="message"></div>
     <img src="logo.jpg" alt="Logo" width="200">
   </div>
