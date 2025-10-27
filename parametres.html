@@ -361,7 +361,7 @@ async function verifyPassword() {
     const docRef = doc(db, "patients", "QhwMJ0mjmUnS8MTNBCFU");
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
-      const truePassword = docSnap.data()["QhwMJ0mjmUnS8MTNBCFU"];
+      const truePassword = docSnap.data()["CAA"];
       if (passwordInput.value === truePassword) {
         content.classList.remove("blur");
         passwordModal.style.display = "none";
