@@ -138,7 +138,6 @@ background:rgba(0,0,0,0.5);justify-content:center;align-items:center;">
     const db = getFirestore(app);
 
     // 🔐 Vérifie si l'utilisateur est admin (par exemple via son email)
-import { updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 window.ouvrirModale = (id, nom, email, specialite, lieu, type) => {
   document.getElementById("editModal").style.display = "flex";
@@ -330,5 +329,6 @@ window.demanderChangement = async (uid) => {
   </script>
 </body>
 </html>
+
 
 
