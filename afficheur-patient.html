@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<link rel="icon" type="image/jpeg" href="logo.jpg">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Affichage Patients - Urgences</title>
+
+  <!-- Firebase compat -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      font-family: "Inter", "Segoe UI", sans-serif;
+      background: linear-gradient(135deg, #f0f7ff, #e6eef8);
+      color: #0b2240;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* --- HEADER --- */
+    header {
+      width: 100%;
+      background: linear-gradient(90deg, #0b2240 0%, #004b8d 50%, #0078d4 100%);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 30px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    header img {
+      height: 60px;
+      width: auto;
+      border-radius: 8px;
+      object-fit: contain;
+    }
+
+    header h1 {
+      flex: 1;
+      text-align: center;
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: #ffffff;
+      margin: 0;
+    }
+
+    #datetime {
+      font-size: 1.1rem;
+      color: #e0ecff;
+    }
+
+    /* --- CARTES DE STATS --- */
+    main {
+      flex: 1;
+      width: 100%;
+      max-width: 1100px;
+      padding: 30px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+/* --- GRILLE DES CARTES (équilibrée) --- */
+#dashboard {
+  display: grid;
+  width: 100%;
+  gap: 24px;
+  margin-top: 30px;
+  grid-template-columns: repeat(3, 1fr); /* 3 colonnes fixes sur écrans larges */
+}
+
+@media (max-width: 1000px) {
+  #dashboard {
+    grid-template-columns: repeat(2, 1fr); /* 2 colonnes sur écrans moyens */
+  }
+}
+
+@media (max-width: 600px) {
+  #dashboard {
+    grid-template-columns: 1fr; /* 1 carte par ligne sur petits écrans */
+  }
+}
+.step-logo {
+  height: 60px;
+  width: auto;
+  border-radius: 8px;
+  object-fit: contain;
+  box-shadow: 0 0 6px rgba(0,0,0,0.1);
+}
+
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+      text-align: center;
+      transition: transform 0.3s ease;
+    }
+
+    .card:hover { transform: translateY(-6px); }
+
+    .card h2 {
+      font-size: 3rem;
+      margin: 0;
+      color: #0b2240;
+    }
+
+    .pulse { transform: scale(1.08); }
+
+    .card p {
+      margin: 6px 0 0 0;
+      font-size: 1rem;
+      color: #64748b;
+      font-weight: 500;
+    }
+
+    .card.total { border-top: 6px solid #0078d4; }
+    .card.attente { border-top: 6px solid #4caf50; }
+    .card.pec { border-top: 6px solid #ff9800; }
+    .card.couche { border-top: 6px solid #6f42c1; }
+    .card.critique { border-top: 6px solid #f44336; }
+    .card.admin { border-top: 6px solid #4169E1; }
+
+    /* --- ANIMATION INFO PATIENTS --- */
+    .info-animation {
+      margin-top: 50px;
+      width: 100%;
+      max-width: 900px;
+      text-align: center;
+      background: rgba(255,255,255,0.95);
+      border-radius: 20px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+      padding: 40px 20px 60px;
+      position: relative;
+      min-height: 280px;
+      overflow: hidden;
+      z-index: 10;
+    }
+
+    .info-title {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #004b8d;
+      margin-bottom: 25px;
+    }
+
+    .step-anim {
+      position: absolute;
+      left: 50%;
+      top: 90px;
+      transform: translateX(-50%) translateY(30px);
+      opacity: 0;
+      width: 100%;
+      transition: all 1s ease;
+    }
+
+    .step-anim.active {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .step-anim .icon {
+      font-size: 3rem;
+      animation: pop 0.6s ease forwards;
+    }
+
+    @keyframes pop {
+      0% { transform: scale(0.6); opacity: 0; }
+      80% { transform: scale(1.15); opacity: 1; }
+      100% { transform: scale(1); }
+    }
+
+    .step-anim .title {
+      font-size: 1.3rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: #0b2240;
+    }
+
+    .step-anim .text {
+      font-size: 1rem;
+      color: #364152;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    .note {
+      margin-top: 220px;
+      font-size: 1rem;
+      color: #1f3b70;
+      font-weight: 500;
+      position: relative;
+      z-index: 20;
+    }
+
+    footer {
+      width: 100%;
+      text-align: center;
+      font-size: 0.9rem;
+      color: #556;
+      padding-bottom: 10px;
+    }
+	
+		#bubble-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 9999;
+  align-items: flex-end;
+}
+
+.bubble {
+  max-width: 300px;
+  padding: 10px 15px;
+  border-radius: 8px;
+  color: white;
+  font-family: sans-serif;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  animation: fadeout 0.5s ease-in-out 1.5s forwards;
+  word-wrap: break-word;
+  text-align: left;
+}
+
+.administratif {
+  background-color: #2196F3; /* bleu */
+}
+
+.alerte {
+  background-color: #f44336; /* rouge */
+}
+
+@keyframes fadeout {
+  to {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+}
+
+  </style>
+</head>
+<body>
+  <header>
+    <img src="logo.jpg" alt="Logo hôpital">
+    <h1>Service des Urgences</h1>
+    <div id="datetime"></div>
+  </header>
+
+  <main>
+    <!-- CARTES DE STATS -->
+    <div id="dashboard">
+      <div class="card total"><h2 id="total">--</h2><p>Total patients</p></div>
+      <div class="card attente"><h2 id="attente">--</h2><p>En salle d’attente</p></div>
+      <div class="card pec"><h2 id="pec">--</h2><p>En prise en charge</p></div>
+      <div class="card couche"><h2 id="couche">--</h2><p>Couchés / Non vus</p></div>
+      <div class="card critique"><h2 id="critique">--</h2><p>Urgences vitales</p></div>
+      <div class="card admin"><h2 id="admin">--</h2><p>Administratif</p></div>
+    </div>
+
+    <!-- ANIMATION ÉTAPES -->
+    <div class="info-animation">
+      <div class="info-title">Les étapes de votre prise en charge</div>
+
+      <div id="step1" class="step-anim active">
+        <div class="icon">📝</div>
+        <div class="title">Accueil administratif</div>
+        <div class="text">Votre arrivée est enregistrée. Nous vérifions vos informations pour assurer votre suivi médical et administratif.</div>
+      </div>
+
+      <div id="step2" class="step-anim">
+        <div class="icon">👩‍⚕️</div>
+        <div class="title">Triage infirmier</div>
+        <div class="text">Un(e) infirmier(ère) évalue votre état afin de déterminer la priorité de votre prise en charge et vous oriente sur le bon circuit de soin(s).</div>
+      </div>
+<div id="step3" class="step-anim">
+        <div class="icon">🩺</div>
+        <div class="title">Auscultation</div>
+        <div class="text">Un médecin, un interne ou un externe vous ausculte afin de déterminer la suite de votre prise en charge.
+		Le médecin peut aussi rentrer en contact avec vos médecins habituels.</div>
+      </div>
+      <div id="step4" class="step-anim">
+        <div class="icon">🔬</div>
+        <div class="title">Examens complémentaires</div>
+        <div class="text">Des examens (analyse, imagerie, etc.) peuvent être nécessaires pour établir un diagnostic précis.</div>
+      </div>
+
+      <div id="step5" class="step-anim">
+        <div class="icon">💊</div>
+        <div class="title">Prise en charge médicale</div>
+        <div class="text">Le médecin urgentiste assure votre traitement et coordonne les soins nécessaires.</div>
+      </div>
+
+      <div id="step6" class="step-anim">
+        <div class="icon">🏥</div>
+        <div class="title">Observation ou hospitalisation</div>
+        <div class="text">Selon votre état, le médecin peut décider de vous garder aux Urgences en observation.</div>
+      </div>
+
+      <div id="step7" class="step-anim">
+        <div class="icon">🚪</div>
+        <div class="title">Retour à domicile (ou hospitalisation dans un service adapté)</div>
+        <div class="text">Des consignes et un compte rendu sont donnés avant votre départ, pour un suivi optimal.</div>
+      </div>
+	  <div id="step8" class="step-anim">
+        <div class="icon">⚠️</div>
+        <div class="title">Attention :</div>
+        <div class="text">Pour une prise en charge optimale, pensez à nous communiquer tous vos antécédents/traitements.
+		N'oubliez-pas de nous communiquer le nom de votre médecin traitant afin que nous puissions lui transmettre les infomations relatives à votre hopistalisation.
+   </div>
+      </div>
+<div id="step9" class="step-anim">
+        <div class="icon">
+    <img src="logo.jpg" alt="Logo hôpital" class="step-logo">
+  </div>
+        <div class="title">Les Urgences s'engagent !</div>
+        <div class="text"> Le service des Urgences s'incrit dans une démarche de qualité de la prise en charge.
+		N'hésitez-pas à nous écrire pour faire une duggestion ou signaler une anomalie à urgences.hopj@gmail.com
+      </div>
+	  </div>
+      <div class="note">
+        ⚠️ La rapidité du traitement dépend de la gravité médicale.  
+        Merci de votre compréhension et de votre patience.
+      </div>
+	  
+    </div>
+  </main>
+
+  <script>
+    // --- CONFIG FIREBASE ---
+    const firebaseConfig = {
+    apiKey: "AIzaSyBKp5-7NNy0Gyl0tNbDgD-BxucYdg8ArWo",
+    authDomain: "urgences-a8ed4.firebaseapp.com",
+    projectId: "urgences-a8ed4"
+  };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // --- HORLOGE ---
+    function updateClock() {
+      const now = new Date();
+      const optsDate = { weekday: "long", year: "numeric", month: "long", day: "numeric" };
+      const dateStr = now.toLocaleDateString("fr-FR", optsDate);
+      const timeStr = now.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+      document.getElementById("datetime").textContent = `${dateStr} – ${timeStr}`;
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
+
+    // --- ANIMATION CHIFFRES ---
+    function animateUpdate(el, newVal) {
+      if (!el) return;
+      if (el.textContent != newVal) {
+        el.textContent = newVal;
+        el.classList.add("pulse");
+        setTimeout(() => el.classList.remove("pulse"), 250);
+      }
+    }
+
+    // --- FIRESTORE : COMPTES PATIENTS ---
+    async function updateCounts() {
+      try {
+        const snapshot = await db.collection("patients")
+          .where("hospitalisationActive", "==", true)
+          .get();
+
+        const counts = { total: 0, attente: 0, couche: 0, critique: 0, admin: 0 };
+
+        snapshot.forEach(doc => {
+          const data = doc.data() || {};
+          counts.total++;
+          const pos = (data.position || "").toLowerCase();
+          const gravite = (data.gravite || "").toLowerCase();
+          if (pos.includes("attente")) counts.attente++;
+          if (pos.includes("couch")) counts.couche++;
+          if (gravite.includes("vital") || gravite.includes("p3")) counts.critique++;
+          if (gravite.includes("admin")) counts.admin++;
+        });
+
+        const pec = Math.max(counts.total - counts.attente, 0);
+
+        animateUpdate(document.getElementById("total"), counts.total);
+        animateUpdate(document.getElementById("attente"), counts.attente);
+        animateUpdate(document.getElementById("pec"), pec);
+        animateUpdate(document.getElementById("couche"), counts.couche);
+        animateUpdate(document.getElementById("critique"), counts.critique);
+        animateUpdate(document.getElementById("admin"), counts.admin);
+      } catch (err) {
+        console.error("Erreur Firestore:", err);
+		afficherBulle("❌Erreur de chargement des données", "alerte");
+      }
+    }
+    updateCounts();
+    setInterval(updateCounts, 100);
+
+    // --- ANIMATION DES ÉTAPES ---
+    const steps = document.querySelectorAll(".step-anim");
+    let current = 0;
+    function showStep(i) {
+      steps.forEach((s, idx) => s.classList.toggle("active", idx === i));
+    }
+    setInterval(() => {
+      current = (current + 1) % steps.length;
+      showStep(current);
+    }, 10000);
+	 function goFullScreen() {
+    const doc = document.documentElement;
+    if (doc.requestFullscreen) doc.requestFullscreen();
+    else if (doc.webkitRequestFullscreen) doc.webkitRequestFullscreen();
+    else if (doc.msRequestFullscreen) doc.msRequestFullscreen();
+    window.removeEventListener('click', goFullScreen);
+  }
+function afficherBulle(texte, type) {
+    // Créer le conteneur s’il n’existe pas
+    let container = document.getElementById('bubble-container');
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'bubble-container';
+      document.body.appendChild(container);
+    }
+
+    // Créer la bulle
+    const bulle = document.createElement('div');
+    bulle.className = `bubble ${type}`;
+    bulle.textContent = texte;
+
+    // Ajouter au DOM
+    container.appendChild(bulle);
+
+    // Retirer après 2 secondes
+    setTimeout(() => {
+      bulle.remove();
+    }, 3000);
+  }
+  // Demande le plein écran au premier clic ou tap
+  window.addEventListener('click', goFullScreen);
+  window.addEventListener('touchstart', goFullScreen);
+
+  console.log("💡 Cliquez une fois dans la page pour passer en plein écran.");
+  afficherBulle("💡 Cliquez une fois dans la page pour passer en plein écran", "administratif");
+</script>
+  </script>
+</body>
+</html>
