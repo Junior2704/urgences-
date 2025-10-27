@@ -56,7 +56,7 @@ window.allerAdmin = async function () {
     } catch (error) {
   let errorMsg = "❌ Erreur de connexion. Veuillez réessayer.";
 
-  switch (error) {
+  switch (error.message) {
     case "auth/invalid-email":
       errorMsg = "⚠️ Email invalide. Vérifie l'adresse saisie.";
       break;
