@@ -778,10 +778,124 @@ header {
     background-color: #b71c1c; /* rouge plus foncé au survol */
     border-color: #b71c1c;
   }
+	  /* 🏥 Modale de saisie du code de clôture */
+#modalCodeCloture.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.55); /* voile sombre mais doux */
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 99999; /* 👑 au-dessus de tout */
+  animation: fadeInOverlay 0.25s ease;
+}
+
+/* Fenêtre centrale */
+#modalCodeCloture .modal {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 30px 25px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.25);
+  text-align: center;
+  animation: popIn 0.3s ease;
+  border-top: 6px solid #0078d4; /* bleu médical */
+}
+
+/* Titre */
+#modalCodeCloture .modal h3 {
+  margin-top: 0;
+  color: #0078d4;
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+/* Champ input */
+#modalCodeCloture input[type="password"] {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid #ccd6e0;
+  font-size: 1rem;
+  font-family: "Segoe UI", Tahoma, sans-serif;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+#modalCodeCloture input[type="password"]:focus {
+  border-color: #0078d4;
+  box-shadow: 0 0 0 3px rgba(0, 120, 212, 0.25);
+  outline: none;
+}
+
+/* Boutons */
+#modalCodeCloture .modal-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+/* Bouton Valider */
+#btnValiderCode {
+  background-color: #0078d4;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 18px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.15s ease;
+}
+
+#btnValiderCode:hover {
+  background-color: #005ea2;
+  transform: translateY(-1px);
+}
+
+/* Bouton Annuler */
+#btnAnnulerCode {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 18px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.15s ease;
+}
+
+#btnAnnulerCode:hover {
+  background-color: #5a6268;
+  transform: translateY(-1px);
+}
+
+/* Animation d'apparition douce */
+@keyframes fadeInOverlay {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes popIn {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
   </style>
 
 
-  </style>
+
 </head>
 <body>
 
@@ -3025,6 +3139,7 @@ console.log("Script terminé correctement ✅");
 
 </body>
 </html>
+
 
 
 
