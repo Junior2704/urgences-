@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html>	
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
@@ -71,6 +71,7 @@
         <th>Type</th>
         <th>Spécialité</th>
         <th>Lieu</th>
+		  <th> </th>
         <th>Changer MDP</th>
         <th>Urgences</th>
         <th>Accueil</th>
@@ -191,8 +192,15 @@ tr.innerHTML = `
   <td>${data.type || ""}</td>
   <td>${data.specialite || ""}</td>
   <td>${data.lieu || ""}</td>
-   <td>
-    <button style="background:#ffa500;" onclick="ouvrirModale('${id}', '${data.nom}', '${data.email}', '${data.specialite || ''}', '${data.lieu || ''}', '${data.type || ''}')">✏️</button>
+  <td>
+    <button class="editBtn"
+      data-id="${id}"
+      data-nom="${data.nom || ""}"
+      data-email="${data.email || ""}"
+      data-specialite="${data.specialite || ""}"
+      data-lieu="${data.lieu || ""}"
+      data-type="${data.type || ""}"
+      style="background:#ffa500;">✏️</button>
   </td>
   <td>
     <button style="background:#0078d4" onclick="demanderChangement('${id}')">🔁 Demander un changement</button>
@@ -215,6 +223,17 @@ tr.innerHTML = `
 tbody.appendChild(tr);
 
       });
+		tbody.querySelectorAll(".editBtn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const id = btn.dataset.id;
+    const nom = btn.dataset.nom;
+    const email = btn.dataset.email;
+    const specialite = btn.dataset.specialite;
+    const lieu = btn.dataset.lieu;
+    const type = btn.dataset.type;
+    ouvrirModale(id, nom, email, specialite, lieu, type);
+  });
+});
     }
 
     // 🔁 Met à jour l'accès à une page pour un utilisateur
@@ -329,6 +348,7 @@ window.demanderChangement = async (uid) => {
   </script>
 </body>
 </html>
+
 
 
 
