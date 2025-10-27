@@ -1251,6 +1251,18 @@ header {
   </div>
 </div>
  
+<!-- 🏁 Modale de saisie du code de clôture -->
+<div class="modal-overlay" id="modalCodeCloture" style="display:none;">
+  <div class="modal">
+    <h3>🔒 Clôture de l’hospitalisation</h3>
+    <label for="codeClotureInput">Entrez votre code de clôture :</label>
+    <input type="password" id="codeClotureInput" placeholder="Code..." />
+    <div class="modal-buttons">
+      <button id="btnAnnulerCode" class="secondary">❌ Annuler</button>
+      <button id="btnValiderCode" class="success">✅ Valider</button>
+    </div>
+  </div>
+</div>
 
 <div id="vitaleModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:10001; justify-content:center; align-items:center;">
   <div style="background:white; padding:30px; border-radius:12px; text-align:center; box-shadow:0 5px 15px rgba(0,0,0,0.3);">
@@ -1994,9 +2006,31 @@ document.getElementById("btnSaveExamen").addEventListener("click", async () => {
   document.getElementById("commentaireExamen").value = "";
 }
 
-  document.getElementById("btnCloturer").addEventListener("click", async () => {
-  const code = prompt("Entrez le code secret pour clôturer l'hospitalisation :");
-  if (!code) return;
+  // --- Gestion modale de saisie du code ---
+const modalCode = document.getElementById("modalCodeCloture");
+const inputCode = document.getElementById("codeClotureInput");
+const btnAnnulerCode = document.getElementById("btnAnnulerCode");
+const btnValiderCode = document.getElementById("btnValiderCode");
+
+// 🔹 Ouvrir la modale quand on clique sur "Clôturer"
+document.getElementById("btnCloturer").addEventListener("click", () => {
+  inputCode.value = "";
+  modalCode.style.display = "flex";
+  inputCode.focus();
+});
+
+// 🔹 Annuler → fermer la modale
+btnAnnulerCode.addEventListener("click", () => {
+  modalCode.style.display = "none";
+});
+
+// 🔹 Valider le code et exécuter la clôture
+btnValiderCode.addEventListener("click", async () => {
+  const code = inputCode.value.trim();
+  if (!code) {
+    afficherBulle("⚠️ Veuillez entrer un code", "alerte");
+    return;
+  }
 
   try {
     const codeDoc = await db.collection("patients").doc("QhwMJ0mjmUnS8MTNBCFU").get();
@@ -2007,8 +2041,10 @@ document.getElementById("btnSaveExamen").addEventListener("click", async () => {
       return;
     }
 
-    // Code correct → démarrage clôture
+    // ✅ Code correct → démarrer la clôture
+    modalCode.style.display = "none";
     document.getElementById("modalCloture").style.display = "flex";
+
     const bar = document.getElementById("clotureBar");
     bar.style.width = "0%";
     let progress = 0;
@@ -2019,6 +2055,7 @@ document.getElementById("btnSaveExamen").addEventListener("click", async () => {
       if (progress >= 100) clearInterval(interval);
     }, 30);
 
+    // 🕓 Simulation du traitement de clôture
     setTimeout(async () => {
       try {
         const now = new Date().toLocaleString();
@@ -2039,12 +2076,12 @@ document.getElementById("btnSaveExamen").addEventListener("click", async () => {
             hospitalisationActive: false
           });
 
-          alert("✅ Hospitalisation clôturée.");
-window.location.href = "urgences.html?id=QhwMJ0mjmUnS8MTNBCFU";
+          afficherBulle("✅ Hospitalisation clôturée", "administratif");
+          window.location.href = "urgences.html?id=QhwMJ0mjmUnS8MTNBCFU";
         }
       } catch (error) {
         console.error("Erreur clôture hospitalisation :", error);
-        afficherBulle("⚠️Erreur de clôture", "alerte");
+        afficherBulle("⚠️ Erreur de clôture", "alerte");
       } finally {
         document.getElementById("modalCloture").style.display = "none";
       }
@@ -2055,6 +2092,7 @@ window.location.href = "urgences.html?id=QhwMJ0mjmUnS8MTNBCFU";
     afficherBulle("Erreur de vérification du code", "alerte");
   }
 });
+
   
 
 document.getElementById("btnAdmin").addEventListener("click", () => {
