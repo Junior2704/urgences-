@@ -156,6 +156,9 @@
 <button style="padding: 10px 20px; font-size: 16px; cursor: pointer;" onclick="window.location.href='admin.html'">
   Gestion des comptes
 </button>
+<div id="nom-medecin"></div>
+<div id="specialite"></div>
+<div id="lieu-medecin"></div>
 
   <div class="section">
     <h2>🩺 Actes <button class="btn btn-add" onclick="openModal('actes')">➕ Ajouter</button></h2>
@@ -198,8 +201,10 @@ const passwordInput = document.getElementById("passwordInput");
 const content = document.getElementById("content");
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-const auth = getAuth();
-const db = getFirestore();
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
 
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
@@ -380,9 +385,6 @@ document.getElementById("validerMotDePasse").addEventListener("click", verifyPas
     projectId: "urgences-a8ed4"
   };
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
 
   onAuthStateChanged(auth, async (user) => {
     if (!user) {
