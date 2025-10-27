@@ -8,32 +8,55 @@
   <title>Connexion</title>
   <link rel="icon" type="image/jpeg" href="logo.jpg">
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyBKp5-7NNy0Gyl0tNbDgD-BxucYdg8ArWo",
-      authDomain: "urgences-a8ed4.firebaseapp.com",
-      projectId: "urgences-a8ed4"
-    };
+  // --- Config Firebase ---
+  const firebaseConfig = {
+    apiKey: "AIzaSyBKp5-7NNy0Gyl0tNbDgD-BxucYdg8ArWo",
+    authDomain: "urgences-a8ed4.firebaseapp.com",
+    projectId: "urgences-a8ed4"
+  };
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
+  // --- Fonction de connexion ---
+  window.seConnecter = async function () {
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value;
+    const message = document.getElementById("message");
+    message.textContent = "";
+    message.style.color = "red";
 
-    window.seConnecter = async function () {
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
-      const message = document.getElementById("message");
+    try {
+      // 🔐 Connexion utilisateur
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
 
-      try {
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        const user = userCredential.user;
-        window.location.href = `urgences.html?uid=${user.uid}`;
-      } catch (error) {
-        message.textContent = "Connexion échouée : " + error.message;
+      // 🔎 Vérifie dans Firestore si "doitChangerMDP" est vrai
+      const ref = doc(db, "medecins", user.uid);
+      const snap = await getDoc(ref);
+
+      if (snap.exists()) {
+        const data = snap.data();
+        if (data.doitChangerMDP === true) {
+          // ➡️ Redirection vers la page de changement de mot de passe
+          window.location.href = "changer_mot_de_passe.html";
+          return;
+        }
       }
-    };
-  </script>
+
+      // ➡️ Sinon, redirige vers la page principale
+      window.location.href = `urgences.html?uid=${user.uid}`;
+
+    } catch (error) {
+      message.textContent = "Connexion échouée : " + error.message;
+    }
+  };
+</script>
+
   <style>
     body {
       font-family: sans-serif;
@@ -86,7 +109,6 @@
     <input type="email" id="email" placeholder="Email" />
     <input type="password" id="password" placeholder="Mot de passe" />
     <button onclick="seConnecter()">Se connecter</button>
-    <button id="createAccountBtn" onclick="window.location.href='inscription.html'">Créer mon compte</button>
     <div id="message"></div>
     <img src="logo.jpg" alt="Logo" width="200">
   </div>
