@@ -367,38 +367,62 @@
     }
 
     // --- FIRESTORE : COMPTES PATIENTS ---
-    async function updateCounts() {
-      try {
-        const snapshot = await db.collection("patients")
-          .where("hospitalisationActive", "==", true)
-          .get();
+// --- FIRESTORE : COMPTES PATIENTS ---
+async function updateCounts() {
+  try {
+    const snapshot = await db.collection("patients")
+      .where("hospitalisationActive", "==", true)
+      .get();
 
-        const counts = { total: 0, attente: 0, couche: 0, critique: 0, admin: 0 };
+    const counts = { total: 0, attente: 0, couche: 0, critique: 0, admin: 0 };
 
-        snapshot.forEach(doc => {
-          const data = doc.data() || {};
-          counts.total++;
-          const pos = (data.position || "").toLowerCase();
-          const gravite = (data.gravite || "").toLowerCase();
-          if (pos.includes("attente")) counts.attente++;
-          if (pos.includes("couch")) counts.couche++;
-          if (gravite.includes("vital") || gravite.includes("p3")) counts.critique++;
-          if (gravite.includes("admin")) counts.admin++;
-        });
+    snapshot.forEach(doc => {
+      const data = doc.data() || {};
+      counts.total++;
 
-        const pec = Math.max(counts.total - counts.attente, 0);
+      // 🔹 Position
+      const pos = (data.position || "").toLowerCase();
 
-        animateUpdate(document.getElementById("total"), counts.total);
-        animateUpdate(document.getElementById("attente"), counts.attente);
-        animateUpdate(document.getElementById("pec"), pec);
-        animateUpdate(document.getElementById("couche"), counts.couche);
-        animateUpdate(document.getElementById("critique"), counts.critique);
-        animateUpdate(document.getElementById("admin"), counts.admin);
-      } catch (err) {
-        console.error("Erreur Firestore:", err);
-		afficherBulle("❌Erreur de chargement des données", "alerte");
+      // 🔹 Récupération de la gravité depuis l’hospitalisation en cours
+      let gravite = "";
+      if (Array.isArray(data.hospitalisations)) {
+        const index = data.hospitalisationIndex ?? (data.hospitalisations.length - 1);
+        const hosp = data.hospitalisations[index] || {};
+        gravite = (hosp.gravite || "").toLowerCase();
       }
-    }
+
+      // Comptages
+      if (pos.includes("attente")) counts.attente++;
+      if (pos.includes("couch")) counts.couche++;
+      if (gravite.includes("admin")) counts.admin++;
+
+      // ✅ Détection étendue des urgences vitales
+      if (
+        gravite.includes("vital") ||
+        gravite.includes("urgences_vitales") ||
+        gravite.includes("urgence vitale") ||
+        gravite.includes("p3") ||
+        gravite.includes("critique")
+      ) {
+        counts.critique++;
+      }
+    });
+
+    const pec = Math.max(counts.total - counts.attente, 0);
+
+    // 🔹 Mise à jour visuelle
+    animateUpdate(document.getElementById("total"), counts.total);
+    animateUpdate(document.getElementById("attente"), counts.attente);
+    animateUpdate(document.getElementById("pec"), pec);
+    animateUpdate(document.getElementById("couche"), counts.couche);
+    animateUpdate(document.getElementById("critique"), counts.critique);
+    animateUpdate(document.getElementById("admin"), counts.admin);
+
+  } catch (err) {
+    console.error("Erreur Firestore:", err);
+  }
+}
+
     updateCounts();
     setInterval(updateCounts, 100);
 
