@@ -66,7 +66,7 @@ window.allerAdmin = async function () {
     case "auth/user-not-found":
       errorMsg = "❌ Aucun compte trouvé avec cet email.";
       break;
-    case "auth/wrong-password":
+    case "Error (auth/invalid-credential)":
       errorMsg = "🔑 Mot de passe incorrect.";
       break;
     case "auth/missing-password":
