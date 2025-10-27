@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Changer le mot de passe</title>
+  <link rel="icon" type="image/jpeg" href="logo.jpg" />
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, onAuthStateChanged, updatePassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    // --- Configuration Firebase ---
+    const firebaseConfig = {
+      apiKey: "AIzaSyBKp5-7NNy0Gyl0tNbDgD-BxucYdg8ArWo",
+      authDomain: "urgences-a8ed4.firebaseapp.com",
+      projectId: "urgences-a8ed4"
+    };
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // --- Vérifie que l’utilisateur est connecté ---
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        window.location.href = "index.html";
+      }
+    });
+
+    // --- Fonction de changement de mot de passe ---
+    window.changerMotDePasse = async function () {
+      const nouveau = document.getElementById("newPassword").value;
+      const confirmation = document.getElementById("confirmPassword").value;
+      const msg = document.getElementById("message");
+      msg.textContent = "";
+      msg.style.color = "red";
+
+      if (!nouveau || !confirmation) {
+        msg.textContent = "Veuillez remplir les deux champs.";
+        return;
+      }
+      if (nouveau.length < 6) {
+        msg.textContent = "Le mot de passe doit contenir au moins 6 caractères.";
+        return;
+      }
+      if (nouveau !== confirmation) {
+        msg.textContent = "Les deux mots de passe ne correspondent pas.";
+        return;
+      }
+
+      try {
+        const user = auth.currentUser;
+        await updatePassword(user, nouveau);
+        // Optionnel : si ton Firestore contient le champ doitChangerMDP
+        await updateDoc(doc(db, "medecins", user.uid), { doitChangerMDP: false });
+
+        msg.style.color = "green";
+        msg.textContent = "✅ Mot de passe modifié avec succès ! Redirection...";
+
+        setTimeout(async () => {
+          await signOut(auth);
+          window.location.href = "index.html";
+        }, 2000);
+      } catch (error) {
+        msg.textContent = "Erreur : " + error.message;
+      }
+    };
+  </script>
+
+  <style>
+    body {
+      font-family: sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: #f4f4f4;
+    }
+    #box {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+      text-align: center;
+      width: 350px;
+    }
+    input {
+      padding: 10px;
+      width: 100%;
+      margin-bottom: 12px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+      font-size: 1rem;
+    }
+    button {
+      padding: 10px 20px;
+      background: #0078d4;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1.1rem;
+      width: 100%;
+    }
+    button:hover {
+      background: #005ea1;
+    }
+    #message {
+      margin-top: 15px;
+      min-height: 24px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="box">
+    <h2>🔑 Changer mon mot de passe</h2>
+    <input type="password" id="newPassword" placeholder="Nouveau mot de passe" required />
+    <input type="password" id="confirmPassword" placeholder="Confirmer le mot de passe" required />
+    <button onclick="changerMotDePasse()">Valider</button>
+    <div id="message"></div>
+  </div>
+</body>
+</html>

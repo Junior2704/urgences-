@@ -83,7 +83,7 @@
         <th>Prescription Examens</th>
         <th>Rapport Hospitalisation</th>
         <th>Admin</th>
-
+<th>Changer MDP</th>
       </tr>
     </thead>
     <tbody id="usersTable"></tbody>
@@ -148,7 +148,11 @@ tr.innerHTML = `
   <td><input type="checkbox" ${pages.prescriptionexamens ? "checked" : ""} onchange="toggleAccess('${id}', 'prescriptionexamens', this.checked)"></td>
   <td><input type="checkbox" ${pages.rapporthospitalisation ? "checked" : ""} onchange="toggleAccess('${id}', 'rapporthospitalisation', this.checked)"></td>
   <td><input type="checkbox" ${pages.admin ? "checked" : ""} onchange="toggleAccess('${id}', 'admin', this.checked)"></td>
+  <td>
+    <button style="background:#0078d4" onclick="demanderChangement('${id}')">🔁 Demander un changement</button>
+  </td>
 `;
+
 tbody.appendChild(tr);
 
       });
@@ -210,28 +214,31 @@ document.getElementById("createUserBtn").addEventListener("click", async () => {
     const user = userCredential.user;
 
     // Création du doc Firestore
-    await setDoc(doc(db, "medecins", user.uid), {
-      nom,
-      specialite,
-      lieu,
-      type,
-      email,
-      createdAt: new Date(),
-      pages: {
-        urgences: true,
-        accueil: true,
-        certificat_medical: false,
-        facturation: false,
-        fiche: false,
-        fiche_conseil: false,
-        gestionnaire_radiologie: false,
-        ordonnancier: false,
-        parametres: false,
-        prescriptions_examens: false,
-        rapport_hospitalisation: false,
-        admin: false
-      }
-    });
+    // Création du doc Firestore
+await setDoc(doc(db, "medecins", user.uid), {
+  nom,
+  specialite,
+  lieu,
+  type,
+  email,
+  createdAt: new Date(),
+  doitChangerMDP: true, // ✅ nouvel utilisateur devra changer son mot de passe
+  pages: {
+    urgences: true,
+    accueil: true,
+    certificat_medical: false,
+    facturation: false,
+    fiche: false,
+    fiche_conseil: false,
+    gestionnaire_radiologie: false,
+    ordonnancier: false,
+    parametres: false,
+    prescriptions_examens: false,
+    rapport_hospitalisation: false,
+    admin: false
+  }
+});
+
 
     msg.style.color = "green";
     msg.textContent = "✅ Compte créé avec succès !";
@@ -242,6 +249,19 @@ document.getElementById("createUserBtn").addEventListener("click", async () => {
     msg.textContent = "Erreur création compte : " + error.message;
   }
 });
+// 🔁 Forcer un utilisateur à changer son mot de passe
+window.demanderChangement = async (uid) => {
+  const confirmation = confirm("Voulez-vous forcer cet utilisateur à changer son mot de passe ?");
+  if (!confirmation) return;
+  try {
+    const ref = doc(db, "medecins", uid);
+    await updateDoc(ref, { doitChangerMDP: true });
+    alert("L’utilisateur devra changer son mot de passe à sa prochaine connexion.");
+  } catch (error) {
+    console.error(error);
+    alert("Erreur : " + error.message);
+  }
+};
 
 	chargerUtilisateurs();
 	
