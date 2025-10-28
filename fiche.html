@@ -644,33 +644,40 @@ main {
   background: white;
   padding: 25px;
 }
-#loadingOverlay {
+#loadingScreen {
   position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
-  display: flex;
-  justify-content: center;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: none;
   align-items: center;
-  z-index: 10000;
+  justify-content: center;
   flex-direction: column;
+  z-index: 99999;
   color: white;
-  font-family: 'Segoe UI', sans-serif;
-  font-size: 1.2rem;
-  pointer-events: all;
+  font-family: 'Inter', sans-serif;
+  transition: opacity 0.5s ease;
+}
+
+#loadingScreen.hidden {
+  opacity: 0;
+}
+
+.loader-content {
+  text-align: center;
+}
+
+.spinner {
+  border: 6px solid rgba(255, 255, 255, 0.3);
+  border-top: 6px solid white;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  animation: spin 1s linear infinite;
+  margin-bottom: 20px;
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-.spinner {
-  width: 60px;
-  height: 60px;
-  border: 6px solid #f3f3f3;
-  border-top: 6px solid #3498db;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 20px;
+  to { transform: rotate(360deg); }
 }
 #dossierMedical {
   max-height: 300px;
@@ -899,10 +906,13 @@ header {
 </head>
 <body>
 
-<div id="loadingOverlay">
-<div>Chargement du patient en cours...</div>
-  <div class="spinner"></div>
-  
+<!-- Écran de chargement -->
+<div id="loadingScreen">
+  <div class="loader-content">
+    <div class="spinner"></div>
+    <h2>Chargement du service d’urgences...</h2>
+    <p>Merci de patienter quelques instants</p>
+  </div>
 </div>
 
 <header>
@@ -1548,9 +1558,7 @@ if (!containerDynamique) {
   document.querySelector("#tab-sortie-docs").insertBefore(containerDynamique, sortieListe);
 }
 async function chargerPatient(patientId) {
-  const overlay = document.getElementById("loadingOverlay");
-  if (overlay) overlay.style.display = "flex";
-
+  afficherLoader();
   try {
     const doc = await db.collection("patients").doc(patientId).get();
     if (!doc.exists) {
@@ -1639,9 +1647,8 @@ async function chargerPatient(patientId) {
   } catch (err) {
     console.error("Erreur chargement patient :", err);
     afficherBulle("❌ Erreur de chargement", "alerte");
-  } finally {
-    if (overlay) overlay.style.display = "none";
-  }
+  } 
+  masquerLoader();
 }
 
 async function updateHospitalisationField(field, value) {
@@ -3040,7 +3047,34 @@ function updateTitle() {
     document.title = `${prenom} ${nom} ${dateNaissance} (${age} ans)`;
 }
 
-	
+	// --- Affiche l’écran de chargement ---
+window.afficherLoader = function() {
+  let loader = document.getElementById("loadingScreen");
+  if (!loader) {
+    loader = document.createElement("div");
+    loader.id = "loadingScreen";
+    loader.innerHTML = `
+      <div class="loader-content">
+        <div class="spinner"></div>
+        <h2>Chargement...</h2>
+      </div>
+    `;
+    document.body.appendChild(loader);
+  }
+  loader.style.display = "flex";
+  loader.classList.remove("hidden");
+};
+
+// --- Masque l’écran de chargement ---
+window.masquerLoader = function() {
+  const loader = document.getElementById("loadingScreen");
+  if (loader) {
+    loader.classList.add("hidden");
+    setTimeout(() => {
+      loader.style.display = "none";
+    }, 500); // délai pour l’animation
+  }
+};
 updateTitle();
 updateTime();
 	updatePatientHeader();
