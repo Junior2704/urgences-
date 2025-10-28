@@ -204,7 +204,7 @@ document.getElementById("saveEditBtn").addEventListener("click", async () => {
   try {
     const ref = doc(db, "medecins", id);
     await updateDoc(ref, { nom, email, specialite, lieu, type });
-    afficherBulle("✅ Informations mises à jour avec succès !", "administratif");
+    afficherBulle("✅ Informations mises à jour", "administratif");
     fermerModale();
     chargerUtilisateurs(); // rafraîchir la liste
   } catch (e) {
