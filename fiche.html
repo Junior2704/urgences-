@@ -644,41 +644,7 @@ main {
   background: white;
   padding: 25px;
 }
-#loadingScreen {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.6);
-  display: none;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  z-index: 99999;
-  color: white;
-  font-family: 'Inter', sans-serif;
-  transition: opacity 0.5s ease;
-}
 
-#loadingScreen.hidden {
-  opacity: 0;
-}
-
-.loader-content {
-  text-align: center;
-}
-
-.spinner {
-  border: 6px solid rgba(255, 255, 255, 0.3);
-  border-top: 6px solid white;
-  border-radius: 50%;
-  width: 60px;
-  height: 60px;
-  animation: spin 1s linear infinite;
-  margin-bottom: 20px;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
 #dossierMedical {
   max-height: 300px;
   overflow-y: auto;
@@ -898,7 +864,41 @@ header {
     opacity: 1;
   }
 }
+#loadingScreen {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  z-index: 99999;
+  color: white;
+  font-family: 'Inter', sans-serif;
+  transition: opacity 0.5s ease;
+}
 
+#loadingScreen.hidden {
+  opacity: 0;
+}
+
+.loader-content {
+  text-align: center;
+}
+
+.spinner {
+  border: 6px solid rgba(255, 255, 255, 0.3);
+  border-top: 6px solid white;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  animation: spin 1s linear infinite;
+  margin-bottom: 20px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
   </style>
 
 
@@ -910,7 +910,7 @@ header {
 <div id="loadingScreen">
   <div class="loader-content">
     <div class="spinner"></div>
-    <h2>Chargement du service d’urgences...</h2>
+    <h2>Chargement des données...</h2>
     <p>Merci de patienter quelques instants</p>
   </div>
 </div>
