@@ -2820,9 +2820,30 @@ document.getElementById("btnVoirRawData").addEventListener("click", async () => 
 });
 
 // --- Bouton fermeture modale ---
+// Quand on clique sur le bouton de fermeture
 document.getElementById("closeRawData").addEventListener("click", () => {
-  document.getElementById("modalRawData").style.display = "none";
+  closeRawData();
 });
+
+// Fonction de fermeture
+async function closeRawData() {
+  document.getElementById("modalRawData").style.display = "none";
+}
+
+// Fonction d'ouverture (au cas où tu l’as déjà quelque part)
+function openRawData() {
+  document.getElementById("modalRawData").style.display = "block";
+}
+
+// Écoute de la touche "Échap"
+document.addEventListener("keydown", (event) => {
+  const modal = document.getElementById("modalRawData");
+  // Vérifie si la modale est visible et que la touche pressée est "Escape"
+  if (event.key === "Escape" && modal.style.display === "block") {
+    closeRawData();
+  }
+});
+
 async function chargerExamens() {
   try {
     const snap = await patientRef.get();

@@ -42,6 +42,42 @@
     input[type="checkbox"] {
       transform: scale(1.2);
     }
+    #bubble-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 9999;
+  align-items: flex-end;
+}
+	.bubble {
+  max-width: 300px;
+  padding: 10px 15px;
+  border-radius: 8px;
+  color: white;
+  font-family: sans-serif;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  animation: fadeout 0.5s ease-in-out 1.5s forwards;
+  word-wrap: break-word;
+  text-align: left;
+}
+
+.administratif {
+  background-color: #2196F3; /* bleu */
+}
+
+.alerte {
+  background-color: #f44336; /* rouge */
+}
+
+@keyframes fadeout {
+  to {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+}
   </style>
 </head>
 <body>
@@ -167,11 +203,13 @@ document.getElementById("saveEditBtn").addEventListener("click", async () => {
   try {
     const ref = doc(db, "medecins", id);
     await updateDoc(ref, { nom, email, specialite, lieu, type });
-    alert("✅ Informations mises à jour avec succès !");
+    afficherBulle("✅ Informations mises à jour avec succès !", "administratif");
     fermerModale();
     chargerUtilisateurs(); // rafraîchir la liste
   } catch (e) {
-    alert("❌ Erreur lors de la mise à jour : " + e.message);
+    
+    afficherBulle("❌ Erreur lors de la mise à jour ", "alerte");
+    console.log("❌ Erreur lors de la mise à jour : " + e.message);
   }
 });
 
@@ -260,7 +298,7 @@ tbody.appendChild(tr);
         // ⚠️ Suppression dans Firebase Auth non possible ici (doit être faite côté serveur ou connecté en tant qu'utilisateur cible).
       } catch (err) {
         console.error(err);
-        alert("Erreur lors de la suppression.");
+        afficherBulle("Erreur lors de la suppression","alerte");
       }
     };
 	import { createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -335,13 +373,27 @@ window.demanderChangement = async (uid) => {
   try {
     const ref = doc(db, "medecins", uid);
     await updateDoc(ref, { doitChangerMDP: true });
-    alert("L’utilisateur devra changer son mot de passe à sa prochaine connexion.");
+    afficherBulle("L’utilisateur devra changer son mot de passe à sa prochaine connexion.","administratif");
   } catch (error) {
     console.error(error);
-    alert("Erreur : " + error.message);
+    afficherBulle("Erreur ","alerte");
   }
 };
-
+ function afficherBulle(texte, type) {
+    let container = document.getElementById('bubble-container');
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'bubble-container';
+      document.body.appendChild(container);
+    }
+    const bulle = document.createElement('div');
+    bulle.className = `bubble ${type}`;
+    bulle.textContent = texte;
+    container.appendChild(bulle);
+    setTimeout(() => {
+      bulle.remove();
+    }, 3000);
+  }
 	chargerUtilisateurs();
 	
 	
