@@ -1856,17 +1856,7 @@ async function ajouterEntreeHistorique(texte) {
   const entree = { date, texte };
 
   try {
-    const doc = await patientRef.get();
-    const data = doc.data();
-    const index = data.hospitalisationIndex ?? 0;
-
-    const hospitalisations = data.hospitalisations || [];
-    hospitalisations[index] = hospitalisations[index] || {};
-    hospitalisations[index].historique = hospitalisations[index].historique || [];
-
-    hospitalisations[index].historique.push(entree);
-
-    await patientRef.update({ hospitalisations });
+   
 
     afficherHistorique(entree);
   } catch (error) {
