@@ -82,6 +82,7 @@
 </head>
 <body>
   <h1>🔐 Panneau d’administration</h1>
+  <button type="button" id="retourBtn" aria-label="Retour aux paramètres">← Retour</button>
 	<h2>➕ Créer un nouvel utilisateur</h2>
 <div id="creationBox" style="background:white;padding:20px;border-radius:10px;box-shadow:0 0 10px rgba(0,0,0,0.1);margin-bottom:30px;">
   <input type="email" id="newEmail" placeholder="Email *" style="padding:10px;width:220px;margin-right:10px;">
@@ -394,6 +395,10 @@ window.demanderChangement = async (uid) => {
       bulle.remove();
     }, 3000);
   }
+    document.getElementById('retourBtn').addEventListener('click', function(){
+    // remplace par location.href = 'parametres.html' si tu veux toujours aller sur cette page
+    location.href = 'parametres.html';
+  });
 	chargerUtilisateurs();
 	
 	
