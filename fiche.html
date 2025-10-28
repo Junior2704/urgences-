@@ -1890,7 +1890,7 @@ async function ajouterEntreeHistorique(texte) {
     await patientRef.update({ poids, taille });
     ajouterEntreeHistorique(`Poids/Taille/IMC enregistrés: ${poids}kg / ${taille}cm`);
     afficherBulle("✔️ Poids et taille enregistrés", "administratif");
-    chargerPatient(); // 🔄 recalcul IMC
+    chargerPatient(patientId); // 🔄 recalcul IMC
   } catch (err) {
     console.error("Erreur enregistrement poids/taille :", err);
     afficherBulle("❌ Erreur lors de l’enregistrement du poids/taille", "alerte");
@@ -3025,13 +3025,12 @@ document.getElementById("btnRapportHospi").addEventListener("click", () => {
 
 
 document.addEventListener("DOMContentLoaded", () => {
-
-
   rafraichirChampsSortie();
   champAutreSortie.style.display = document.querySelector('input[name="typeSortie"][value="autre"]')?.checked ? "block" : "none";
 
   if (patientId) {
     chargerPatient(patientId);   // ✅ passer l’ID
+    chargerActes();
   } else {
     afficherBulle("❌ Aucun patientId fourni dans l’URL", "alerte");
   }
