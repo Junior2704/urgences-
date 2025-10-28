@@ -1627,7 +1627,7 @@ async function chargerPatient(patientId) {
     if (!hospiSnap.empty) {
       const hospiDoc = hospiSnap.docs[0];   // dernier séjour
       // --- Charger actes & examens depuis les sous-collections ---
-      await chargerActes(patientId);
+      await chargerActes();
       await chargerExamens(patientId, hospiDoc.id);
     }
 
@@ -2414,7 +2414,7 @@ function ajouterFiltreTypeActe() {
   });
 
   select.addEventListener("change", (e) => {
-    chargerActes(patientId);
+    chargerActes();
   });
 }
 
