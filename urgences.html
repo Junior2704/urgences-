@@ -273,6 +273,63 @@
 .resultat-item:hover {
   background-color: #f0f8ff;
 }
+/* --- Écran de chargement global --- */
+#loadingScreen {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(135deg, #0078d4, #66b2ff);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  z-index: 99999;
+  transition: opacity 0.6s ease, visibility 0.6s ease;
+  font-family: 'Inter', sans-serif;
+}
+
+#loadingScreen.hidden {
+  opacity: 0;
+  visibility: hidden;
+}
+
+/* Contenu du loader */
+.loader-content {
+  text-align: center;
+  animation: fadeIn 1.2s ease-in-out;
+}
+
+.loader-content h2 {
+  margin-top: 20px;
+  font-size: 1.5rem;
+  font-weight: 500;
+}
+
+.loader-content p {
+  margin-top: 8px;
+  opacity: 0.85;
+}
+
+/* Spinner élégant */
+.spinner {
+  border: 6px solid rgba(255, 255, 255, 0.3);
+  border-top: 6px solid white;
+  border-radius: 50%;
+  width: 70px;
+  height: 70px;
+  animation: spin 1s linear infinite;
+  margin: auto;
+}
+
+/* Animation */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 
   </style>
 </head>
@@ -318,6 +375,14 @@ Connecté en tant que <b><span id="nom-medecin"></span></b> (<span id="specialit
 <input type="text" id="recherchePatient" placeholder="Rechercher un patient hospitalisé..." />
 
 <div id="resultatsRecherchePrincipale" class="autocomplete-container" style="z-index : 9998"></div>
+<!-- Écran de chargement -->
+<div id="loadingScreen">
+  <div class="loader-content">
+    <div class="spinner"></div>
+    <h2>Chargement du service d’urgences...</h2>
+    <p>Merci de patienter quelques instants</p>
+  </div>
+</div>
 
 
 <div id="plan" aria-label="Plan des salles du service d'urgences">
@@ -843,7 +908,40 @@ document.getElementById('readVitaleBtn').addEventListener('click', () => {
 
   console.log(`✅ ${count} lien(s) supprimé(s).`);
 }
+  // Cache l’écran de chargement après que les données sont prêtes
+  async function initialiserApp() {
+    try {
+      // 🔹 Attendre que le médecin ET les patients soient chargés
+      await Promise.all([
+        new Promise(resolve => {
+          const interval = setInterval(() => {
+            if (window.medecinNom) {
+              clearInterval(interval);
+              resolve();
+            }
+          }, 300);
+        }),
+        new Promise(resolve => {
+          const interval = setInterval(() => {
+            if (Object.keys(window.patients || {}).length > 0) {
+              clearInterval(interval);
+              resolve();
+            }
+          }, 300);
+        })
+      ]);
+    } catch (e) {
+      console.error("Erreur pendant le chargement :", e);
+    } finally {
+      // 🔹 Retirer le loader après un court délai pour un effet doux
+      setTimeout(() => {
+        const loader = document.getElementById("loadingScreen");
+        loader.classList.add("hidden");
+      }, 800);
+    }
+  }
 
+  window.addEventListener("load", initialiserApp);
 function rechargerPlan() {
    document.querySelectorAll(".patient").forEach(p => p.remove());
   chargerPatients();
