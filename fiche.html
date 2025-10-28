@@ -2897,16 +2897,15 @@ async function chargerActes() {
     }
 
     // Construire l'affichage HTML
-    const liste = hosp.actes.map(acte => `
-      <div class="prescription-item" style="margin-bottom:8px; padding:10px; border-radius:8px; background:#f5faff;">
-        <p><b>💉 Type :</b> ${acte.type || "N/A"}</p>
-        <p><b>👨‍⚕️ Réalisé par :</b> ${acte.realisateur || "?"}</p>
-        <p><b>📅 Date :</b> ${acte.date || "?"}</p>
-        ${acte.remarque ? `<p><b>💬 Remarque :</b> ${acte.remarque}</p>` : ""}
-      </div>
-	  <button class="btn-delete" onclick="supprimerActe(${i})">🗑</button>
-    `).join("");
-
+    const liste = hosp.actes.map((acte, i) => `
+  <div class="prescription-item" style="margin-bottom:8px; padding:10px; border-radius:8px; background:#f5faff;">
+    <p><b>💉 Type :</b> ${acte.type || "N/A"}</p>
+    <p><b>👨‍⚕️ Réalisé par :</b> ${acte.realisateur || "?"}</p>
+    <p><b>📅 Date :</b> ${acte.date || "?"}</p>
+    ${acte.remarque ? `<p><b>💬 Remarque :</b> ${acte.remarque}</p>` : ""}
+    <button class="btn-delete" onclick="supprimerActe(${i})">🗑</button>
+  </div>
+`).join("");
     document.getElementById("actesListe").innerHTML = liste || "<i>Aucun acte enregistré.</i>";
   } catch (e) {
     console.error("Erreur lors du chargement des actes :", e);
