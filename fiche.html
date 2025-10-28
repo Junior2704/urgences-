@@ -1381,7 +1381,7 @@ header {
   <div class="modal">
     <h3>🔒 Clôture de l’hospitalisation</h3>
     <label for="codeClotureInput">Entrez le CCH (Code de Clôture d'Hospitalisation) :</label>
-    <input type="password" id="codeClotureInput" placeholder="CCH..... />
+    <input type="password" id="codeClotureInput" placeholder="CCH.....">
     <div class="modal-buttons">
       <button id="btnAnnulerCode" class="secondary">❌ Annuler</button>
       <button id="btnValiderCode" class="success">✅ Valider</button>
@@ -2537,26 +2537,6 @@ function reinitialiserFormulaireActe() {
   champAutreActe.style.display = "none";
 }
 
-async function verifierCodeEtCloturer(idPatient, callbackCloture) {
-  const saisie = prompt("Entrez le mot de passe de clôture d'hospitalisation :");
-  if (!saisie) return;
-
-  try {
-    const doc = await db.collection("codes").doc("QhwMJ0mjmUnS8MTNBCFU").get();
-    const codeAttendu = doc.data().QhwMJ0mjmUnS8MTNBCFU;
-
-    if (saisie !== codeAttendu) {
-      afficherBulle("❌ Code incorrect", "alerte");
-      return;
-    }
-
-    callbackCloture(); // Lance la clôture si le code est bon
-
-  } catch (err) {
-    console.error(err);
-    afficherBulle("❌Erreur lors de la vérification du code", "alerte");
-  }
-}
 function formatDateHeure(dateString) {
   const date = new Date(dateString);
   const pad = (n) => n.toString().padStart(2, '0');
