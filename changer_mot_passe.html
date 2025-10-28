@@ -6,7 +6,14 @@
   <link rel="icon" type="image/jpeg" href="logo.jpg" />
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getAuth, onAuthStateChanged, updatePassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import {
+      getAuth,
+      onAuthStateChanged,
+      updatePassword,
+      signOut,
+      reauthenticateWithCredential,
+      EmailAuthProvider
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
     import { getFirestore, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
     // --- Configuration Firebase ---
@@ -23,45 +30,64 @@
     onAuthStateChanged(auth, (user) => {
       if (!user) {
         window.location.href = "index.html";
+      } else {
+        document.getElementById("emailDisplay").textContent = user.email;
       }
     });
 
     // --- Fonction de changement de mot de passe ---
     window.changerMotDePasse = async function () {
+      const ancien = document.getElementById("oldPassword").value;
       const nouveau = document.getElementById("newPassword").value;
       const confirmation = document.getElementById("confirmPassword").value;
       const msg = document.getElementById("message");
       msg.textContent = "";
       msg.style.color = "red";
 
-      if (!nouveau || !confirmation) {
-        msg.textContent = "Veuillez remplir les deux champs.";
+      if (!ancien || !nouveau || !confirmation) {
+        msg.textContent = "Veuillez remplir tous les champs.";
         return;
       }
       if (nouveau.length < 6) {
-        msg.textContent = "Le mot de passe doit contenir au moins 6 caractères.";
+        msg.textContent = "Le nouveau mot de passe doit contenir au moins 6 caractères.";
         return;
       }
       if (nouveau !== confirmation) {
-        msg.textContent = "Les deux mots de passe ne correspondent pas.";
+        msg.textContent = "Les deux nouveaux mots de passe ne correspondent pas.";
         return;
       }
 
       try {
         const user = auth.currentUser;
+        if (!user) {
+          msg.textContent = "Aucun utilisateur connecté.";
+          return;
+        }
+
+        // 🔐 Vérification de l’ancien mot de passe
+        const credential = EmailAuthProvider.credential(user.email, ancien);
+        await reauthenticateWithCredential(user, credential);
+
+        // ✅ Si l'ancien mot de passe est correct, on met à jour
         await updatePassword(user, nouveau);
-        // Optionnel : si ton Firestore contient le champ doitChangerMDP
+
+        // (Optionnel) Met à jour Firestore
         await updateDoc(doc(db, "medecins", user.uid), { doitChangerMDP: false });
 
         msg.style.color = "green";
-        msg.textContent = "✅ Mot de passe modifié avec succès ! Redirection...";
+        msg.textContent = "✅ Mot de passe modifié avec succès ! Déconnexion...";
 
         setTimeout(async () => {
           await signOut(auth);
           window.location.href = "index.html";
         }, 2000);
       } catch (error) {
-        msg.textContent = "Erreur : " + error.message;
+        console.error(error);
+        if (error.code === "auth/wrong-password") {
+          msg.textContent = "Ancien mot de passe incorrect.";
+        } else {
+          msg.textContent = "Erreur : " + error.message;
+        }
       }
     };
   </script>
@@ -110,15 +136,25 @@
       min-height: 24px;
       font-weight: bold;
     }
+    #emailDisplay {
+      font-weight: bold;
+      color: #0078d4;
+      margin-bottom: 10px;
+      display: block;
+    }
   </style>
 </head>
 
 <body>
   <div id="box">
     <h2>🔑 Changer mon mot de passe</h2>
+    <p>Adresse e-mail : <span id="emailDisplay">chargement...</span></p>
+
+    <input type="password" id="oldPassword" placeholder="Ancien mot de passe" required />
     <input type="password" id="newPassword" placeholder="Nouveau mot de passe" required />
-    <input type="password" id="confirmPassword" placeholder="Confirmer le mot de passe" required />
+    <input type="password" id="confirmPassword" placeholder="Confirmer le nouveau mot de passe" required />
     <button onclick="changerMotDePasse()">Valider</button>
+
     <div id="message"></div>
   </div>
 </body>
