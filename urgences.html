@@ -315,7 +315,7 @@
 <body>
 <div id="mainContent">
 <h2>
-<button id="btnOpenAcount" title="Paramètres" style="
+<button id="btnOpenAcount" title="Mon compte" style="
   position: fixed;
   top: 20px;
   right: 20px;
@@ -848,8 +848,9 @@ function createPopover(content, x, y) {
   return div;
 }
 document.getElementById("btnOpenAcount").addEventListener("click", () => {
-  window.open("viewacount.html", "_blank");
+  window.location.href = "viewacount.html";
 });
+
 document.getElementById('readVitaleBtn').addEventListener('click', () => {
   const modal = document.getElementById('vitaleModal');
   modal.style.display = 'flex';
