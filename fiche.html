@@ -978,6 +978,15 @@ header {
 
   <label for="service" >🏥 Service idéal</label>
   <select id="service" class="text2"><option value="">Chargement...</option></select>
+<label for="circuit">🧭 Circuit particulier</label>
+<select id="circuit" class="text2">
+  <option value="">-- Sélectionnez --</option>
+  <option value="Pédiatrie">Pédiatrie</option>
+  <option value="Traumatologie">Traumatologie</option>
+  <option value="Gynécologie">Gynécologie</option>
+  <option value="Neurologie">Neurologie</option>
+  <option value="Autre">Autre</option>
+</select>
 
   <label for="motif">🤕 Motif d'entrée</label>
   <input type="text" id="motif" placeholder="Motif d'entrée" class="text2" />
@@ -1600,6 +1609,8 @@ async function chargerPatient(patientId) {
       document.getElementById("gravite").value = hospi.gravite || "";
       document.getElementById("motif").value = hospi.motif || "";
       document.getElementById("moyen").value = hospi.moyen || "";
+      document.getElementById("circuit").value = hospi.circuit || "";
+
 
       // 🔹 Constantes vitales
       document.getElementById("temperature").value = hospi.constantes?.temperature || "";
@@ -1849,6 +1860,9 @@ inputActe.addEventListener("input", async (e) => {
 
 document.getElementById("gravite").addEventListener("change", e => {
   updateHospitalisationField("gravite", e.target.value);
+});
+document.getElementById("circuit").addEventListener("change", async (e) => {
+   updateHospitalisationField("circuit", e.target.value);
 });
 
 document.getElementById("motif").addEventListener("blur", e => {
