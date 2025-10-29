@@ -517,23 +517,23 @@ async function updateCounts() {
 
       if (circuit.includes("pédiatrie")) circuits.pediatrie++;
       if (circuit.includes("trauma")) circuits.traumato++;
-      if (circuit.includes("cardio")) circuits.cardio++;
+
       if (circuit.includes("neuro")) circuits.neuro++;
       if (circuit.includes("gyn")) circuits.gyn++;
-      if (circuit.includes("digest")) circuits.digestif++;
+
       if (circuit.includes("opht")) circuits.ophtalmo++;
-      if (circuit.includes("derm")) circuits.dermato++;
+  
     });
 
     // 🔹 Affichage des valeurs
     animateUpdate(document.getElementById("circuit-pediatrie").querySelector(".count"), circuits.pediatrie);
     animateUpdate(document.getElementById("circuit-traumato").querySelector(".count"), circuits.traumato);
-    animateUpdate(document.getElementById("circuit-cardio").querySelector(".count"), circuits.cardio);
+
     animateUpdate(document.getElementById("circuit-neuro").querySelector(".count"), circuits.neuro);
     animateUpdate(document.getElementById("circuit-gyn").querySelector(".count"), circuits.gyn);
-    animateUpdate(document.getElementById("circuit-digestif").querySelector(".count"), circuits.digestif);
+ 
     animateUpdate(document.getElementById("circuit-ophtalmo").querySelector(".count"), circuits.ophtalmo);
-    animateUpdate(document.getElementById("circuit-dermato").querySelector(".count"), circuits.dermato);
+    
 
   } catch (err) {
     console.error("Erreur Firestore:", err);
