@@ -1978,7 +1978,7 @@ document.getElementById("btnSaveConst").addEventListener("click", async () => {
       afficherBulle("❌Numéro de scope manquant", "alerte");
       return;
     }
-    window.location.href ="scope.html?id=${encodeURIComponent(patientId)}";
+    window.location.href =`scope.html?id=${encodeURIComponent(patientId)}`;
   });
 }
 
@@ -2189,7 +2189,7 @@ btnValiderCode.addEventListener("click", async () => {
           });
 
           afficherBulle("✅ Hospitalisation clôturée", "administratif");
-          window.location.href = "urgences.html?id=QhwMJ0mjmUnS8MTNBCFU";
+          window.location.href = `urgences.html`;
         }
       } catch (error) {
         console.error("Erreur clôture hospitalisation :", error);
@@ -2213,23 +2213,23 @@ document.getElementById("btnAdmin").addEventListener("click", () => {
 
 
   document.getElementById("btnVersFiche").addEventListener("click", () => {
-    window.location.href ="Ordonnancier.html?id=${patientId}";
+    window.location.href =`Ordonnancier.html?id=${patientId}`;
   });
 document.getElementById("btnVersExs").addEventListener("click", () => {
-    window.location.href ="prescriptionexamens.html?id=${patientId}";
+    window.location.href =`prescriptionexamens.html?id=${patientId}`;
   });
   document.getElementById("btnVersSynthese").addEventListener("click", () => {
-    window.location.href ="Certificatmedical.html?id=${patientId}";
+    window.location.href =`Certificatmedical.html?id=${patientId}`;
   });
   document.getElementById("btnVersFiches").addEventListener("click", () => {
-    window.location.href ="fichesconseil.html?id=${patientId}";
+    window.location.href =`fichesconseil.html?id=${patientId}`;
   });
 document.getElementById("btnVersPdf").addEventListener("click", () => {
-    window.location.href ="uploadpdf.html?id=${patientId}";
+    window.location.href =`uploadpdf.html?id=${patientId}`;
   });
 
 document.getElementById("btnmailto").addEventListener("click", () => {
-    window.location.href ="mailto.html?id=${patientId}";
+    window.location.href =`mailto.html?id=${patientId}`;
   });
 
 // Gestion Administrative
@@ -2283,7 +2283,7 @@ const dateNaissance = document.getElementById("adminNaissance").value.trim();
 });
 
 btnFacturer.addEventListener("click", () => {
-  window.location.href ="Facturation.html?id=${patientId}";
+  window.location.href =`Facturation.html?id=${patientId}`;
 });
 
 let tousLesActesRealises = [];
@@ -3018,7 +3018,7 @@ async function remplirDepuisAncienneHospi(champ) {
 }
 
 document.getElementById("btnRapportHospi").addEventListener("click", () => {
-    window.location.href ="rapporthospitalisation.html?id=${patientId}";
+    window.location.href =`rapporthospitalisation.html?id=${patientId}`;
   });
 
 
