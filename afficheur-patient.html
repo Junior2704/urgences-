@@ -247,6 +247,58 @@
   }
 }
 
+
+
+#circuitsContainer {
+  width: 100%;
+  max-width: 1100px;
+  text-align: center;
+  margin-top: 40px;
+}
+
+#circuitsContainer h2 {
+  color: #004b8d;
+  margin-bottom: 15px;
+}
+
+.circuits-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+.circuit-card {
+  background: white;
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #0b2240;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  transition: transform 0.2s ease;
+}
+
+.circuit-card:hover {
+  transform: scale(1.05);
+}
+
+.circuit-card .count {
+  font-size: 2rem;
+  color: #0078d4;
+  margin-top: 8px;
+  font-weight: 700;
+}
+
+@media (max-width: 800px) {
+  .circuits-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
   </style>
 </head>
 <body>
@@ -266,6 +318,17 @@
       <div class="card critique"><h2 id="critique">--</h2><p>Urgences vitales</p></div>
       <div class="card admin"><h2 id="admin">--</h2><p>Administratif</p></div>
     </div>
+<!-- 🧭 CIRCUITS PARTICULIERS -->
+<div id="circuitsContainer">
+  <h2>Circuits particuliers</h2>
+  <div class="circuits-grid">
+    <div class="circuit-card" id="circuit-pediatrie">👶 Pédiatrie<br><span class="count">--</span></div>
+    <div class="circuit-card" id="circuit-traumato">🦴 Traumatologie<br><span class="count">--</span></div>
+    <div class="circuit-card" id="circuit-neuro">🧠 Neurologie<br><span class="count">--</span></div>
+    <div class="circuit-card" id="circuit-gyn">🤰 Gynécologie<br><span class="count">--</span></div>
+    <div class="circuit-card" id="circuit-ophtalmo">👁️ Ophtalmologie<br><span class="count">--</span></div>
+  </div>
+</div>
 
     <!-- ANIMATION ÉTAPES -->
     <div class="info-animation">
@@ -485,7 +548,47 @@ function afficherBulle(texte, type) {
 
   console.log("💡 Cliquez une fois dans la page pour passer en plein écran.");
   afficherBulle("💡 Cliquez une fois dans la page pour passer en plein écran", "administratif");
+
+
+
+      // --- Comptage des circuits particuliers ---
+    const circuits = {
+      pediatrie: 0,
+      traumato: 0,
+      cardio: 0,
+      neuro: 0,
+      gyn: 0,
+      digestif: 0,
+      ophtalmo: 0,
+      dermato: 0
+    };
+
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      const index = data.hospitalisationIndex ?? 0;
+      const hosp = data.hospitalisations?.[index] || {};
+      const circuit = (hosp.circuit || "").toLowerCase();
+
+      if (circuit.includes("pédiatrie")) circuits.pediatrie++;
+      if (circuit.includes("trauma")) circuits.traumato++;
+      if (circuit.includes("cardio")) circuits.cardio++;
+      if (circuit.includes("neuro")) circuits.neuro++;
+      if (circuit.includes("gyn")) circuits.gyn++;
+      if (circuit.includes("digest")) circuits.digestif++;
+      if (circuit.includes("opht")) circuits.ophtalmo++;
+      if (circuit.includes("derm")) circuits.dermato++;
+    });
+
+    // 🔹 Affichage des valeurs
+    animateUpdate(document.getElementById("circuit-pediatrie").querySelector(".count"), circuits.pediatrie);
+    animateUpdate(document.getElementById("circuit-traumato").querySelector(".count"), circuits.traumato);
+    animateUpdate(document.getElementById("circuit-cardio").querySelector(".count"), circuits.cardio);
+    animateUpdate(document.getElementById("circuit-neuro").querySelector(".count"), circuits.neuro);
+    animateUpdate(document.getElementById("circuit-gyn").querySelector(".count"), circuits.gyn);
+    animateUpdate(document.getElementById("circuit-digestif").querySelector(".count"), circuits.digestif);
+    animateUpdate(document.getElementById("circuit-ophtalmo").querySelector(".count"), circuits.ophtalmo);
+    animateUpdate(document.getElementById("circuit-dermato").querySelector(".count"), circuits.dermato);
+
 </script>
-  </script>
-</body>
+  </body>
 </html>
