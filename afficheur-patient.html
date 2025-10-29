@@ -57,77 +57,122 @@
       color: #e0ecff;
     }
 
-    /* --- CARTES DE STATS --- */
-    main {
-      flex: 1;
-      width: 100%;
-      max-width: 1100px;
-      padding: 30px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-/* --- GRILLE DES CARTES (équilibrée) --- */
-#dashboard {
-  display: grid;
+    /* === TITRES DE SECTIONS === */
+.section-title {
   width: 100%;
-  gap: 24px;
-  margin-top: 30px;
-  grid-template-columns: repeat(3, 1fr); /* 3 colonnes fixes sur écrans larges */
+  text-align: center;
+  font-size: 1.8rem;
+  color: #004b8d;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  letter-spacing: 0.5px;
 }
 
-@media (max-width: 1000px) {
-  #dashboard {
-    grid-template-columns: repeat(2, 1fr); /* 2 colonnes sur écrans moyens */
-  }
+/* === SECTION : ACTIVITÉ GLOBALE === */
+#dashboard-general {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-@media (max-width: 600px) {
-  #dashboard {
-    grid-template-columns: 1fr; /* 1 carte par ligne sur petits écrans */
-  }
-}
-.step-logo {
-  height: 60px;
-  width: auto;
-  border-radius: 8px;
-  object-fit: contain;
-  box-shadow: 0 0 6px rgba(0,0,0,0.1);
+.general-row {
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+  flex-wrap: nowrap;
+  gap: 18px;
+  width: 100%;
+  max-width: 1400px;
+  margin-top: 10px;
 }
 
-    .card {
-      background: white;
-      border-radius: 16px;
-      padding: 20px;
-      box-shadow: 0 6px 16px rgba(0,0,0,0.1);
-      text-align: center;
-      transition: transform 0.3s ease;
-    }
+/* === STYLE DES CARTES === */
+.card {
+  flex: 1;
+  min-width: 0;
+  background: white;
+  border-radius: 16px;
+  padding: 16px;
+  text-align: center;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease;
+}
 
-    .card:hover { transform: translateY(-6px); }
+.card:hover {
+  transform: scale(1.03);
+}
 
-    .card h2 {
-      font-size: 3rem;
-      margin: 0;
-      color: #0b2240;
-    }
+.card h2 {
+  font-size: 2.8rem;
+  color: #0b2240;
+  margin: 0;
+}
 
-    .pulse { transform: scale(1.08); }
+.card p {
+  font-size: 1.1rem;
+  color: #64748b;
+  margin-top: 5px;
+  font-weight: 500;
+}
 
-    .card p {
-      margin: 6px 0 0 0;
-      font-size: 1rem;
-      color: #64748b;
-      font-weight: 500;
-    }
+/* Couleurs par type */
+.card.total { border-top: 6px solid #0078d4; }
+.card.attente { border-top: 6px solid #4caf50; }
+.card.pec { border-top: 6px solid #ff9800; }
+.card.couche { border-top: 6px solid #6f42c1; }
+.card.critique { border-top: 6px solid #f44336; }
+.card.admin { border-top: 6px solid #4169E1; }
 
-    .card.total { border-top: 6px solid #0078d4; }
-    .card.attente { border-top: 6px solid #4caf50; }
-    .card.pec { border-top: 6px solid #ff9800; }
-    .card.couche { border-top: 6px solid #6f42c1; }
-    .card.critique { border-top: 6px solid #f44336; }
-    .card.admin { border-top: 6px solid #4169E1; }
+/* === SECTION : CIRCUITS PARTICULIERS === */
+#dashboard-circuits {
+  width: 100%;
+  text-align: center;
+}
+
+.circuits-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.circuit-card {
+  background: linear-gradient(135deg, #f8fbff, #eef5ff);
+  border-radius: 14px;
+  padding: 14px;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+  text-align: center;
+}
+
+.circuit-card h3 {
+  font-size: 2.2rem;
+  color: #0078d4;
+  margin: 0;
+}
+
+.circuit-card p {
+  font-size: 1.1rem;
+  color: #1e3a8a;
+  font-weight: 500;
+  margin-top: 4px;
+}
+
+/* --- Couleurs personnalisées --- */
+.circuit-card.pediatrie { border-top: 6px solid #42a5f5; }
+.circuit-card.traumato { border-top: 6px solid #9c27b0; }
+.circuit-card.ophtalmo { border-top: 6px solid #e91e63; }
+.circuit-card.gyn { border-top: 6px solid #8bc34a; }
+.circuit-card.psy { border-top: 6px solid #ff9800; }
+
+/* --- Télé grand écran --- */
+@media (min-width: 1600px) {
+  .card h2 { font-size: 3.2rem; }
+  .circuit-card h3 { font-size: 2.6rem; }
+}
+
 
     /* --- ANIMATION INFO PATIENTS --- */
     .info-animation {
@@ -248,57 +293,6 @@
 }
 
 
-
-#circuitsContainer {
-  width: 100%;
-  max-width: 1100px;
-  text-align: center;
-  margin-top: 40px;
-}
-
-#circuitsContainer h2 {
-  color: #004b8d;
-  margin-bottom: 15px;
-}
-
-.circuits-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
-}
-
-.circuit-card {
-  background: white;
-  border-radius: 14px;
-  padding: 20px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: #0b2240;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  transition: transform 0.2s ease;
-}
-
-.circuit-card:hover {
-  transform: scale(1.05);
-}
-
-.circuit-card .count {
-  font-size: 2rem;
-  color: #0078d4;
-  margin-top: 8px;
-  font-weight: 700;
-}
-
-@media (max-width: 800px) {
-  .circuits-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
   </style>
 </head>
 <body>
@@ -309,26 +303,32 @@
   </header>
 
   <main>
-    <!-- CARTES DE STATS -->
-    <div id="dashboard">
-      <div class="card total"><h2 id="total">--</h2><p>Total patients</p></div>
-      <div class="card attente"><h2 id="attente">--</h2><p>En salle d’attente</p></div>
-      <div class="card pec"><h2 id="pec">--</h2><p>En zone de soins</p></div>
-      <div class="card couche"><h2 id="couche">--</h2><p>Urgences relatives</p></div>
-      <div class="card critique"><h2 id="critique">--</h2><p>Urgences vitales</p></div>
-      <div class="card admin"><h2 id="admin">--</h2><p>Administratif</p></div>
-    </div>
-<!-- 🧭 CIRCUITS PARTICULIERS -->
-<div id="circuitsContainer">
-  <h2>Circuits particuliers</h2>
-  <div class="circuits-grid">
-    <div class="circuit-card" id="circuit-pediatrie">👶 Pédiatrie<br><span class="count">--</span></div>
-    <div class="circuit-card" id="circuit-traumato">🦴 Traumatologie<br><span class="count">--</span></div>
-    <div class="circuit-card" id="circuit-neuro">🧠 Neurologie<br><span class="count">--</span></div>
-    <div class="circuit-card" id="circuit-gyn">🤰 Gynécologie<br><span class="count">--</span></div>
-    <div class="circuit-card" id="circuit-ophtalmo">👁️ Ophtalmologie<br><span class="count">--</span></div>
+   <!-- === ACTIVITÉ DU SERVICE === -->
+<section id="dashboard-general">
+  <h2 class="section-title">📊 Activité du service</h2>
+  <div class="general-row">
+    <div class="card total"><h2 id="total">--</h2><p>Total patients</p></div>
+    <div class="card attente"><h2 id="attente">--</h2><p>En salle d'attente</p></div>
+    <div class="card pec"><h2 id="pec">--</h2><p>En zone de soins</p></div>
+    <div class="card couche"><h2 id="couche">--</h2><p>Urgences relatives</p></div>
+    <div class="card critique"><h2 id="critique">--</h2><p>Urgences vitales</p></div>
+    <div class="card admin"><h2 id="admin">--</h2><p>Administratif</p></div>
   </div>
-</div>
+</section>
+
+<!-- === CIRCUITS PARTICULIERS === -->
+<section id="dashboard-circuits">
+  <h2 class="section-title">🧭 Circuits particuliers</h2>
+  <div class="circuits-grid">
+    <div class="circuit-card pediatrie"><h3 id="circuit-pediatrie">--</h3><p>👶 Pédiatrie</p></div>
+    <div class="circuit-card traumato"><h3 id="circuit-traumato">--</h3><p>🦴 Traumatologie</p></div>
+    <div class="circuit-card ophtalmo"><h3 id="circuit-ophtalmo">--</h3><p>👀 Ophtalmologie</p></div>
+    <div class="circuit-card gyn"><h3 id="circuit-gyn">--</h3><p>🤰 Gynécologie</p></div>
+    <div class="circuit-card psy"><h3 id="circuit-psy">--</h3><p>🧠 Psychiatrie</p></div>
+  </div>
+</section>
+
+
 
     <!-- ANIMATION ÉTAPES -->
     <div class="info-animation">
@@ -496,44 +496,29 @@ async function updateCounts() {
     animateUpdate(document.getElementById("admin"), counts.admin);
 
 
+// --- Comptage des circuits particuliers ---
+const circuits = { pediatrie: 0, traumato: 0, ophtalmo: 0, gyn: 0, psy: 0 };
 
-      // --- Comptage des circuits particuliers ---
-    const circuits = {
-      pediatrie: 0,
-      traumato: 0,
-      cardio: 0,
-      neuro: 0,
-      gyn: 0,
-      digestif: 0,
-      ophtalmo: 0,
-      dermato: 0
-    };
+snapshot.forEach(doc => {
+  const data = doc.data();
+  const index = data.hospitalisationIndex ?? 0;
+  const hosp = data.hospitalisations?.[index] || {};
+  const circuit = (hosp.circuit || "").toLowerCase();
 
-    snapshot.forEach(doc => {
-      const data = doc.data();
-      const index = data.hospitalisationIndex ?? 0;
-      const hosp = data.hospitalisations?.[index] || {};
-      const circuit = (hosp.circuit || "").toLowerCase();
+  if (circuit.includes("péd")) circuits.pediatrie++;
+  if (circuit.includes("trauma")) circuits.traumato++;
+  if (circuit.includes("ophtalmo")) circuits.ophtalmo++;
+  if (circuit.includes("gyn")) circuits.gyn++;
+  if (circuit.includes("psy")) circuits.psy++;
+});
 
-      if (circuit.includes("pédiatrie")) circuits.pediatrie++;
-      if (circuit.includes("trauma")) circuits.traumato++;
+// --- Affichage circuits particuliers ---
+animateUpdate(document.getElementById("circuit-pediatrie"), circuits.pediatrie);
+animateUpdate(document.getElementById("circuit-traumato"), circuits.traumato);
+animateUpdate(document.getElementById("circuit-ophtalmo"), circuits.ophtalmo);
+animateUpdate(document.getElementById("circuit-gyn"), circuits.gyn);
+animateUpdate(document.getElementById("circuit-psy"), circuits.psy);
 
-      if (circuit.includes("neuro")) circuits.neuro++;
-      if (circuit.includes("gyn")) circuits.gyn++;
-
-      if (circuit.includes("opht")) circuits.ophtalmo++;
-  
-    });
-
-    // 🔹 Affichage des valeurs
-    animateUpdate(document.getElementById("circuit-pediatrie").querySelector(".count"), circuits.pediatrie);
-    animateUpdate(document.getElementById("circuit-traumato").querySelector(".count"), circuits.traumato);
-
-    animateUpdate(document.getElementById("circuit-neuro").querySelector(".count"), circuits.neuro);
-    animateUpdate(document.getElementById("circuit-gyn").querySelector(".count"), circuits.gyn);
- 
-    animateUpdate(document.getElementById("circuit-ophtalmo").querySelector(".count"), circuits.ophtalmo);
-    
 
   } catch (err) {
     console.error("Erreur Firestore:", err);
