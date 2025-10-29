@@ -1978,7 +1978,7 @@ document.getElementById("btnSaveConst").addEventListener("click", async () => {
       afficherBulle("❌Numéro de scope manquant", "alerte");
       return;
     }
-    window.open(`scope.html?id=${encodeURIComponent(patientId)}`, "_blank");
+    window.location.href ="scope.html?id=${encodeURIComponent(patientId)}";
   });
 }
 
@@ -2213,23 +2213,23 @@ document.getElementById("btnAdmin").addEventListener("click", () => {
 
 
   document.getElementById("btnVersFiche").addEventListener("click", () => {
-    window.open(`Ordonnancier.html?id=${patientId}`, '_blank');
+    window.location.href ="Ordonnancier.html?id=${patientId}";
   });
 document.getElementById("btnVersExs").addEventListener("click", () => {
-    window.open(`prescriptionexamens.html?id=${patientId}`, '_blank');
+    window.location.href ="prescriptionexamens.html?id=${patientId}";
   });
   document.getElementById("btnVersSynthese").addEventListener("click", () => {
-    window.open(`Certificatmedical.html?id=${patientId}`, '_blank');
+    window.location.href ="Certificatmedical.html?id=${patientId}";
   });
   document.getElementById("btnVersFiches").addEventListener("click", () => {
-    window.open(`fichesconseil.html?id=${patientId}`, '_blank');
+    window.location.href ="fichesconseil.html?id=${patientId}";
   });
 document.getElementById("btnVersPdf").addEventListener("click", () => {
-    window.open(`uploadpdf.html?id=${patientId}`, '_blank');
+    window.location.href ="uploadpdf.html?id=${patientId}";
   });
 
 document.getElementById("btnmailto").addEventListener("click", () => {
-    window.open(`mailto.html?id=${patientId}`, '_blank');
+    window.location.href ="mailto.html?id=${patientId}";
   });
 
 // Gestion Administrative
@@ -2283,7 +2283,7 @@ const dateNaissance = document.getElementById("adminNaissance").value.trim();
 });
 
 btnFacturer.addEventListener("click", () => {
-  window.open(`Facturation.html?id=${patientId}`, "_blank");
+  window.location.href ="Facturation.html?id=${patientId}";
 });
 
 let tousLesActesRealises = [];
@@ -3018,7 +3018,7 @@ async function remplirDepuisAncienneHospi(champ) {
 }
 
 document.getElementById("btnRapportHospi").addEventListener("click", () => {
-    window.open(`rapporthospitalisation.html?id=${patientId}`, '_blank');
+    window.location.href ="rapporthospitalisation.html?id=${patientId}";
   });
 
 
