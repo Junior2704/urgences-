@@ -245,6 +245,26 @@
     <h2>Services <button class="btn btn-add" onclick="openModal('spécialités')">➕ Ajouter</button></h2>
     <ul id="spécialitésList"></ul>
   </div>
+  <div class="section">
+  <h2>💶 Facturables 
+    <button class="btn btn-add" onclick="openFacturableModal()">➕ Ajouter</button>
+  </h2>
+  <ul id="facturablesList"></ul>
+</div>
+
+<!-- Modale spécifique pour les facturables -->
+<div class="modal" id="modalFacturable">
+  <div class="modal-content">
+    <h3>➕ Ajouter un Facturable</h3>
+    <input type="text" id="facturableName" placeholder="Nom du facturable..." />
+    <input type="number" id="facturablePrice" placeholder="Prix (sans €)" style="margin-top: 10px;" />
+    <div class="modal-actions">
+      <button class="btn" onclick="cancelFacturableModal()">❌ Annuler</button>
+      <button class="btn btn-add" onclick="confirmFacturable()">✅ Valider</button>
+    </div>
+  </div>
+</div>
+
 <!-- 🔐 Codes d’accès -->
 <div class="section">
   <h2>🔒 Codes d’accès</h2>
@@ -450,7 +470,7 @@ window.updateItem = async (type, index, newValue) => {
   if (type === "actes") actes[index] = newValue;
   if (type === "personnel") personnel[index] = newValue;
   if (type === "spécialités") spécialités[index] = newValue;
-
+ 
   await saveToFirestore();
 };
 
@@ -484,6 +504,88 @@ window.cancelModal = async () => {
   document.getElementById("modal").style.display = "none";
   await saveToFirestore();
 };
+
+/* ---------------- FACTURABLES ---------------- */
+const facturablesListEl = document.getElementById("facturablesList");
+let facturables = {}; // objet { nom: prix }
+
+async function loadFacturables() {
+  try {
+    const snap = await getDoc(doc(db, "référentiels", "Facturables"));
+    facturables = snap.exists() ? snap.data() : {};
+    renderFacturables();
+  } catch (err) {
+    console.error("Erreur chargement facturables :", err);
+  }
+}
+
+function renderFacturables() {
+  facturablesListEl.innerHTML = "";
+  const entries = Object.entries(facturables);
+  if (entries.length === 0) {
+    facturablesListEl.innerHTML = "<li>Aucun facturable pour le moment</li>";
+    return;
+  }
+
+  entries.forEach(([nom, prix]) => {
+    const li = document.createElement("li");
+    li.innerHTML = `
+      <strong>${nom}</strong> — <input type="number" value="${prix}" 
+        onchange="updateFacturablePrice('${nom}', this.value)" style="width:80px;" /> €
+      <button class="btn btn-del" onclick="deleteFacturable('${nom}')">❌</button>
+    `;
+    facturablesListEl.appendChild(li);
+  });
+}
+
+window.openFacturableModal = () => {
+  document.getElementById("modalFacturable").style.display = "flex";
+  document.getElementById("facturableName").value = "";
+  document.getElementById("facturablePrice").value = "";
+};
+
+window.cancelFacturableModal = () => {
+  document.getElementById("modalFacturable").style.display = "none";
+};
+
+window.confirmFacturable = async () => {
+  const name = document.getElementById("facturableName").value.trim();
+  const price = parseFloat(document.getElementById("facturablePrice").value.trim());
+  if (!name || isNaN(price)) {
+    afficherBulle("⚠️ Nom ou prix invalide", "alerte");
+    return;
+  }
+
+  facturables[name] = price;
+  await saveFacturables();
+  renderFacturables();
+  document.getElementById("modalFacturable").style.display = "none";
+};
+
+window.updateFacturablePrice = async (nom, newPrice) => {
+  facturables[nom] = parseFloat(newPrice) || 0;
+  await saveFacturables();
+};
+
+window.deleteFacturable = async (nom) => {
+  delete facturables[nom];
+  await saveFacturables();
+  renderFacturables();
+};
+
+async function saveFacturables() {
+  try {
+    await setDoc(doc(db, "référentiels", "Facturables"), facturables);
+    afficherBulle("✅ Facturables enregistrés", "administratif");
+  } catch (err) {
+    console.error("Erreur enregistrement facturables :", err);
+    afficherBulle("❌ Erreur d’enregistrement", "alerte");
+  }
+}
+
+// Charger les facturables au démarrage
+loadFacturables();
+
 
 function afficherBulle(texte, type) {
   let container = document.getElementById('bubble-container');
