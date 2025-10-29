@@ -495,6 +495,46 @@ async function updateCounts() {
     animateUpdate(document.getElementById("critique"), counts.critique);
     animateUpdate(document.getElementById("admin"), counts.admin);
 
+
+
+      // --- Comptage des circuits particuliers ---
+    const circuits = {
+      pediatrie: 0,
+      traumato: 0,
+      cardio: 0,
+      neuro: 0,
+      gyn: 0,
+      digestif: 0,
+      ophtalmo: 0,
+      dermato: 0
+    };
+
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      const index = data.hospitalisationIndex ?? 0;
+      const hosp = data.hospitalisations?.[index] || {};
+      const circuit = (hosp.circuit || "").toLowerCase();
+
+      if (circuit.includes("pédiatrie")) circuits.pediatrie++;
+      if (circuit.includes("trauma")) circuits.traumato++;
+      if (circuit.includes("cardio")) circuits.cardio++;
+      if (circuit.includes("neuro")) circuits.neuro++;
+      if (circuit.includes("gyn")) circuits.gyn++;
+      if (circuit.includes("digest")) circuits.digestif++;
+      if (circuit.includes("opht")) circuits.ophtalmo++;
+      if (circuit.includes("derm")) circuits.dermato++;
+    });
+
+    // 🔹 Affichage des valeurs
+    animateUpdate(document.getElementById("circuit-pediatrie").querySelector(".count"), circuits.pediatrie);
+    animateUpdate(document.getElementById("circuit-traumato").querySelector(".count"), circuits.traumato);
+    animateUpdate(document.getElementById("circuit-cardio").querySelector(".count"), circuits.cardio);
+    animateUpdate(document.getElementById("circuit-neuro").querySelector(".count"), circuits.neuro);
+    animateUpdate(document.getElementById("circuit-gyn").querySelector(".count"), circuits.gyn);
+    animateUpdate(document.getElementById("circuit-digestif").querySelector(".count"), circuits.digestif);
+    animateUpdate(document.getElementById("circuit-ophtalmo").querySelector(".count"), circuits.ophtalmo);
+    animateUpdate(document.getElementById("circuit-dermato").querySelector(".count"), circuits.dermato);
+
   } catch (err) {
     console.error("Erreur Firestore:", err);
   }
@@ -551,43 +591,6 @@ function afficherBulle(texte, type) {
 
 
 
-      // --- Comptage des circuits particuliers ---
-    const circuits = {
-      pediatrie: 0,
-      traumato: 0,
-      cardio: 0,
-      neuro: 0,
-      gyn: 0,
-      digestif: 0,
-      ophtalmo: 0,
-      dermato: 0
-    };
-
-    snapshot.forEach(doc => {
-      const data = doc.data();
-      const index = data.hospitalisationIndex ?? 0;
-      const hosp = data.hospitalisations?.[index] || {};
-      const circuit = (hosp.circuit || "").toLowerCase();
-
-      if (circuit.includes("pédiatrie")) circuits.pediatrie++;
-      if (circuit.includes("trauma")) circuits.traumato++;
-      if (circuit.includes("cardio")) circuits.cardio++;
-      if (circuit.includes("neuro")) circuits.neuro++;
-      if (circuit.includes("gyn")) circuits.gyn++;
-      if (circuit.includes("digest")) circuits.digestif++;
-      if (circuit.includes("opht")) circuits.ophtalmo++;
-      if (circuit.includes("derm")) circuits.dermato++;
-    });
-
-    // 🔹 Affichage des valeurs
-    animateUpdate(document.getElementById("circuit-pediatrie").querySelector(".count"), circuits.pediatrie);
-    animateUpdate(document.getElementById("circuit-traumato").querySelector(".count"), circuits.traumato);
-    animateUpdate(document.getElementById("circuit-cardio").querySelector(".count"), circuits.cardio);
-    animateUpdate(document.getElementById("circuit-neuro").querySelector(".count"), circuits.neuro);
-    animateUpdate(document.getElementById("circuit-gyn").querySelector(".count"), circuits.gyn);
-    animateUpdate(document.getElementById("circuit-digestif").querySelector(".count"), circuits.digestif);
-    animateUpdate(document.getElementById("circuit-ophtalmo").querySelector(".count"), circuits.ophtalmo);
-    animateUpdate(document.getElementById("circuit-dermato").querySelector(".count"), circuits.dermato);
 
 </script>
   </body>
