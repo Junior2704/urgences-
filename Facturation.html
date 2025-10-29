@@ -235,23 +235,8 @@
         <th></th>
       </tr>
     </thead>
-    <tbody>
-      <tr>
-        <td style="text-align:left; padding-left:12px;">
-          <select class="serviceSelect" required>
-            <option value="" data-price="0">-- Choisir --</option>
-            <option value="Forfait urgences" data-price="29">Forfait urgences - 29€</option>
-            <option value="Forfait urgences mineur" data-price="19">Forfait urgences mineur - 19€</option>
-            <option value="Analyse sanguine" data-price="45">Analyse sanguine - 45€</option>
-            <option value="Radiographie" data-price="10">Radiographie - 10€</option>
-          </select>
-        </td>
-        <td><input class="qty" type="number" min="1" value="1"></td>
-        <td class="price">0.00</td>
-        <td class="lineTotal">0.00</td>
-        <td><button type="button" class="button warning removeBtn">🗑️</button></td>
-      </tr>
-    </tbody>
+    <tbody id="itemsBody"></tbody>
+
     <tfoot>
       <tr>
         <td colspan="2" style="text-align:left; padding-left:12px;" class="muted">Remerciements: Merci de votre confiance</td>
@@ -436,13 +421,11 @@
     ageDisplay.textContent = birthDateInput.value ? `Âge : ${calculateAge(birthDateInput.value)} ans` : '';
   });
 
-  function updateLine(row){
-    const select = row.querySelector('.serviceSelect');
-    const qty = parseFloat(row.querySelector('.qty').value) || 0;
-    const price = parseFloat(select.selectedOptions[0].dataset.price) || 0;
-    row.querySelector('.price').textContent = price.toFixed(2);
-    row.querySelector('.lineTotal').textContent = (qty * price).toFixed(2);
-  }
+ function updateLine(row) {
+  const qty = parseFloat(row.querySelector('.qty').value) || 0;
+  const price = parseFloat(row.querySelector('.price').textContent) || 0;
+  row.querySelector('.lineTotal').textContent = (qty * price).toFixed(2);
+}
 
   function updateTotals(){
     let total = 0;
@@ -458,25 +441,76 @@
     row.querySelector('.qty').addEventListener('input', updateTotals);
     row.querySelector('.removeBtn').addEventListener('click', () => { row.remove(); updateTotals(); });
   }
-  itemsTable.querySelectorAll('tr').forEach(addListeners);
-  addItemBtn.addEventListener('click', () => {
-    const row = itemsTable.insertRow();
-    row.innerHTML = `
-      <td style="text-align:left; padding-left:12px;">
-        <select class="serviceSelect">
-          <option value="" data-price="0">-- Choisir --</option>
-          <option value="Forfait urgences" data-price="29">Forfait urgences - 29€</option>
-          <option value="Analyse sanguine" data-price="45">Analyse sanguine - 45€</option>
-          <option value="Radiographie" data-price="10">Radiographie - 10€</option>
-        </select>
-      </td>
-      <td><input class="qty" type="number" min="1" value="1"></td>
-      <td class="price">0.00</td>
-      <td class="lineTotal">0.00</td>
-      <td><button type="button" class="button warning removeBtn">🗑️</button></td>`;
-    addListeners(row);
-    updateTotals();
+  // ---- Charger les prestations Firestore ----
+let facturables = {};
+db.collection("référentiels").doc("Facturables").get().then(doc => {
+  if (doc.exists) {
+    facturables = doc.data(); // Exemple : { "Forfait Urgences": 29, "Vaccination": 15 }
+  } else {
+    console.warn("⚠️ Document 'Facturables' introuvable !");
+  }
+});
+
+// ---- Fonction pour créer une ligne ----
+function createItemRow() {
+  const row = itemsTable.insertRow();
+
+  row.innerHTML = `
+    <td style="text-align:left; padding-left:12px; position:relative;">
+      <input type="text" class="serviceSearch" placeholder="Rechercher une prestation..." style="width:100%; padding:8px; border-radius:8px; border:1px solid #ccc;">
+      <div class="suggestions" style="position:absolute; background:#fff; border:1px solid #ddd; border-radius:8px; width:100%; max-height:150px; overflow-y:auto; display:none; z-index:10;"></div>
+    </td>
+    <td><input class="qty" type="number" min="1" value="1"></td>
+    <td class="price">0.00</td>
+    <td class="lineTotal">0.00</td>
+    <td><button type="button" class="button warning removeBtn">🗑️</button></td>
+  `;
+
+  const searchInput = row.querySelector('.serviceSearch');
+  const suggestionsDiv = row.querySelector('.suggestions');
+
+  // Afficher les suggestions selon le texte tapé
+  searchInput.addEventListener('input', () => {
+    const query = searchInput.value.toLowerCase();
+    suggestionsDiv.innerHTML = '';
+    if (!query) { suggestionsDiv.style.display = 'none'; return; }
+
+    const results = Object.keys(facturables).filter(key => key.toLowerCase().includes(query));
+    if (results.length === 0) { suggestionsDiv.style.display = 'none'; return; }
+
+    results.forEach(result => {
+      const div = document.createElement('div');
+      div.textContent = `${result} - ${facturables[result]} €`;
+      div.style.padding = '6px 10px';
+      div.style.cursor = 'pointer';
+      div.addEventListener('mouseenter', () => div.style.background = '#f1f5ff');
+      div.addEventListener('mouseleave', () => div.style.background = 'white');
+      div.addEventListener('click', () => {
+        searchInput.value = result;
+        row.querySelector('.price').textContent = parseFloat(facturables[result]).toFixed(2);
+        suggestionsDiv.style.display = 'none';
+        updateTotals();
+      });
+      suggestionsDiv.appendChild(div);
+    });
+    suggestionsDiv.style.display = 'block';
   });
+
+  // Fermer les suggestions quand on clique ailleurs
+  document.addEventListener('click', (e) => {
+    if (!row.contains(e.target)) suggestionsDiv.style.display = 'none';
+  });
+
+  row.querySelector('.qty').addEventListener('input', updateTotals);
+  row.querySelector('.removeBtn').addEventListener('click', () => { row.remove(); updateTotals(); });
+}
+
+// ---- Créer la première ligne automatiquement ----
+createItemRow();
+
+// ---- Bouton "Ajouter une prestation" ----
+addItemBtn.addEventListener('click', () => createItemRow());
+
 
   // ---------- Chargement patient depuis l'URL (collection "patients") ----------
   window.addEventListener('DOMContentLoaded', async () => {
@@ -547,15 +581,17 @@
       return;
     }
 
-    const prestations = [...itemsTable.querySelectorAll('tr')].map(row => {
-      const desc = row.querySelector('.serviceSelect').value;
-      return {
-        description: desc,
-        quantity: parseInt(row.querySelector('.qty').value) || 0,
-        unitPrice: parseFloat(row.querySelector('.price').textContent) || 0,
-        lineTotal: parseFloat(row.querySelector('.lineTotal').textContent) || 0
-      };
-    }).filter(p => p.description);
+const prestations = [...itemsTable.querySelectorAll('tr')].map(row => {
+  const descInput = row.querySelector('.serviceSearch');
+  const desc = descInput ? descInput.value.trim() : '';
+  return {
+    description: desc,
+    quantity: parseInt(row.querySelector('.qty').value) || 0,
+    unitPrice: parseFloat(row.querySelector('.price').textContent) || 0,
+    lineTotal: parseFloat(row.querySelector('.lineTotal').textContent) || 0
+  };
+}).filter(p => p.description);
+
 
     if(prestations.length === 0) {
       alert('Veuillez ajouter au moins une prestation.');
@@ -619,12 +655,14 @@
   const dateStr = new Date().toLocaleDateString('fr-FR');
   const factureNum = currentFactureId || ('temp-' + Date.now());
   const prestations = [...itemsTable.querySelectorAll('tr')].map(row => {
-    const service = row.querySelector('.serviceSelect').value || '';
-    const qty = row.querySelector('.qty').value || '0';
-    const pu = row.querySelector('.price').textContent || '0';
-    const total = row.querySelector('.lineTotal').textContent || '0';
-    return { service, qty, pu, total };
-  }).filter(p => p.service);
+  const serviceInput = row.querySelector('.serviceSearch');
+  const service = serviceInput ? serviceInput.value.trim() : '';
+  const qty = row.querySelector('.qty').value || '0';
+  const pu = row.querySelector('.price').textContent || '0';
+  const total = row.querySelector('.lineTotal').textContent || '0';
+  return { service, qty, pu, total };
+}).filter(p => p.service);
+
 
   const totalTTC = parseFloat(grandTotalElem.textContent || '0').toFixed(2);
   const dateFact = new Date().toLocaleDateString('fr-FR');
@@ -636,12 +674,11 @@
           <img src="logo.jpg" alt="Logo" style="height:70px; object-fit:contain;">
           <div>
             <div style="font-size:18px; font-weight:800; color:#111;">Centre Hospitalier - Service des Urgences</div>
-            <div style="font-size:13px; color:#555; margin-top:6px;">Adresse clinique • 00 00 00 00 00 • contact@clinique.example</div>
           </div>
         </div>
         <div style="text-align:right;">
-          <div style="font-size:14px; font-weight:700;">FACTURE</div>
-          <div style="font-size:13px; color:#555; margin-top:6px;">N°: <strong>${factureNum}</strong></div>
+          <div style="font-size:14px; font-weight:700;">FACTURE N°:</div>
+          <div style="font-size:13px; color:#555; margin-top:6px;"><strong>${factureNum}</strong></div>
           <div style="font-size:13px; color:#555;">Date: <strong>${dateStr}</strong></div>
         </div>
       </div>
