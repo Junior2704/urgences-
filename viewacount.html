@@ -109,6 +109,14 @@
     #logoutBtn:hover {
       background: #c9302c;
     }
+      #retourBtn {
+    background: #6c757d; 
+    color: white;
+  }
+
+  #retourBtn:hover {
+    background: #5a6268; /* gris plus foncé au survol */
+  }
     #message {
       margin-top: 10px;
       color: red;
@@ -120,7 +128,7 @@
 <body>
   <div id="accountBox">
     <h2>👤 Mon compte</h2>
-<button onclick="window.history.back()">⬅️ Retour</button>
+
 
     <input type="text" id="nom" placeholder="Nom complet" disabled />
     <input type="email" id="email" placeholder="Email" disabled />
@@ -130,8 +138,12 @@
 <p style="background:#fff3cd; color:#856404; padding:10px; border-radius:8px; border:1px solid #ffeeba; margin-bottom:15px;">
   ⚠️ Pour modifier ces informations, merci de contacter un administrateur.
 </p>
+
     <button id="changeBtn" onclick="window.location.href='changer_mot_passe.html'">
       🔑 Changer mon mot de passe
+    </button>
+    <button id="retourBt" onclick="window.history.back()">
+      ⬅️ Retour
     </button>
     <button id="logoutBtn" onclick="seDeconnecter()">
       🚪 Déconnexion
