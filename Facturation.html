@@ -669,16 +669,6 @@ async function creerFacture(telecharger = false) {
   const totalHT = (totalTTC / 1.2).toFixed(2);
   const totalTVA = (totalTTC - totalTTC / 1.2).toFixed(2);
 
-  // --- Cachet du service (SVG intégré) ---
-  const cachetData = 'data:image/svg+xml;utf8,' + encodeURIComponent(`
-    <svg xmlns="http://www.w3.org/2000/svg" width="220" height="220" viewBox="0 0 220 220">
-      <circle r="88" cx="110" cy="110" fill="none" stroke="#c62828" stroke-width="6"/>
-      <circle r="70" cx="110" cy="110" fill="rgba(198,40,40,0.06)"/>
-      <text x="55" y="100" font-family="Georgia, serif" font-size="30" fill="#9b1e1e" font-weight="700">CHU</text>
-      <text x="38" y="130" font-family="Georgia, serif" font-size="14" fill="#c62828">Service des Urgences</text>
-    </svg>
-  `);
-
   // --- HTML de la facture ---
   const invoiceHtml = `
     <div style="font-family:'Segoe UI',Arial,sans-serif;color:#1a1a1a;padding:32px;max-width:900px;margin:auto;background:#fff;border:1px solid #ddd;border-radius:10px;position:relative;">
@@ -714,7 +704,7 @@ async function creerFacture(telecharger = false) {
           <div style="margin-top:8px;font-size:14px;">
             Centre Hospitalier Universitaire<br>
             Service des Urgences<br>
-            urgences@chu-paris.fr
+            urgences.hopj@gmail.com
           </div>
         </div>
       </div>
@@ -752,18 +742,23 @@ async function creerFacture(telecharger = false) {
           <strong>Mentions :</strong><br>
           Paiement reçu le ${dateStr}. Facture acquittée.<br>
           Ce document fait office de justificatif comptable.
+          
+          <!-- Tampon rouge -->
+          <div style="margin-top:14px;font-weight:900;color:#b71c1c;font-size:24px;display:inline-block;border:2px solid rgba(183,28,28,0.3);padding:6px 12px;border-radius:6px;transform:rotate(-6deg);background:rgba(183,28,28,0.05);">
+            FACTURE ACQUITTÉE
+          </div>
         </div>
+
         <div style="text-align:right;">
           <div style="font-weight:700;font-size:13px;">Signature autorisée :</div>
-          <div style="margin-top:10px;border-top:1px solid #ccc;padding-top:6px;font-size:13px;">Dr. <em>Nom Médecin</em><br>Chef de Service - Urgences</div>
+          <div style="margin-top:10px;border-top:1px solid #ccc;padding-top:6px;font-size:13px;">
+            Dr. <em>Dr Dabadie</em><br>Chef de Service - Urgences
+          </div>
         </div>
       </div>
 
-      <!-- Cachet -->
-      <img src="${cachetData}" alt="Cachet du service" style="width:150px;height:150px;position:absolute;right:40px;bottom:80px;opacity:0.9;transform:rotate(-6deg);filter:drop-shadow(0 6px 8px rgba(0,0,0,0.1));">
-
       <div style="margin-top:100px;border-top:1px dashed #ccc;padding-top:10px;font-size:12px;text-align:center;color:#777;">
-        Centre Hospitalier Universitaire • 12 rue de la Santé, 75000 Paris • Tél : 01 23 45 67 89 • urgences@chu-paris.fr
+        Centre Hospitalier Universitaire • urgences.hopj@gmail.com
       </div>
     </div>
   `;
