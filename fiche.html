@@ -3058,10 +3058,7 @@ function updateTime() {
 function updatePatientHeader() {
     document.getElementById('patientName').textContent = `${prenom} ${nom} (${age} ans)`;
 }
-function updateTitle() {
-	
-    document.title = `${prenom} ${nom} ${dateNaissance} (${age} ans)`;
-}
+
 
 	// --- Affiche l’écran de chargement ---
 window.afficherLoader = function() {
@@ -3091,7 +3088,7 @@ window.masquerLoader = function() {
     }, 500); // délai pour l’animation
   }
 };
-updateTitle();
+
 updateTime();
 	updatePatientHeader();
 	setInterval(updateTime, 1000);
