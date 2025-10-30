@@ -671,7 +671,7 @@ async function creerFacture(telecharger = false) {
 
   // --- HTML de la facture ---
   const invoiceHtml = `
-    <div style="font-family:'Segoe UI',Arial,sans-serif;color:#1a1a1a;padding:32px;max-width:900px;margin:auto;background:#fff;border:1px solid #ddd;border-radius:10px;position:relative;">
+<div style="font-family:'Segoe UI',Arial,sans-serif;color:#1a1a1a;padding:32px;max-width:900px;margin:auto;background:#fff;border-radius:10px;position:relative;">
       
       <!-- En-tête -->
       <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:4px solid #0078d7;padding-bottom:10px;">
@@ -680,7 +680,7 @@ async function creerFacture(telecharger = false) {
           <div>
             <div style="font-size:18px;font-weight:700;color:#0078d7;">CENTRE HOSPITALIER UNIVERSITAIRE</div>
             <div style="font-size:13px;color:#444;">Service des Urgences - Département Médical</div>
-            <div style="font-size:12px;color:#666;">12 rue de la Santé, 75000 Paris</div>
+            <div style="font-size:12px;color:#666;"></div>
           </div>
         </div>
         <div style="text-align:right;">
@@ -744,15 +744,16 @@ async function creerFacture(telecharger = false) {
           Ce document fait office de justificatif comptable.
           
           <!-- Tampon rouge -->
-          <div style="margin-top:14px;font-weight:900;color:#b71c1c;font-size:24px;display:inline-block;border:2px solid rgba(183,28,28,0.3);padding:6px 12px;border-radius:6px;transform:rotate(-6deg);background:rgba(183,28,28,0.05);">
-            FACTURE ACQUITTÉE
-          </div>
+          <div style="margin-top:14px;font-weight:900;color:#b71c1c;font-size:24px;display:inline-block;border:2px solid rgba(183,28,28,0.3);padding:6px 12px;border-radius:6px;background:rgba(183,28,28,0.05);">
+  FACTURE ACQUITTÉE
+</div>
+
         </div>
 
         <div style="text-align:right;">
           <div style="font-weight:700;font-size:13px;">Signature autorisée :</div>
           <div style="margin-top:10px;border-top:1px solid #ccc;padding-top:6px;font-size:13px;">
-            Dr. <em>Dr Dabadie</em><br>Chef de Service - Urgences
+            Dr. <em>Dabadie</em><br>Chef de Service - Urgences
           </div>
         </div>
       </div>
