@@ -647,95 +647,128 @@ const prestations = [...itemsTable.querySelectorAll('tr')].map(row => {
     document.getElementById('validateBtn').style.display = 'none';
   }
 
-  async function creerFacture(telecharger = false) {
+async function creerFacture(telecharger = false) {
   const nom = document.getElementById('lastName').value || '';
   const prenom = document.getElementById('firstName').value || '';
   const naissance = document.getElementById('birthDate').value || '';
   const paiement = document.getElementById('paymentMode').value || '';
   const dateStr = new Date().toLocaleDateString('fr-FR');
   const factureNum = currentFactureId || ('temp-' + Date.now());
-  const prestations = [...itemsTable.querySelectorAll('tr')].map(row => {
-  const serviceInput = row.querySelector('.serviceSearch');
-  const service = serviceInput ? serviceInput.value.trim() : '';
-  const qty = row.querySelector('.qty').value || '0';
-  const pu = row.querySelector('.price').textContent || '0';
-  const total = row.querySelector('.lineTotal').textContent || '0';
-  return { service, qty, pu, total };
-}).filter(p => p.service);
-
-
-  const totalTTC = parseFloat(grandTotalElem.textContent || '0').toFixed(2);
   const dateFact = new Date().toLocaleDateString('fr-FR');
 
+  const prestations = [...itemsTable.querySelectorAll('tr')].map(row => {
+    const serviceInput = row.querySelector('.serviceSearch');
+    const service = serviceInput ? serviceInput.value.trim() : '';
+    const qty = row.querySelector('.qty').value || '0';
+    const pu = row.querySelector('.price').textContent || '0';
+    const total = row.querySelector('.lineTotal').textContent || '0';
+    return { service, qty, pu, total };
+  }).filter(p => p.service);
+
+  const totalTTC = parseFloat(grandTotalElem.textContent || '0').toFixed(2);
+  const totalHT = (totalTTC / 1.2).toFixed(2);
+  const totalTVA = (totalTTC - totalTTC / 1.2).toFixed(2);
+
+  // --- Cachet du service (SVG intégré) ---
+  const cachetData = 'data:image/svg+xml;utf8,' + encodeURIComponent(`
+    <svg xmlns="http://www.w3.org/2000/svg" width="220" height="220" viewBox="0 0 220 220">
+      <circle r="88" cx="110" cy="110" fill="none" stroke="#c62828" stroke-width="6"/>
+      <circle r="70" cx="110" cy="110" fill="rgba(198,40,40,0.06)"/>
+      <text x="55" y="100" font-family="Georgia, serif" font-size="30" fill="#9b1e1e" font-weight="700">CHU</text>
+      <text x="38" y="130" font-family="Georgia, serif" font-size="14" fill="#c62828">Service des Urgences</text>
+    </svg>
+  `);
+
+  // --- HTML de la facture ---
   const invoiceHtml = `
-    <div style="font-family:Arial,Helvetica,sans-serif;color:#222; padding:24px; max-width:800px; margin:auto;">
-      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:4px solid #007bff; padding-bottom:12px;">
-        <div style="display:flex; gap:12px; align-items:center;">
-          <img src="logo.jpg" alt="Logo" style="height:70px; object-fit:contain;">
+    <div style="font-family:'Segoe UI',Arial,sans-serif;color:#1a1a1a;padding:32px;max-width:900px;margin:auto;background:#fff;border:1px solid #ddd;border-radius:10px;position:relative;">
+      
+      <!-- En-tête -->
+      <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:4px solid #0078d7;padding-bottom:10px;">
+        <div style="display:flex;align-items:center;gap:14px;">
+          <img src="logo.jpg" alt="Logo" style="height:80px;object-fit:contain;border-radius:6px;">
           <div>
-            <div style="font-size:18px; font-weight:800; color:#111;">Centre Hospitalier - Service des Urgences</div>
+            <div style="font-size:18px;font-weight:700;color:#0078d7;">CENTRE HOSPITALIER UNIVERSITAIRE</div>
+            <div style="font-size:13px;color:#444;">Service des Urgences - Département Médical</div>
+            <div style="font-size:12px;color:#666;">12 rue de la Santé, 75000 Paris</div>
           </div>
         </div>
         <div style="text-align:right;">
-          <div style="font-size:14px; font-weight:700;">FACTURE N°:</div>
-          <div style="font-size:13px; color:#555; margin-top:6px;"><strong>${factureNum}</strong></div>
-          <div style="font-size:13px; color:#555;">Date: <strong>${dateStr}</strong></div>
+          <div style="font-size:15px;font-weight:700;">FACTURE N° <span style="color:#0078d7;">${factureNum}</span></div>
+          <div style="font-size:13px;color:#555;">Émise le : ${dateStr}</div>
         </div>
       </div>
 
-      <div style="display:flex; justify-content:space-between; margin-top:18px; gap:12px;">
+      <!-- Infos patient -->
+      <div style="display:flex;justify-content:space-between;margin-top:22px;gap:20px;">
         <div style="flex:1;">
-          <div style="font-weight:700; color:#333;">Facturé à :</div>
-          <div style="margin-top:8px; font-size:14px;">${prenom} ${nom}</div>
-          <div style="font-size:13px; color:#555;">Né(e) le : ${naissance || '-'}</div>
-          <div style="font-size:13px; color:#555; margin-top:6px;">Mode paiement : ${paiement}</div>
+          <div style="font-weight:700;color:#333;">Facturé à :</div>
+          <div style="margin-top:8px;font-size:14px;">
+            <strong>${prenom} ${nom}</strong><br>
+            Né(e) le : ${naissance || '-'}<br>
+            Mode de paiement : ${paiement}
+          </div>
         </div>
-        <div style="flex:1; text-align:right;">
-          <div style="font-weight:700; color:#333;">centre Hospitalier</div>
-          <div style="margin-top:8px; font-size:14px;">Service des Uregnces</div>
-        
+        <div style="flex:1;text-align:right;">
+          <div style="font-weight:700;color:#333;">Émis par :</div>
+          <div style="margin-top:8px;font-size:14px;">
+            Centre Hospitalier Universitaire<br>
+            Service des Urgences<br>
+            urgences@chu-paris.fr
+          </div>
         </div>
       </div>
 
-      <table style="width:100%; border-collapse:collapse; margin-top:18px;">
+      <!-- Tableau prestations -->
+      <table style="width:100%;border-collapse:collapse;margin-top:20px;font-size:14px;">
         <thead>
-          <tr style="background:#f6f8fb;">
-            <th style="padding:10px; text-align:left;">Prestation</th>
-            <th style="padding:10px;">Quantité</th>
-            <th style="padding:10px;">Prix Unitaire</th>
-            <th style="padding:10px;">Total</th>
+          <tr style="background:#f2f6fb;border-bottom:2px solid #d0d7e2;">
+            <th style="padding:10px;text-align:left;">Prestation</th>
+            <th style="padding:10px;text-align:center;">Quantité</th>
+            <th style="padding:10px;text-align:center;">Prix Unitaire (€)</th>
+            <th style="padding:10px;text-align:center;">Total (€)</th>
           </tr>
         </thead>
         <tbody>
           ${prestations.map(p => `
             <tr>
-              <td style="padding:10px; text-align:left;">${p.service}</td>
-              <td style="padding:10px; text-align:center;">${p.qty}</td>
-              <td style="padding:10px; text-align:center;">${parseFloat(p.pu).toFixed(2)} €</td>
-              <td style="padding:10px; text-align:center;">${parseFloat(p.total).toFixed(2)} €</td>
+              <td style="padding:10px;border-bottom:1px solid #eee;">${p.service}</td>
+              <td style="padding:10px;text-align:center;border-bottom:1px solid #eee;">${p.qty}</td>
+              <td style="padding:10px;text-align:center;border-bottom:1px solid #eee;">${parseFloat(p.pu).toFixed(2)}</td>
+              <td style="padding:10px;text-align:center;border-bottom:1px solid #eee;">${parseFloat(p.total).toFixed(2)}</td>
             </tr>
           `).join('')}
         </tbody>
         <tfoot>
-          <tr>
-            <td colspan="2" style="padding:12px; border-top:2px solid #eee;"></td>
-            <td style="padding:12px; text-align:right; font-weight:800;">TOTAL TTC</td>
-            <td style="padding:12px; text-align:center; font-weight:800;">${totalTTC} €</td>
-          </tr>
+          <tr><td colspan="2"></td><td style="text-align:right;padding:10px;font-weight:700;">Total HT :</td><td style="text-align:center;">${totalHT} €</td></tr>
+          <tr><td colspan="2"></td><td style="text-align:right;padding:10px;font-weight:700;">TVA (20%) :</td><td style="text-align:center;">${totalTVA} €</td></tr>
+          <tr style="background:#e8f3ff;"><td colspan="2"></td><td style="text-align:right;padding:10px;font-weight:800;">TOTAL TTC :</td><td style="text-align:center;font-weight:800;">${totalTTC} €</td></tr>
         </tfoot>
       </table>
 
-      <div style="margin-top:22px; display:flex; justify-content:space-between; align-items:center;">
-        <div style="font-size:13px; color:#555; max-width:60%;">Mentions : Paiement reçu et facture acquittée. Conservez ce document comme preuve.</div>
-        <div style="font-weight:900; color:#2e7d32; font-size:22px; transform:rotate(-6deg); border:2px solid rgba(46,125,50,0.12); padding:8px 12px; border-radius:6px; background:rgba(46,125,50,0.06);">FACTURE ACQUITTEE</div>
+      <!-- Mentions & Signature -->
+      <div style="margin-top:26px;display:flex;justify-content:space-between;align-items:flex-start;gap:20px;">
+        <div style="font-size:12.5px;color:#555;max-width:60%;">
+          <strong>Mentions :</strong><br>
+          Paiement reçu le ${dateStr}. Facture acquittée.<br>
+          Ce document fait office de justificatif comptable.
+        </div>
+        <div style="text-align:right;">
+          <div style="font-weight:700;font-size:13px;">Signature autorisée :</div>
+          <div style="margin-top:10px;border-top:1px solid #ccc;padding-top:6px;font-size:13px;">Dr. <em>Nom Médecin</em><br>Chef de Service - Urgences</div>
+        </div>
       </div>
 
-      <div style="margin-top:28px; border-top:1px dashed #e6e9ec; padding-top:10px; font-size:12px; color:#777;">
-        Centre Hospitalier • Service des urgences • urgences.hopj@gamil.com
+      <!-- Cachet -->
+      <img src="${cachetData}" alt="Cachet du service" style="width:150px;height:150px;position:absolute;right:40px;bottom:80px;opacity:0.9;transform:rotate(-6deg);filter:drop-shadow(0 6px 8px rgba(0,0,0,0.1));">
+
+      <div style="margin-top:100px;border-top:1px dashed #ccc;padding-top:10px;font-size:12px;text-align:center;color:#777;">
+        Centre Hospitalier Universitaire • 12 rue de la Santé, 75000 Paris • Tél : 01 23 45 67 89 • urgences@chu-paris.fr
       </div>
     </div>
   `;
 
+  // Génération du PDF
   const container = document.createElement('div');
   container.innerHTML = invoiceHtml;
   document.body.appendChild(container);
@@ -754,18 +787,18 @@ const prestations = [...itemsTable.querySelectorAll('tr')].map(row => {
       container.remove();
       return null;
     } else {
-      // retourne le blob
       const pdfBlob = await html2pdf().set(opt).from(container).outputPdf('blob');
       container.remove();
       return pdfBlob;
     }
   } catch (err) {
-    console.error('Erreur génération PDF', err);
+    console.error('❌ Erreur génération PDF', err);
     afficherBulle('❌ Erreur génération PDF', 'alerte');
     container.remove();
     return null;
   }
 }
+
 
 
   // Download PDF button (uses html2pdf and cleans up)
