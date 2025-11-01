@@ -751,11 +751,11 @@ setTimeout(() => {
   div.addEventListener("mouseenter", (e) => {
     const content = `
       <strong>${nom} ${prenom}</strong><br/>
-      Naissance: ${patients[id].dateNaissance || 'N/A'}<br/>
-      Motif: ${hosp.motif || 'N/A'}<br/>
-      Gravité: ${gravite || 'N/A'}<br/>
-	  Service: ${hosp.service || 'Aucun'}<br/>
-
+      Naissance : ${patients[id].dateNaissance || 'N/A'}<br/>
+      Motif : ${hosp.motif || 'N/A'}<br/>
+      Gravité : ${gravite || 'N/A'}<br/>
+	    Service : ${hosp.service || 'Aucun'}<br/>
+      Circuit : ${hosp.circuit || 'Aucun'}<br/>
     `;
     pop = createPopover(content, e.clientX + 10, e.clientY + 10);
   });
