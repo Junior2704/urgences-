@@ -320,7 +320,8 @@
 </div>
 
 <!-- ✅ MODALE DE CHOIX DES DESTINATAIRES -->
-<div id="emailSelectModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+<div id="emailSelectModal" class="hidden fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50">
+
   <div class="modal-box">
 
     <button id="closeEmailModal">✖</button>
@@ -794,7 +795,8 @@ btnEnvoyerMail.addEventListener("click", async () => {
 
   // ✅ Affiche la modale
   emailModal.classList.remove("hidden");
-  emailModal.style.display = "flex";
+emailModal.classList.add("flex");
+
 });
 
   // 🟦 Validation et envoi
@@ -937,8 +939,9 @@ addedEmails.forEach(cb => destinataires.push(cb.value.trim()));
 function closeEmailSelectModal() {
   const emailModal = document.getElementById("emailSelectModal");
   emailModal.classList.add("hidden");
-  emailModal.style.display = "none";
+  emailModal.classList.remove("flex");
 }
+
 
 
 function afficherBulle(texte, type) {
