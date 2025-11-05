@@ -75,12 +75,31 @@
 
         const data = docSnap.data();
         const base64 = data.base64;
+const nomFichier = data.nom || "document.pdf"; // 🔹 ajoute un nom par défaut
 
-        // ✅ Utiliser un lien data: pour compatibilité mobile
-        const pdfUrl = `data:application/pdf;base64,${base64}`;
+// 🔸 Convertir Base64 → Blob
+const byteCharacters = atob(base64);
+const byteNumbers = Array.from(byteCharacters).map(c => c.charCodeAt(0));
+const byteArray = new Uint8Array(byteNumbers);
+const blob = new Blob([byteArray], { type: 'application/pdf' });
+const pdfUrl = URL.createObjectURL(blob);
 
-        // Affiche le PDF plein écran
-        document.body.innerHTML = `<iframe src="${pdfUrl}" title="Aperçu du PDF"></iframe>`;
+// 🔹 Met à jour le titre de l’onglet
+document.title = nomFichier;
+
+// 🔹 Affiche le PDF + bouton de téléchargement
+document.body.innerHTML = `
+  <iframe src="${pdfUrl}" title="${nomFichier}"></iframe>
+  <a href="${pdfUrl}" download="${nomFichier}" 
+     style="position:fixed;bottom:20px;right:20px;
+            background:#3498db;color:#fff;padding:10px 15px;
+            border-radius:8px;text-decoration:none;
+            box-shadow:0 2px 6px rgba(0,0,0,0.2);
+            font-size:14px;">
+    ⬇ Télécharger
+  </a>
+`;
+
       } catch (err) {
         console.error(err);
         showError("⚠️ Erreur lors du chargement du document.");
