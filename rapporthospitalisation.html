@@ -213,11 +213,16 @@
     <h2 class="text-xl font-semibold text-blue-700 mb-4 text-center">📧 Choisir les destinataires</h2>
     <div id="emailCheckboxes" class="space-y-2 mb-4"></div>
 
-    <div class="flex items-center gap-2 mb-3">
-      <input type="checkbox" id="otherEmailCheck" class="accent-blue-600">
-      <input type="email" id="otherEmailInput" placeholder="Ajouter une autre adresse..." 
-             class="border rounded-lg px-3 py-1.5 w-full focus:ring focus:ring-blue-200" disabled>
-    </div>
+    <div id="extraEmailsContainer" class="space-y-2 mb-4"></div>
+
+<div class="flex items-center gap-2 mb-3">
+  <input type="email" id="newEmailInput" placeholder="Ajouter une adresse email..."
+         class="border rounded-lg px-3 py-1.5 w-full focus:ring focus:ring-blue-200">
+  <button id="addEmailBtn" class="bg-green-600 text-white px-3 py-1 rounded-lg text-lg hover:bg-green-700">
+    +
+  </button>
+</div>
+
 
     <div class="flex justify-end gap-3 mt-4">
       <button id="cancelModal" class="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400">Annuler</button>
@@ -701,6 +706,28 @@ document.addEventListener("DOMContentLoaded", () => {
       openEmailSelectModal(emails);
     });
   }
+const newEmailInput = document.getElementById("newEmailInput");
+const addEmailBtn = document.getElementById("addEmailBtn");
+const extraEmailsContainer = document.getElementById("extraEmailsContainer");
+
+// 🟦 Ajouter un nouveau champ email
+addEmailBtn.addEventListener("click", () => {
+  const email = newEmailInput.value.trim();
+  if (!email || !email.includes("@")) {
+    alert("Merci d'entrer une adresse email valide");
+    return;
+  }
+
+  const newField = document.createElement("div");
+  newField.classList = "flex items-center gap-2";
+  newField.innerHTML = `
+    <input type="checkbox" value="${email}" checked class="accent-blue-600">
+    <span>${email}</span>
+  `;
+  
+  extraEmailsContainer.appendChild(newField);
+  newEmailInput.value = "";
+});
 
   // 🟦 Validation et envoi
   if (confirmModal) {
@@ -709,9 +736,9 @@ document.addEventListener("DOMContentLoaded", () => {
         const checkedBoxes = container.querySelectorAll("input[type='checkbox']:checked");
         let destinataires = Array.from(checkedBoxes).map(cb => cb.value.trim());
 
-        if (otherCheck.checked && otherInput.value.trim()) {
-          destinataires.push(otherInput.value.trim());
-        }
+// Emails ajoutés manuellement
+const addedEmails = extraEmailsContainer.querySelectorAll("input[type='checkbox']:checked");
+addedEmails.forEach(cb => destinataires.push(cb.value.trim()));
 
         if (destinataires.length === 0) {
           alert("Veuillez sélectionner au moins une adresse email.");
