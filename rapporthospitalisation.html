@@ -324,7 +324,7 @@
 
   <div class="modal-box">
 
-    <button id="closeEmailModal">✖</button>
+
     <h2 class="text-xl font-semibold text-blue-700 mb-4 text-center">📧 Choisir les destinataires</h2>
 
     <div id="emailCheckboxes" class="space-y-2 mb-4"></div>
@@ -741,7 +741,14 @@ document.addEventListener("DOMContentLoaded", () => {
 const newEmailInput = document.getElementById("newEmailInput");
 const addEmailBtn = document.getElementById("addEmailBtn");
 const extraEmailsContainer = document.getElementById("extraEmailsContainer");
+cancelModal.addEventListener("click",() => {
+ 
+  const emailModal = document.getElementById("emailSelectModal");
+  emailModal.classList.add("hidden");
+  emailModal.classList.remove("flex");
 
+
+}
 // 🟦 Ajouter un nouveau champ email
 addEmailBtn.addEventListener("click", () => {
   const email = newEmailInput.value.trim();
