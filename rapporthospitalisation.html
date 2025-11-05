@@ -225,7 +225,7 @@
 
 
     <div class="flex justify-end gap-3 mt-4">
-      <button id="cancelModal" class="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400">Annuler</button>
+      <button id="closeEmailModal" class="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400">Annuler</button>
       <button id="confirmEmails" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Envoyer</button>
     </div>
   </div>
@@ -237,27 +237,84 @@
   @keyframes fade-in { from { opacity: 0; transform: scale(0.95);} to { opacity: 1; transform: scale(1);} }
   .animate-fade-in { animation: fade-in 0.2s ease-out; }
 /* ✅ Modale email — cachée par défaut, centrée quand affichée */
+/* --- Modale d'email améliorée --- */
 #emailSelectModal {
-  position: fixed;
-  inset: 0;
-  display: none; /* cachée au chargement */
-  justify-content: center;
-  align-items: center;
-  background-color: rgba(0, 0, 0, 0.5);
-  z-index: 9999;
-  margin: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
 }
 
-#emailSelectModal.active {
-  display: flex; /* affichée dynamiquement */
-}
-
-#emailSelectModal .bg-white {
-  background-color: #fff;
-  border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+#emailSelectModal .modal-box {
+  background: white;
+  border-radius: 18px;
   padding: 24px;
+  width: 420px;
+  max-width: 95%;
+  animation: slideIn 0.25s ease-out;
+  position: relative;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
 }
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(-15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.email-btn {
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.2s;
+}
+
+.email-btn.primary {
+  background: #0b66ff;
+  color: white;
+}
+.email-btn.primary:hover { background:#004fd1; }
+
+.email-btn.cancel {
+  background: #d1d5db;
+  color: black;
+}
+.email-btn.cancel:hover { background:#b4b7bc; }
+
+#addEmailBtn {
+  background: #14b82a;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 20px;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s;
+}
+#addEmailBtn:hover { background:#0f8f20; }
+
+/* Champ email */
+#newEmailInput {
+  border: 1px solid #d1d5db;
+  padding: 10px;
+  border-radius: 8px;
+  width: 100%;
+}
+
+/* Bouton fermeture X */
+#closeEmailModal {
+  position: absolute;
+  right: 12px;
+  top: 10px;
+  font-size: 20px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  color: #777;
+  transition: 0.2s;
+}
+#closeEmailModal:hover { color: #000; }
+
 
 
 </style>
@@ -677,10 +734,11 @@ document.addEventListener("DOMContentLoaded", () => {
 }
 
 
-  function closeEmailSelectModal() {
-    modal.classList.add("hidden");
-    modal.classList.remove("flex");
-  }
+ const closeBtn = document.getElementById("closeEmailModal");
+closeBtn.addEventListener("click", () => {
+  document.getElementById("emailSelectModal").classList.add("hidden");
+});
+
 
   if (otherCheck && otherInput) {
     otherCheck.addEventListener("change", (e) => {
@@ -688,7 +746,10 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!e.target.checked) otherInput.value = "";
     });
   }
-  if (cancelModal) cancelModal.addEventListener("click", closeEmailSelectModal);
+ function closeEmailSelectModal() {
+  document.getElementById("emailSelectModal").classList.add("hidden");
+}
+
 
   // 🟦 Bouton "Envoyer par email"
   const btn = document.getElementById("btnEnvoyerMail");
