@@ -75,7 +75,7 @@
 
         const data = docSnap.data();
         const base64 = data.base64;
-const nomFichier = data.nom || "document.pdf"; // 🔹 ajoute un nom par défaut
+const nomFichier = data.nomFichier || "document.pdf"; // 🔹 ajoute un nom par défaut
 
 // 🔸 Convertir Base64 → Blob
 const byteCharacters = atob(base64);
