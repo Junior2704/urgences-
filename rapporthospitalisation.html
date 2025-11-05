@@ -187,6 +187,118 @@
   }
 }
 
+
+/* === MODALE EMAIL === */
+
+/* Fond sombre + centrage */
+#emailSelectModal {
+  position: fixed !important;
+  inset: 0 !important;
+  display: none; /* affichée en JS via .flex */
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(4px);
+  z-index: 9999 !important;
+}
+
+/* Quand on l'affiche on ajoute .flex via JS */
+#emailSelectModal.flex {
+  display: flex !important;
+}
+
+/* Boîte modale */
+#emailSelectModal .modal-box {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 24px;
+  width: 420px;
+  max-width: 90%;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+  position: relative;
+  animation: modalFade 0.25s ease-out;
+}
+
+/* Animation entrée */
+@keyframes modalFade {
+  from { opacity: 0; transform: translateY(-12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Bouton X */
+#closeEmailModal {
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  font-size: 20px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  color: #666;
+  font-weight: bold;
+  transition: 0.2s;
+}
+#closeEmailModal:hover {
+  color: #000;
+  transform: scale(1.15);
+}
+
+/* Champs email */
+#newEmailInput {
+  border: 1px solid #d2d6dc;
+  border-radius: 8px;
+  padding: 10px;
+  width: 100%;
+  outline: none;
+}
+#newEmailInput:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59,130,246,0.25);
+}
+
+/* Bouton + */
+#addEmailBtn {
+  background: #16a34a;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 20px;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s;
+}
+#addEmailBtn:hover {
+  background: #0f8a3c;
+  transform: scale(1.05);
+}
+
+/* Boutons Annuler / Envoyer */
+.email-btn {
+  padding: 10px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  border: none;
+  transition: 0.2s;
+}
+
+.email-btn.cancel {
+  background: #e5e7eb;
+  color: #333;
+}
+.email-btn.cancel:hover {
+  background: #d1d5db;
+}
+
+.email-btn.primary {
+  background: #2563eb;
+  color: white;
+}
+.email-btn.primary:hover {
+  background: #1d4ed8;
+}
+
   </style>
 </head>
 <body>
