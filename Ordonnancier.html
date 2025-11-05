@@ -17138,7 +17138,7 @@ document.getElementById("confirmEmails").addEventListener("click", async functio
     const data = doc.data();
     const firstName = data.prenom || "";
     const lastName = data.nom || "";
-    const fileName =  `Rapport d'hospitalisation - ${firstName} ${lastName}.pdf`;
+    const fileName =  `Ordonnance - ${firstName} ${lastName}.pdf`;
 
     // --- 4) Enregistrement dans Firestore
     await db.collection("liens_pdfs").doc(idUnique).set({
