@@ -669,6 +669,7 @@ function base64ToBlob(base64, type = "application/pdf") {
 
 
 
+const btnEnvoyerMail = document.getElementById("btnEnvoyerMail");
 
 
 
@@ -733,7 +734,7 @@ addEmailBtn.addEventListener("click", () => {
   extraEmailsContainer.appendChild(newField);
   newEmailInput.value = "";
 });
-const btnEnvoyerMail = document.getElementById("btnEnvoyerMail");
+
 const emailModal = document.getElementById("emailSelectModal");
 
 btnEnvoyerMail.addEventListener("click", async () => {
@@ -908,6 +909,11 @@ addedEmails.forEach(cb => destinataires.push(cb.value.trim()));
     });
   }
 });
+function closeEmailSelectModal() {
+  const emailModal = document.getElementById("emailSelectModal");
+  emailModal.classList.add("hidden");
+  emailModal.style.display = "none";
+}
 
 
 function afficherBulle(texte, type) {
