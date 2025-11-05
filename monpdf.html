@@ -3,142 +3,271 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Consultation du document</title>
+  <title>Accès sécurisé PDF patients</title>
   <link rel="icon" type="image/jpeg" href="logo.jpg">
 
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
 
+  <!-- PDF.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
   <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      width: 100%;
-      background: #f4f7fb;
-      font-family: "Segoe UI", Roboto, Arial, sans-serif;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden; /* on empêche le scroll global */
+}
 
-    iframe {
+body {
+  display: flex;
+  flex-direction: column;
+  font-family: "Segoe UI", Roboto, Arial, sans-serif;
+  background: #f4f7fb;
+}
+
+#controls {
+  display: flex;
+  gap: 10px;
+  padding: 10px;
+  background: white;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  width: 100%;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+  flex-shrink: 0; /* le contrôle ne se rétrécit pas */
+}
+
+#pdf-viewer {
+  overflow-y: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 50px; /* espace entre les pages */
+  height: 100vh;
+  box-sizing: border-box;
+}
+canvas {
+  background: white;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+  border-radius: 8px;
+}
+
+  
+
+    #controls button {
+      background: #3498db;
+      color: white;
       border: none;
-      width: 100%;
-      height: 100%;
+      border-radius: 6px;
+      padding: 8px 15px;
+      cursor: pointer;
+      font-size: 14px;
     }
 
-    .error {
-      text-align: center;
-      color: #c0392b;
-      font-size: 1.2rem;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 20px;
-      padding: 20px;
+    #controls button:hover {
+      background: #2980b9;
     }
+	
+	
+	/* Styles communs pour les modales */
+.modal {
+  display: none; /* caché par défaut */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  z-index: 1000;
+  justify-content: center;
+  align-items: center;
+}
 
-    .error img {
-      height: 70px;
-    }
+.modal-content {
+  background: white;
+  padding: 30px;
+  border-radius: 10px;
+  text-align: center;
+  min-width: 300px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
 
-    .error p {
-      margin: 0;
-      color: #444;
-    }
+.modal-logo {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+}
+
+/* Loader animé */
+.loader {
+  border: 6px solid #f3f3f3;
+  border-top: 6px solid #3498db;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg);}
+  100% { transform: rotate(360deg);}
+}
+
+#close-error {
+  padding: 8px 15px;
+  border: none;
+  border-radius: 6px;
+  background: #e74c3c;
+  color: white;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+#close-error:hover {
+  background: #c0392b;
+}
+
   </style>
 </head>
 
 <body>
-  <div id="content">Chargement...</div>
+<!-- Modale de chargement -->
+<div id="loading-modal" class="modal">
+  <div class="modal-content">
+    <img src="logo.jpg" alt="Logo" class="modal-logo">
+    <div class="loader"></div>
+    <p>Chargement du document...</p>
+  </div>
+</div>
+
+<!-- Modale d'erreur -->
+<div id="error-modal" class="modal">
+  <div class="modal-content">
+    <img src="logo.jpg" alt="Logo" class="modal-logo">
+    <p id="error-message">Une erreur est survenue.</p>
+
+  </div>
+</div>
+
+  <div id="controls">
+
+    <button id="download">⬇ Télécharger</button>
+  </div>
+  <div id="pdf-viewer">
+    <canvas id="pdf-canvas"></canvas>
+  </div>
 
   <script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyBKp5-7NNy0Gyl0tNbDgD-BxucYdg8ArWo",
-    authDomain: "urgences-a8ed4.firebaseapp.com",
-    projectId: "urgences-a8ed4"
-  };
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
+    // Configuration Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyBKp5-7NNy0Gyl0tNbDgD-BxucYdg8ArWo",
+      authDomain: "urgences-a8ed4.firebaseapp.com",
+      projectId: "urgences-a8ed4"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
-  async function afficherPDF() {
-    const id = new URLSearchParams(window.location.search).get("id");
-    if (!id) return showError("❌ Lien invalide.");
+    const urlParams = new URLSearchParams(window.location.search);
+    const docId = urlParams.get("id");
 
-    try {
-      const docSnap = await db.collection("liens_pdfs").doc(id).get();
-      if (!docSnap.exists) return showError("⏳ Ce lien a expiré ou est invalide.");
+    let pdfDoc = null;
+    let pageNum = 1;
+    let nomFichier = "document.pdf";
 
-      const data = docSnap.data();
-      let base64 = data.base64 || "";
-      const nomFichier = data.nom || "document.pdf";
+    async function afficherPDF() {
+  if (!docId) return showError("Lien invalide");
+ 
+  const docSnap = await db.collection("liens_pdfs").doc(docId).get();
+  if (!docSnap.exists) return showError("Document introuvable.");
+showLoading();
+  const data = docSnap.data();
+  nomFichier = data.nomFichier || "document.pdf";
+  document.title = nomFichier; // titre onglet
 
-      // 🔹 Nettoyage du préfixe (si "data:application/pdf;base64," présent)
-      const commaIndex = base64.indexOf(',');
-      if (commaIndex !== -1 && base64.slice(0, commaIndex).includes('base64')) {
-        base64 = base64.slice(commaIndex + 1);
-      }
+  let base64 = data.base64;
+  const commaIndex = base64.indexOf(',');
+  if (commaIndex !== -1 && base64.slice(0, commaIndex).includes('base64')) {
+    base64 = base64.slice(commaIndex + 1);
+  }
 
-      // 🔹 Conversion Base64 → Blob
-      const byteCharacters = atob(base64);
-      const byteNumbers = new Array(byteCharacters.length);
-      for (let i = 0; i < byteCharacters.length; i++) {
-        byteNumbers[i] = byteCharacters.charCodeAt(i);
-      }
-      const byteArray = new Uint8Array(byteNumbers);
-      const blob = new Blob([byteArray], { type: 'application/pdf' });
-      const pdfUrl = URL.createObjectURL(blob);
+  const binaryString = atob(base64);
+  const len = binaryString.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) bytes[i] = binaryString.charCodeAt(i);
 
-      // 🔹 Met à jour le titre
-      document.title = nomFichier;
+  const loadingTask = pdfjsLib.getDocument({ data: bytes });
+  pdfDoc = await loadingTask.promise;
 
-      // 🔹 Affichage dans un viewer interne
-      document.body.innerHTML = `
-        <div id="viewer" style="
-          display:flex;
-          flex-direction:column;
-          align-items:center;
-          justify-content:center;
-          background:#f4f7fb;
-          width:100vw;
-          height:100vh;
-        ">
-          <embed src="${pdfUrl}" type="application/pdf" 
-                 style="width:90%;height:90%;border-radius:10px;box-shadow:0 4px 15px rgba(0,0,0,0.1);" />
-          <a href="${pdfUrl}" download="${nomFichier}" 
-             style="margin-top:20px;padding:10px 20px;
-                    background:#3498db;color:white;border-radius:8px;
-                    text-decoration:none;box-shadow:0 3px 6px rgba(0,0,0,0.2);">
-             ⬇ Télécharger
-          </a>
-        </div>
-      `;
+  const viewer = document.getElementById("pdf-viewer");
+  viewer.innerHTML = ""; // vide le conteneur
 
-      // 🔹 Libère la mémoire quand on quitte
-      window.addEventListener('beforeunload', () => {
-        URL.revokeObjectURL(pdfUrl);
-      });
+  for (let i = 1; i <= pdfDoc.numPages; i++) {
+    const page = await pdfDoc.getPage(i);
+    const viewport = page.getViewport({ scale: 1.5 });
 
-    } catch (err) {
-      console.error(err);
-      showError("⚠️ Erreur lors du chargement du document.");
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d");
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+
+    await page.render({ canvasContext: context, viewport: viewport }).promise;
+
+    viewer.appendChild(canvas);
+  }
+   hideLoading(); // cacher le loader
+ 
+}
+
+
+    async function renderPage(num) {
+      const page = await pdfDoc.getPage(num);
+      const viewport = page.getViewport({ scale: 1.5 });
+      const canvas = document.getElementById("pdf-canvas");
+      const context = canvas.getContext("2d");
+
+      canvas.height = viewport.height;
+      canvas.width = viewport.width;
+
+      await page.render({ canvasContext: context, viewport: viewport }).promise;
+
+      document.getElementById("page-info").textContent = `Page ${num} / ${pdfDoc.numPages}`;
     }
-  }
 
-  function showError(msg) {
-    document.body.innerHTML = `
-      <div class="error" style="text-align:center;color:#c0392b;padding:20px;">
-        <img src="https://junior2704.github.io/urgences-/logo.jpg" alt="Logo" style="height:70px;">
-        <p>${msg}</p>
-        <p style="font-size:13px;color:#888;">Veuillez vérifier le lien ou contacter le service technique.</p>
-      </div>
-    `;
-  }
+   
+    document.getElementById("download").addEventListener("click", async () => {
+      const docSnap = await db.collection("liens_pdfs").doc(docId).get();
+      const base64 = docSnap.data().base64;
+      const link = document.createElement("a");
+      link.href = "data:application/pdf;base64," + base64;
+      link.download = nomFichier;
+      link.click();
+    });
+// Modale de chargement
+function showLoading() {
+  document.getElementById("loading-modal").style.display = "flex";
+}
 
-  afficherPDF();
-</script>
+function hideLoading() {
+  document.getElementById("loading-modal").style.display = "none";
+}
 
+// Modale d'erreur
+function showError(message) {
+  document.getElementById("error-message").textContent = message;
+  document.getElementById("error-modal").style.display = "flex";
+}
+
+
+
+    afficherPDF();
+  </script>
 </body>
 </html>
