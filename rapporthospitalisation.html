@@ -710,63 +710,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const cancelModal = document.getElementById("cancelModal");
   const confirmModal = document.getElementById("confirmEmails");
 
-  function openEmailSelectModal(emailsString) {
-  if (!modal || !container) return;
-  container.innerHTML = "";
-
-  const emails = (emailsString || "").split("//").filter(e => e.includes("@"));
-  if (emails.length === 0) {
-    container.innerHTML = "<p class='text-gray-500 text-sm'>Aucune adresse trouvée pour ce patient.</p>";
-  } else {
-    emails.forEach((email) => {
-      container.innerHTML += `
-        <label class="flex items-center gap-2">
-          <input type="checkbox" value="${email}" checked class="accent-blue-600">
-          <span>${email}</span>
-        </label>`;
-    });
-  }
-
-  // ✅ Correction ici :
-  modal.classList.remove("hidden");
-  modal.classList.remove("flex"); // au cas où
-  modal.style.display = "flex";   // affichage forcé
-}
-
-
- const closeBtn = document.getElementById("closeEmailModal");
-closeBtn.addEventListener("click", () => {
-  document.getElementById("emailSelectModal").classList.add("hidden");
-});
-
-
-  if (otherCheck && otherInput) {
-    otherCheck.addEventListener("change", (e) => {
-      otherInput.disabled = !e.target.checked;
-      if (!e.target.checked) otherInput.value = "";
-    });
-  }
- function closeEmailSelectModal() {
-  document.getElementById("emailSelectModal").classList.add("hidden");
-}
-
-
-  // 🟦 Bouton "Envoyer par email"
-  const btn = document.getElementById("btnEnvoyerMail");
-  if (btn) {
-    btn.addEventListener("click", async () => {
-      console.log("📧 Bouton 'Envoyer par email' cliqué !");
-      const doc = await patientRef.get();
-      if (!doc.exists) {
-        afficherBulle("❌ Patient introuvable", "alerte");
-        return;
-      }
-      const data = doc.data();
-      const emails = data.email || "";
-      console.log("📧 Emails du patient :", emails);
-      openEmailSelectModal(emails);
-    });
-  }
+  
 const newEmailInput = document.getElementById("newEmailInput");
 const addEmailBtn = document.getElementById("addEmailBtn");
 const extraEmailsContainer = document.getElementById("extraEmailsContainer");
@@ -788,6 +732,43 @@ addEmailBtn.addEventListener("click", () => {
   
   extraEmailsContainer.appendChild(newField);
   newEmailInput.value = "";
+});
+const btnEnvoyerMail = document.getElementById("btnEnvoyerMail");
+const emailModal = document.getElementById("emailSelectModal");
+
+btnEnvoyerMail.addEventListener("click", async () => {
+  const doc = await patientRef.get();
+
+  if (!doc.exists) {
+    alert("❌ Patient introuvable");
+    return;
+  }
+
+  // Récupère les emails du patient dans Firestore
+  const data = doc.data();
+  const emailsString = data.email || "";
+  
+  // Prépare les cases à cocher
+  const container = document.getElementById("emailCheckboxes");
+  container.innerHTML = "";
+
+  const emails = emailsString.split("//").filter(e => e.includes("@"));
+
+  if (emails.length === 0) {
+    container.innerHTML = `<p class="text-gray-500 text-sm">Aucune adresse trouvée</p>`;
+  } else {
+    emails.forEach(email => {
+      container.innerHTML += `
+        <label class="flex items-center gap-2">
+          <input type="checkbox" value="${email}" checked class="accent-blue-600">
+          <span>${email}</span>
+        </label>`;
+    });
+  }
+
+  // ✅ Affiche la modale
+  emailModal.classList.remove("hidden");
+  emailModal.style.display = "flex";
 });
 
   // 🟦 Validation et envoi
