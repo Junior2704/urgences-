@@ -1054,7 +1054,6 @@ input:checked + .slider:before {
 <span style="margin-left:10px; vertical-align:middle;">🔌 Patient scopé</span>
 
 
- <hr>
 
 <div id="scopeFields" style="display:none; margin-top:10px;">
   <label for="scopeNum">Numéro de scope</label>
@@ -1066,6 +1065,9 @@ input:checked + .slider:before {
 <div id="scopeSuccess" style="display:none; margin-top:10px;">
   <button id="btnOpenScope">🖥️ Ouvrir VisionScope2</button>
 </div>
+
+
+ <hr>
     <label for="temperature">🌡 Température (°C)</label>
     <input type="number" id="temperature" step="0.1" class="text1"/>
     <label for="fc">❤️ Fréquence cardiaque (bpm)</label>
@@ -1122,10 +1124,10 @@ input:checked + .slider:before {
 
 <div id="tab-dossier" class="tab-content">
   <div class="tab-header">
-    <h3>Dossier médical</h3>
+    <h3>📋Dossier médical</h3>
  
   </div>
-  <h3> 🗂️ Admission et orientation</h3>
+  <h4> 🗂️ Admission et orientation</h4>
   <label for="gravite" >🚨 Gravité</label>
   <select id="gravite"class="text2" >
     <option value="P0">P0</option>
@@ -1158,7 +1160,7 @@ input:checked + .slider:before {
     <br>
     <hr>
   <br>
-    <h3>📋 Dossier Médical</h3>
+    <h4>📋 Dossier Médical</h4>
 
       <label>Questionnaire IAO <button class="bouton-horloge" onclick="ajouterHorodatageDans('questionnaire')">⏰</button></label>
       <textarea id="questionnaire"></textarea>
@@ -1181,7 +1183,7 @@ input:checked + .slider:before {
   <hr>
 	<br>
   
-    <h3>📈 Évolution aux urgences <button class="bouton-horloge" onclick="ajouterHorodatageDans('evolutionTexte')">⏰</button></h3>
+    <h4>📈 Évolution aux urgences <button class="bouton-horloge" onclick="ajouterHorodatageDans('evolutionTexte')">⏰</button></h4>
     <textarea id="evolutionTexte"></textarea>
     <br>
     <button onclick="enregistrerEvolution()">💾 Enregistrer</button>
