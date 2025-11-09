@@ -899,6 +899,56 @@ header {
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+
+/* 🌙 Switch ON/OFF */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 28px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: 0.4s;
+  border-radius: 34px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 22px;
+  width: 22px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.4s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: #2196F3;
+}
+
+input:checked + .slider:before {
+  transform: translateX(22px);
+}
+
+
+
   </style>
 
 
@@ -965,6 +1015,18 @@ header {
     <label>Âge</label>
     <span id="age"></span>
   </div>
+<div>
+  <label>Allergies</label>
+  <input type="text" id="allergies" placeholder="Ex : Pénicilline, arachides..." class="text2" />
+</div>
+
+<div style="margin-top:10px;">
+  <label>Allergie(s) importantes</label><br>
+  <label class="switch">
+    <input type="checkbox" id="importanceAllergies">
+    <span class="slider"></span>
+  </label>
+</div>
 
   <label for="gravite" >🚨 Gravité</label>
   <select id="gravite"class="text2" >
@@ -1586,6 +1648,10 @@ async function chargerPatient(patientId) {
     document.getElementById("sexe").textContent = data.sexe || "";
     document.getElementById("poids").value = data.poids || "";
     document.getElementById("taille").value = data.taille || "";
+    // Allergies
+document.getElementById("allergies").value = data.allergies || "aucun";
+document.getElementById("importanceAllergies").checked = data.importanceAllergies === true;
+
 
     // IMC
     const poids = parseFloat(data.poids);
@@ -1661,6 +1727,19 @@ async function chargerPatient(patientId) {
   } 
   masquerLoader();
 }
+// Champ allergies
+document.getElementById("allergies").addEventListener("change", async () => {
+  const value = document.getElementById("allergies").value.trim() || "aucun";
+  await patientRef.update({ allergies: value });
+  afficherBulle("💾 Allergies enregistrées", "administratif");
+});
+
+// Switch allergie(s) importantes
+document.getElementById("importanceAllergies").addEventListener("change", async () => {
+  const isImportant = document.getElementById("importanceAllergies").checked;
+  await patientRef.update({ importanceAllergies: isImportant });
+  afficherBulle(isImportant ? "⚠️ Allergie(s) importantes activée(s)" : "✅ Pas d’allergie majeure", "administratif");
+});
 
 async function updateHospitalisationField(field, value) {
   try {
