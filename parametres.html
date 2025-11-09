@@ -199,26 +199,7 @@
   </style>
 </head>
 <body>
-<div id="passwordModal">
-  <div class="modal-content">
-    <h3>🔒 Mot de passe requis</h3>
-   <input
-  type="password"
-  id="passwordInput"
-  placeholder="Entrez le mot de passe"
-  autocomplete="new-password"
-  name="noautofill"
-  inputmode="none"
-  style="caret-color: transparent;"
-  onfocus="this.removeAttribute('readonly');"
-  readonly
-/>
 
-    <div class="modal-actions">
-      <button class="btn btn-add" id="validerMotDePasse">✅ Valider</button>
-    </div>
-  </div>
-</div>
 <div id="content" class="blur">
 
   <h1>⚙️ Paramètres</h1>
@@ -390,27 +371,7 @@ onAuthStateChanged(auth, async (user) => {
   }
 });
 
-async function verifyPassword() {
-  try {
-    const docRef = doc(db, "patients", "QhwMJ0mjmUnS8MTNBCFU");
-    const docSnap = await getDoc(docRef);
-    if (docSnap.exists()) {
-      const truePassword = docSnap.data()["CAA"];
-      if (passwordInput.value === truePassword) {
-        content.classList.remove("blur");
-        passwordModal.style.display = "none";
-		afficherBulle("✅ Mot de passe correct !","administratif")
-      } else {
-        afficherBulle("❌ Mot de passe incorrect", "alerte");
-      }
-    } else {
-      afficherBulle("❌ Mot de passe introuvable", "alerte");
-    }
-  } catch (error) {
-    console.error("Erreur récupération mot de passe:", error);
-    afficherBulle("❌ Erreur de vérification", "alerte");
-  }
-}
+
 
 const actesListEl = document.getElementById('actesList');
 const personnelListEl = document.getElementById('personnelList');
@@ -621,7 +582,7 @@ document.addEventListener("keydown", (e) => {
 });
 
 loadData();
-document.getElementById("validerMotDePasse").addEventListener("click", verifyPassword);
+
 
   
   onAuthStateChanged(auth, async (user) => {
