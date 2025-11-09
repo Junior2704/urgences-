@@ -2801,7 +2801,8 @@ async function chargerHistoriqueComplet() {
         card.className = "card";
 
         // 🏥 titre avec numéro d’hospitalisation
-       const numero = idx + 1;
+    const numero = hospitalisations.length - idx;
+
 
         const titre = document.createElement("h2");
         titre.textContent = `🏥 Hospitalisation n°${numero}`;
