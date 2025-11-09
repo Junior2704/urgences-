@@ -1020,13 +1020,14 @@ input:checked + .slider:before {
   <input type="text" id="allergies" placeholder="Ex : Pénicilline, arachides..." class="text2" />
 
 
-<div style="margin-top:10px;">
-  <label>Allergie(s) importantes</label><br>
-  <label class="switch">
+<div style="display:flex; align-items:center; gap:10px; margin-top:10px;">
+  <label style="margin:0;">Allergie(s) importantes</label>
+  <label class="switch" style="margin:0;">
     <input type="checkbox" id="importanceAllergies">
     <span class="slider"></span>
   </label>
 </div>
+
 </div>
   <label for="gravite" >🚨 Gravité</label>
   <select id="gravite"class="text2" >
@@ -1072,16 +1073,15 @@ input:checked + .slider:before {
   </div>
  <hr>
 <h3>Scope</h3>
-<h3>Scope</h3>
-<div style="margin-top:10px;">
-  <label>🔌 Patient scopé</label><br>
-  <label class="switch">
-    <input type="checkbox" id="patientScopeCheckbox">
-    <span class="slider"></span>
-  </label>
-</div>
+
+<label class="switch">
+  <input type="checkbox" id="patientScopeCheckbox">
+  <span class="slider"></span>
+</label>
+<span style="margin-left:10px; vertical-align:middle;">🔌 Patient scopé</span>
 
 
+ <hr>
 
 <div id="scopeFields" style="display:none; margin-top:10px;">
   <label for="scopeNum">Numéro de scope</label>
