@@ -2778,10 +2778,11 @@ async function chargerHistoriqueComplet() {
     const data = patientDoc.data();
     let hospitalisations = Array.isArray(data.hospitalisations) ? data.hospitalisations : [];
 
-if (hospitalisations.length > 1) {
+    // on enlève la dernière hospitalisation (courante)
+    if (hospitalisations.length > 1) {
       hospitalisations = hospitalisations.slice(0, -1);
     } else {
-      hospitalisations = []; // aucune hospitalisation précédente
+      hospitalisations = [];
     }
 
     if (hospitalisations.length === 0) {
@@ -2791,78 +2792,86 @@ if (hospitalisations.length > 1) {
 
     contenu.innerHTML = "";
 
+    // afficher les hospitalisations les plus récentes d'abord
     hospitalisations
-      .slice() // copie
-      .reverse() // plus récentes d'abord
+      .slice()
+      .reverse()
       .forEach((hospi, idx) => {
         const card = document.createElement("div");
         card.className = "card";
 
-      const date = hospi.dateDebut || hospi.dateDebut || "Date inconnue";
-		 const datef = hospi.dateFin || hospi.dateFin || "Date inconnue";
-      const motif = hospi.motif || "—";
-      const gravite = hospi.gravite || "—";
-      const evolution = hospi.evolution || "Aucune évolution enregistrée.";
-      const dossier = hospi.dossierMedical || {};
-      const sortie = hospi.sortie || null;
-	  const rapport = hospi.rapport || "Pas de rapport d'hospitalisation validé";
+        // 🏥 titre avec numéro d’hospitalisation
+        const numero = hospitalisations.length - idx;
+        const titre = document.createElement("h2");
+        titre.textContent = `🏥 Hospitalisation n°${numero}`;
+        titre.style.color = "#0078d4";
+        titre.style.borderBottom = "3px solid #0078d4";
+        titre.style.paddingBottom = "5px";
+        titre.style.marginTop = "0";
+        titre.style.marginBottom = "15px";
 
-      // construire le HTML via un tableau de parties (plus sûr)
-      const parts = [];
+        // --- Données de l'hospitalisation ---
+        const date = hospi.dateDebut || "Date inconnue";
+        const datef = hospi.dateFin || "Date inconnue";
+        const motif = hospi.motif || "—";
+        const gravite = hospi.gravite || "—";
+        const evolution = hospi.evolution || "Aucune évolution enregistrée.";
+        const dossier = hospi.dossierMedical || {};
+        const sortie = hospi.sortie || null;
+        const rapport = hospi.rapport || "Pas de rapport d'hospitalisation validé";
 
-      parts.push(`<div class="entry"><strong>📅 Admission :</strong> ${date}</div>`);
-		parts.push(`<div class="entry"><strong>📅 Sortie :</strong> ${datef}</div>`);
-      parts.push(`<div class="entry"><strong>Motif :</strong> ${motif}</div>`);
-      parts.push(`<div class="entry"><strong>Gravité :</strong> ${gravite}</div>`);
-      parts.push(`<hr>`);
-      parts.push(`<h3>📋 Dossier médical</h3>`);
-		parts.push(`<p><strong>Questionnaire IAO :</strong><br>${dossier.questionnaire || "—"}</p>`);
-      parts.push(`<p><strong>Antécédents :</strong><br>${dossier.antecedents || "—"}</p>`);
-      parts.push(`<p><strong>Traitements :</strong><br>${dossier.traitements || "—"}</p>`);
-      parts.push(`<p><strong>Histoire de la maladie :</strong><br>${dossier.histoire || "—"}</p>`);
-      parts.push(`<p><strong>CR Auscultation :</strong><br>${dossier.auscultation || "—"}</p>`);
-      parts.push(`<hr>`);
-      parts.push(`<h3>📈 Évolution aux urgences</h3>`);
-      parts.push(`<p style="white-space:pre-wrap">${evolution}</p>`);
-
-      // ajout de la sortie si présente
-      if (sortie) {
+        // --- Construction du contenu HTML ---
+        const parts = [];
+        parts.push(`<div class="entry"><strong>📅 Admission :</strong> ${date}</div>`);
+        parts.push(`<div class="entry"><strong>📅 Sortie :</strong> ${datef}</div>`);
+        parts.push(`<div class="entry"><strong>Motif :</strong> ${motif}</div>`);
+        parts.push(`<div class="entry"><strong>Gravité :</strong> ${gravite}</div>`);
         parts.push(`<hr>`);
-        parts.push(`<h3>🚪 Sortie</h3>`);
-        parts.push(`<p><strong>Type :</strong> ${sortie.type || "—"}</p>`);
+        parts.push(`<h3>📋 Dossier médical</h3>`);
+        parts.push(`<p><strong>Questionnaire IAO :</strong><br>${dossier.questionnaire || "—"}</p>`);
+        parts.push(`<p><strong>Antécédents :</strong><br>${dossier.antecedents || "—"}</p>`);
+        parts.push(`<p><strong>Traitements :</strong><br>${dossier.traitements || "—"}</p>`);
+        parts.push(`<p><strong>Histoire de la maladie :</strong><br>${dossier.histoire || "—"}</p>`);
+        parts.push(`<p><strong>CR Auscultation :</strong><br>${dossier.auscultation || "—"}</p>`);
+        parts.push(`<hr>`);
+        parts.push(`<h3>📈 Évolution aux urgences</h3>`);
+        parts.push(`<p style="white-space:pre-wrap">${evolution}</p>`);
 
-        if (sortie.serviceHospitalisation)
-          parts.push(`<p><strong>🏥 Service hospitalisation :</strong> ${sortie.serviceHospitalisation}</p>`);
+        // --- Sortie ---
+        if (sortie) {
+          parts.push(`<hr>`);
+          parts.push(`<h3>🚪 Sortie</h3>`);
+          parts.push(`<p><strong>Type :</strong> ${sortie.type || "—"}</p>`);
+          if (sortie.serviceHospitalisation)
+            parts.push(`<p><strong>🏥 Service hospitalisation :</strong> ${sortie.serviceHospitalisation}</p>`);
+          if (sortie.destinationTransfert)
+            parts.push(`<p><strong>↔️ Destination transfert :</strong> ${sortie.destinationTransfert}</p>`);
+          if (sortie.avisSpecialiste)
+            parts.push(`<p><strong>👩‍⚕️ Avis spécialiste :</strong> ${sortie.avisSpecialiste}</p>`);
+          if (Array.isArray(sortie.options) && sortie.options.length > 0)
+            parts.push(`<p><strong>📋 Options :</strong> ${sortie.options.join(", ")}</p>`);
+          if (sortie.traitementSortie)
+            parts.push(`<p><strong>💊 Traitement de sortie :</strong><br>${sortie.traitementSortie}</p>`);
+          if (sortie.autreSortieTexte)
+            parts.push(`<p><strong>🔤 Autre :</strong> ${sortie.autreSortieTexte}</p>`);
+          if (sortie.autreOptionTexte)
+            parts.push(`<p><strong>🔤 Autre option :</strong> ${sortie.autreOptionTexte}</p>`);
+        }
 
-        if (sortie.destinationTransfert)
-          parts.push(`<p><strong>↔️ Destination transfert :</strong> ${sortie.destinationTransfert}</p>`);
+        parts.push(`<p><strong></strong> ${rapport}</p>`);
 
-        if (sortie.avisSpecialiste)
-          parts.push(`<p><strong>👩‍⚕️ Avis spécialiste :</strong> ${sortie.avisSpecialiste}</p>`);
-
-        if (Array.isArray(sortie.options) && sortie.options.length > 0)
-          parts.push(`<p><strong>📋 Options :</strong> ${sortie.options.join(", ")}</p>`);
-
-        if (sortie.traitementSortie)
-          parts.push(`<p><strong>💊 Traitement de sortie :</strong><br>${sortie.traitementSortie}</p>`);
-
-        if (sortie.autreSortieTexte)
-          parts.push(`<p><strong>🔤 Autre :</strong> ${sortie.autreSortieTexte}</p>`);
-
-        if (sortie.autreOptionTexte)
-          parts.push(`<p><strong>🔤 Autre option :</strong> ${sortie.autreOptionTexte}</p>`);
-      }
- parts.push(`<p><strong></strong> ${rapport}</p>`);
-      // affecter le HTML final
-      card.innerHTML = parts.join("\n");
-      contenu.appendChild(card);
-    });
+        // --- Injection dans la carte ---
+        card.innerHTML = parts.join("\n");
+        card.prepend(titre); // ✅ ajoute le titre au début sans l'écraser
+        contenu.appendChild(card);
+      });
 
   } catch (err) {
     console.error("Erreur chargement historique :", err);
     contenu.innerHTML = "<p>❌ Erreur lors du chargement de l'historique.</p>";
   }
 }
+
 
 
 
