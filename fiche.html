@@ -353,59 +353,6 @@ button.danger:hover {
   background-color: #c82333;
 }
 	  
-/* 🧾 MODALE HISTORIQUE PLEIN ÉCRAN */
-#modalRawData.modal-overlay {
-  display: none;
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background-color: rgba(0, 0, 0, 0.6);
-  z-index: 2000;
-  justify-content: center;
-  align-items: center;
-}
-
-#modalRawData .modal {
-  width: 90%;
-  max-width: 800px;
-  max-height: 90vh;
-  overflow-y: auto;
-  background: #fff;
-  padding: 30px;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-}
-
-
-/* Bouton de fermeture (coin supérieur droit) */
-#closeRawData {
-  position: absolute;  
-  top: 10px;          
-  right: 10px;      
-  font-size: 28px;
-  color: #c62828;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  z-index: 5000;         
-  transition: transform 0.2s ease, color 0.2s ease;
-}
-
-/* En-tête de la modale */
-#modalRawData h2 {
-  color: #0078d4;
-  margin-top: 0;
-  text-align: center;
-  font-size: 1.8em;
-  border-bottom: 4px solid #0078d4;
-  padding-bottom: 10px;
-}
-
-
-
-#closeRawData:hover {
-  transform: scale(1.2);
-  color: #ff5252;
-}
 
 /* Cartes d’hospitalisation */
 #hospitalisationsContent {
@@ -1031,7 +978,7 @@ input:checked + .slider:before {
 
   <br><br>
   <button id="btnAdmin" class="btn-admin">🛠 Gestion Administrative</button>
-  <button id="btnVoirRawData">🧾 Historique des hospitalisations</button>
+
 	<button id="btnmailto">📧 Mailto - patient</button>
   <button id="btnVersPdf">📄 Création d'accès PDF patient</button>
 </div>
@@ -1115,19 +1062,18 @@ input:checked + .slider:before {
     <h3>📜 Historique</h3>    
   </div>
   
-    <h3>Historique de l'hospitalisation en cours</h3>
-    <div id="historique"></div>
- 
+  <h3>Historique de l'hospitalisation en cours</h3>
+  <div id="historique"></div>
+
+  <hr>
+  <h3>📊 Hospitalisations précédentes</h3>
+  <div id="hospitalisationsContent"></div>
 </div>
 
 
-
 <div id="tab-dossier" class="tab-content">
-  <div class="tab-header">
-    <h3>📋Dossier médical</h3>
- 
-  </div>
-  <h4> 🗂️ Admission et orientation</h4>
+  
+  <h3> 🗂️ Admission et orientation</h3>
   <label for="gravite" >🚨 Gravité</label>
   <select id="gravite"class="text2" >
     <option value="P0">P0</option>
@@ -1159,8 +1105,8 @@ input:checked + .slider:before {
 
     <br>
     <hr>
-  <br>
-    <h4>📋 Dossier Médical</h4>
+
+    <h3>📋 Dossier Médical</3>
 
       <label>Questionnaire IAO <button class="bouton-horloge" onclick="ajouterHorodatageDans('questionnaire')">⏰</button></label>
       <textarea id="questionnaire"></textarea>
@@ -1181,9 +1127,9 @@ input:checked + .slider:before {
      
     	<br>
   <hr>
-	<br>
+
   
-    <h4>📈 Évolution aux urgences <button class="bouton-horloge" onclick="ajouterHorodatageDans('evolutionTexte')">⏰</button></h4>
+    <h3>📈 Évolution aux urgences <button class="bouton-horloge" onclick="ajouterHorodatageDans('evolutionTexte')">⏰</button></h3>
     <textarea id="evolutionTexte"></textarea>
     <br>
     <button onclick="enregistrerEvolution()">💾 Enregistrer</button>
@@ -1349,7 +1295,7 @@ input:checked + .slider:before {
       <input type="text" id="champAutreSortie" placeholder="Précisez..." style="margin-top: 8px; display:none;" />
     </label>
 
-    <hr/>
+  
 
     <h3>Options supplémentaires</h3>
     <label><input type="checkbox" name="optionsSortie" value="Suivi a domicile" /> 📋 Suivi à domicile</label><br/>
@@ -1359,12 +1305,11 @@ input:checked + .slider:before {
       <input type="checkbox" name="optionsSortie" value="autreOption" /> 🔤 Autre option
       <input type="text" id="champAutreOption" placeholder="Précisez..." style="margin-top: 8px; display:none;" />
     </label>
-	<hr/>
+
 <h3>💊 Traitement de sortie</h3>
 <textarea id="champTraitementSortie"	 rows="3" style="width:100%; margin-bottom: 10px;"></textarea>
 
-    <hr/>
-
+  
     <div id="sortieListe"></div> 
     <div class="modal-buttons">
       <button id="btnAnnulerSortie">❌ Annuler</button>
@@ -1372,7 +1317,7 @@ input:checked + .slider:before {
     </div>
   <hr>
   <h4>📄 Documents</h4>
-	<br>
+
 <form class="vidal-search" action="https://www.vidal.fr/recherche.html" method="get" target="_blank">
   <input type="text" name="query" placeholder="Rechercher sur le Vidal">
   <button type="submit">Rechercher</button>
@@ -1392,15 +1337,6 @@ input:checked + .slider:before {
   <button id="btnVersPdf2">📄 Création d'accès PDF patient</button>
 
 
-<div id="modalRawData" class="modal-overlay">
-  <div class="modal">
-    <div class="modal-content">
-      <button id="closeRawData" title="Fermer la fenêtre">❌</button>
-      <h2>📊 Hospitalisations du patient</h2>
-      <div id="hospitalisationsContent"></div>
-    </div>
-  </div>
-</div>
 
 	
 
@@ -1587,6 +1523,9 @@ function openTab(tabId, event) {
   document.querySelectorAll(".tablink").forEach(btn => btn.classList.remove("active"));
   document.getElementById(tabId).style.display = "block";
   if (event) event.currentTarget.classList.add("active");
+   if (tabId === "tab-historique") {
+    chargerHospitalisations(patientId);
+  }
 }
 
 	
@@ -2929,35 +2868,7 @@ if (hospitalisations.length > 1) {
   }
 }
 // --- Lier le bouton d’ouverture de l’historique ---
-document.getElementById("btnVoirRawData").addEventListener("click", async () => {
-  document.getElementById("modalRawData").style.display = "flex";
-  await chargerHistoriqueComplet();
-});
 
-// --- Bouton fermeture modale ---
-// Quand on clique sur le bouton de fermeture
-document.getElementById("closeRawData").addEventListener("click", () => {
-  closeRawData();
-});
-
-// Fonction de fermeture
-async function closeRawData() {
-  document.getElementById("modalRawData").style.display = "none";
-}
-
-// Fonction d'ouverture (au cas où tu l’as déjà quelque part)
-function openRawData() {
-  document.getElementById("modalRawData").style.display = "block";
-}
-
-// Écoute de la touche "Échap"
-document.addEventListener("keydown", (event) => {
-  const modal = document.getElementById("modalRawData");
-  // Vérifie si la modale est visible et que la touche pressée est "Escape"
-  if (event.key === "Escape" && modal.style.display === "block") {
-    closeRawData();
-  }
-});
 const scopeCheckbox = document.getElementById("patientScopeCheckbox");
 
 scopeCheckbox.addEventListener("change", () => {
