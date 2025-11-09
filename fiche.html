@@ -1028,35 +1028,6 @@ input:checked + .slider:before {
   </label>
 </div>
 
-</div>
-  <label for="gravite" >🚨 Gravité</label>
-  <select id="gravite"class="text2" >
-    <option value="P0">P0</option>
-    <option value="P1">P1</option>
-    <option value="P2">P2</option>
-    <option value="P3">P3</option>
-    <option value="Urgences_Vitales">Urgences Vitales</option>
-    <option value="Administratif">Administratif</option>
-  </select>
-
-  <label for="service" >🏥 Service idéal</label>
-  <select id="service" class="text2"><option value="">Chargement...</option></select>
-<label for="circuit">🧭 Circuit particulier</label>
-<select id="circuit" class="text2">
-  <option value=""></option>
-  <option value="Pédiatrie">Pédiatrie</option>
-  <option value="Traumatologie">Traumatologie</option>
-  <option value="Gynécologie">Gynécologie</option>
-  <option value="Psychiatrie">Psychiatrie</option>
-  <option value="Ophtalmologie">Ophtalomologie</option>
-
-</select>
-
-  <label for="motif">🤕 Motif d'entrée</label>
-  <input type="text" id="motif" placeholder="Motif d'entrée" class="text2" />
-
-  <label for="moyen">🚑 Moyen d'entrée</label>
-  <input type="text" id="moyen" placeholder="Moyen d'entrée" class="text2" />
 
   <br><br>
   <button id="btnAdmin" class="btn-admin">🛠 Gestion Administrative</button>
@@ -1148,9 +1119,41 @@ input:checked + .slider:before {
 
 
 <div id="tab-dossier" class="tab-content">
-  <div class="tab-header">
+  <h3> 🗂️ Admission et orientation</h3>
+  <label for="gravite" >🚨 Gravité</label>
+  <select id="gravite"class="text2" >
+    <option value="P0">P0</option>
+    <option value="P1">P1</option>
+    <option value="P2">P2</option>
+    <option value="P3">P3</option>
+    <option value="Urgences_Vitales">Urgences Vitales</option>
+    <option value="Administratif">Administratif</option>
+  </select>
+
+  <label for="service" >🏥 Service idéal</label>
+  <select id="service" class="text2"><option value="">Chargement...</option></select>
+<label for="circuit">🧭 Circuit particulier</label>
+<select id="circuit" class="text2">
+  <option value=""></option>
+  <option value="Pédiatrie">Pédiatrie</option>
+  <option value="Traumatologie">Traumatologie</option>
+  <option value="Gynécologie">Gynécologie</option>
+  <option value="Psychiatrie">Psychiatrie</option>
+  <option value="Ophtalmologie">Ophtalomologie</option>
+
+</select>
+
+  <label for="motif">🤕 Motif d'entrée</label>
+  <input type="text" id="motif" placeholder="Motif d'entrée" class="text2" />
+
+  <label for="moyen">🚑 Moyen d'entrée</label>
+  <input type="text" id="moyen" placeholder="Moyen d'entrée" class="text2" />
+
+    <br>
+    <hr>
+  <br>
     <h3>📋 Dossier Médical</h3>
-  </div>
+
       <label>Questionnaire IAO <button class="bouton-horloge" onclick="ajouterHorodatageDans('questionnaire')">⏰</button></label>
       <textarea id="questionnaire"></textarea>
       <label>Antécédents <button class="bouton-horloge" onclick="ajouterHorodatageDans('antecedents')">⏰</button>
