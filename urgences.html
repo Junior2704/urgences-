@@ -10,6 +10,17 @@
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter&display=swap');
+/* ⭐ Étoile d’allergie importante */
+.allergie-star {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  color: red;
+  font-size: 18px;
+  font-weight: bold;
+  text-shadow: 0 0 3px white;
+  pointer-events: none;
+}
 
     body {
       font-family: 'Inter', sans-serif;
@@ -308,18 +319,6 @@
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
-/* ⭐ Étoile d’allergie importante */
-.allergie-star {
-  position: absolute;
-  top: -5px;
-  right: -5px;
-  color: red;
-  font-size: 18px;
-  font-weight: bold;
-  text-shadow: 0 0 3px white;
-}
-
-
   </style>
 </head>
 <body>
@@ -738,13 +737,7 @@ setTimeout(() => {
   div.draggable = true;
   div.ondblclick = () => window.location.href = `fiche.html?id=${id}`;
   div.textContent = nom[0].toUpperCase() + prenom[0].toUpperCase();
-// Étoile rouge si allergie(s) importantes
-if (patients[id].importanceAllergies === true) {
-  const star = document.createElement("span");
-  star.className = "allergie-star";
-  star.textContent = "★";
-  div.appendChild(star);
-}
+
 
   const couleurs = {
     P0: "#4CAF50",
@@ -756,7 +749,13 @@ if (patients[id].importanceAllergies === true) {
   };
 
   div.style.backgroundColor = couleurs[gravite] || "gray";
-
+// Étoile rouge si allergie(s) importantes
+if (patients[id].importanceAllergies === true) {
+  const star = document.createElement("span");
+  star.className = "allergie-star";
+  star.textContent = "★";
+  div.appendChild(star);
+}
   // Drag events
   div.addEventListener("dragstart", e => {
     e.dataTransfer.setData("id", id);
