@@ -530,17 +530,27 @@ main {
   cursor: pointer;
 }
 
-/* Modale Gestion Administrative plein écran */
+/* Overlay de la modale */
 #modalAdmin.modal-overlay {
-  display: none;
   position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
+  inset: 0; /* top:0; right:0; bottom:0; left:0; */
   background-color: rgba(0, 0, 0, 0.6);
-  z-index: 2000;
+  display: flex; /* garder le flex pour le centrage */
   justify-content: center;
   align-items: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease;
+  z-index: 2000;
 }
 
+/* Overlay visible */
+#modalAdmin.modal-overlay.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Modale elle-même */
 #modalAdmin .modal {
   width: 90%;
   max-width: 800px;
@@ -550,24 +560,19 @@ main {
   padding: 30px;
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+
+  /* Animation d'apparition fluide */
+  transform: scale(0.95);
+  opacity: 0;
+  transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
-.btn-admin {
-  background-color: #5cb85c; 
-  color: white;
-  border: none;
-  padding: 10px 16px;
-  font-size: 1rem;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+/* Modale visible */
+#modalAdmin.modal-overlay.show .modal {
+  transform: scale(1);
+  opacity: 1;
 }
 
-.btn-admin:hover {
-  background-color: #218838;
-  transform: translateY(-1px);
-}
 #modalCloture.modal-overlay {
   z-index: 3000; /* plus haut que #modalAdmin */
 }
@@ -2256,7 +2261,7 @@ btnValiderCode.addEventListener("click", async () => {
   
 
 document.getElementById("btnAdmin").addEventListener("click", () => {
-  document.getElementById("modalAdmin").style.display = "block";
+   modalAdmin.classList.add("show");
 });
 
 
@@ -2301,7 +2306,7 @@ document.getElementById("adminNaissance").value = data.dateNaissance || "";
     document.getElementById("adminAdresse").value = data.adresse || "";
     document.getElementById("adminTelephone").value = data.telephone || "";
     document.getElementById("adminEmail").value = data.email || "";
-    modalAdmin.style.display = "flex";
+ modalAdmin.classList.add("show");
   } catch (e) {
     console.error("Erreur ouverture admin :", e);
     afficherBulle("❌Erreur chargement gestion dministrative", "alerte");
@@ -2309,7 +2314,7 @@ document.getElementById("adminNaissance").value = data.dateNaissance || "";
 });
 
 btnFermerAdmin.addEventListener("click", () => {
-  modalAdmin.style.display = "none";
+  modalAdmin.classList.remove("show");
 });
 
 btnEnregistrerAdmin.addEventListener("click", async () => {
