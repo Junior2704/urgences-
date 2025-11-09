@@ -308,6 +308,16 @@
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+/* ⭐ Étoile d’allergie importante */
+.allergie-star {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  color: red;
+  font-size: 18px;
+  font-weight: bold;
+  text-shadow: 0 0 3px white;
+}
 
 
   </style>
@@ -728,6 +738,13 @@ setTimeout(() => {
   div.draggable = true;
   div.ondblclick = () => window.location.href = `fiche.html?id=${id}`;
   div.textContent = nom[0].toUpperCase() + prenom[0].toUpperCase();
+// Étoile rouge si allergie(s) importantes
+if (patients[id].importanceAllergies === true) {
+  const star = document.createElement("span");
+  star.className = "allergie-star";
+  star.textContent = "★";
+  div.appendChild(star);
+}
 
   const couleurs = {
     P0: "#4CAF50",
