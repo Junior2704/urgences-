@@ -1072,9 +1072,16 @@ input:checked + .slider:before {
   </div>
  <hr>
 <h3>Scope</h3>
-<label>
-  <input type="checkbox" id="patientScopeCheckbox"> Patient scopé
-</label>
+<h3>Scope</h3>
+<div style="margin-top:10px;">
+  <label>🔌 Patient scopé</label><br>
+  <label class="switch">
+    <input type="checkbox" id="patientScopeCheckbox">
+    <span class="slider"></span>
+  </label>
+</div>
+
+
 
 <div id="scopeFields" style="display:none; margin-top:10px;">
   <label for="scopeNum">Numéro de scope</label>
@@ -1651,6 +1658,8 @@ async function chargerPatient(patientId) {
     // Allergies
 document.getElementById("allergies").value = data.allergies || "aucun";
 document.getElementById("importanceAllergies").checked = data.importanceAllergies === true;
+
+
 
 
     // IMC
@@ -2938,6 +2947,12 @@ document.addEventListener("keydown", (event) => {
     closeRawData();
   }
 });
+const scopeCheckbox = document.getElementById("patientScopeCheckbox");
+
+scopeCheckbox.addEventListener("change", () => {
+  afficherBulle(scopeCheckbox.checked ? "🖥️ Patient scopé" : "📴 Patient non scopé", "administratif");
+});
+
 
 async function chargerExamens() {
   try {
