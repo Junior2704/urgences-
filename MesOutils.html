@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mes Outils</title>
+  <style>
+   body {
+  font-family: "Segoe UI", Roboto, sans-serif;
+  background: linear-gradient(135deg, #eef3ff, #d7e0ff);
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+}
+
+header {
+  background-color: #3b5bdb;
+  color: white;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  padding: 15px 20px;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+  position: relative;
+}
+
+header img {
+  height: 45px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 1.8rem;
+  letter-spacing: 0.5px;
+}
+
+.back-button {
+  position: absolute;
+  left: 20px;
+  background-color: #fff;
+  color: #3b5bdb;
+  border: 2px solid #3b5bdb;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.back-button:hover {
+  background-color: #3b5bdb;
+  color: white;
+  transform: translateY(-2px);
+}
+
+.back-button:active {
+  transform: scale(0.97);
+  background-color: #3249b0;
+  border-color: #3249b0;
+}
+
+/* Container responsive avec max 3 items par ligne */
+.container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 25px;
+  width: 90%;
+  max-width: 1200px;
+  margin: 40px auto;
+}
+
+/* Limiter à 3 items par ligne max */
+@media (min-width: 780px) {
+  .container {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.tool-card {
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  text-align: center;
+  padding: 25px;
+  transition: transform 0.25s ease, box-shadow 0.3s ease;
+}
+
+.tool-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
+.tool-card h2 {
+  color: #2f49b2;
+  margin-bottom: 15px;
+}
+
+.tool-card button {
+  background: linear-gradient(135deg, #3b5bdb, #4c6ef5);
+  color: white;
+  border: none;
+  padding: 12px 25px;
+  border-radius: 10px;
+  font-size: 1rem;
+  cursor: pointer;
+  font-weight: 500;
+  box-shadow: 0 4px 10px rgba(59,91,219,0.3);
+  transition: all 0.25s ease;
+}
+
+.tool-card button:hover {
+  background: linear-gradient(135deg, #4c6ef5, #5c7cfa);
+  box-shadow: 0 6px 15px rgba(59,91,219,0.35);
+  transform: translateY(-2px);
+}
+
+.tool-card button:active {
+  transform: scale(0.97);
+  background: linear-gradient(135deg, #3249b0, #3b5bdb);
+  box-shadow: 0 2px 5px rgba(59,91,219,0.25);
+}
+
+.description {
+  color: #555;
+  margin-top: 10px;
+  font-size: 0.9rem;
+}
+
+footer {
+  margin-top: auto;
+  padding: 15px;
+  text-align: center;
+  color: #777;
+  font-size: 0.9rem;
+}
+
+  </style>
+</head>
+<body>
+
+  <header>
+    <button class="back-button" onclick="history.back()">← Retour</button>
+    <img src="logo.jpg" alt="Logo">
+    <h1>Mes Outils</h1>
+  </header>
+    <div class="container">
+	
+	
+<div class="tool-card">
+      <h2>Patients</h2>
+      <button onclick="location.href='patients.html'">Ouvrir</button>
+      <p class="description">Accéder aux dossiers et comptes rendus des patients.</p>
+    </div>
+
+    <div class="tool-card">
+      <h2>Ordonnancier</h2>
+      <button onclick="location.href='Ordonnance.html'">Ouvrir</button>
+      <p class="description">Créer les ordonnances médicales des patients.(Pour pré-remplir les données du patient, passer par la fiche ou l'annuaire patients)</p>
+    </div>
+
+    <div class="tool-card">
+      <h2>Facturation</h2>
+      <button onclick="location.href='Facturation.html'">Ouvrir</button>
+      <p class="description">Établir les factures patients.(Pour pré-remplir les données du patient, passer par la fiche ou l'annuaire patients)</p>
+    </div>
+	
+<div class="tool-card">
+      <h2>Certificats Médicaux</h2>
+      <button onclick="location.href='Certificatmedical.html'">Ouvrir</button>
+      <p class="description">Rédiger les certificats médicaux rapidement.</p>
+    </div>
+	<div class="tool-card">
+      <h2>Mail To</h2>
+      <button onclick="location.href='mailto.html'">Ouvrir</button>
+      <p class="description">Ecrire un email à un patient</p>
+    </div>
+    <div class="tool-card">
+      <h2>Créations d'accès PDF patient</h2>
+      <button onclick="location.href='uploadpdf.html'">Ouvrir</button>
+      <p class="description">Créer un accès patient pour un PDF (lien) et/ou lui envoyer par email. (Pour pré-remplir les données du patient, passer par la fiche ou l'annuaire patients)</p>
+    </div>
+	
+    <div class="tool-card">
+      <h2>Mon compte</h2>
+      <button onclick="location.href='viewaccount.html'">Ouvrir</button>
+      <p class="description">Voir les données de mon compte (non-modifiables)</p>
+    </div>
+
+    
+
+  </div>
+
+  <footer>
+    © 2025 — GestUrg2 | Page “Mes Outils”
+  </footer>
+
+</body>
+</html>
