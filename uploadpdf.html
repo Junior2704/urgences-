@@ -310,6 +310,9 @@
     <div>
       <button id="btnLien">🔗 Créer un lien</button>
       <button id="btnEmail">📨 Envoyer par e-mail</button>
+	  <!-- Ajoute ce bouton à côté des autres boutons -->
+<button id="btnAnnuler">❌ Annuler l'upload</button>
+
       <button onclick="history.back()">⬅️ Retour</button>
     </div>
   </div>
@@ -371,44 +374,48 @@
 
 
   <script>
-    const patientId = new URLSearchParams(window.location.search).get("id");
+  // === Configuration Firebase ===
+  const firebaseConfig = {
+    apiKey: "AIzaSyBKp5-7NNy0Gyl0tNbDgD-BxucYdg8ArWo",
+    authDomain: "urgences-a8ed4.firebaseapp.com",
+    projectId: "urgences-a8ed4"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
 
-if (!patientId) {
-  afficherBulle("❌ID patient manquant dans l'URL", "alerte");
-  throw new Error("ID manquant");
-}
-    // === Configuration Firebase ===
-    const firebaseConfig = {
-      apiKey: "AIzaSyBKp5-7NNy0Gyl0tNbDgD-BxucYdg8ArWo",
-      authDomain: "urgences-a8ed4.firebaseapp.com",
-      projectId: "urgences-a8ed4"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-const patientRef = db.collection("patients").doc(patientId);
+  const patientId = new URLSearchParams(window.location.search).get("id");
+  let patientRef = null;
 
-    let pdfBase64 = "";
-    let lienPdf = "";
+  if (!patientId) {
+    afficherBulle("⚠️ Aucun ID patient fourni. Les emails ne seront pas pré-remplis.", "administratif");
+  } else {
+    patientRef = db.collection("patients").doc(patientId);
+  }
+
+  let pdfBase64 = "";
+  let lienPdf = "";
 
 async function chargerDepuisFirestore() {
+  if (!patientRef) return; // pas de patient -> ne fait rien
+
   const doc = await patientRef.get();
   if (!doc.exists) {
-    afficherBulle("❌Patient non trouvé","alerte");
+    afficherBulle("❌ Patient non trouvé", "alerte");
     return;
   }
+
   const data = doc.data();
   const index = data.hospitalisationIndex ?? 0;
   const hospi = data.hospitalisations?.[index] || {};
-const patientEmail = data.email || "";
+  const patientEmail = data.email || "";
   const sexe = data.sexe || '';
   const nom = data.nom || '';
   const prenom = data.prenom || '';
- 
-  const dateDebut=hospi.dateDebut || '';
+  const dateDebut = hospi.dateDebut || '';
   const motif = hospi.motif || '';
   const moyen = hospi.moyen || '';
   const adresse = data.adresse || '';
-window.patientData = data;
+  window.patientData = data;
 }
 let nomPdf = ""; // contiendra le nom du PDF choisi
 
@@ -423,7 +430,7 @@ function closeFileNameModal() {
 
 document.getElementById("pdfInput").addEventListener("change", async function(e) {
   const file = e.target.files[0];
-  if (!file) return alert("Veuillez sélectionner un fichier PDF.");
+  if (!file) return afficherBulle("Veuillez sélectionner un fichier PDF.","alerte");
 
   // Affiche le nom du fichier choisi
   document.getElementById("fileNameDisplay").textContent = file.name;
@@ -446,6 +453,8 @@ document.getElementById("btnValiderNom").addEventListener("click", () => {
   afficherBulle(`✅ Nom choisi : ${nomPdf}`, "administratif");
 });
 function openEmailSelectModal(emailsString) {
+	    if (!pdfBase64) return afficherBulle("Veuillez sélectionner un fichier PDF.","alerte");
+
   const modal = document.getElementById("emailSelectModal");
   const container = document.getElementById("emailCheckboxes");
   container.innerHTML = "";
@@ -466,6 +475,25 @@ function openEmailSelectModal(emailsString) {
 
   modal.style.display = "flex";
 }
+document.getElementById("btnAnnuler").addEventListener("click", () => {
+  // Réinitialiser l'input file
+  const pdfInput = document.getElementById("pdfInput");
+  pdfInput.value = ""; 
+
+  // Réinitialiser le nom affiché
+  document.getElementById("fileNameDisplay").textContent = "Aucun fichier sélectionné";
+
+  // Vider la variable base64
+  pdfBase64 = "";
+
+  // Supprimer le lien s'il a été généré
+  document.getElementById("linkContainer").innerHTML = "";
+
+  // Réinitialiser le nom du PDF
+  nomPdf = "";
+
+  afficherBulle("❌ Upload annulé", "alerte");
+});
 
 function closeEmailSelectModal() {
   document.getElementById("emailSelectModal").style.display = "none";
@@ -477,7 +505,8 @@ document.getElementById("otherEmailCheck").addEventListener("change", (e) => {
 
     // === Créer un lien temporaire (7 jours) ===
     document.getElementById("btnLien").addEventListener("click", async () => {
-      if (!pdfBase64) return alert("Veuillez d’abord charger un PDF.");
+	    if (!pdfBase64) return afficherBulle("Veuillez sélectionner un fichier PDF.","alerte");
+
       const id = Math.random().toString(36).substring(2, 10);
 
       await db.collection("liens_pdfs").doc(id).set({
@@ -492,14 +521,12 @@ document.getElementById("otherEmailCheck").addEventListener("change", (e) => {
     });
 
 document.getElementById("btnEmail").addEventListener("click", async () => {
-  if (!pdfBase64) return alert("Veuillez d’abord charger un PDF.");
-
-  const doc = await patientRef.get();
-  if (!doc.exists) return afficherBulle("❌ Patient introuvable", "alerte");
-
-  const data = doc.data();
-  const emails = data.email || "";
-  openEmailSelectModal(emails);
+  let emails = "";
+  if (patientRef) {
+    const doc = await patientRef.get();
+    if (doc.exists) emails = doc.data().email || "";
+  }
+  openEmailSelectModal(emails); // Si pas d'ID, emailsString sera vide -> modale vide
 });
 
     function closeModal() {
