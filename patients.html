@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Patients</title>
+<link rel="icon" type="image/jpeg" href="logo.jpg">
+<script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
+
+<style>
+body {
+  font-family: "Segoe UI", Tahoma, sans-serif;
+  background-color: #f4f6f8;
+  margin: 0;
+  padding: 40px 20px;
+}
+
+h1 {
+  color: #0078d4;
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+/* 🔍 Barre de recherche centrée */
+.search-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 25px;
+}
+
+.search-container input {
+  width: 60%;
+  padding: 12px 18px;
+  border-radius: 8px;
+  border: 2px solid #0078d4;
+  font-size: 16px;
+  outline: none;
+  transition: box-shadow 0.3s;
+}
+.search-container input:focus {
+  box-shadow: 0 0 8px rgba(0,120,212,0.3);
+}
+
+/* 📋 Liste des patients */
+#listePatients {
+  max-width: 700px;
+  margin: auto;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+  padding: 0;
+  overflow: hidden;
+}
+
+#listePatients li {
+  list-style: none;
+  padding: 15px 20px;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+#listePatients li:hover {
+  background: #e9f3fc;
+}
+#listePatients li strong {
+  color: #0078d4;
+}
+
+/* 🪟 Modale patient */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+
+
+
+.modal h3 {
+  color: #0078d4;
+  margin-top: 0;
+}
+label {
+  font-weight: 600;
+  margin-top: 10px;
+  display: block;
+}
+input, textarea, select {
+  width: 100%;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+}
+
+/* 📜 Historique détaillé identique à fiche.html */
+#hospitalisationsContent {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+#hospitalisationsContent .card {
+  background: #f9f9f9;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+  border-left: 8px solid #0078d4;
+}
+#hospitalisationsContent h2 {
+  color: #0078d4;
+  border-bottom: 3px solid #0078d4;
+  padding-bottom: 5px;
+  margin-top: 0;
+  margin-bottom: 15px;
+}
+#hospitalisationsContent h3 {
+  color: #0078d4;
+  margin-top: 10px;
+  margin-bottom: 8px;
+}
+#hospitalisationsContent p {
+  margin: 5px 0;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  color: #333;
+}
+#hospitalisationsContent .entry {
+  border-left: 4px solid #0078d4;
+  padding-left: 10px;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+
+button {
+  all: unset;
+  display: inline-block;
+  padding: 10px 16px;
+  border-radius: 8px;
+  background-color: #0078d4;
+  color: white;
+  cursor: pointer;
+  font-weight: 500;
+  margin-top: 15px;
+}
+button:hover { background-color: #005ea2; }
+button.secondary { background-color: #6c757d; }
+button.secondary:hover { background-color: #5a6268; }
+
+
+.modal {
+  position: relative; /* permet de positionner les éléments internes */
+  background: #fff;
+  padding: 25px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 900px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+
+/* ❌ Bouton de fermeture — en haut à droite */
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px; /* ✅ c’est cette ligne qui le met à droite */
+  left: auto !important; /* au cas où une règle précédente l'aurait placé à gauche */
+  background: none;
+  border: none;
+  font-size: 22px;
+  color: #666;
+  cursor: pointer;
+  transition: color 0.2s, transform 0.1s;
+}
+.close-btn:hover {
+  color: #0078d4;
+  transform: scale(1.2);
+}
+
+
+
+</style>
+</head>
+
+<body>
+<h1>Liste des patients</h1>
+
+<div class="search-container">
+  <input type="text" id="searchInput" placeholder="🔍 Rechercher un patient...">
+</div>
+
+<ul id="listePatients"></ul>
+
+<!-- 🪟 Modale patient -->
+<div class="modal-overlay" id="modalPatient">
+  <div class="modal">
+  <button class="close-btn" id="closeModalBtn">✖</button>
+
+    <h3>👤 Informations administratives</h3>
+    <input type="hidden" id="modalId">
+
+    <label>Nom</label><input id="modalNom" type="text">
+    <label>Prénom</label><input id="modalPrenom" type="text">
+    <label>Sexe</label>
+    <select id="modalSexe">
+      <option value="">--</option>
+      <option value="M">M</option>
+      <option value="Mme">Mme</option>
+      <option value="L'enfant">L'enfant</option>
+    </select>
+    <label>Date de naissance</label><input id="modalNaissance" type="date">
+    <label>Adresse</label><input id="modalAdresse" type="text">
+    <label>Téléphone</label><input id="modalTelephone" type="text">
+    <label>Email</label><input id="modalEmail" type="text">
+<div style="text-align:right;">
+  
+      <button id="btnEnregistrer">💾 Enregistrer</button>
+    </div>
+    <h3>📜 Historique des hospitalisations</h3>
+    <div id="hospitalisationsContent"></div>
+
+    
+  </div>
+</div>
+
+<script>
+// === CONFIG FIREBASE ===
+const firebaseConfig = {
+  apiKey: "AIzaSyBKp5-7NNy0Gyl0tNbDgD-BxucYdg8ArWo",
+  authDomain: "urgences-a8ed4.firebaseapp.com",
+  projectId: "urgences-a8ed4",
+  storageBucket: "urgences-a8ed4.appspot.com",
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// === VARIABLES ===
+const liste = document.getElementById("listePatients");
+const searchInput = document.getElementById("searchInput");
+let patients = [];
+
+// === CHARGEMENT ===
+async function chargerPatients() {
+  const snap = await db.collection("patients").orderBy("nom").get();
+  patients = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  afficherPatients(patients);
+}
+
+function afficherPatients(data) {
+  liste.innerHTML = "";
+  if (data.length === 0) {
+    liste.innerHTML = "<li>Aucun patient trouvé.</li>";
+    return;
+  }
+  data.forEach(p => {
+    const li = document.createElement("li");
+    li.innerHTML = `<strong>${p.nom || "?"} ${p.prenom || ""}</strong><br>
+    Sexe : ${p.sexe || "-"} &nbsp; | &nbsp; 📅 ${p.dateNaissance || "?"}`;
+    li.ondblclick = () => ouvrirModale(p.id);
+    liste.appendChild(li);
+  });
+}
+
+// === RECHERCHE ===
+searchInput.addEventListener("input", e => {
+  const val = e.target.value.toLowerCase();
+  const filtrés = patients.filter(p =>
+    (p.nom && p.nom.toLowerCase().includes(val)) ||
+    (p.prenom && p.prenom.toLowerCase().includes(val))
+  );
+  afficherPatients(filtrés);
+});
+document.getElementById("closeModalBtn").onclick = () => modal.style.display = "none";
+
+// === MODALE ===
+const modal = document.getElementById("modalPatient");
+
+async function ouvrirModale(id) {
+  const doc = await db.collection("patients").doc(id).get();
+  if (!doc.exists) return alert("Patient introuvable");
+  const data = doc.data();
+
+  document.getElementById("modalId").value = id;
+  document.getElementById("modalNom").value = data.nom || "";
+  document.getElementById("modalPrenom").value = data.prenom || "";
+  document.getElementById("modalSexe").value = data.sexe || "";
+  document.getElementById("modalNaissance").value = data.dateNaissance || "";
+  document.getElementById("modalAdresse").value = data.adresse || "";
+  document.getElementById("modalTelephone").value = data.telephone || "";
+  document.getElementById("modalEmail").value = data.email || "";
+
+  await chargerHistoriqueComplet(id);
+  modal.style.display = "flex";
+}
+
+
+document.getElementById("btnEnregistrer").onclick = async () => {
+  const id = document.getElementById("modalId").value;
+  const maj = {
+    nom: document.getElementById("modalNom").value.trim(),
+    prenom: document.getElementById("modalPrenom").value.trim(),
+    sexe: document.getElementById("modalSexe").value,
+    dateNaissance: document.getElementById("modalNaissance").value,
+    adresse: document.getElementById("modalAdresse").value.trim(),
+    telephone: document.getElementById("modalTelephone").value.trim(),
+    email: document.getElementById("modalEmail").value.trim(),
+  };
+  await db.collection("patients").doc(id).update(maj);
+  alert("✅ Données mises à jour !");
+  modal.style.display = "none";
+  chargerPatients();
+};
+
+// === HISTORIQUE (identique à fiche.html) ===
+async function chargerHistoriqueComplet(patientId) {
+  const contenu = document.getElementById("hospitalisationsContent");
+  contenu.innerHTML = "<p>⏳ Chargement...</p>";
+
+  try {
+    const patientDoc = await db.collection("patients").doc(patientId).get();
+    if (!patientDoc.exists) {
+      contenu.innerHTML = "<p>❌ Patient introuvable</p>";
+      return;
+    }
+
+    const data = patientDoc.data();
+    let hospitalisations = Array.isArray(data.hospitalisations) ? data.hospitalisations : [];
+
+    if (hospitalisations.length > 1) {
+      hospitalisations = hospitalisations.slice(0, -1);
+    } else {
+      hospitalisations = [];
+    }
+
+    if (hospitalisations.length === 0) {
+      contenu.innerHTML = "<p>Aucune hospitalisation antérieure.</p>";
+      return;
+    }
+
+    contenu.innerHTML = "";
+
+    hospitalisations.slice().reverse().forEach((hospi, idx) => {
+      const card = document.createElement("div");
+      card.className = "card";
+      const numero = hospitalisations.length - idx;
+
+      const titre = document.createElement("h2");
+      titre.textContent = `🏥 Hospitalisation n°${numero}`;
+      card.appendChild(titre);
+
+      const date = hospi.dateDebut || "Date inconnue";
+      const datef = hospi.dateFin || "Date inconnue";
+      const motif = hospi.motif || "—";
+      const gravite = hospi.gravite || "—";
+      const evolution = hospi.evolution || "Aucune évolution enregistrée.";
+      const dossier = hospi.dossierMedical || {};
+      const sortie = hospi.sortie || null;
+      const rapport = hospi.rapport || "Pas de rapport d'hospitalisation validé";
+
+      const html = [];
+      html.push(`<div class="entry"><strong>📅 Admission :</strong> ${date}</div>`);
+      html.push(`<div class="entry"><strong>📅 Sortie :</strong> ${datef}</div>`);
+      html.push(`<div class="entry"><strong>Motif :</strong> ${motif}</div>`);
+      html.push(`<div class="entry"><strong>Gravité :</strong> ${gravite}</div>`);
+      html.push(`<hr>`);
+      html.push(`<h3>📋 Dossier médical</h3>`);
+      html.push(`<p><strong>Questionnaire IAO :</strong><br>${dossier.questionnaire || "—"}</p>`);
+      html.push(`<p><strong>Antécédents :</strong><br>${dossier.antecedents || "—"}</p>`);
+      html.push(`<p><strong>Traitements :</strong><br>${dossier.traitements || "—"}</p>`);
+      html.push(`<p><strong>Histoire de la maladie :</strong><br>${dossier.histoire || "—"}</p>`);
+      html.push(`<p><strong>CR Auscultation :</strong><br>${dossier.auscultation || "—"}</p>`);
+      html.push(`<hr>`);
+      html.push(`<h3>📈 Évolution aux urgences</h3>`);
+      html.push(`<p>${evolution}</p>`);
+
+      if (sortie) {
+        html.push(`<hr><h3>🚪 Sortie</h3>`);
+        html.push(`<p><strong>Type :</strong> ${sortie.type || "—"}</p>`);
+        if (sortie.serviceHospitalisation)
+          html.push(`<p><strong>🏥 Service hospitalisation :</strong> ${sortie.serviceHospitalisation}</p>`);
+        if (sortie.destinationTransfert)
+          html.push(`<p><strong>↔️ Destination transfert :</strong> ${sortie.destinationTransfert}</p>`);
+        if (sortie.avisSpecialiste)
+          html.push(`<p><strong>👩‍⚕️ Avis spécialiste :</strong> ${sortie.avisSpecialiste}</p>`);
+        if (Array.isArray(sortie.options) && sortie.options.length > 0)
+          html.push(`<p><strong>📋 Options :</strong> ${sortie.options.join(", ")}</p>`);
+        if (sortie.traitementSortie)
+          html.push(`<p><strong>💊 Traitement de sortie :</strong><br>${sortie.traitementSortie}</p>`);
+        if (sortie.autreSortieTexte)
+          html.push(`<p><strong>🔤 Autre :</strong> ${sortie.autreSortieTexte}</p>`);
+        if (sortie.autreOptionTexte)
+          html.push(`<p><strong>🔤 Autre option :</strong> ${sortie.autreOptionTexte}</p>`);
+      }
+
+      html.push(`<p>${rapport}</p>`);
+      card.innerHTML += html.join("\n");
+      contenu.appendChild(card);
+    });
+  } catch (err) {
+    console.error("Erreur chargement historique :", err);
+    contenu.innerHTML = "<p>❌ Erreur lors du chargement de l'historique.</p>";
+  }
+}
+
+// Init
+chargerPatients();
+</script>
+</body>
+</html>
