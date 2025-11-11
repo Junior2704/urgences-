@@ -320,11 +320,12 @@
   to { transform: rotate(360deg); }
 }
 footer {
-  margin-top: auto;
+  margin-top: auto; /* pousse le footer en bas */
   padding: 15px;
-  text-align: center;
+  text-align: center; /* centre le texte à l'intérieur */
   color: #777;
   font-size: 0.9rem;
+  width: 100%; /* assure que le footer prend toute la largeur */
 }
   </style>
 </head>
@@ -479,7 +480,7 @@ Connecté en tant que <b><span id="nom-medecin"></span></b> (<span id="specialit
     <div style="font-size:18px; font-weight:600;">Lecture Carte Vitale en cours...</div>
   </div>
 </div>
-
+<footer> © 2025 — GestUrg2 | Urgences </footer>
 <style>
 .spinner {
   border: 6px solid #f3f3f3;
@@ -495,7 +496,7 @@ Connecté en tant que <b><span id="nom-medecin"></span></b> (<span id="specialit
   100% { transform: rotate(360deg); }
 }
 </style>
-<footer> © 2025 — GestUrg2 | Urgences </footer>
+
 <script>
 
   const firebaseConfig = {
