@@ -646,7 +646,12 @@
 </style>
 
 		<h1>💊 Ordonnancier Médical</h1>
-      <button id="btnUrgences" style="background-color:#e74c3c;">↩️ Retour Urgences</button>
+      <button 
+  onclick="history.back()" 
+  class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition">
+  ⬅️ Retour
+</button>
+
 		<button id="new-prescription-btn" onclick="resetOrdonnance()">❌ Réinitialiser</button>
 
 		<!-- Formulaire du patient -->
@@ -16936,9 +16941,6 @@ async function genererOrdo(telecharger = false) {
 
 
 
-document.getElementById("btnUrgences").addEventListener("click", () => {
-  window.location.href = "urgences.html?id=QhwMJ0mjmUnS8MTNBCFU";
-});
 
 
 

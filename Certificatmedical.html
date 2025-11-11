@@ -63,7 +63,12 @@
         <form id="patientForm">
 
           <div class="d-flex justify-content-between mb-4">
-      <button id="btnUrgences" style="background-color:#e74c3c;">↩️ Retour Urgences</button>
+      <button 
+  onclick="history.back()" 
+  class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition">
+  ⬅️ Retour
+</button>
+
             <button type="button" class="btn btn-outline-danger" onclick="reinitialiserForm()">❌ Réinitialiser</button>
           </div>
 
@@ -299,9 +304,7 @@ doc.text(window.medecinSpecialite || "[Spécialité]", 20, 38);
     }, 3000);
   }
   
-  document.getElementById("btnUrgences").addEventListener("click", () => {
-  window.location.href = "urgences.html?id=QhwMJ0mjmUnS8MTNBCFU";
-});
+
   </script>
   <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
