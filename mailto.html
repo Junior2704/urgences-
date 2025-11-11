@@ -147,11 +147,36 @@
     }
     .administratif { background: #2196F3; }
     .alerte { background: #f44336; }
+    .back-button {
+      display: block;
+      margin: 0 auto 40px;
+      background-color: #3182ce;
+      color: #fff;
+      font-weight: 600;
+      font-size: 1rem;
+      padding: 12px 28px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(49, 130, 206, 0.4);
+      transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
+    }
+
+    .back-button:hover {
+      background-color: #2b6cb0;
+      box-shadow: 0 6px 16px rgba(44, 82, 130, 0.6);
+      transform: translateY(-2px);
+    }
+
+    .back-button:active {
+      transform: translateY(1px);
+    }
   </style>
 </head>
 <body>
   <div class="search-container" id="searchContainer">
     <h2>🔍 Rechercher un patient</h2>
+     <button class="back-button" onclick="history.back()">⬅️ Retour</button>
     <input type="text" id="searchInput" placeholder="Nom ou prénom..." />
     <ul id="results"></ul>
   </div>

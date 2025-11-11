@@ -6,6 +6,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>🧪 Prescripteur d'Examens</title>
+  <link rel="icon" type="image/jpeg" href="logo.jpg">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet" />
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
@@ -153,12 +154,38 @@
         transform: translateX(-20px);
       }
     }
+
+       .back-button {
+      display: block;
+      margin: 0 auto 40px;
+      background-color: #3182ce;
+      color: #fff;
+      font-weight: 600;
+      font-size: 1rem;
+      padding: 12px 28px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(49, 130, 206, 0.4);
+      transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
+    }
+
+    .back-button:hover {
+      background-color: #2b6cb0;
+      box-shadow: 0 6px 16px rgba(44, 82, 130, 0.6);
+      transform: translateY(-2px);
+    }
+
+    .back-button:active {
+      transform: translateY(1px);
+    }
   </style>
 
 </head>
 <body>
 <div class="container">
   <h1>🧪 Prescripteur d'Examens</h1>
+   <button class="back-button" onclick="history.back()">⬅️ Retour</button>
   <div class="form-group">
     <label>Prénom</label>
     <input type="text" id="patient-first-name" oninput="updateOrdonnance()">
