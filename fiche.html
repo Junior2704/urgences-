@@ -10,10 +10,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
   <style>
-	#dossierMedical input[type="text"], 
-#dossierMedical input[type="number"] {
-  width: 100%;   /* occupe toute la largeur */
-}
+
 .bouton-ancienne {
   all: unset;
   cursor: pointer;
@@ -121,9 +118,7 @@
   margin-bottom: 8px;
 }
 
-.tab-content .card,
-#historique,
-#dossierMedical,
+
 #examensListe,
 #actesListe {
   max-width: none !important;  /* supprime la limite de largeur */
@@ -132,19 +127,49 @@
 
 
 
-#dossierMedical textarea,
-#tab-dossier textarea,
-#evolutionTexte {
-  border-radius: 10px;
-  border: 1px solid #ccc;
-  padding: 8px 12px;
+textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px;
+  font-family: inherit;
+  font-size: 14px;
+  resize: vertical;       /* permet de redimensionner verticalement */
+  border: 1px solid #ccc; /* bord fin et gris */
+  border-radius: 6px;     /* coins arrondis */
+  background-color: #fff; /* fond blanc */
 }
 
-#tab-dossier textarea {
-  width: 100% !important;
-  box-sizing: border-box;
-  min-height: 120px;
+/* Hauteur spécifique par champ */
+#questionnaire {
+  height: 150px;
+  resize: vertical;
 }
+
+#antecedents {
+ height: 150px;
+  resize: vertical;
+}
+
+#traitements {
+ height: 150px;
+  resize: vertical;
+}
+
+#histoire {
+   height: 300px;
+  resize: vertical;
+}
+#auscultation {
+  height: 300px;
+  resize: vertical;
+}
+
+
+#evolutionTexte {
+   height: 500px;
+  resize: vertical;
+}
+
 
 #tab-dossier .card {
   max-width: none !important;
@@ -232,29 +257,89 @@
       flex: 1;
       min-width: 150px;
     }
-    .
-    #historique {
-      max-width: 600px;
-      background: #fff;
-      border-radius: 10px;
-      box-shadow: 0 3px 8px rgba(0,0,0,0.1);
-      padding: 15px;
-      max-height: 250px;
-      overflow: visible;
-    }
-    .entry {
-      border-left: 4px solid #0078d4;
-      padding-left: 10px;
-      margin-bottom: 12px;
-      font-size: 14px;
-      color: #444;
-    }
-    .entry strong {
-      display: block;
-      font-weight: 700;
-      margin-bottom: 3px;
-      color: #0078d4;
-    }
+  section.panel {
+  display: none;
+  position: relative;
+  width: 100%;
+  height: auto;
+  z-index: 0;
+  overflow: visible; /* ✅ important pour éviter l’apparition d’un scroll interne */
+}
+
+section.panel.active {
+  display: block;
+  z-index: 1;
+}
+  
+/* --- Correction complète pour les cartes de l'historique --- */
+
+/* === Correction finale : cartes d'historique adaptatives === */
+
+#panel-historique,
+#hospitalisationsContent {
+  position: relative;
+  width: 100%;
+  overflow: visible;
+}
+
+
+#hospitalisationsContent .card {
+  display: block !important;     /* empêche flex ou grid de les forcer */
+  height: auto !important;       /* s’adapte au contenu */
+  min-height: unset !important;  /* supprime toute hauteur minimale forcée */
+  flex: none !important;         /* évite flex-grow/shrink */
+  align-self: auto !important;   /* empêche le stretch */
+  width: 100% !important;
+  max-width: none !important;
+  box-sizing: border-box;
+  background: #f9f9f9;
+  border-left: 6px solid #0078d4;
+  border-radius: 8px;
+  padding: 15px 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  overflow: visible !important;  /* grandit selon le contenu */
+  word-wrap: break-word;
+  white-space: normal;
+}
+
+
+/* Chaque hospitalisation (carte) */
+#hospitalisationsContent .card {
+  width: 100% !important;         /* prend toute la largeur */
+  max-width: none !important;     /* désactive les limites globales */
+  box-sizing: border-box;
+  background: #f9f9f9;
+  border-left: 6px solid #0078d4;
+  border-radius: 8px;
+  padding: 15px 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  overflow: visible !important;   /* s’adapte au contenu long */
+  word-wrap: break-word;          /* évite les dépassements horizontaux */
+  white-space: normal;            /* le texte revient bien à la ligne */
+}
+
+/* Titre à l’intérieur des cartes */
+#hospitalisationsContent .card h2 {
+  margin-top: 0;
+  color: #0078d4;
+  border-bottom: 3px solid #0078d4;
+  padding-bottom: 5px;
+  margin-bottom: 15px;
+}
+
+/* Paragraphes et sections internes */
+#hospitalisationsContent .card p,
+#hospitalisationsContent .card div,
+#hospitalisationsContent .card h3 {
+  max-width: 100%;
+  overflow: visible;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+
     .modal-overlay {
       position: fixed;
       top:0; left:0; right:0; bottom:0;
@@ -421,16 +506,12 @@ button.danger:hover {
   background-color: #ccc;
 }
 
+/* === Structure principale === */
 html, body {
   margin: 0;
   padding: 0;
-  height: 100vh;
-
-}
-
-body {
-  display: block;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  height: 100%;
+  overflow: hidden; /* 🔒 pas de scroll global sur le body */
 }
 
 main {
@@ -597,26 +678,7 @@ main {
   padding: 25px;
 }
 
-#dossierMedical {
-  max-height: 300px;
-  overflow-y: auto;
-}
 
-#dossierMedical .contenu-dossier-medical {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-#dossierMedical textarea {
-  resize: vertical;
-  min-height: 60px;
-}
-#evolutionTexte {
-width: 100%;
-  box-sizing: border-box;
-  min-height: 500px;
-  resize: vertical;
-}
 input[type="text"],
 input[type="date"],
 select {
@@ -906,7 +968,67 @@ footer {
   color: #777;
   font-size: 0.9rem;
 }
+.app {
+  display: flex;
+  height: calc(100vh - 80px);
+}
 
+nav {
+  width: 260px;
+  background: #fff;
+  border-right: 1px solid #e0e0e0;
+  padding: 15px;
+  overflow-y: auto;
+}
+
+.nav-title {
+  font-weight: bold;
+  color: #0078d4;
+  margin-bottom: 10px;
+}
+
+.nav-item {
+  padding: 10px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #333;
+  transition: background 0.2s, transform 0.1s;
+  margin-bottom: 6px;
+}
+
+.nav-item:hover {
+  background: #eef6ff;
+  transform: translateX(3px);
+}
+
+.nav-item.active {
+  background: linear-gradient(90deg, #eaf4ff, #fff);
+  border-left: 4px solid #0078d4;
+  color: #0078d4;
+  font-weight: bold;
+}
+
+.content {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.panel {
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+  padding: 20px;
+  margin-bottom: 25px;
+}
+/* ✅ Correction finale : cartes de l’historique auto-hauteur sans scroll */
+#hospitalisationsContent .card {
+  flex: none !important;       /* ne s'étire pas avec flexbox */
+  height: auto !important;     /* s’adapte à la taille du texte */
+  max-height: none !important; /* supprime la limite de hauteur */
+  overflow: visible !important;/* pas de scrollbar interne */
+}
+.
   </style>
 
 
@@ -934,24 +1056,32 @@ footer {
 	  <button class="close-tab" onclick="window.location.href='urgences.html'">❌</button>
   </div>
 </header>
+<div class="app">
 
-<main>
-<div id="contenu"></div>
-<div class="tabs">
-  <button class="tablink active" onclick="openTab('tab-patient', event)">👤 Identité Patient</button>
-  <button class="tablink" onclick="openTab('tab-constantes', event)">🩺 Constantes</button>
-  <button class="tablink" onclick="openTab('tab-historique', event)">📜 Historique</button>
-  <button class="tablink" onclick="openTab('tab-dossier', event)">📋 Dossier Médical</button>
-  <button class="tablink" onclick="openTab('tab-exam-actes', event)">💉 Actes / Examens</button>
-  <button class="tablink" onclick="openTab('tab-sortie-docs', event)">🚪 Sortie / Documents</button>
-</div>
 
-	
-<div id="tab-patient" class="tab-content" style="display:block;">
-  <div class="tab-header">
+ <nav>
+    <div class="nav-title">Patient</div>
+    <div id="navItems">
+      <div class="nav-item active" data-module="patient">👤 Identité Patient</div>
+	  <div class="nav-item" data-module="admission">🗂️ Admission et orientation</div>
+      <div class="nav-item" data-module="constantes">🩺 Constantes</div>
+      <div class="nav-item" data-module="dossier">📋 Dossier Médical</div>
+      <div class="nav-item" data-module="actes">💉 Actes</div>
+	        <div class="nav-item" data-module="examens">🩻 Examens</div>
+
+      <div class="nav-item" data-module="sortie">🚪 Sortie</div>
+	  <div class="nav-item" data-module="documents">📑 Documents</div>
+
+      <div class="nav-item" data-module="historique">📜 Historique</div>
+    </div>
+  </nav>
+
+<div class="content">	
+<section id="panel-patient" class="panel" style="display:none;">
+ 
     <h3>👤 Identité patient</h3>
     
-  </div>
+ 
   <div>
   <label>CIP (Code d'Identification Patient)</label>
   <span id="idPatient"></span>
@@ -993,15 +1123,15 @@ footer {
 	<button id="btnmailto">📧 Mailto - patient</button>
   <button id="btnVersPdf">📄 Création d'accès PDF patient</button>
 </div>
+</section>
 
-</div>
 
 
-<div id="tab-constantes" class="tab-content">
-  <div class="tab-header">
+<section id="panel-constantes" class="panel" style="display:none;">
+  
     <h3>🩺 Constantes</h3>
  
-  </div>
+
 
 <h4>Scope</h4>
 
@@ -1065,20 +1195,20 @@ footer {
 		<br>
     <button id="btnSavePoids">💾 Enregistrer poids/taille/IMC</button>
   
-</div>
+</section>
 
 
-<div id="tab-historique" class="tab-content">
-  <div class="tab-header">
+<section id="panel-historique" class="panel" style="display:none;">
+
     <h3>📜 Historique</h3>    
-  </div>
+
   
 
   <div id="hospitalisationsContent"></div>
-</div>
+</section>
 
 
-<div id="tab-dossier" class="tab-content">
+<section id="panel-admission" class="panel" style="display:none;">
   
   <h3> 🗂️ Admission et orientation</h3>
   <label for="gravite" >🚨 Gravité</label>
@@ -1110,8 +1240,8 @@ footer {
   <label for="moyen">🚑 Moyen d'entrée</label>
   <input type="text" id="moyen" placeholder="Moyen d'entrée" class="text2" />
 
-    <br>
-    <hr>
+    </section>
+<section id="panel-dossier" class="panel" style="display:none;">
 
     <h3>📋 Dossier Médical</3>
 
@@ -1125,8 +1255,10 @@ footer {
 	  <button class="bouton-ancienne" onclick="remplirDepuisAncienneHospi('traitements')">📂</button>
 </label>
       <textarea id="traitements" ></textarea>
+	  
       <label>Histoire de la maladie <button class="bouton-horloge" onclick="ajouterHorodatageDans('histoire')">⏰</button></label>
-      <textarea id="histoire" style=></textarea>
+      <textarea id="histoire" ></textarea>
+	  
       <label>CR Auscultation Init.<button class="bouton-horloge" onclick="ajouterHorodatageDans('auscultation')">⏰</button></label>
       <textarea id="auscultation"></textarea>
 	<br>
@@ -1141,24 +1273,13 @@ footer {
     <br>
     <button onclick="enregistrerEvolution()">💾 Enregistrer</button>
  
-</div>
+</section>
 
 
-<div id="tab-exam-actes" class="tab-content">
-  <div class="tab-header">
-    <h3>☢️ Examens & 💉 Actes</h3>
-   
-  </div>
-  <h4>📋 Examens</h4>
-	<label>Examens demandés / réalisés</label>
-<div id="examensListe" class="mt-2 p-2 border rounded bg-gray-50"></div>
-  <button id="btnOuvrirModaleDemande" style="margin-top:10px;">➕ Nouvelle demande d’examen</button>
- 
-  
-	<br>
-  <hr>
-	
-  <h4>💉 Actes</h4>
+<section id="panel-actes" class="panel" style="display:none;">
+
+    <h3>💉 Actes</h3>
+
   <label>Type d’acte</label>
   <input type="text" id="rechercherActe" placeholder="Rechercher un acte..." autocomplete="off" />
   <ul id="suggestionsActes"></ul>
@@ -1173,8 +1294,19 @@ footer {
     <button id="btnFermerActe">❌ Annuler</button>
     <button id="btnEnregistrerActe" class="success">✔️ Enregistrer</button>
   </div>
-</div>
+</section>
+<section id="panel-examens" class="panel" style="display:none;">
 
+    <h3>☢️ Examens</h3>
+   
+ 
+  
+	<label>Examens demandés / réalisés</label>
+<div id="examensListe" class="mt-2 p-2 border rounded bg-gray-50">Aucun éxamen enregistré</div>
+  <button id="btnOuvrirModaleDemande" style="margin-top:10px;">➕ Nouvelle demande d’examen</button>
+ 
+  
+</section>
 
 
 <div class="modal-overlay" id="modalExamen" style="display:none;">
@@ -1287,11 +1419,11 @@ footer {
       <button id="btnSaveExamen">✅ Valider</button>
     </div>
 </div>
-<div id="tab-sortie-docs" class="tab-content">
-  <div class="tab-header">
-    <h3>🚪 Sortie & 📄 Documents</h3>
+<section id="panel-sortie" class="panel" style="display:none;">
+  
+    <h3>🚪 Sortie</h3>
 
-  </div>
+
 <h3>Type de sortie</h3>
     <label><input type="radio" name="typeSortie" value="Retour à domicile" /> 🏡 Domicile</label><br/>
     <label><input type="radio" name="typeSortie" value="Hospitalisation" /> 🏥 Hospitalisation</label><br/>
@@ -1322,8 +1454,13 @@ footer {
       <button id="btnAnnulerSortie">❌ Annuler</button>
       <button id="btnValiderSortie">✅ Valider</button>
     </div>
-  <hr>
-  <h4>📄 Documents</h4>
+
+  
+</section>
+
+<section id="panel-documents" class="panel" style="display:none;">
+  
+    <h3>📑 Documents</h3>
 
 <form class="vidal-search" action="https://www.vidal.fr/recherche.html" method="get" target="_blank">
   <input type="text" name="query" placeholder="Rechercher sur le Vidal">
@@ -1342,12 +1479,9 @@ footer {
   <button id="btnVersFiches">📄 Fiches Conseils</button>
 	<br><br>
   <button id="btnVersPdf2">📄 Création d'accès PDF patient</button>
-<br><br>
-  <button id="btnVersEti">📄 Etiquettes patient</button>
+</section>
 
 
-
-	
 
 
 <!-- Modal Clôture -->
@@ -1494,6 +1628,9 @@ footer {
   </div>
 </div>
 <footer> © 2025 — GestUrg2 | Fiche Patient  </footer>
+
+ </div>
+</div>
 <script>
    const firebaseConfig = {
     apiKey: "AIzaSyBKp5-7NNy0Gyl0tNbDgD-BxucYdg8ArWo",
@@ -1593,8 +1730,22 @@ let containerDynamique = document.getElementById("optionsSpecifiques");
 if (!containerDynamique) {
   containerDynamique = document.createElement("div");
   containerDynamique.id = "optionsSpecifiques";
-  document.querySelector("#tab-sortie-docs").insertBefore(containerDynamique, sortieListe);
+
+  // On récupère la référence de l'élément #sortieListe dans le panel Sortie
+  const sortieListe = document.getElementById("sortieListe");
+
+  if (sortieListe) {
+    // On insère containerDynamique avant sortieListe
+    sortieListe.parentNode.insertBefore(containerDynamique, sortieListe);
+  } else {
+    // Fallback : si #sortieListe n'existe pas, on ajoute à la fin du panel
+    const panelSortie = document.getElementById("panel-sortie");
+    if (panelSortie) {
+      panelSortie.appendChild(containerDynamique);
+    }
+  }
 }
+
 async function chargerPatient(patientId) {
   afficherLoader();
   try {
@@ -2294,9 +2445,6 @@ document.getElementById("btnVersPdf2").addEventListener("click", () => {
   });
 document.getElementById("btnmailto").addEventListener("click", () => {
     window.location.href =`mailto.html?id=${patientId}`;
-  });
-  document.getElementById("btnVersEti").addEventListener("click", () => {
-    window.location.href =`etiquettes.html?id=${patientId}`;
   });
 
 // Gestion Administrative
@@ -3151,239 +3299,48 @@ console.log("Script terminé correctement ✅");
   let medecinSpecialite = "";
   let medecinLieu = "";
 
-  onAuthStateChanged(auth, async (user) => {
-  if (!user) {
-    window.location.href = "index.html";
-  } else {
-    try {
-      const docRef = doc(db, "medecins", user.uid);
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        medecinNom = data.nom || "";
-        medecinSpecialite = data.specialite || "";
-        medecinLieu = data.lieu || "";
+function initNavigation() {
+  const items = document.querySelectorAll('.nav-item');
+  
+  items.forEach(item => {
+    item.addEventListener('click', () => {
+      // Désactiver tous les autres onglets
+      items.forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+      
+      // Cacher toutes les sections
+      document.querySelectorAll('section[id^="panel-"]').forEach(sec => {
+        sec.style.display = 'none';
+      });
 
-        // Met à jour aussi les variables globales sur window
-        window.medecinNom = medecinNom;
-        window.medecinSpecialite = medecinSpecialite;
-        window.medecinLieu = medecinLieu;
+      // Afficher la section correspondante
+      const module = item.getAttribute('data-module');
+      const panel = document.getElementById('panel-' + module);
+      if (panel) panel.style.display = 'block';
 
-        // Mise à jour des éléments HTML si présents
-        const nomElem = document.getElementById("nom-medecin");
-        if (nomElem) nomElem.textContent = medecinNom;
-
-        const specElem = document.getElementById("specialite");
-        if (specElem) specElem.textContent = medecinSpecialite;
-
-        const lieuElem = document.getElementById("lieu-medecin");
-        if (lieuElem) lieuElem.textContent = medecinLieu;
-
-        // --- Vérification d'accès à la page ---
-        const pages = data.pages || {};
-        const currentPath = window.location.pathname;
-        const currentPage = currentPath.substring(currentPath.lastIndexOf("/") + 1).replace(".html", "");
-
-        if (!pages[currentPage]) {
-          alert("⛔️ Vous n’avez pas accès à cette page.");
-          window.location.href = "index.html";
-          return; // Stoppe le script ici
-        }
-      } else {
-        // Document inexistant — redirection
-        alert("Utilisateur non trouvé, veuillez vous reconnecter.");
-        window.location.href = "accueil.html";
+      // Charger l’historique UNIQUEMENT si on clique sur l’onglet historique
+      if (module === 'historique') {
+        chargerHistoriqueComplet();
       }
-    } catch (error) {
-      console.error("Erreur chargement médecin :", error);
-      alert("Une erreur est survenue, veuillez réessayer plus tard.");
-    }
-  }
-});
-	function openTab(tabId, evt) {
-  document.querySelectorAll(".tab-content").forEach(tc => tc.style.display = "none");
-  document.querySelectorAll(".tablink").forEach(tl => tl.classList.remove("active"));
-  document.getElementById(tabId).style.display = "block";
-  evt.currentTarget.classList.add("active");
+    });
+  });
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+  // Activer l’onglet par défaut
+  const ongletActif = document.querySelector(".nav-item.active");
+  if (ongletActif) {
+    const module = ongletActif.getAttribute("data-module");
+    const panel = document.getElementById("panel-" + module);
+    if (panel) panel.style.display = "block";
+  }
+
+  // Initialiser la navigation
+  initNavigation();
+});
+
+
 </script>
 
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
