@@ -1342,6 +1342,8 @@ footer {
   <button id="btnVersFiches">📄 Fiches Conseils</button>
 	<br><br>
   <button id="btnVersPdf2">📄 Création d'accès PDF patient</button>
+<br><br>
+  <button id="btnVersEti">📄 Etiquettes patient</button>
 
 
 
@@ -2292,6 +2294,9 @@ document.getElementById("btnVersPdf2").addEventListener("click", () => {
   });
 document.getElementById("btnmailto").addEventListener("click", () => {
     window.location.href =`mailto.html?id=${patientId}`;
+  });
+  document.getElementById("btnVersEti").addEventListener("click", () => {
+    window.location.href =`etiquettes.html?id=${patientId}`;
   });
 
 // Gestion Administrative
