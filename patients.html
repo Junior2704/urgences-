@@ -225,18 +225,20 @@ button.secondary:hover { background-color: #5a6268; }
   
       <button id="btnEnregistrer">💾 Enregistrer</button>
     </div>
-    <button id="btnVersFiche">📄 Ordonnancier</button>
-	<br><br>
+
+	<br>
+  <button id="btnVersFiche">📄 Ordonnancier</button>
+	<br>
   <button id="btnVersExs">📄 Prescripteur d'examens</button>
-	<br><br>
+	<br>
   <button id="btnVersSynthese">📄 Certificat médical</button>
-	<br><br>
+	<br>
   <button id="btnVersFiches">📄 Fiches Conseils</button>
-	<br><br>
+	<br>
   <button id="btnVersPdf">📄 Création d'accès PDF patient</button>
-<br><br>
+<br>
   <button id="btnVersEti">📄 Etiquettes patient</button>
-  <br><br>
+  <br>
 <button id="btnmailto">📧 Mailto - patient</button>
  <br><br>
     <h3>📜 Historique des hospitalisations</h3>
@@ -285,27 +287,40 @@ function afficherPatients(data) {
 }
 
 document.getElementById("btnVersFiche").addEventListener("click", () => {
-    window.location.href =`Ordonnancier.html?id=${patientId}`;
-  });
+    const patientId = document.getElementById("modalId").value;
+    window.location.href = `Ordonnancier.html?id=${patientId}`;
+});
+
 document.getElementById("btnVersExs").addEventListener("click", () => {
-    window.location.href =`prescriptionexamens.html?id=${patientId}`;
-  });
-  document.getElementById("btnVersSynthese").addEventListener("click", () => {
-    window.location.href =`Certificatmedical.html?id=${patientId}`;
-  });
-  document.getElementById("btnVersFiches").addEventListener("click", () => {
-    window.location.href =`fichesconseil.html?id=${patientId}`;
-  });
+    const patientId = document.getElementById("modalId").value;
+    window.location.href = `prescriptionexamens.html?id=${patientId}`;
+});
+
+document.getElementById("btnVersSynthese").addEventListener("click", () => {
+    const patientId = document.getElementById("modalId").value;
+    window.location.href = `Certificatmedical.html?id=${patientId}`;
+});
+
+document.getElementById("btnVersFiches").addEventListener("click", () => {
+    const patientId = document.getElementById("modalId").value;
+    window.location.href = `fichesconseil.html?id=${patientId}`;
+});
+
 document.getElementById("btnVersPdf").addEventListener("click", () => {
-    window.location.href =`uploadpdf.html?id=${patientId}`;
-  });
+    const patientId = document.getElementById("modalId").value;
+    window.location.href = `uploadpdf.html?id=${patientId}`;
+});
+
+document.getElementById("btnVersEti").addEventListener("click", () => {
+    const patientId = document.getElementById("modalId").value;
+    window.location.href = `etiquettes.html?id=${patientId}`;
+});
 
 document.getElementById("btnmailto").addEventListener("click", () => {
-    window.location.href =`mailto.html?id=${patientId}`;
-  });
-  document.getElementById("btnVersEti").addEventListener("click", () => {
-    window.location.href =`etiquettes.html?id=${patientId}`;
-  });
+    const patientId = document.getElementById("modalId").value;
+    window.location.href = `mailto.html?id=${patientId}`;
+});
+
   
 
 // === RECHERCHE ===
