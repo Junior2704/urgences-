@@ -14,22 +14,27 @@
 
   <style>
     body {
-      font-family: "Segoe UI", sans-serif;
-      background: #f4f6f9;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-    }
-    .card {
-      background: white;
-      padding: 30px;
-      border-radius: 16px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-      width: 420px;
-      text-align: center;
-    }
+  font-family: "Segoe UI", sans-serif;
+  background: #f4f6f9;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh; /* remplace height:100vh par min-height */
+  margin: 0;
+  padding: 0;
+}
+
+.card {
+  background: white;
+  padding: 30px;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  width: 420px;
+  max-width: 90%; /* pour mobile */
+  text-align: center;
+  box-sizing: border-box; /* évite que padding augmente la largeur */
+}
+
     button {
       background-color: #1a73e8;
       color: white;
