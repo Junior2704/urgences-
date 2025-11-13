@@ -1133,6 +1133,47 @@ html, body {
 }
 
 
+
+
+	   /* === CORRECTION : supprimer la bande blanche à gauche sur mobile === */
+@media (max-width: 900px) {
+  html, body {
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden !important; /* 🚫 empêche tout débordement horizontal */
+    background-color: #f4f6f8; /* même fond que ton contenu */
+  }
+
+  .app {
+    overflow: hidden;
+    width: 100vw; /* ✅ force à prendre toute la largeur visible */
+    position: relative;
+  }
+
+  nav {
+    position: fixed;
+    top: 0;
+    left: -260px;
+    width: 260px;
+    bottom: 0;
+    background: #fff;
+    box-shadow: 3px 0 10px rgba(0, 0, 0, 0.2);
+    transition: left 0.3s ease;
+    z-index: 2000;
+  }
+
+  nav.open {
+    left: 0;
+  }
+
+  .content {
+    width: 100vw; /* ✅ empêche tout “vide” à gauche */
+    padding: 15px;
+    background: #f4f6f8;
+    box-sizing: border-box;
+  }
+}
+
   </style>
 
 
@@ -3527,5 +3568,6 @@ document.addEventListener("click", e => {
 
 </body>
 </html>
+
 
 
