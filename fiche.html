@@ -1174,12 +1174,110 @@ html, body {
   }
 }
 
+
+/* === MENU SUPÉRIEUR AVEC DÉROULANTS === */
+.top-menu {
+  display: flex;
+  gap: 10px;
+  background: #0078d4;
+  padding: 10px 20px;
+  border-radius: 0 0 8px 8px;
+  position: sticky;
+  top: 0;
+  z-index: 1500;
+}
+
+.dropbtn {
+  background: white;
+  color: #0078d4;
+  font-weight: 600;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.dropbtn:hover {
+  background: #eaf4ff;
+  transform: translateY(-2px);
+}
+
+/* Conteneur de menu déroulant */
+.dropdown {
+  position: relative;
+}
+
+/* Sous-menu caché */
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #fff;
+  min-width: 180px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+  border-radius: 8px;
+  margin-top: 8px;
+  z-index: 9999;
+}
+
+/* Liens du sous-menu */
+.dropdown-content a {
+  color: #333;
+  padding: 10px 14px;
+  text-decoration: none;
+  display: block;
+  transition: background 0.2s;
+}
+
+.dropdown-content a:hover {
+  background-color: #eef6ff;
+}
+
+/* Affichage du menu au clic */
+.dropdown.show .dropdown-content {
+  display: block;
+}
+
   </style>
 
 
 
 </head>
 <body>
+<!-- === MENU HORIZONTAL SUPÉRIEUR === -->
+<div class="top-menu">
+  <div class="dropdown">
+    <button class="dropbtn">Documents ▼</button>
+    <div class="dropdown-content">
+      <a href="#" onclick="window.location.href='Ordonnancier.html?id=' + patientId">Ordonnancier</a>
+      <a href="#" onclick="window.location.href='Certificatmedical.html?id=' + patientId">Certificats Médicaux</a>
+      <a href="#" onclick="window.location.href='prescriptionexamens?id=' + patientId">Prescipteur d'examens</a>
+      <a href="#" onclick="window.location.href='rapporthospitalisationl?id=' + patientId">Rapport d'hospitalisation</a>
+      <a href="#" onclick="window.location.href='fichesconseil?id=' + patientId">Fiches Conseils</a>
+      <a href="#" onclick="window.location.href='uploadpdf?id=' + patientId">Accès PDF patients</a>
+      <a href="#" onclick="window.location.href='etiquettes?id=' + patientId">Etiquettes</a>
+
+
+
+    </div>
+  </div>
+
+  <div class="dropdown">
+    <button class="dropbtn">🧪 Examens ▼</button>
+    <div class="dropdown-content">
+      <a href="#" onclick="openSection('prescriptions')">Prescriptions</a>
+      <a href="#" onclick="openSection('resultats')">Résultats</a>
+    </div>
+  </div>
+
+  <div class="dropdown">
+    <button class="dropbtn">⚙️ Administration ▼</button>
+    <div class="dropdown-content">
+      <a href="#" onclick="openSection('facturation')">Facturation</a>
+      <a href="#" onclick="openSection('sortie')">Clôturer</a>
+    </div>
+  </div>
+</div>
 
 <!-- Écran de chargement -->
 <div id="loadingScreen">
@@ -1192,7 +1290,7 @@ html, body {
 
 <header>
   <div class="left-header">
-	  <button id="menu-toggle" class="menu-toggle">☰ Menu</button>
+	  <button id="menu-toggle" class="menu-toggle">☰</button>
  <h2 id="patientName">Fiche Patient</h2>
 	   <span id="currentTime"></span>
 		
@@ -3564,6 +3662,26 @@ document.addEventListener("click", e => {
     }
   }
 });
+// --- Gestion des menus déroulants supérieurs ---
+document.querySelectorAll('.dropbtn').forEach(btn => {
+  btn.addEventListener('click', e => {
+    e.stopPropagation();
+    const parent = btn.parentElement;
+    const isOpen = parent.classList.contains('show');
+
+    // Fermer tous les autres menus
+    document.querySelectorAll('.dropdown').forEach(d => d.classList.remove('show'));
+
+    // Ouvrir/fermer celui cliqué
+    if (!isOpen) parent.classList.add('show');
+  });
+});
+
+// Fermer les menus si on clique ailleurs
+document.addEventListener('click', () => {
+  document.querySelectorAll('.dropdown').forEach(d => d.classList.remove('show'));
+});
+
 </script>
 
 </body>
