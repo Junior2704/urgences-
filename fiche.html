@@ -1247,15 +1247,15 @@ html, body {
 <!-- === MENU HORIZONTAL SUPÉRIEUR === -->
 <div class="top-menu">
   <div class="dropdown">
-    <button class="dropbtn">Documents ▼</button>
+    <button class="dropbtn">📑 Documents ▼</button>
     <div class="dropdown-content">
       <a href="#" onclick="window.location.href='Ordonnancier.html?id=' + patientId">Ordonnancier</a>
       <a href="#" onclick="window.location.href='Certificatmedical.html?id=' + patientId">Certificats Médicaux</a>
-      <a href="#" onclick="window.location.href='prescriptionexamens?id=' + patientId">Prescipteur d'examens</a>
-      <a href="#" onclick="window.location.href='rapporthospitalisationl?id=' + patientId">Rapport d'hospitalisation</a>
-      <a href="#" onclick="window.location.href='fichesconseil?id=' + patientId">Fiches Conseils</a>
-      <a href="#" onclick="window.location.href='uploadpdf?id=' + patientId">Accès PDF patients</a>
-      <a href="#" onclick="window.location.href='etiquettes?id=' + patientId">Etiquettes</a>
+      <a href="#" onclick="window.location.href='prescriptionexamens.html?id=' + patientId">Prescipteur d'examens</a>
+      <a href="#" onclick="window.location.href='rapporthospitalisationl.html?id=' + patientId">Rapport d'hospitalisation</a>
+      <a href="#" onclick="window.location.href='fichesconseil.html?id=' + patientId">Fiches Conseils</a>
+      <a href="#" onclick="window.location.href='uploadpdf.html?id=' + patientId">Accès PDF patients</a>
+      <a href="#" onclick="window.location.href='etiquettes.html?id=' + patientId">Etiquettes</a>
 
 
 
@@ -1265,7 +1265,7 @@ html, body {
   <div class="dropdown">
     <button class="dropbtn">🧪 Examens ▼</button>
     <div class="dropdown-content">
-      <a href="#" onclick="openSection('prescriptions')">Prescriptions</a>
+      <a href="#" onclick="window.location.href='viewacounttml?id=' + patientId">Mon compte</a>
       <a href="#" onclick="openSection('resultats')">Résultats</a>
     </div>
   </div>
@@ -1273,8 +1273,8 @@ html, body {
   <div class="dropdown">
     <button class="dropbtn">⚙️ Administration ▼</button>
     <div class="dropdown-content">
-      <a href="#" onclick="openSection('facturation')">Facturation</a>
-      <a href="#" onclick="openSection('sortie')">Clôturer</a>
+      <a href="#" onclick="window.location.href='viewacounttml.html'">Mon compte</a>
+      <a href="#" onclick="LogOut">Se Deconnecter</a>
     </div>
   </div>
 </div>
@@ -3681,7 +3681,15 @@ document.querySelectorAll('.dropbtn').forEach(btn => {
 document.addEventListener('click', () => {
   document.querySelectorAll('.dropdown').forEach(d => d.classList.remove('show'));
 });
-
+  function LogOut () {
+    signOut(auth)
+      .then(() => {
+        window.location.href = "index.html";
+      })
+      .catch((error) => {
+        afficherBulle("Erreur de déconnexion" ,"alerte");
+      });
+  });
 </script>
 
 </body>
