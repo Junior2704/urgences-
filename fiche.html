@@ -9,7 +9,7 @@
   <title>Fiche Patient </title>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
-  <style>
+   <style>
 
 .bouton-ancienne {
   all: unset;
@@ -506,13 +506,73 @@ button.danger:hover {
   background-color: #ccc;
 }
 
-/* === Structure principale === */
+/* === COMPORTEMENT DÉFINITIF DES ASCENSEURS === */
+
+/* Empêche tout scroll global et horizontal */
 html, body {
+  height: 100%;
   margin: 0;
   padding: 0;
-  height: 100%;
-  overflow: hidden; /* 🔒 pas de scroll global sur le body */
+  overflow: hidden; /* 🚫 plus d’ascenseur global */
 }
+
+/* Conteneur principal */
+.app {
+  display: flex;
+  height: calc(100vh - 80px); /* occupe tout sauf le header */
+  overflow: hidden; /* 🚫 aucun scroll global dans le layout */
+}
+
+/* Menu fixe à gauche */
+nav {
+  width: 260px;
+  background: #fff;
+  border-right: 1px solid #e0e0e0;
+  padding: 15px;
+  flex-shrink: 0;
+  overflow: hidden; /* 🚫 aucun ascenseur ici */
+}
+
+/* Zone de contenu à droite */
+.content {
+  flex: 1;
+  overflow-y: auto;  /* ✅ seul ascenseur vertical ici */
+  overflow-x: hidden; /* 🚫 pas de scroll horizontal */
+  padding: 20px;
+  box-sizing: border-box;
+  background: #f4f6f8;
+}
+
+/* === Comportement responsive (mobile) === */
+@media (max-width: 900px) {
+  html, body {
+    overflow: visible; /* le menu mobile utilise un overlay fixe */
+  }
+
+  nav {
+    position: fixed;
+    top: 0;
+    left: -260px;
+    bottom: 0;
+    width: 260px;
+    background: #fff;
+    box-shadow: 3px 0 10px rgba(0,0,0,0.2);
+    z-index: 2000;
+    transition: left 0.3s ease;
+    overflow-y: auto; /* ✅ ici, le menu mobile peut défiler si besoin */
+  }
+
+  nav.open {
+    left: 0;
+  }
+
+  .content {
+    overflow-y: auto;
+    padding: 15px;
+  }
+}
+
+
 
 main {
   display: flex;
@@ -968,18 +1028,7 @@ footer {
   color: #777;
   font-size: 0.9rem;
 }
-.app {
-  display: flex;
-  height: calc(100vh - 80px);
-}
 
-nav {
-  width: 260px;
-  background: #fff;
-  border-right: 1px solid #e0e0e0;
-  padding: 15px;
-  overflow-y: auto;
-}
 
 .nav-title {
   font-weight: bold;
@@ -1008,12 +1057,6 @@ nav {
   font-weight: bold;
 }
 
-.content {
-  flex: 1;
-  padding: 20px;
-  overflow-y: auto;
-}
-
 .panel {
   background: white;
   border-radius: 10px;
@@ -1028,7 +1071,68 @@ nav {
   max-height: none !important; /* supprime la limite de hauteur */
   overflow: visible !important;/* pas de scrollbar interne */
 }
-.
+/* === MENU RESPONSIVE CORRIGÉ === */
+.menu-toggle {
+  display: none;
+  background-color: #0078d4;
+  color: white;
+  border: none;
+  padding: 10px 14px;
+  font-size: 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* 📱 Version mobile : menu caché par défaut */
+@media (max-width: 900px) {
+  .menu-toggle {
+    display: inline-block;
+  }
+
+  nav {
+    position: fixed;
+    top: 0;
+    left: -260px;
+    bottom: 0;
+    width: 260px;
+    background: #fff;
+    box-shadow: 3px 0 10px rgba(0, 0, 0, 0.2);
+    z-index: 2000;
+    transition: left 0.3s ease;
+  }
+
+  nav.open {
+    left: 0;
+  }
+
+  .content {
+    padding: 15px;
+  }
+
+  /* Désactive le scroll horizontal global */
+  body {
+    overflow-x: hidden;
+  }
+}
+
+/* 💻 Version bureau : menu toujours visible et fixe */
+@media (min-width: 901px) {
+  nav {
+    position: static;
+    left: 0;
+    width: 260px;
+    box-shadow: none;
+    transition: none;
+  }
+  .content {
+    margin-left: 0;
+  }
+}
+html, body {
+  overflow-x: hidden !important; /* stoppe tout déplacement horizontal */
+}
+
+
   </style>
 
 
@@ -1047,6 +1151,7 @@ nav {
 
 <header>
   <div class="left-header">
+	  <button id="menu-toggle" class="menu-toggle">☰ Menu</button>
  <h2 id="patientName">Fiche Patient</h2>
 	   <span id="currentTime"></span>
 		
@@ -3392,9 +3497,35 @@ document.addEventListener("DOMContentLoaded", () => {
   initNavigation();
 });
 
+// --- Gestion du menu responsive ---
+const menuToggle = document.getElementById("menu-toggle");
+const nav = document.querySelector("nav");
+const navItems = document.querySelectorAll(".nav-item");
 
+menuToggle.addEventListener("click", () => {
+  nav.classList.toggle("open");
+});
+
+// Ferme le menu automatiquement quand on sélectionne un onglet
+navItems.forEach(item => {
+  item.addEventListener("click", () => {
+    if (window.innerWidth <= 900) {
+      nav.classList.remove("open");
+    }
+  });
+});
+
+// Ferme le menu si on clique à l’extérieur (mobile)
+document.addEventListener("click", e => {
+  if (window.innerWidth <= 900 && nav.classList.contains("open")) {
+    if (!nav.contains(e.target) && e.target !== menuToggle) {
+      nav.classList.remove("open");
+    }
+  }
+});
 </script>
 
 </body>
 </html>
+
 
