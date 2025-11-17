@@ -1313,6 +1313,7 @@ html, body {
       <div class="nav-item active" data-module="patient">👤 Identité Patient</div>
 	  <div class="nav-item" data-module="admission">🗂️ Admission et orientation</div>
       <div class="nav-item" data-module="constantes">🩺 Constantes</div>
+      <div class="nav-item" data-module="ordonnancier">💊 Ordonnancier</div>
       <div class="nav-item" data-module="dossier">📋 Dossier Médical</div>
       <div class="nav-item" data-module="actes">💉 Actes</div>
 	        <div class="nav-item" data-module="examens">🩻 Examens</div>
@@ -1373,6 +1374,13 @@ html, body {
 </div>
 </section>
 
+<section id="panel-ordonnancier" class="panel" style="display:none;">
+    <h3>💊 Ordonnancier</h3>
+
+    <iframe id="ordonnancierFrame"
+            style="width:100%; height:90vh; border:none; border-radius:10px;">
+    </iframe>
+</section>
 
 
 <section id="panel-constantes" class="panel" style="display:none;">
@@ -1924,6 +1932,14 @@ function openTab(tabId, event) {
     chargerHistoriqueComplet();
   }
 }
+// Affichage du module Ordonnancier
+document.querySelector("[data-module='ordonnancier']").addEventListener("click", () => {
+    openSection("panel-ordonnancier");
+
+    // Charger Ordonnancier.html avec l'id du patient
+    document.getElementById("ordonnancierFrame").src =
+        "Ordonnancier.html?id=" + patientId;
+});
 
 	
   function calculerAge(dateNaissance) {
