@@ -3636,7 +3636,13 @@ function initNavigation() {
     });
   });
 }
+  document.querySelector("[data-module='ordonnancier']").addEventListener("click", () => {
+    openSection("panel-ordonnancier");
 
+    // Charger Ordonnancier.html avec l'id du patient
+    document.getElementById("ordonnancierFrame").src =
+        "Ordonnancier.html?id=" + patientId;
+});
 document.addEventListener("DOMContentLoaded", () => {
   // Activer l’onglet par défaut
   const ongletActif = document.querySelector(".nav-item.active");
@@ -3705,13 +3711,7 @@ document.addEventListener('click', () => {
       });
   }
 
-  document.querySelector("[data-module='ordonnancier']").addEventListener("click", () => {
-    openSection("panel-ordonnancier");
 
-    // Charger Ordonnancier.html avec l'id du patient
-    document.getElementById("ordonnancierFrame").src =
-        "Ordonnancier.html?id=" + patientId;
-});
 </script>
 
 </body>
