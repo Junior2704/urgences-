@@ -3636,13 +3636,7 @@ function initNavigation() {
     });
   });
 }
-  document.querySelector("[data-module='ordonnancier']").addEventListener("click", () => {
-    openSection("panel-ordonnancier");
 
-    // Charger Ordonnancier.html avec l'id du patient
-    document.getElementById("ordonnancierFrame").src =
-        "Ordonnancier.html?id=" + patientId;
-});
 document.addEventListener("DOMContentLoaded", () => {
   // Activer l’onglet par défaut
   const ongletActif = document.querySelector(".nav-item.active");
@@ -3710,6 +3704,17 @@ document.addEventListener('click', () => {
         afficherBulle("Erreur de déconnexion" ,"alerte");
       });
   }
+document.addEventListener("DOMContentLoaded", () => {
+
+    const btnOrdo = document.querySelector('[data-module="ordonnancier"]');
+
+    btnOrdo.addEventListener("click", () => {
+        // Charger l’ordonnancier avec l’ID patient
+        const iframe = document.getElementById("ordonnancierFrame");
+        iframe.src = "Ordonnancier.html?id=" + patientId;
+    });
+
+});
 
 
 </script>
