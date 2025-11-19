@@ -1242,24 +1242,40 @@ html, body {
   color: white;
 }
 
+/* Le body ne scroll plus dans l’onglet Documents */
 body.no-scroll {
-  overflow: hidden !important; /* ❌ plus de scroll global */
+  overflow: hidden !important;
 }
 
-/* Section documents occupe tout l’espace disponible */
+/* App prend toute la hauteur visible */
+.app {
+  height: calc(100vh - 90px); /* ← ADAPTE à la hauteur du top-menu + header */
+  display: flex;
+  overflow: hidden;
+}
+
+/* Le contenu à droite peut occuper tout l'espace */
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* important */
+}
+
+/* La section Documents doit prendre toute la hauteur */
 #panel-documents {
   flex: 1;
   display: flex;
   flex-direction: column;
-  overflow: hidden; /* pas de scroll pour cette section */
+  overflow: hidden; /* elle-même ne doit PAS scroller */
 }
 
-/* L’iframe occupe toute la place et scrolle */
+/* L’iframe occupe TOUT l'espace restant et scrolle seul */
 #docsFrame {
   flex: 1;
   width: 100%;
   border: none;
-  overflow: auto; /* 👉 SEUL scroll autorisé */
+  overflow-y: auto; /* le SEUL ascenseur */
 }
 
 
