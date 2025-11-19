@@ -17438,18 +17438,26 @@ onAuthStateChanged(auth, async (user) => {
 
    
 
-    // Vérification accès page
-    const pages = data.pages || {};
-    const currentPath = window.location.pathname;
-    const currentPage = Ordonnancier;
+    /const currentPath = window.location.pathname;
+const currentPage = currentPath.substring(currentPath.lastIndexOf("/") + 1).replace(".html", "");
 
-    if (!pages[currentPage]) {
-      const modal = document.getElementById("modal-no-access");
-      modal.style.display = "flex";
-      
+// Mapping pour Firestore
+const pageMapping = {
+  "Ordonnancierf": "Ordonnancier" // Ordonnancierf.html utilise les droits de Ordonnancier
+};
 
-      return; // Stoppe le reste du script
-    }
+const pageKey = pageMapping[currentPage] || currentPage;
+console.log("Page actuelle :", currentPage);
+console.log("Page Firestore :", pageKey);
+if (!pages[pageKey]) {
+  const modal = document.getElementById("modal-no-access");
+  if (modal) modal.style.display = "flex";
+  console.warn("Accès refusé à", currentPage);
+  return; // Stoppe l'exécution pour ceux qui n'ont pas accès
+} else {
+  console.log("Accès autorisé à", currentPage);
+  // Ici tu peux mettre tout le code spécifique à cette page
+}
 
   } catch (error) {
     console.error("Erreur chargement médecin :", error);
