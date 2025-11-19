@@ -1242,18 +1242,24 @@ html, body {
   color: white;
 }
 
+body.no-scroll {
+  overflow: hidden !important; /* ❌ plus de scroll global */
+}
+
+/* Section documents occupe tout l’espace disponible */
 #panel-documents {
-  height: calc(100vh - 140px); /* Ajuste si nécessaire selon la hauteur du header/top-menu */
-  overflow: hidden; /* empêche la section elle-même de scroller */
+  flex: 1;
   display: flex;
   flex-direction: column;
+  overflow: hidden; /* pas de scroll pour cette section */
 }
+
+/* L’iframe occupe toute la place et scrolle */
 #docsFrame {
+  flex: 1;
   width: 100%;
-  flex: 1;             /* prend toute la hauteur restante */
-  overflow-y: auto;     /* seul ascenseur autorisé */
-  overflow-x: hidden;
   border: none;
+  overflow: auto; /* 👉 SEUL scroll autorisé */
 }
 
 
@@ -3666,7 +3672,8 @@ function initNavigation() {
   
   items.forEach(item => {
     item.addEventListener('click', () => {
-      // Désactiver tous les autres onglets
+      
+      // Désactiver tous les onglets
       items.forEach(i => i.classList.remove('active'));
       item.classList.add('active');
       
@@ -3675,21 +3682,28 @@ function initNavigation() {
         sec.style.display = 'none';
       });
 
-      // Afficher la section correspondante
+      // Afficher la section sélectionnée
       const module = item.getAttribute('data-module');
       const panel = document.getElementById('panel-' + module);
       if (panel) panel.style.display = 'block';
 
-      // Charger l’historique UNIQUEMENT si on clique sur l’onglet historique
+      // Charger l'historique si nécessaire
       if (module === 'historique') {
         chargerHistoriqueComplet();
+      }
+
+      // 🟦 GESTION DU SCROLL GLOBAL SPÉCIFIQUE AU PANEL DOCUMENTS
+      if (module === 'documents') {
+        document.body.classList.add('no-scroll');     // Désactive scroll global
+      } else {
+        document.body.classList.remove('no-scroll');  // Réactive scroll global
       }
     });
   });
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  // Activer l’onglet par défaut
+  // Activer l’onglet actif au chargement
   const ongletActif = document.querySelector(".nav-item.active");
   if (ongletActif) {
     const module = ongletActif.getAttribute("data-module");
@@ -3697,9 +3711,9 @@ document.addEventListener("DOMContentLoaded", () => {
     if (panel) panel.style.display = "block";
   }
 
-  // Initialiser la navigation
   initNavigation();
 });
+
 
 // --- Gestion du menu responsive ---
 const menuToggle = document.getElementById("menu-toggle");
