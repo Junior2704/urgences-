@@ -17441,7 +17441,7 @@ onAuthStateChanged(auth, async (user) => {
     // Vérification accès page
     const pages = data.pages || {};
     const currentPath = window.location.pathname;
-    const currentPage = currentPath.substring(currentPath.lastIndexOf("/") + 1).replace(".html", "");
+    const currentPage = "Ordonnancier";
 
     if (!pages[currentPage]) {
       const modal = document.getElementById("modal-no-access");
