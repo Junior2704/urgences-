@@ -1222,6 +1222,12 @@ html, body {
   margin-bottom: 15px;
 }
 
+.docs-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 15px;
+}
+
 .docs-tab {
   padding: 10px 16px;
   background: #e5e5e5;
@@ -1721,10 +1727,8 @@ html, body {
 </section>
 
 <section id="panel-documents" class="panel" style="display:none;">
-  
   <h3>📑 Documents</h3>
 
-  <!-- Sous-onglets -->
   <div class="docs-tabs">
     <div id="tab-ordo" class="docs-tab active" onclick="openDocsTab('tab-ordo','Ordonnancier.html')">Ordonnancier</div>
     <div id="tab-cert" class="docs-tab" onclick="openDocsTab('tab-cert','Certificatmedical.html')">Certificats</div>
@@ -1734,15 +1738,9 @@ html, body {
     <div id="tab-etiq" class="docs-tab" onclick="openDocsTab('tab-etiq','etiquettes.html')">Étiquettes</div>
   </div>
 
-  <!-- IFRAME -->
   <iframe id="docsFrame"></iframe>
-
-  <script>
-    // Chargement par défaut : Ordonnancier
-    const patientId = new URLSearchParams(window.location.search).get("id");
-    document.getElementById("docsFrame").src = "Ordonnancier.html?id=" + patientId;
-  </script>
 </section>
+
 
 
 
@@ -1908,7 +1906,7 @@ html, body {
   const db = firebase.firestore();
 	// Récupérer l'ID du patient depuis l'URL
 const urlParams = new URLSearchParams(window.location.search);
-
+ const patientId = new URLSearchParams(window.location.search).get("id");
 // Créer la référence au document patient
 const patientRef = db.collection("patients").doc(patientId);
 
