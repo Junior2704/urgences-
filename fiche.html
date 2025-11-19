@@ -1295,6 +1295,14 @@ body.no-scroll-docs #panel-documents {
 }
 
 
+/* 🔥 Force vraiment l’affichage/masquage JS */
+section.panel {
+    display: none !important;
+}
+
+section.panel.active {
+    display: block !important;
+}
 
 
 
@@ -3711,15 +3719,13 @@ function initNavigation() {
       items.forEach(i => i.classList.remove('active'));
       item.classList.add('active');
       
-      // Cacher toutes les sections
       document.querySelectorAll('section[id^="panel-"]').forEach(sec => {
-        sec.style.display = 'none';
-      });
+    sec.classList.remove('active');
+});
 
-      // Afficher la section sélectionnée
-      const module = item.getAttribute('data-module');
-      const panel = document.getElementById('panel-' + module);
-      if (panel) panel.style.display = 'block';
+const panel = document.getElementById('panel-' + module);
+if (panel) panel.classList.add('active');
+
 
       // Charger l'historique si nécessaire
       if (module === 'historique') {
