@@ -1352,8 +1352,9 @@ html, body {
 <section id="panel-medsurgences" class="panel" style="display:none;">
     <h3>💊 Gestion des médicaments aux Urgences</h3>
 
-    <<iframe id="medsurgencesFrame"
-        style="width:100%; border:none; border-radius:10px; overflow:hidden;"></iframe>
+    <iframe id="medsurgencesFrame"
+        style="width:100%; height:100%; border:none; overflow:hidden;">
+</iframe>
 
 </section>
 
@@ -3740,17 +3741,39 @@ document.addEventListener("DOMContentLoaded", () => {
 
 });
 
-function ajusterHauteurIframe() {
-  const iframe = document.getElementById("medsurgencesFrame");
-  if (!iframe || !iframe.contentWindow) return;
+function scaleIframeContent() {
+    const iframe = document.getElementById("medsurgencesFrame");
+    const panel = document.getElementById("panel-medsurgences");
 
-  const hauteur = iframe.contentWindow.document.body.scrollHeight;
-  iframe.style.height = hauteur + "px";
+    if (!iframe || !iframe.contentWindow) return;
+
+    const iframeDoc = iframe.contentWindow.document.body;
+
+    // dimensions du panel affiché
+    const targetWidth = panel.clientWidth;
+    const targetHeight = panel.clientHeight;
+
+    // dimensions réelles du contenu
+    const contentWidth = iframeDoc.scrollWidth;
+    const contentHeight = iframeDoc.scrollHeight;
+
+    // calcul du scale minimum pour que tout rentre
+    const scaleX = targetWidth / contentWidth;
+    const scaleY = targetHeight / contentHeight;
+
+    const scale = Math.min(scaleX, scaleY);
+
+    iframe.style.transform = `scale(${scale})`;
+    iframe.style.transformOrigin = "top left";
+
+    // ajuster la taille "occupée" par l’iframe (après scale)
+    iframe.style.width = (contentWidth * scale) + "px";
+    iframe.style.height = (contentHeight * scale) + "px";
 }
 
 document.getElementById("medsurgencesFrame").addEventListener("load", () => {
-  ajusterHauteurIframe();
-  setTimeout(ajusterHauteurIframe, 500); // deuxième ajustement au cas où
+    scaleIframeContent();
+    setTimeout(scaleIframeContent, 500);
 });
 </script>
 
