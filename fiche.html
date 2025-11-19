@@ -1203,70 +1203,81 @@ footer {
   color: white;
 }
 
+/************************************
+   🔵 RÈGLES GLOBALES (NE PAS TOUCHER)
+*************************************/
 
-/******************************
-   RÈGLES MAÎTRES POUR LE SCROLL
-*******************************/
-
-/* Par défaut : la page peut scroller verticalement */
+/* Le site entier NE doit JAMAIS scroller */
 html, body {
-  height: 100%;
   margin: 0;
   padding: 0;
-  overflow-y: auto;       /* Scroll vertical autorisé */
-  overflow-x: hidden;     /* Pas de scroll horizontal */
+  height: 100%;
+  overflow: hidden;         /* 🚫 jamais de scroll global */
 }
 
-/* Quand l’onglet DOCUMENTS est actif → pas de scroll global */
-body.no-scroll {
-  overflow: hidden !important;
-}
-
-/******************************
-   STRUCTURE DU LAYOUT
-*******************************/
-
-/* Conteneur principal de l'application */
+/* Layout principal */
 .app {
-  height: calc(100vh - 90px); /* Ajuste selon hauteur header + top menu */
+  height: calc(100vh - 90px);   /* ajuste si ton header a une autre hauteur */
   display: flex;
-  overflow: hidden; /* Empêche scroll global dans le layout */
+  overflow: hidden;             /* 🚫 pas de scroll ici */
 }
 
-/* Zone de contenu (panneaux) */
+/* Menu latéral fixe */
+nav {
+  flex-shrink: 0;
+  overflow: hidden;             /* 🚫 jamais de scroll ici */
+}
+
+/**********************************************
+   🟩 PANELS PAR DÉFAUT (TOUS LES ONGLET SAUF DOCUMENTS)
+***********************************************/
+
 .content {
   flex: 1;
   display: flex;
   flex-direction: column;
-  overflow-y: auto;    /* Scroll normal pour les autres onglets */
+  overflow: hidden;        /* gestion fine par panel */
+}
+
+section.panel {
+  flex: 1;
+  overflow-y: auto;        /* ✔️ chaque panel peut scroller */
   overflow-x: hidden;
+  display: none;           /* masqué par défaut */
 }
 
-/* Quand l’onglet Documents est ouvert → plus de scroll dans .content */
-body.no-scroll .content {
-  overflow: hidden !important;
+section.panel.active {
+  display: block;
 }
 
-/******************************
-   PANEL DOCUMENTS
-*******************************/
+/**********************************************
+   🟦 MODE DOCUMENTS (scroll uniquement dans l’iframe)
+***********************************************/
 
-/* Le panneau Documents occupe TOUT l'espace disponible */
+/* Quand on active Documents (via body.no-scroll-docs ajouté en JS) */
+body.no-scroll-docs .content {
+  overflow: hidden !important;     /* 🚫 la zone content ne scrolle plus */
+}
+
+body.no-scroll-docs #panel-documents {
+  overflow: hidden !important;     /* 🚫 le panel documents ne scrolle plus */
+}
+
 #panel-documents {
   flex: 1;
   display: flex;
   flex-direction: column;
-  overflow: hidden; /* Le panel lui-même ne scrolle pas */
 }
 
-/* L’iframe occupe toute la hauteur du panel et devient le SEUL scroll */
+/* L’iframe prend 100% de la hauteur du panel */
 #docsFrame {
   flex: 1;
   width: 100%;
   border: none;
-  overflow-y: auto;  /* Le seul ascenseur */
+  overflow-y: auto;                /* ✔️ SEUL ascenseur */
   overflow-x: hidden;
 }
+
 
 
 
@@ -3699,12 +3710,12 @@ function initNavigation() {
         chargerHistoriqueComplet();
       }
 
-      // 🟦 GESTION DU SCROLL GLOBAL SPÉCIFIQUE AU PANEL DOCUMENTS
-      if (module === 'documents') {
-        document.body.classList.add('no-scroll');     // Désactive scroll global
-      } else {
-        document.body.classList.remove('no-scroll');  // Réactive scroll global
-      }
+      if (module === "documents") {
+    document.body.classList.add("no-scroll-docs");
+} else {
+    document.body.classList.remove("no-scroll-docs");
+}
+
     });
   });
 }
