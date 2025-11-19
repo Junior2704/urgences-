@@ -1214,6 +1214,34 @@ html, body {
 }
 
 
+/* --- Sous-onglets du panneau Documents --- */
+
+.docs-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 15px;
+}
+
+.docs-tab {
+  padding: 10px 16px;
+  background: #e5e5e5;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+
+.docs-tab.active {
+  background: #0078d4;
+  color: white;
+}
+
+#docsFrame {
+  width: 100%;
+  height: 80vh;
+  border: none;
+  border-radius: 10px;
+}
 
 
   </style>
@@ -1694,27 +1722,26 @@ html, body {
 
 <section id="panel-documents" class="panel" style="display:none;">
   
-    <h3>📑 Documents</h3>
+  <h3>📑 Documents</h3>
 
-<form class="vidal-search" action="https://www.vidal.fr/recherche.html" method="get" target="_blank">
-  <input type="text" name="query" placeholder="Rechercher sur le Vidal">
-  <button type="submit">Rechercher</button>
-</form>
+  <!-- Sous-onglets -->
+  <div class="docs-tabs">
+    <div id="tab-ordo" class="docs-tab active" onclick="openDocsTab('tab-ordo','Ordonnancier.html')">Ordonnancier</div>
+    <div id="tab-cert" class="docs-tab" onclick="openDocsTab('tab-cert','Certificatmedical.html')">Certificats</div>
+    <div id="tab-exams" class="docs-tab" onclick="openDocsTab('tab-exams','prescriptionexamens.html')">Examens</div>
+    <div id="tab-fiches" class="docs-tab" onclick="openDocsTab('tab-fiches','fichesconseil.html')">Fiches Conseils</div>
+    <div id="tab-pdf" class="docs-tab" onclick="openDocsTab('tab-pdf','uploadpdf.html')">PDF patient</div>
+    <div id="tab-etiq" class="docs-tab" onclick="openDocsTab('tab-etiq','etiquettes.html')">Étiquettes</div>
+  </div>
 
+  <!-- IFRAME -->
+  <iframe id="docsFrame"></iframe>
 
-  <button id="btnRapportHospi">📃 Rapport d'hospitalisation</button>
-	<br><br>
-  <button id="btnVersFiche">📄 Ordonnancier</button>
-	<br><br>
-  <button id="btnVersExs">📄 Prescripteur d'examens</button>
-	<br><br>
-  <button id="btnVersSynthese">📄 Certificat médical</button>
-	<br><br>
-  <button id="btnVersFiches">📄 Fiches Conseils</button>
-	<br><br>
-  <button id="btnVersPdf2">📄 Création d'accès PDF patient</button>
-	<br><br>
-  <button id="btnVersEti">📄 Etiquettes patient</button>
+  <script>
+    // Chargement par défaut : Ordonnancier
+    const patientId = new URLSearchParams(window.location.search).get("id");
+    document.getElementById("docsFrame").src = "Ordonnancier.html?id=" + patientId;
+  </script>
 </section>
 
 
@@ -3565,6 +3592,14 @@ window.masquerLoader = function() {
 updateTime();
 
 	setInterval(updateTime, 1000);
+  function openDocsTab(tab, url) {
+  document.querySelectorAll(".docs-tab").forEach(t => t.classList.remove("active"));
+  document.getElementById(tab).classList.add("active");
+
+  const patientId = urlParams.get("id");
+  document.getElementById("docsFrame").src = url + "?id=" + patientId;
+}
+
 // Ligne de test de fin
 console.log("Script terminé correctement ✅");
 </script>
