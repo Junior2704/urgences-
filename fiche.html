@@ -1244,10 +1244,15 @@ html, body {
 
 #docsFrame {
   width: 100%;
-  height: 80vh;
+  height: calc(100vh - 200px); /* ajuste selon ton layout */
   border: none;
   border-radius: 10px;
+  overflow: hidden; /* empêche le scroll interne */
 }
+#docsFrame html, #docsFrame body {
+  overflow: hidden !important;
+}
+
 
 
 
