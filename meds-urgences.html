@@ -1,691 +1,342 @@
-	<!DOCTYPE html>
-	<html lang="fr">
-	<head>
-	<link rel="icon" type="image/jpeg" href="logo.jpg">
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Gestion médicaments - Urgences</title>
+<style>
+  body{
+    font-family: Inter, Arial, Helvetica, sans-serif;
+    margin: 12px;
+    background:#eef3f9;
+    color:#1d2d50;
+  }
 
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-	<script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1" />
-		<title>💊 Ordonnancier</title>
-		<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet" />
-		<style>
-		#new-prescription-btn {
-  background-color: #28a745; 
-  color: white;              
-  border: none;              
-  padding: 15px 20px;        
-  border-radius: 6px;       
-  cursor: pointer;           
-  font-size: 16px;           
-  transition: background-color 0.3s ease;
+  h1{
+    font-size:22px;
+    font-weight:700;
+    color:#0b5ed7;
+    margin-bottom:14px;
+  }
+
+  .container{max-width:1200px;margin:0 auto}
+
+  .row{display:flex;gap:16px}
+
+  .col{
+    background:#ffffff;
+    border-radius:12px;
+    padding:16px;
+    box-shadow:0 3px 10px rgba(0,0,0,0.08);
+    border:1px solid #e3e9f2;
+  }
+
+  .col.small{flex:0 0 360px}
+  .col.big{flex:1}
+
+  #search{
+width: 100%;
+    box-sizing: border-box;
+    padding:10px;
+    border-radius:8px;
+    border:1px solid #ccd6e0;
+    background:#f8fbff;
+   
+
+}
+
+
+  #medicaments-list{
+    max-height:520px;
+    overflow:auto;
+    margin-top:8px;
+    padding:4px;
+  }
+
+  .medicament-item{
+    padding:10px;
+    border-radius:8px;
+    border:1px solid #e0e6ef;
+    margin-bottom:8px;
+    background:white;
+    cursor:pointer;
+    transition:0.15s;
+  }
+  .medicament-item:hover{
+    background:#eaf3ff;
+    border-color:#bcd4ff;
+  }
+
+  /* --- HISTORIQUE --- */
+  .history-list{max-height:520px;overflow:auto;margin-top:12px;}
+
+  .history-item{
+    padding:12px;
+    border-radius:10px;
+    margin-bottom:10px;
+    background:#f7f9fc;
+    border-left:5px solid #b8c7e8;
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    box-shadow:0 2px 6px rgba(0,0,0,0.05);
+  }
+
+  /* couleurs selon statut */
+  .history-item[data-status="a-donner"]{
+    border-left-color:#0d6efd;
+  }
+  .history-item[data-status="en-retard"]{
+    border-left-color:#ff6b6b;
+    background:#ffecec;
+  }
+  .history-item[data-status="pris"]{
+    border-left-color:#32c671;
+    background:#e8fff1;
+  }
+
+  .badge{
+    padding:4px 8px;
+    border-radius:6px;
+    font-size:12px;
+    font-weight:600;
+  }
+
+  /* couleur badge statut */
+  .badge[data-status="a-donner"]{
+    background:#dceaff;
+    color:#0d6efd;
+  }
+  .badge[data-status="en-retard"]{
+    background:#ffdada;
+    color:#c62828;
+  }
+  .badge[data-status="pris"]{
+    background:#cbf7d5;
+    color:#146c2e;
+  }
+
+  .btn{
+    padding:6px 12px;
+    border-radius:6px;
+    border:1px solid #aac2dd;
+    background:#f4f8ff;
+    cursor:pointer;
+    font-size:13px;
+  }
+  .btn:hover{
+    background:#e2ecff;
+  }
+  .btn.primary{
+    background:#0b5ed7;
+    color:white;
+    border-color:#0b5ed7;
+  }
+  .btn.primary:hover{
+    background:#0948a8;
+  }
+
+  /* --- MODALES --- */
+  .modal{
+    position:fixed;
+    inset:0;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    background:rgba(0,0,0,0.45);
+    backdrop-filter: blur(3px);
+  }
+  .modal .card{
+    background:white;
+    padding:20px;
+    border-radius:12px;
+    min-width:360px;
+    max-width:720px;
+    box-shadow:0 4px 16px rgba(0,0,0,0.2);
+    border:1px solid #e3e9f2;
+  }
+
+  label{
+    margin-top:10px;
+    font-size:14px;
+    font-weight:600;
+    color:#1d2d50;
+  }
+
+  input[type=text],textarea,select,
+  input[type=datetime-local],input[type=number]{
+    width:100%;
+    padding:10px;
+    border-radius:8px;
+    border:1px solid #ccd6e0;
+    background:#f8fbff;
+    margin-top:4px;
+  }
+
+  .flex{display:flex;gap:12px;align-items:center}
+  .muted{color:#627089;font-size:13px;margin-top:4px}
+/* Badge d'état du médicament */
+.badge {
+    font-size: 1.1rem;          /* plus gros */
+    font-weight: 700;           /* bien visible */
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: #dceaff;        /* bleu clair lisible */
+    color: #0d47a1;             /* bleu foncé médical */
+    display: inline-block;
 }
 .modal {
-    display: none; /* affichée dynamiquement par JS */
-    position: fixed;
-    z-index: 999;
-    inset: 0;
-    background-color: rgba(0, 0, 0, 0.45);
-    justify-content: center;
-    align-items: center;
-  }
-
-  /* Boîte centrale */
-  .modal-content {
-    background: #f8f9fa;
-    border-radius: 16px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
-    padding: 30px;
-    width: 90%;
-    max-width: 500px;
-    text-align: center;
-    animation: zoomIn 0.25s ease;
-  }
-
-  @keyframes zoomIn {
-    from { transform: scale(0.8); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
-  }
-
-  .modal-content h2 {
-    margin-bottom: 10px;
-    color: #2c3e50;
-  }
-
-  .modal-content p {
-    color: #555;
-    font-size: 1rem;
-    margin-bottom: 20px;
-  }
-
-  .modal-buttons {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .btnModal {
-    border: none;
-    padding: 12px;
-    border-radius: 8px;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: 0.2s;
-  }
-
-  .btnModal.ouvrir {
-    background-color: #007bff;
-    color: white;
-  }
-
-  .btnModal.ouvrir:hover {
-    background-color: #0056b3;
-  }
-
-  .btnModal.ecraser {
-    background-color: #28a745;
-    color: white;
-  }
-
-  .btnModal.ecraser:hover {
-    background-color: #1e7e34;
-  }
-
-  .btnModal.fermer {
-    background-color: #6c757d;
-    color: white;
-    margin-top: 10px;
-  }
-
-  .btnModal.fermer:hover {
-    background-color: #5a6268;
-  }
-#new-prescription-btn:hover {
-  background-color: #218838; 
-}
-			.button {
-				display: inline-block;
-				margin: 20px;
-				padding: 12px 25px;
-				font-size: 16px;
-				color: white;
-				background-color: #28a745;
-				border: none;
-				border-radius: 6px;
-				text-decoration: none;
-				transition: background-color 0.3s;
-				cursor: pointer;
-			}
-			.button:hover {
-				background-color: #1e7e34;
-			}
-
-			body {
-				font-family: 'Poppins', sans-serif;
-				background-color: #f2f7fb;
-				margin: 0;
-				padding: 0;
-				color: #333;
-			}
-			.medicament-item {
-			cursor: pointer;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  background-color: #f9f9f9;
-  cursor: pointer;
-  margin-bottom: 5px;
-  transition: background-color 0.2s;
-}
-.medicament-item:hover {
-  background-color: #e6f7ff;
-}
-			.container {
-				max-width: 800px;
-				margin: 30px auto;
-				padding: 20px;
-				background-color: #fff;
-				border-radius: 12px;
-				box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-			}
-			h1 {
-				text-align: center;
-				color: #4CAF50;
-				font-size: 32px;
-				font-weight: 600;
-				margin-bottom: 30px;
-			}
-			.form-group {
-				margin-bottom: 20px;
-			}
-			.form-group label {
-				font-weight: 500;
-				color: #555;
-				margin-bottom: 5px;
-				display: block;
-			}
-			.form-group input, .form-group select {
-				width: 100%;
-				padding: 12px;
-				margin-top: 5px;
-				border: 2px solid #ddd;
-				border-radius: 8px;
-				font-size: 14px;
-				transition: border-color 0.3s;
-			}
-			.form-group input:focus, .form-group select:focus {
-				border-color: #4CAF50;
-				outline: none;
-			}
-			.btn {
-				background-color: #4CAF50;
-				color: white;
-				padding: 12px 20px;
-				border: none;
-				border-radius: 8px;
-				cursor: pointer;
-				font-size: 16px;
-				width: 100%;
-				transition: background-color 0.3s;
-			}
-			.btn:hover {
-				background-color: #45a049;
-			}
-			.search-bar {
-				margin-bottom: 15px;
-				padding: 10px;
-				width: 100%;
-				border: 2px solid #ddd;
-				border-radius: 8px;
-				font-size: 14px;
-				transition: border-color 0.3s;
-			}
-			.search-bar:focus {
-				border-color: #4CAF50;
-			}
-			.ordonnance {
-				margin-top: 30px;
-				padding: 20px;
-				background-color: #fafafa;
-				border-radius: 12px;
-				box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
-			}
-			.ordonnance h2 {
-				font-size: 28px;
-				color: #333;
-				margin-bottom: 15px;
-				text-align: center;
-				font-weight: 600;
-			}
-			.doctor-info, .patient-info, .date-info {
-				margin-bottom: 10px;
-				font-size: 16px;
-				color: #555;
-			}
-			.prescription-list {
-				margin-top: 15px;
-			}
-			.prescription-item {
-				background-color: #fff;
-				border: 1px solid #ddd;
-				border-radius: 8px;
-				padding: 10px;
-				margin-bottom: 10px;
-				display: flex;
-				align-items: center;
-				gap: 10px;
-			}
-			.prescription-item input[type="text"] {
-				flex: 1 1 45%;
-				padding: 6px 8px;
-				border: 1px solid #ccc;
-				border-radius: 6px;
-				font-size: 14px;
-			}
-			.prescription-item span.med-name {
-				flex: 2 1 55%;
-				font-weight: 500;
-				color: #333;
-			}
-			.btn-delete {
-				background-color: #dc3545;
-				border: none;
-				color: white;
-				padding: 6px 10px;
-				border-radius: 6px;
-				cursor: pointer;
-				transition: background-color 0.3s;
-			}
-			.btn-delete:hover {
-				background-color: #b02a37;
-			}
-			.btn-email {
-				background-color: #dc3545;
-				border: none;
-				color: white;
-				padding: 6px 10px;
-				border-radius: 6px;
-				cursor: pointer;
-				transition: background-color 0.3s;
-			}
-			.btn-email:hover {
-				background-color: #b02a37;
-			}
-			.btn-print, .btn-download {
-				width: 48%;
-				height: 50px;
-				font-size: 16px;
-				margin-top: 20px;
-				border-radius: 8px;
-				cursor: pointer;
-				border: none;
-				color: white;
-				transition: background-color 0.3s;
-			}
-			.btn-print {
-				background-color: #007BFF;
-				float: left;
-			}
-			.btn-print:hover {
-				background-color: #0056b3;
-			}
-			.btn-download {
-				background-color: #FFC107;
-				float: right;
-			}
-			.btn-download:hover {
-				background-color: #d39e00;
-			}
-			/* Style pour l'impression */
-			@media print {
-				body * {
-					visibility: hidden;
-				}
-				.ordonnance, .ordonnance * {
-					visibility: visible;
-				}
-				.ordonnance {
-					position: absolute;
-					top: 0;
-					left: 0;
-					width: 100%;
-				}
-			}
-			/* Clear floats after buttons */
-			.buttons-wrapper::after {
-				content: "";
-				display: table;
-				clear: both;
-			}
-#bubble-container {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  z-index: 9999;
-  align-items: flex-end;
-}
-	.bubble {
-  max-width: 300px;
-  padding: 10px 15px;
-  border-radius: 8px;
-  color: white;
-  font-family: sans-serif;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-  animation: fadeout 0.5s ease-in-out 1.5s forwards;
-  word-wrap: break-word;
-  text-align: left;
-}
-
-.administratif {
-  background-color: #2196F3; /* bleu */
-}
-
-.alerte {
-  background-color: #f44336; /* rouge */
-}
-
-@keyframes fadeout {
-  to {
-    opacity: 0;
-    transform: translateX(-20px);
-  }
-}
-  .vidal-search {
-    display: flex;
-   
-    align-items: center;
-    margin: 20px 0;
-    font-family: Arial, sans-serif;
-  }
-
-  /* Input de recherche */
-  .vidal-search input[type="text"] {
-    padding: 10px;
-    font-size: 16px;
-    border: 2px solid #d32f2f; /* rouge Vidal */
-    border-right: none; /* pour que le bouton soit collé */
-    border-radius: 4px 0 0 4px; /* coins arrondis côté gauche */
-    outline: none;
-    width: 300px;
-  }
-
-  /* Bouton de recherche */
-  .vidal-search button {
-    padding: 10px 20px;
-    background-color: #d32f2f; /* rouge Vidal */
-    color: white;
-    font-size: 16px;
-    border: 2px solid #d32f2f;
-    border-radius: 0 4px 4px 0; /* coins arrondis côté droit */
-    cursor: pointer;
-    transition: background-color 0.3s;
-  }
-
-  /* Effet au survol */
-  .vidal-search button:hover {
-    background-color: #b71c1c; /* rouge plus foncé au survol */
-    border-color: #b71c1c;
-  }
-#emailSelectModal {
-  display: none;
   position: fixed;
   inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
   background: rgba(0, 0, 0, 0.45);
-  backdrop-filter: blur(6px);
-  justify-content: center;
-  align-items: center;
-  z-index: 200;
-  animation: fadeInModal 0.3s ease-out;
+  backdrop-filter: blur(5px); /* flou de l'écran */
+  z-index: 9999;
 }
 
-#emailSelectModal.show {
-  display: flex;
-}
-
-#emailSelectModal .modal-content {
-  width: 380px;
-  max-width: 90%;
-  background: linear-gradient(to bottom right, #ffffff, #f9fafc);
-  border-radius: 16px;
-  padding: 28px 26px 22px;
-  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.18);
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  animation: slideUpModal 0.35s ease-out;
-  transform-origin: center;
-}
-
-#emailSelectModal h3 {
+.modal .card {
+  background: #fff;
+  padding: 24px 32px;
+  border-radius: 12px;
   text-align: center;
-  margin-top: 0;
-  font-size: 1.25rem;
-  color: #1e293b;
-  font-weight: 700;
-  letter-spacing: 0.3px;
+  max-width: 400px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
 }
 
-#emailSelectModal .email-options {
-  margin-top: 18px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+.modal h2 {
+  color: #d32f2f; /* rouge pour danger/erreur */
+  margin-bottom: 12px;
 }
 
-#emailSelectModal label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 10px;
-  border-radius: 8px;
-  cursor: pointer;
-  background: #f8fafc;
-  transition: background 0.2s ease, transform 0.1s ease;
-  border: 1px solid transparent;
-}
-
-#emailSelectModal label:hover {
-  background: #eff6ff;
-  border-color: #bfdbfe;
-  transform: scale(1.02);
-}
-
-#emailSelectModal input[type="checkbox"] {
-  accent-color: #2563eb;
-  transform: scale(1.15);
-}
-
-#emailSelectModal input[type="email"] {
-  width: 100%;
-  padding: 8px 10px;
-  border-radius: 8px;
-  border: 1px solid #cbd5e1;
-  font-size: 0.9rem;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-#emailSelectModal input[type="email"]:focus {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
-  outline: none;
-}
-
-#emailSelectModal .modal-actions {
-  margin-top: 22px;
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-#emailSelectModal button {
-  flex: 1;
-  padding: 10px 14px;
-  border-radius: 10px;
-  border: none;
-  font-weight: 600;
-  font-size: 0.95rem;
-  cursor: pointer;
-  transition: background 0.25s ease, transform 0.1s ease;
-}
-
-#emailSelectModal .btn-cancel {
-  background: #e2e8f0;
-  color: #1e293b;
-}
-
-#emailSelectModal .btn-cancel:hover {
-  background: #cbd5e1;
-}
-
-#emailSelectModal .btn-confirm {
-  background: #2563eb;
-  color: #fff;
-  box-shadow: 0 3px 10px rgba(37, 99, 235, 0.25);
-}
-
-#emailSelectModal .btn-confirm:hover {
-  background: #1d4ed8;
-  transform: translateY(-1px);
-}
-
-/* --- ANIMATIONS --- */
-@keyframes fadeInModal {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes slideUpModal {
-  from {
-    transform: translateY(30px) scale(0.98);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0) scale(1);
-    opacity: 1;
-  }
-}
-#loadingScreen {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.6);
-  display: none;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  z-index: 99999;
-  color: white;
-  font-family: 'Inter', sans-serif;
-  transition: opacity 0.5s ease;
-}
-
-#loadingScreen.hidden {
-  opacity: 0;
-}
-
-.loader-content {
-  text-align: center;
-}
-
-.spinner {
-  border: 6px solid rgba(255, 255, 255, 0.3);
-  border-top: 6px solid white;
-  border-radius: 50%;
-  width: 60px;
-  height: 60px;
-  animation: spin 1s linear infinite;
+.modal p {
+  font-size: 16px;
   margin-bottom: 20px;
 }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
+.modal .btn {
+  padding: 10px 20px;
+  font-size: 14px;
 }
 
+</style>
 
-		</style>
-	</head>
-	<body>
-	<div class="container">
-<img id="logo-img" src="logo.jpg" style="display:none" crossorigin="anonymous" alt="Logo médical">
-<!-- 🔷 MODALE DE CHARGEMENT -->
-<div id="loadingModal" class="modal">
-  <div class="modal-content">
-    <img src="https://junior2704.github.io/urgences-/logo.jpg" alt="Logo hôpital" class="logo">
-    <div class="loader"></div>
-    <p>Envoi de l'ordonnance en cours...</p>
+</head>
+<body>
+  <div class="container">
+    <h1>Gestion des médicaments — Urgences</h1>
+    <div class="row">
+      <div class="col small">
+        <input id="search" placeholder="Rechercher un médicament..." />
+        <div id="medicaments-list"> <!-- list fournie par l'utilisateur; placeholder remplie via JS -->
+        </div>
+      </div>
+
+      <div class="col big">
+        <h3>Historique & demandes</h3>
+        <div class="muted">Liste des prescriptions / demandes enregistrées pour le patient (triées par date de création).</div>
+        <div id="history" class="history-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal pour créer demande -->
+  <div id="modal-prescription" class="modal">
+    <div class="card">
+      <h3 id="modal-title">Nouvelle demande</h3>
+      <label>Produit</label>
+      <input type="text" id="pres-name" readonly />
+      <label>Commentaires</label>
+      <textarea id="pres-comment" rows="3"></textarea>
+
+      <label>Moment</label>
+      <div class="flex">
+        <label><input type="radio" name="when" value="now" checked/> Maintenant</label>
+        <label><input type="radio" name="when" value="at"/> A une date/heure</label>
+      </div>
+      <input type="datetime-local" id="pres-datetime" style="margin-top:6px;" />
+
+      <label>Fréquence (optionnelle)</label>
+      <div class="flex">
+        <input type="number" id="pres-every-hours" placeholder="toutes les X heures" min="1"/>
+        <input type="number" id="pres-repeat-count" placeholder="N répétitions (ex:6)" min="1"/>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px">
+        <button class="btn" id="pres-cancel">Annuler</button>
+        <button class="btn primary" id="pres-save">Valider & enregistrer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal prise -->
+  <div id="modal-take" class="modal">
+    <div class="card">
+      <h3>Prise du médicament</h3>
+      <label>Produit</label>
+      <input type="text" id="take-name" readonly />
+      <label>Commentaire prise</label>
+      <textarea id="take-comment" rows="3"></textarea>
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px">
+        <button class="btn" id="take-cancel">Annuler</button>
+        <button class="btn primary" id="take-save">Valider prise</button>
+      </div>
+    </div>
+  </div>
+<!-- Modale d'accès refusé -->
+<div id="modal-no-access" class="modal">
+  <div class="card">
+    <h2>⛔️ Accès refusé</h2>
+    <p>Vous n’avez pas accès à cette page.</p>
   </div>
 </div>
 
-<style>
-/* --- Arrière-plan plein écran --- */
-.modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.45);
-  backdrop-filter: blur(6px);
-  display: none; /* masquée par défaut */
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-}
+  <!-- Firebase + logique JS -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+  <script>
+    // --- Configuration fournie par l'utilisateur ---
+    const firebaseConfig = {
+      apiKey: "AIzaSyBKp5-7NNy0Gyl0tNbDgD-BxucYdg8ArWo",
+      authDomain: "urgences-a8ed4.firebaseapp.com",
+      projectId: "urgences-a8ed4",
+      storageBucket: "urgences-a8ed4.appspot.com",
+      messagingSenderId: "392921498200",
+      appId: "1:392921498200:web:7ccce767332c67c697c02d",
+      measurementId: "G-C74MK2KYDL"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
-/* --- Boîte centrale --- */
-.modal-content {
-  background: #fff;
-  padding: 30px 40px;
-  border-radius: 16px;
-  box-shadow: 0 8px 30px rgba(0,0,0,0.25);
-  text-align: center;
-  width: 320px;
-  animation: fadeIn 0.3s ease;
-}
+    // Récupérer l'ID du patient depuis l'URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const patientId = urlParams.get("id");
+    const patientRef = db.collection("patients").doc(patientId);
+document.addEventListener("DOMContentLoaded", () => {
+    const selectNow = document.getElementById("moment-now");
+    const selectOther = document.getElementById("moment-other");
+    const dateField = document.getElementById("date-time-field");
+	
+    const radios = document.querySelectorAll('input[name="when"]');
+    const dateInput = document.getElementById("pres-datetime");
 
-/* --- Logo --- */
-.modal-content .logo {
-  height: 70px;
-  margin-bottom: 20px;
-}
+    function updateDateVisibility() {
+        const selected = document.querySelector('input[name="when"]:checked').value;
+        if (selected === "at") {
+            dateInput.style.display = "block";
+        } else {
+            dateInput.style.display = "none";
+        }
+    }
 
-/* --- Texte --- */
-.modal-content p {
-  color: #333;
-  font-size: 16px;
-  font-weight: 500;
-}
+    radios.forEach(r => r.addEventListener("change", updateDateVisibility));
 
-/* --- Loader --- */
-.loader {
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid #1a73e8;
-  border-radius: 50%;
-  width: 45px;
-  height: 45px;
-  margin: 15px auto;
-  animation: spin 1s linear infinite;
-}
+    updateDateVisibility();
+});
 
-/* --- Animations --- */
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: scale(0.9); }
-  to { opacity: 1; transform: scale(1); }
-}
-
-/* --- États JS --- */
-#loadingModal.show {
-  display: flex;
-}
-</style>
-
-		<h1>💊 Ordonnancier Médical</h1>
-     
-
-		<button id="new-prescription-btn" onclick="resetOrdonnance()">❌ Réinitialiser</button>
-
-		<!-- Formulaire du patient -->
-		<div class="form-group">
-			<label for="patient-first-name">Prénom du Patient</label>
-			<input type="text" id="patient-first-name" placeholder="Entrez le prénom du patient" required />
-		</div>
-		<div class="form-group">
-			<label for="patient-last-name">Nom du Patient</label>
-			<input type="text" id="patient-last-name" placeholder="Entrez le nom du patient" required />
-		</div>
-		<div class="form-group">
-			<label for="patient-birthdate">Date de Naissance</label>
-			<input type="date" id="patient-birthdate" requ	ired />
-		</div>
-
-		<div class="form-group">
-			<label for="patient-age">Âge du Patient</label>
-			<input type="text" id="patient-age" placeholder="L'âge sera calculé automatiquement" readonly />
-		</div>
-		<div class="form-group">
-			<label for="sexe">Sexe</label>
-			<select id="sexe" name="sexe">
-				<option value="M">M</option>
-				<option value="Mme">Mme</option>
-				<option value="L'enfant">L'enfant</option>
-			</select>
-		</div>
-		
-		<div class="form-group">
-			<form class="vidal-search" action="https://www.vidal.fr/recherche.html" method="get" target="_blank">
-  <input type="text" name="query" placeholder="Rechercher sur le Vidal">
-  <button type="submit">Rechercher</button>
-</form>
-			<label for="search-medicaments">🔎 Rechercher Médicaments</label>
-			<input type="text" id="search-medicaments" class="search-bar" placeholder="Tapez pour rechercher un médicament..." onkeyup="filterMedicaments()" />
-			
-	<div id="medicaments-list">
+    // --- insertion de la liste fournie par l'utilisateur ---
+    const medicamentsHTML = `
 <div class="medicament-item" ondblclick="addMedicamentToPrescription(' ')">--Prescription libre--</div>
 <div class="medicament-item" ondblclick="addMedicamentToPrescription('A 313 200 000 UI POUR CENT, pommade')">A 313 200 000 UI POUR CENT, pommade</div>
 <div class="medicament-item" ondblclick="addMedicamentToPrescription('A 313 50 000 U.I., capsule molle')">A 313 50 000 U.I., capsule molle</div>
@@ -16476,876 +16127,201 @@
 <div class="medicament-item" ondblclick="addMedicamentToPrescription('ZYVOXID 100 mg/5 ml, granulés pour suspension buvable')">ZYVOXID 100 mg/5 ml, granulés pour suspension buvable</div>
 <div class="medicament-item" ondblclick="addMedicamentToPrescription('ZYVOXID 2 mg/ml, solution pour perfusion')">ZYVOXID 2 mg/ml, solution pour perfusion</div>
 <div class="medicament-item" ondblclick="addMedicamentToPrescription('ZYVOXID 600 mg, comprimé pelliculé')">ZYVOXID 600 mg, comprimé pelliculé</div>
-<div class="medicament-item" ondblclick="addMedicamentToPrescription('Faire partiquer une radiographie')">radio</div>
-<div class="medicament-item" ondblclick="addMedicamentToPrescription('Faire partiquer une echographie')">echo</div>
-<div class="medicament-item" ondblclick="addMedicamentToPrescription('Faire partiquer une IRM')">IRM</div>
-<div class="medicament-item" ondblclick="addMedicamentToPrescription('Faire partiquer une radoigraphie un scanner')">scanner</div>
-<div class="medicament-item" ondblclick="addMedicamentToPrescription('Faire faire un despistage de la Grippe')">Test Grippe</div>
-<div class="medicament-item" ondblclick="addMedicamentToPrescription('Faire faire un despistage du Covid')">Test Covid</div></div>
-<div class="medicament-item" ondblclick="addMedicamentToPrescription('Attelle')">Attelle</div></div>
-</div>
+<div class="medicament-item" ondblclick="addMedicamentToPrescription('Attelle')">Attelle</div>
+`;
 
+    document.getElementById('medicaments-list').innerHTML = medicamentsHTML;
 
-		<div id="prescription" class="ordonnance" style="display: none;">
-			<h2>Ordonnance Médicale</h2>
-			<div class="date-info">
-				<span>Date : <span id="current-date"></span></span>
-			</div>
-			<div class="patient-info">
-				<span><span id="patient-name-display"></span>, <span id="patient-age-display"></span> ans</span>
-			</div>
+    // --- recherche ---
+    const searchInput = document.getElementById('search');
+    searchInput.addEventListener('input', (e)=>{
+      const q = e.target.value.toLowerCase();
+      document.querySelectorAll('#medicaments-list .medicament-item').forEach(el=>{
+        el.style.display = el.textContent.toLowerCase().includes(q) ? 'block' : 'none';
+      })
+    });
 
-			<div class="prescription-list" id="medicaments-list-display"></div>
+    // --- modals handling ---
+    const modalPres = document.getElementById('modal-prescription');
+    const presName = document.getElementById('pres-name');
+    const presComment = document.getElementById('pres-comment');
+    const presNowRadio = () => document.querySelector('input[name="when"]:checked').value;
+    const presDatetime = document.getElementById('pres-datetime');
+    const presEvery = document.getElementById('pres-every-hours');
+    const presRepeat = document.getElementById('pres-repeat-count');
 
-			<button id="validate-prescription-btn" class="btn" onclick="validatePrescription()">✔️ Valider la prescription</button>
-
-			<div class="buttons-wrapper" style="display:none;">
-				<button class="btn-print" onclick="window.print()">🖨️ Imprimer l'Ordonnance</button>
-				<button class="btn-download" onclick="genererOrdo(true)">📥 Télécharger Ordonnance</button>
-				<button type="button" id="btnEnvoyerMail" style="padding:10px 20px; background-color:#004AAD; color:white; border:none; border-radius:5px; cursor:pointer;">
-  Envoyer l'ordonnance par e-mail
-</button>
-
-			</div>
-		</div>
-	</div>
-<!-- Modale de sélection des e-mails -->
-<div id="emailSelectModal">
-  <div class="modal-content">
-    <h3>📧 Choisissez les destinataires</h3>
-    <form id="emailSelectForm">
-      <div id="emailCheckboxes" class="email-options"></div>
-
-      <hr>
-
-      <label>
-        <input type="checkbox" id="otherEmailCheck"> Autre destinataire :
-      </label>
-      <input type="email" id="otherEmailInput" placeholder="exemple@mail.com" disabled>
-
-      <div class="modal-actions">
-        <button type="button" class="btn-cancel" onclick="closeEmailSelectModal()">Annuler</button>
-        <button type="button" id="confirmEmails" class="btn-confirm">Envoyer</button>
-      </div>
-    </form>
-  </div>
-</div>
-<!-- Écran de chargement -->
-<div id="loadingScreen">
-  <div class="loader-content">
-    <div class="spinner"></div>
-    <h2>Chargement des données...</h2>
-    <p>Merci de patienter quelques instants</p>
-  </div>
-</div>
-	
-
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script>
-let db;
-let patientRef; // ✅ rendu global
-let id;         // ✅ global aussi
-
-window.addEventListener("DOMContentLoaded", async () => {
-  hideLoadingModal();
-
-  // --- Initialisation Firebase ---
-  const firebaseConfig = {
-    apiKey: "AIzaSyBKp5-7NNy0Gyl0tNbDgD-BxucYdg8ArWo",
-    authDomain: "urgences-a8ed4.firebaseapp.com",
-    projectId: "urgences-a8ed4",
-    storageBucket: "urgences-a8ed4.appspot.com",
-    messagingSenderId: "392921498200",
-    appId: "1:392921498200:web:7ccce767332c67c697c02d",
-    measurementId: "G-C74MK2KYDL"
-  };
-  
-  emailjs.init("CZapZCcxYfJ8-acLS");
-  firebase.initializeApp(firebaseConfig);
-  db = firebase.firestore();
-
-  // --- Récupération de l'ID patient ---
-  function getIdFromURL() {
-    const params = new URLSearchParams(window.location.search);
-    return params.get("id");
-  }
-
-  id = getIdFromURL();
-  if (!id) {
-    console.error("❌ Aucun ID patient trouvé dans l’URL.");
-    afficherBulle("⚠️ Aucun dossier patient trouvé", "alerte");
-    return;
-  }
-
-  // ✅ Création de la référence Firestore globale
-  patientRef = db.collection("patients").doc(id);
-  console.log("📁 patientRef initialisé :", patientRef.path);
-
-  // --- Chargement des infos du patient ---
-  await remplirInfosPatientDepuisFirestore();
-
-  prescriptionItems = [];
-});
-const envoyerMailBtn = document.getElementById("btnEnvoyerMail");
-  
-
-  async function remplirInfosPatientDepuisFirestore() {
-	 afficherLoader();
-    if (!id) {
-  masquerLoader();
-  return;
-}
-
-    try {
-      const docRef = db.collection("patients").doc(id);
-      const docSnap = await docRef.get();
-      if (docSnap.exists) {
-        const data = docSnap.data();
-        document.getElementById("patient-first-name").value = data.prenom || "";
-        document.getElementById("patient-last-name").value = data.nom || "";
-        document.getElementById("patient-birthdate").value = data.dateNaissance || "";
-		
-        document.getElementById("sexe").value = data.sexe || "M";
-        const age = calculerAge(data.dateNaissance);
-        document.getElementById("patient-age").value = age;
-        updatePatientDisplay();
-        masquerLoader();
-      } else {
-        console.warn("Aucun patient trouvé avec cet ID");
-      }
-    } catch (error) {
-      console.error("Erreur de récupération du patient :", error);
+    window.addMedicamentToPrescription = function(name){
+      presName.value = name;
+      presComment.value = '';
+      presEvery.value = '';
+      presRepeat.value = '';
+      presDatetime.value = '';
+      modalPres.style.display = 'flex';
     }
-  }
+    document.getElementById('pres-cancel').onclick = ()=> modalPres.style.display='none';
 
-  function calculerAge(dateNaissance) {
-    const naissance = new Date(dateNaissance);
-    const aujourdHui = new Date();
-    let age = aujourdHui.getFullYear() - naissance.getFullYear();
-    const mois = aujourdHui.getMonth() - naissance.getMonth();
-    if (mois < 0 || (mois === 0 && aujourdHui.getDate() < naissance.getDate())) {
-      age--;
-    }
-    return age;
-  }
-window.afficherLoader = function() {
-  let loader = document.getElementById("loadingScreen");
-  if (!loader) {
-    loader = document.createElement("div");
-    loader.id = "loadingScreen";
-    loader.innerHTML = `
-      <div class="loader-content">
-        <div class="spinner"></div>
-        <h2>Chargement...</h2>
-      </div>
-    `;
-    document.body.appendChild(loader);
-  }
-  loader.style.display = "flex";
-  loader.classList.remove("hidden");
-};
+    document.getElementById('pres-save').onclick = async ()=>{
+      modalPres.style.display='none';
+      const name = presName.value;
+      const comment = presComment.value || '';
+      const whenChoice = presNowRadio();
+      const everyHours = parseInt(presEvery.value) || null;
+      const repeatCount = parseInt(presRepeat.value) || 1;
 
-// --- Masque l’écran de chargement ---
-window.masquerLoader = function() {
-  const loader = document.getElementById("loadingScreen");
-  if (loader) {
-    loader.classList.add("hidden");
-    setTimeout(() => {
-      loader.style.display = "none";
-    }, 500); // délai pour l’animation
-  }
-};
+      const now = new Date();
+      const scheduled = (whenChoice==='now') ? now : (presDatetime.value ? new Date(presDatetime.value) : now);
 
-function filterMedicaments() {
-  const search = document.getElementById("search-medicaments").value.toLowerCase();
-  const filtres = medicaments.filter(m => m.toLowerCase().includes(search));
-  afficherMedicaments(filtres);
-}
-
-function addMedicamentToPrescription(med) {
-  // Si le tableau global n'existe pas, on le crée
-  if (!window.prescriptionItems) {
-    window.prescriptionItems = [];
-  }
-
-  // Demander posologie et durée
-  const posology = prompt(`💊 Entrez la posologie pour ${med} :`);
-  const duration = prompt(`⏱️ Entrez la durée du traitement pour ${med} (en jours) :`);
-
-  // Ajouter à la prescription globale
-  window.prescriptionItems.push({
-    medicament: med,
-    posology: posology || "—",
-    duration: duration || ""
-  });
-
-  console.log("🩺 Médicament ajouté :", window.prescriptionItems);
-
-  updatePrescriptionDisplay();
-
-  // Afficher la section ordonnance si cachée
-  document.getElementById("prescription").style.display = "block";
-
-  // Mettre à jour infos patient dans l'ordonnance
-  updatePatientDisplay();
-}
-
-
-		// Mise à jour affichage ordonnance avec édition possible
-		function updatePrescriptionDisplay() {
-			const listDiv = document.getElementById("medicaments-list-display");
-			listDiv.innerHTML = "";
-
-			prescriptionItems.forEach((item, index) => {
-				const div = document.createElement("div");
-				div.className = "prescription-item";
-
-				// Nom médicament (non éditable)
-				const medName = document.createElement("span");
-				medName.className = "med-name";
-				medName.textContent = item.medicament;
-				div.appendChild(medName);
-
-				// Posologie editable
-				const posInput = document.createElement("input");
-				posInput.type = "text";
-				posInput.value = item.posology;
-				posInput.title = "🖊️ Modifier la posologie";
-				posInput.addEventListener("input", () => {
-					prescriptionItems[index].posology = posInput.value;
-				});
-				div.appendChild(posInput);
-
-				// Durée editable
-				const durInput = document.createElement("input");
-				durInput.type = "text";
-				durInput.value = item.duration;
-				durInput.title = "🖊️ Modifier la durée (en jours)";
-				durInput.addEventListener("input", () => {
-				prescriptionItems[index].duration = durInput.value;
-				});
-				div.appendChild(durInput);
-
-				// Bouton supprimer
-				const delBtn = document.createElement("button");
-				delBtn.className = "btn-delete";
-				delBtn.textContent = "🗑️ Supprimer";
-				delBtn.title = "Supprimer ce médicament";
-				delBtn.addEventListener("click", () => {
-					prescriptionItems.splice(index, 1);
-					updatePrescriptionDisplay();
-					if (prescriptionItems.length === 0) {
-						// Cacher la prescription si vide
-						document.getElementById("prescription").style.display = "none";
-					}
-				});
-				div.appendChild(delBtn);
-
-				listDiv.appendChild(div);
-			});
-		}
-
-		// Met à jour les infos patient dans la prescription
-		function updatePatientDisplay() {
-			const prenom = document.getElementById("patient-first-name").value.trim();
-			const nom = document.getElementById("patient-last-name").value.trim();
-			const age = document.getElementById("patient-age").value.trim();
-
-			document.getElementById("patient-name-display").textContent = prenom && nom ? `${prenom} ${nom}` : "Nom du patient";
-			document.getElementById("patient-age-display").textContent = age || "--";
-		}
-
-		// Affiche la date actuelle formatée
-		function displayCurrentDate() {
-			const now = new Date();
-			const formattedDate = now.toLocaleDateString("fr-FR", {
-				year: "numeric",
-				month: "long",
-				day: "numeric",
-			});
-			document.getElementById("current-date").textContent = formattedDate;
-		}
-		displayCurrentDate();
-
-		async function validatePrescription() {
-  if (prescriptionItems.length === 0) {
-    afficherBulle("⛔ La prescription est vide !","alerte");
-    return;
-  }
-
-  // Verrouiller les inputs posologie/durée et cacher les boutons supprimer
-  const inputsPos = document.querySelectorAll("#medicaments-list-display input[type='text']");
-  inputsPos.forEach(input => input.setAttribute("readonly", "true"));
-
-  const btnDeletes = document.querySelectorAll(".btn-delete");
-  btnDeletes.forEach(btn => btn.style.display = "none");
-
-  document.getElementById("validate-prescription-btn").disabled = true;
-
-  // Afficher les boutons imprimer et télécharger
-  document.querySelector(".buttons-wrapper").style.display = "block";
-
-  const patientId = getIdFromURL();
-  if (patientId) {
-    try {
-      const docRef = db.collection("patients").doc(patientId);
-      const docSnap = await docRef.get();
-
-      if (docSnap.exists) {
-        const ordonnance = {
-          date: new Date().toISOString(),
-          medecin: medecinNom,
-          prescription: prescriptionItems
-        };
-        await docRef.update({
-          ordonnances: firebase.firestore.FieldValue.arrayUnion(ordonnance)
+      // prepare multiple events depending on frequency
+      const events = [];
+      for(let i=0;i<repeatCount;i++){
+        const d = new Date(scheduled.getTime() + (everyHours ? i * everyHours * 3600 * 1000 : 0));
+        events.push({
+          product:name,
+          comment:comment,
+          createdAt: firebase.firestore.Timestamp.fromDate(new Date()),
+          dueAt: firebase.firestore.Timestamp.fromDate(d),
+          status: 'a-donner',
+          takenAt: null,
+          takeComment: null
         });
-        console.log("✅ Ordonnance ajoutée à la fiche du patient Firestore.");
-      } else {
-        console.warn("⚠️ Aucun document patient trouvé pour l'ID donné.");
       }
-    } catch (error) {
-      console.error("❌ Erreur lors de l'enregistrement dans Firestore :", error);
-    }
-  }
-}
 
-		// Filtrer la liste de médicaments
-		function filterMedicaments() {
-			const filter = document.getElementById("search-medicaments").value.toLowerCase();
-			const medicaments = document.querySelectorAll("#medicaments-list .medicament-item");
-			medicaments.forEach(med => {
-				const text = med.textContent.toLowerCase();
-				med.style.display = text.includes(filter) ? "block" : "none";
-			});
-		}
+      try{
+        // Lire le doc patient et l'index d'hospitalisation
+        const doc = await patientRef.get();
+        if(!doc.exists){ alert('Patient introuvable'); return; }
+        const data = doc.data();
+        const index = data.hospitalisationIndex ?? 0;
+        // Mise à jour du tableau hospitalisations[index].meds (création si absent)
+        const hospitalisations = data.hospitalisations || [];
+        if(!hospitalisations[index]) hospitalisations[index] = {};
+        hospitalisations[index].meds = hospitalisations[index].meds || [];
 
-async function genererOrdo(telecharger = false) {
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
+        // push events into array and update patient doc
+        events.forEach(ev=> hospitalisations[index].meds.push(ev));
+        await patientRef.update({ hospitalisations });
 
-  // 🔹 Configuration de base
-  const marginLeft = 20;
-  let y = 25;
-  const lineHeight = 8;
-  const pageHeight = doc.internal.pageSize.height;
+        // Enregistrer aussi dans une sous-collection patients/{id}/meds-urgences
+        const batch = db.batch();
+        events.forEach(ev=>{
+          const newDoc = db.collection('patients').doc(patientId).collection('meds-urgences').doc();
+          batch.set(newDoc, ev);
+        });
+        await batch.commit();
 
+        afficherBulle('✔️ Demande enregistrée','success');
+        loadHistory();
+      }catch(err){
+        console.error(err);alert('Erreur enregistrement: '+err.message)
+      }
+    };
 
-  return new Promise((resolve, reject) => {
-    
+    // --- historique ---
+    async function loadHistory(){
+      const container = document.getElementById('history');
+      container.innerHTML = '<div class="muted">Chargement...</div>';
       try {
-        // === ENTÊTE BLEUE ===
-        doc.setFillColor(52, 152, 219);
-        doc.rect(0, 0, 210, 20, "F");
-        doc.setFontSize(20);
-        doc.setTextColor(255, 255, 255);
-        doc.text("Ordonnance Médicale", 105, 14, { align: "center" });
+        const snap = await db.collection('patients').doc(patientId).collection('meds-urgences').orderBy('createdAt','desc').get();
+        container.innerHTML = '';
+        if(snap.empty){ container.innerHTML = '<div class="muted">Aucune demande</div>'; return; }
+        snap.forEach(doc=>{
+          const d = doc.data();
+          const el = document.createElement('div'); el.className='history-item';
+          const left = document.createElement('div');
+          left.innerHTML = `<div><strong>${d.product}</strong></div><div class="muted">${d.comment || ''}</div>`;
+          const right = document.createElement('div');
 
-       
+          const created = d.createdAt?.toDate?.() ?? new Date();
+          const due = d.dueAt?.toDate?.() ?? null;
+          const now = new Date();
+          let lateness = '';
+          if(d.status !== 'pris' && due && due < now) lateness = '<span class="badge" style="background:#ffdede">En retard</span>';
+          const statusBadge = `<span class="badge">${d.status}</span>`;
 
-        // === INFOS MÉDECIN ===
-        doc.setFontSize(14);
-        doc.setTextColor(0, 0, 0);
-        doc.text(`${window.medecinNom || "Dr Non renseigné"}`, marginLeft, 35);
-        doc.text(`${window.medecinSpecialite || ""}`, marginLeft, 43);
+          let info = `<div class="muted">Demande: ${created.toLocaleString()}</div>`;
+          if(due) info += `<div class="muted">Pour: ${due.toLocaleString()}</div>`;
+          right.innerHTML = info + '<div style="margin-top:6px">' + lateness + ' ' + statusBadge + '</div>';
 
-        // === DATE & LIEU ===
-        const currentDate = new Date().toLocaleDateString("fr-FR");
-        doc.text(`Le ${currentDate}`, 150, 35);
-        doc.text(`À ${window.medecinLieu || "Lyon"}`, 150, 43);
+          // bouton prendre si pas pris
+          if(d.status !== 'pris'){
+            const takeBtn = document.createElement('button'); takeBtn.className='btn'; takeBtn.textContent='Prendre';
+            takeBtn.onclick = ()=> openTakeModal(doc.id,d.product);
+            right.appendChild(takeBtn);
+          }
 
-        // === PATIENT ===
-        const firstName = document.getElementById("patient-first-name")?.value.trim() || "";
-        const lastName = document.getElementById("patient-last-name")?.value.trim() || "";
-        const age = document.getElementById("patient-age")?.value.trim() || "";
-        const sexe = document.getElementById("sexe")?.value || "";
-        const fullName = `${sexe} ${firstName} ${lastName}, ${age} ans`.trim();
+          // bouton supprimer (optionnel)
+          const delBtn = document.createElement('button'); delBtn.className='btn'; delBtn.style.marginLeft='6px'; delBtn.textContent='Supprimer';
+          delBtn.onclick = ()=> deleteRequest(doc.id);
+          right.appendChild(delBtn);
 
-        y = 60;
-        doc.text(fullName, marginLeft, y);
-        const textWidth = doc.getTextWidth(fullName);
-        doc.setLineWidth(0.5);
-        doc.line(marginLeft, y + 2, marginLeft + textWidth, y + 2);
-        y += 20;
+          el.appendChild(left); el.appendChild(right);
+          container.appendChild(el);
+        });
+      }catch(err){ console.error(err); container.innerHTML = '<div class="muted">Erreur chargement</div>'; }
+    }
 
-        // === TITRE PRESCRIPTION ===
-        doc.setFillColor(230, 230, 230);
-        doc.rect(0, y - 8, 210, 12, "F");
-        doc.setFontSize(16);
-        doc.setFont("helvetica", "bold");
-        doc.setTextColor(0, 0, 0);
-        doc.text("PRESCRIPTION", 105, y, { align: "center" });
-        y += 15;
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(12);
+    // --- supprimer demande (simple) ---
+    async function deleteRequest(docId){
+      if(!confirm('Supprimer cette demande ?')) return;
+      try{ await db.collection('patients').doc(patientId).collection('meds-urgences').doc(docId).delete(); afficherBulle('Supprimé'); loadHistory(); }
+      catch(e){alert('Erreur: '+e.message)}
+    }
 
-        // === PRESCRIPTIONS ===
-        const items = window.prescriptionItems || [];
-		console.log("💊 prescriptionItems :", window.prescriptionItems);
+    // --- modal prise ---
+    const modalTake = document.getElementById('modal-take');
+    const takeName = document.getElementById('take-name');
+    const takeComment = document.getElementById('take-comment');
+    let currentTakingDocId = null;
 
-        if (Array.isArray(items) && items.length > 0) {
-          items.forEach((item) => {
-            const medicament = item.medicament || "Médicament non spécifié";
-            const posology = item.posology || "-";
-            const duration = item.duration || "";
+    function openTakeModal(docId, name){ currentTakingDocId = docId; takeName.value = name; takeComment.value=''; modalTake.style.display='flex'; }
+    document.getElementById('take-cancel').onclick = ()=> modalTake.style.display='none';
 
-            let line = `• ${medicament} : ${posology}`;
-            if (duration.trim() !== "") line += ` pendant ${duration} jours`;
+    document.getElementById('take-save').onclick = async ()=>{
+      modalTake.style.display='none';
+      if(!currentTakingDocId) return;
+      try{
+        const takeAt = firebase.firestore.Timestamp.fromDate(new Date());
+        await db.collection('patients').doc(patientId).collection('meds-urgences').doc(currentTakingDocId).update({ status:'pris', takenAt: takeAt, takeComment: takeComment.value || '' });
 
-            const splitLine = doc.splitTextToSize(line, 160);
-            if (y + splitLine.length * 8 > pageHeight - 20) {
-              doc.addPage();
-              y = 20;
+        // Update patient.hospitalisations[index].meds corresponding entry (best-effort by matching product & createdAt within 5s)
+        const doc = await patientRef.get();
+        if(doc.exists){
+          const data = doc.data(); const index = data.hospitalisationIndex ?? 0; const hospitalisations = data.hospitalisations || [];
+          if(hospitalisations[index] && hospitalisations[index].meds){
+            // try to find the right med entry by product name and status
+            const meds = hospitalisations[index].meds;
+            for(let m of meds){
+              if(m.product === takeName.value && m.status !== 'pris'){
+                m.status = 'pris'; m.takenAt = takeAt; m.takeComment = takeComment.value || '';
+                break;
+              }
             }
-            doc.text(splitLine, marginLeft + 5, y);
-            y += splitLine.length * 8;
-          });
-        } else {
-          doc.text("⛔ Aucune prescription disponible.", marginLeft + 5, y);
+            await patientRef.update({ hospitalisations });
+          }
         }
 
-        // === SIGNATURE ===
-        y += 25;
-        const signatureText = `${window.medecinNom || "Dr Non renseigné"}\n${window.medecinSpecialite || ""}`;
-        const pageWidth = doc.internal.pageSize.width;
-        const splitSignature = doc.splitTextToSize(signatureText, 60);
-        doc.text(splitSignature, pageWidth - 75, pageHeight - 30);
+        afficherBulle('✔️ Prise enregistrée'); loadHistory();
+      }catch(err){ console.error(err); alert('Erreur: '+err.message); }
+    };
 
-        // === EXPORT BASE64 ===
-        const pdfData = doc.output("datauristring");
-        window.pdfBase64 = pdfData.split(",")[1];
-        console.log("✅ PDF généré (ordo), taille base64:", window.pdfBase64.length);
-
-        // === SI téléchargement demandé ===
-        if (telecharger) {
-          const fileName = `Ordonnance - ${firstName || ""} ${lastName || ""}.pdf`;
-          doc.save(fileName);
-          console.log("📄 Téléchargement lancé");
-        }
-
-        resolve(window.pdfBase64);
-      } catch (error) {
-        reject(error);
-      }
-   
-
-    
-  });
-}
-
-
-
-
-
-
-
-
-document.getElementById("new-prescription-btn").addEventListener("click", function () {
-	// Réinitialise tous les champs de l'ordonnance
-	document.getElementById("prescription-title").value = "";
-	document.getElementById("prescription-body").value = "";
-	document.getElementById("prescription-date").value = "";
-	document.getElementById("prescription-type").value = "ordonnance"; // ou vide "" selon ta logique
-	document.getElementById("prescription-language").value = "fr";     // ou vide ""
-	document.getElementById("prescription-footer").value = "";
-	
-	// Si tu veux aussi vider l'aperçu
-	document.getElementById("prescription-preview").innerHTML = "";
-
-	// Affiche le formulaire si nécessaire
-	document.getElementById("prescription-form").style.display = "block";
-});
-
-	
-function savePatientInfo() {
-  const patientInfo = {
-    firstName: document.getElementById("patient-first-name").value.trim(),
-    lastName: document.getElementById("patient-last-name").value.trim(),
-    birthdate: document.getElementById("patient-birthdate").value,
-    age: document.getElementById("patient-age").value,
-    sexe: document.getElementById("sexe").value
-  };
-  localStorage.setItem("patientInfo", JSON.stringify(patientInfo));
-}
-["patient-first-name", "patient-last-name", "patient-birthdate", "patient-age", "sexe"]
-  .forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.addEventListener("change", savePatientInfo);
-  });
-  
-		
-window.onload = function() {
-  const patientInfo = JSON.parse(localStorage.getItem("patientInfo") || "{}");
-  if (patientInfo) {
-    if (document.getElementById("patient-first-name")) {
-      document.getElementById("patient-first-name").value = patientInfo.firstName || "";
-    }
-    if (document.getElementById("patient-last-name")) {
-      document.getElementById("patient-last-name").value = patientInfo.lastName || "";
-    }
-    if (document.getElementById("patient-birthdate")) {
-      document.getElementById("patient-birthdate").value = patientInfo.birthdate || "";
-    }
-    if (document.getElementById("sexe")) {
-      document.getElementById("sexe").value = patientInfo.sexe || "M";
-    }
-    updatePatientDisplay();
-localStorage.removeItem('patientInfo');	
-  }
-};
-
-document.getElementById("patient-birthdate").addEventListener("change", function() {
-  const birthdate = new Date(this.value);
-  const today = new Date();
-  let age = today.getFullYear() - birthdate.getFullYear();
-  const m = today.getMonth() - birthdate.getMonth();
-  if (m < 0 || (m === 0 && today.getDate() < birthdate.getDate())) {
-    age--;
-  }
-  document.getElementById("patient-age").value = age;
-  savePatientInfo(); 
-  updatePatientDisplay();
-});
-
-function resetOrdonnance() {
-    prescriptionItems = [];
-    updatePrescriptionDisplay();
-
-    document.getElementById("patient-first-name").value = "";
-    document.getElementById("patient-last-name").value = "";
-    document.getElementById("patient-birthdate").value = "";
-    document.getElementById("patient-age").value = "";
-    document.getElementById("sexe").selectedIndex = 0;
-
-    document.getElementById("patient-name-display").textContent = "";
-    document.getElementById("patient-age-display").textContent = "";
-
-    document.getElementById("prescription").style.display = "none";
-    document.querySelector(".buttons-wrapper").style.display = "none";
-    document.getElementById("validate-prescription-btn").disabled = false;
-}
-document.getElementById("patient-birthdate").addEventListener("change", function () {
-	const dateNaissance = this.value;
-	if (dateNaissance) {
-		const age = calculerAge(dateNaissance);
-		document.getElementById("patient-age").value = age;
-	}
-});
-
-
-document.getElementById("patient-birthdate").addEventListener("input", function () {
-    const birthdate = new Date(this.value);
-    const ageInput = document.getElementById("patient-age");
-
-    if (!isNaN(birthdate)) {
-        const today = new Date();
-        let age = today.getFullYear() - birthdate.getFullYear();
-        const m = today.getMonth() - birthdate.getMonth();
-        if (m < 0 || (m === 0 && today.getDate() < birthdate.getDate())) {
-            age--;
-        }
-        ageInput.value = age;
-    } else {
-        ageInput.value = "";
-    }
-});
-
-  function getIdFromURL() {
-    const params = new URLSearchParams(window.location.search);
-    return params.get('id');
-  }
-
-  async function remplirInfosPatientDepuisFirestore() {
-    const id = getIdFromURL();
-    if (!id) return;
-
-    try {
-      const docRef = db.collection("patients").doc(id);
-      const docSnap = await docRef.get();
-
-      if (docSnap.exists) {
-        const data = docSnap.data();
-        document.getElementById("patient-first-name").value = data.prenom || "";
-        document.getElementById("patient-last-name").value = data.nom || "";
-        document.getElementById("patient-birthdate").value = data.dateNaissance || "";
-        document.getElementById("sexe").value = data.sexe || "M";
-
-        calculerAge(); 
-        updatePatientDisplay(); 
-        console.warn("Aucun patient trouvé avec cet ID");
-      }
-    } catch (error) {
-      console.error("Erreur de récupération du patient :", error);
-    }
-  }
-
-  function calculerAge() {
-    const birthdate = document.getElementById("patient-birthdate").value;
-    if (!birthdate) return;
-
-    const birth = new Date(birthdate);
-    const now = new Date();
-    let age = now.getFullYear() - birth.getFullYear();
-    const m = now.getMonth() - birth.getMonth();
-
-    if (m < 0 || (m === 0 && now.getDate() < birth.getDate())) {
-      age--;
+    // --- helper pour notifications simples ---
+    function afficherBulle(msg,type='info'){
+      // minimal: alert box non intrusif
+      const el = document.createElement('div'); el.textContent = msg; el.style.position='fixed'; el.style.right='12px'; el.style.bottom='12px'; el.style.padding='10px 12px'; el.style.borderRadius='8px'; el.style.background = type==='success'?'#e6ffed':'#333'; el.style.color = type==='success'?'#064e22':'#fff'; document.body.appendChild(el);
+      setTimeout(()=> el.remove(),3000);
     }
 
-    document.getElementById("patient-age").value = age;
-  }
-function afficherBulle(texte, type) {
-    let container = document.getElementById('bubble-container');
-    if (!container) {
-      container = document.createElement('div');
-      container.id = 'bubble-container';
-      document.body.appendChild(container);
-    }
-    const bulle = document.createElement('div');
-    bulle.className = `bubble ${type}`;
-    bulle.textContent = texte;
-    container.appendChild(bulle);
-    setTimeout(() => {
-      bulle.remove();
-    }, 3000);
-  }
-  window.addEventListener("DOMContentLoaded", () => {
-    remplirInfosPatientDepuisFirestore();
-    document.getElementById("patient-birthdate").addEventListener("change", calculerAge);
-  });
-  function base64ToBlob(base64, type = "application/pdf") {
-  const binary = atob(base64);
-  const len = binary.length;
-  const buffer = new ArrayBuffer(len);
-  const view = new Uint8Array(buffer);
-  for (let i = 0; i < len; i++) {
-    view[i] = binary.charCodeAt(i);
-  }
-  return new Blob([view], { type });
-}
-function showLoadingModal() {
-  document.getElementById("loadingModal").classList.add("show");
-}
+    // --- initial load ---
+    if(!patientId){ alert('Aucun id patient trouvé dans l\'URL. Ajoutez ?id=<patientId>'); }
+    else loadHistory();
 
-function hideLoadingModal() {
-  document.getElementById("loadingModal").classList.remove("show");
-}
-function openEmailSelectModal(emailsString) {
-  const modal = document.getElementById("emailSelectModal");
-  const container = document.getElementById("emailCheckboxes");
-  container.innerHTML = "";
-
-  const emails = (emailsString || "").split("//").filter(e => e.includes("@"));
-  if (emails.length === 0) {
-    container.innerHTML = "<p style='color:#777;'>Aucune adresse trouvée pour ce patient.</p>";
-  } else {
-    emails.forEach((email, i) => {
-      const id = "emailCheck_" + i;
-      container.innerHTML += `
-        <label style="display:flex; align-items:center; gap:6px; margin:6px 0;">
-          <input type="checkbox" id="${id}" value="${email}" checked>
-          ${email}
-        </label>`;
+    // fermer modals si on clique en dehors
+    window.addEventListener('click', (e)=>{
+      if(e.target===modalPres) modalPres.style.display='none';
+      if(e.target===modalTake) modalTake.style.display='none';
     });
-  }
-
-  modal.style.display = "flex";
-}
-function closeEmailSelectModal() {
-  document.getElementById("emailSelectModal").style.display = "none";
-}
-
-document.getElementById("otherEmailCheck").addEventListener("change", (e) => {
-  document.getElementById("otherEmailInput").disabled = !e.target.checked;
-});
-document.getElementById("btnEnvoyerMail").addEventListener("click", async () => {
-  // pas de pdfBase64 préexistant dans cette page — on générera le PDF au moment de l'envoi
-  const doc = await patientRef.get();
-  if (!doc.exists) {
-    afficherBulle("❌ Patient introuvable", "alerte");
-    return;
-  }
-  const data = doc.data();
-  const emails = data.email || ""; // chaîne formatée "a@x.com//b@y.fr"
-  console.log("📧 Emails trouvés (dossier) :", emails);
-  openEmailSelectModal(emails);
-});
-document.getElementById("confirmEmails").addEventListener("click", async function () {
-  try {
-    // Récupère les adresses sélectionnées dans la modale
-    const checkedBoxes = document.querySelectorAll("#emailCheckboxes input[type='checkbox']:checked");
-    let destinataires = Array.from(checkedBoxes).map(cb => cb.value.trim());
-
-    const otherChecked = document.getElementById("otherEmailCheck").checked;
-    const otherEmail = document.getElementById("otherEmailInput").value.trim();
-    if (otherChecked && otherEmail) destinataires.push(otherEmail);
-
-    if (destinataires.length === 0) {
-      alert("Veuillez cocher au moins une adresse e-mail.");
-      return;
-    }
-
-    closeEmailSelectModal();
-    showLoadingModal();
-
-    // --- 1) Génération du PDF via ta fonction existante creerPDF()
-    console.log("📄 Génération du PDF via genererordo()...");
-    const pdfBase64 = await genererOrdo(false); // renvoie le base64
-    console.log("✅ PDF généré, taille base64:", pdfBase64.length);
-
-    // --- 2) Création d'un ID unique pour Firestore
-    let idUnique, docSnap;
-    do {
-      idUnique = Math.random().toString(36).substring(2, 10);
-      docSnap = await db.collection("liens_pdfs").doc(idUnique).get();
-    } while (docSnap.exists);
-
-    // --- 3) Récupération des infos patient pour nommer le fichier
-    const doc = await patientRef.get();
-    if (!doc.exists) {
-      hideLoadingModal();
-      afficherBulle("❌ Patient non trouvé", "alerte");
-      return;
-    }
-    const data = doc.data();
-    const firstName = data.prenom || "";
-    const lastName = data.nom || "";
-    const fileName =  `Ordonnance - ${firstName} ${lastName}.pdf`;
-
-    // --- 4) Enregistrement dans Firestore
-    await db.collection("liens_pdfs").doc(idUnique).set({
-      base64: pdfBase64,
-      nomFichier: fileName,
-      dateCreation: firebase.firestore.FieldValue.serverTimestamp(),
-    });
-
-    const lienPdf = `https://junior2704.github.io/urgences-/monpdf.html?id=${idUnique}`;
-    console.log("✅ Lien Firestore :", lienPdf);
-
-    // --- 5) Prépare le corps du mail (template HTML comme avant)
-    const htmlMessage = `
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8">
-  <title>Ordonnance médicale</title>
-</head>
-<body style="margin:0; padding:0; background-color:#f4f6f9; font-family:'Segoe UI', Roboto, Arial, sans-serif; color:#333;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="max-width:640px; margin:auto; background:white; border-radius:10px; box-shadow:0 3px 10px rgba(0,0,0,0.08); overflow:hidden;">
-    <tr>
-      <td style="background-color:#1a73e8; padding:24px; text-align:center;">
-        <img src="https://junior2704.github.io/urgences-/logo.jpg" alt="Logo Hôpital" style="height:60px; display:block; margin:0 auto 10px auto;">
-        <h1 style="color:white; font-size:22px; margin:0;">Centre Hospitalier</h1>
-        <p style="color:#dce6f3; margin:6px 0 0; font-size:14px;">Service des Urgences</p>
-      </td>
-    </tr>
-
-    <tr>
-      <td style="padding:30px;">
-        <h2 style="color:#1a73e8; font-weight:600; margin-top:0;">Votre ordonnance médicale</h2>
-
-        <p style="font-size:16px; line-height:1.6;">
-          Bonjour <strong>{{patient_prenom}} {{patient_nom}}</strong>,
-        </p>
-
-        <p style="font-size:15px; line-height:1.6; color:#555;">
-          Votre ordonnance vient d’être validée par le médecin responsable et est désormais disponible.
-          Elle vous permettra d’obtenir les médicaments prescrits en pharmacie ou en établissement agréé.
-        </p>
-
-        <div style="text-align:center; margin:30px 0;">
-          <a href="{{lien_compte_rendu}}" 
-             style="background-color:#1a73e8; color:white; padding:14px 32px; text-decoration:none; border-radius:8px; font-weight:500; display:inline-block;">
-            🩺 Voir l'ordonnance
-          </a>
-        </div>
-
-        <p style="font-size:15px; line-height:1.6; color:#555;">
-          ⚠️ Ce lien reste actif 7 jours pour garantir la confidentialité de vos données.
-          Au-delà, le document sera automatiquement supprimé.
-        </p>
-
-        <p style="font-size:14px; color:#777;">
-          Pour toute question, merci de contacter le service des Urgences :
-          <a href="mailto:urgences.hopj@gmail.com" style="color:#1a73e8;">urgences.hopj@gmail.com</a>
-        </p>
-
-        <hr style="border:none; border-top:1px solid #e0e0e0; margin:30px 0;">
-        <p style="font-size:13px; color:#999; text-align:center;">
-          Service des Urgences<br>
-          <em>Cet e-mail a été généré automatiquement, merci de ne pas y répondre.</em>
-        </p>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>`;
-
-    // --- 6) Multi-compte EmailJS (fallback)
-    const comptesEmailJS = [
-      { serviceID: "service_o07vuso", templateID: "template_vj03i4u", publicKey: "CZapZCcxYfJ8-acLS" },
-      { serviceID: "service_o3i8ac9", templateID: "template_0wbzbwe", publicKey: "j5G-06rjQm0P6wriE" },
-      { serviceID: "service_qij0y5a", templateID: "template_3qdes3p", publicKey: "nh2zkdRVJcGcE-Jwe" }
-    ];
-
-    // --- 7) Envoi pour chaque destinataire (une requête EmailJS par adresse)
-    for (const email of destinataires) {
-      const emailTrim = email.trim();
-      if (!emailTrim || !emailTrim.includes("@")) {
-        afficherBulle(`Adresse invalide : ${emailTrim}`, "alerte");
-        continue;
-      }
-
-      let envoye = false;
-      let derniereErreur = "";
-      for (const compte of comptesEmailJS) {
-        try {
-          console.log(`📨 Envoi à ${emailTrim} via ${compte.serviceID}...`);
-		  // Remplacement manuel des balises {{…}}
-const htmlFinal = htmlMessage
-  .replace(/{{patient_prenom}}/g, firstName)
-  .replace(/{{patient_nom}}/g, lastName)
-  .replace(/{{lien_compte_rendu}}/g, lienPdf);
-
-          await emailjs.send(compte.serviceID, compte.templateID, {
-            to_email: emailTrim,
-            subject: "Votre ordonnance est disponible !",
-            html_message: htmlFinal
-          }, compte.publicKey);
-
-          afficherBulle(`📨 Envoyé : ${emailTrim}`, "administratif");
-          envoye = true;
-          break;
-        } catch (err) {
-          console.warn(`⚠️ Échec ${compte.serviceID} -> ${err && err.text ? err.text : err}`);
-          derniereErreur = err && err.text ? err.text : String(err);
-          // si erreur de quota, on essaye le compte suivant, sinon on sort de la boucle comptes
-          if (derniereErreur.toLowerCase().includes("quota")) continue;
-          else break;
-        }
-      }
-
-      if (!envoye) afficherBulle(`❌ Échec d'envoi à ${emailTrim}`, "alerte");
-    }
-
-    hideLoadingModal();
-    afficherBulle("📨 Envois terminés !", "administratif");
-    // recharge la page pour réinitialiser l'UI (optionnel)
-    setTimeout(() => location.reload(true), 2000);
-
-  } catch (err) {
-    hideLoadingModal();
-    console.error("Erreur confirmEmails :", err);
-    alert("Erreur lors de l'envoi : " + (err.message || err));
-  }
-});
-
-
-
-
-
-	</script>
-<script type="module">
+  </script>
+  <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
   import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -17367,53 +16343,52 @@ let medecinNom = "";
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
     window.location.href = "accueil.html";
-  } else {
-    try {
-      const docRef = doc(db, "medecins", user.uid);
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        const medecinNom = data.nom || "";
-        const medecinSpecialite = data.specialite || "";
-        const medecinLieu = data.lieu || "";
+    return;
+  }
 
-        // Met à jour aussi les variables globales sur window
-        window.medecinNom = medecinNom;
-        window.medecinSpecialite = medecinSpecialite;
-        window.medecinLieu = medecinLieu;
+  try {
+    const docRef = doc(db, "medecins", user.uid);
+    const docSnap = await getDoc(docRef);
 
-        // Mise à jour des éléments HTML si présents
-        const nomElem = document.getElementById("nom-medecin");
-        if (nomElem) nomElem.textContent = medecinNom;
-
-        const specElem = document.getElementById("specialite");
-        if (specElem) specElem.textContent = medecinSpecialite;
-
-        const lieuElem = document.getElementById("lieu-medecin");
-        if (lieuElem) lieuElem.textContent = medecinLieu;
-
-        // --- Vérification d'accès à la page ---
-        const pages = data.pages || {};
-        const currentPath = window.location.pathname;
-        const currentPage = currentPath.substring(currentPath.lastIndexOf("/") + 1).replace(".html", "");
-
-        if (!pages[currentPage]) {
-          alert("⛔️ Vous n’avez pas accès à cette page.");
-          window.location.href = "accueil.html";
-          return; // Stoppe le script ici
-        }
-      } else {
-        // Document inexistant — redirection
-        alert("Utilisateur non trouvé, veuillez vous reconnecter.");
-        window.location.href = "accueil.html";
-      }
-    } catch (error) {
-      console.error("Erreur chargement médecin :", error);
-      alert("Une erreur est survenue, veuillez réessayer plus tard.");
+    if (!docSnap.exists()) {
+      alert("Utilisateur non trouvé, veuillez vous reconnecter.");
+      window.location.href = "accueil.html";
+      return;
     }
+
+    const data = docSnap.data();
+    const medecinNom = data.nom || "";
+    const medecinSpecialite = data.specialite || "";
+    const medecinLieu = data.lieu || "";
+
+    // variables globales
+    window.medecinNom = medecinNom;
+    window.medecinSpecialite = medecinSpecialite;
+    window.medecinLieu = medecinLieu;
+
+   
+
+    // Vérification accès page
+    const pages = data.pages || {};
+    const currentPath = window.location.pathname;
+    const currentPage = currentPath.substring(currentPath.lastIndexOf("/") + 1).replace(".html", "");
+
+    if (!pages[currentPage]) {
+      const modal = document.getElementById("modal-no-access");
+      const btnClose = document.getElementById("btn-no-access-close");
+      modal.style.display = "flex";
+
+      
+
+      return; // Stoppe le reste du script
+    }
+
+  } catch (error) {
+    console.error("Erreur chargement médecin :", error);
+    alert("Une erreur est survenue, veuillez réessayer plus tard.");
   }
 });
-</script>
 
-	</body>
-	</html>
+</script>
+</body>
+</html>
