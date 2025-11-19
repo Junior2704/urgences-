@@ -1214,18 +1214,7 @@ html, body {
 }
 
 
-#panel-medsurgences {
-    height: calc(100vh - 200px); /* automatique selon ton layout */
-    display: flex;
-    flex-direction: column;
-}
 
-#medsurgencesFrame {
-    flex: 1;
-    width: 100%;
-    border: none;
-    overflow: hidden;
-}
 
   </style>
 
@@ -1366,9 +1355,10 @@ html, body {
 <section id="panel-medsurgences" class="panel" style="display:none;">
     <h3>💊 Gestion des médicaments aux Urgences</h3>
 
-    <iframe id="medsurgencesFrame"></iframe>
+  <iframe id="medsurgencesFrame"
+        style="width:100%; height:90vh; border:none; border-radius:10px;">
+</iframe>
 
-</section>
 
 
 <section id="panel-constantes" class="panel" style="display:none;">
@@ -3753,96 +3743,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 });
 
-/* ====== Ajuste (dézoom) le contenu de l'iframe pour qu'il tienne sans scroll ====== */
-/* Nécessite same-origin (fiche.html et medsurgences.html sur le même domaine) */
 
-function fitMedsurgencesIframe() {
-  const iframe = document.getElementById('medsurgencesFrame');
-  const panel = document.getElementById('panel-medsurgences');
-  if (!iframe || !panel) return;
-
-  // si l'iframe n'est pas encore chargée, on retente plus tard
-  try {
-    const win = iframe.contentWindow;
-    const doc = win.document;
-
-    // parfois le contenu dynamique met du temps à s'installer : on vérifie qu'il y a du contenu
-    if (!doc || !doc.documentElement) {
-      setTimeout(fitMedsurgencesIframe, 200);
-      return;
-    }
-
-    // taille disponible pour l'iframe (zone visible du panel)
-    const stylePanel = getComputedStyle(panel);
-    const panelPaddingTop = parseFloat(stylePanel.paddingTop) || 0;
-    const panelPaddingBottom = parseFloat(stylePanel.paddingBottom) || 0;
-    const targetWidth = panel.clientWidth;
-    const targetHeight = panel.clientHeight - panelPaddingTop - panelPaddingBottom;
-
-    // taille réelle du contenu de l'iframe
-    const contentW = doc.documentElement.scrollWidth;
-    const contentH = doc.documentElement.scrollHeight;
-
-    if (!contentW || !contentH) {
-      // retenter si le contenu n'est pas encore rendu
-      setTimeout(fitMedsurgencesIframe, 200);
-      return;
-    }
-
-    // calcul du scale (<=1 pour ne pas agrandir)
-    const scaleX = targetWidth / contentW;
-    const scaleY = targetHeight / contentH;
-    const scale = Math.min(scaleX, scaleY, 1);
-
-    // appliquer le scale dans le document de l'iframe
-    // on met transform sur <body> pour préserver le layout
-    doc.documentElement.style.overflow = 'hidden';
-    doc.body.style.overflow = 'hidden';
-    doc.body.style.webkitTransformOrigin = 'top left';
-    doc.body.style.transformOrigin = 'top left';
-    doc.body.style.transform = 'scale(' + scale + ')';
-
-    // IMPORTANT : après scale, l'iframe doit avoir la taille "apparent" du contenu
-    // => hauteur affichée = contentH * scale
-    iframe.style.width = Math.min(contentW * scale, targetWidth) + 'px'; // pour éviter débordement
-    iframe.style.height = (contentH * scale) + 'px';
-
-    // s'assurer que l'iframe s'affiche comme bloc et sans bord
-    iframe.style.display = 'block';
-    iframe.style.border = 'none';
-    iframe.style.overflow = 'hidden';
-
-  } catch (e) {
-    // très probablement cross-origin : on ne peut pas modifier le contenu
-    console.warn('fitMedsurgencesIframe failed (cross-origin or other):', e);
-  }
-}
-
-/* Lors du load initial de l'iframe */
-const iframe = document.getElementById('medsurgencesFrame');
-if (iframe) {
-  iframe.addEventListener('load', () => {
-    // plusieurs appels espacés pour laisser les scripts internes se terminer
-    fitMedsurgencesIframe();
-    setTimeout(fitMedsurgencesIframe, 300);
-    setTimeout(fitMedsurgencesIframe, 1000);
-  });
-}
-
-/* Recalculer au redimensionnement de la fenêtre et quand l'onglet devient visible */
-window.addEventListener('resize', () => {
-  setTimeout(fitMedsurgencesIframe, 150);
-});
-document.querySelectorAll('.nav-item').forEach(item => {
-  item.addEventListener('click', () => {
-    // si l'onglet medsurgences est affiché, on recalcule
-    setTimeout(fitMedsurgencesIframe, 200);
-  });
-});
-
-/* si tu veux forcer le chargement au démarrage (optionnel)
-iframe.src = 'medsurgences.html?id=' + patientId;
-*/
 </script>
 
 </body>
