@@ -1204,42 +1204,70 @@ footer {
 }
 
 
+/******************************
+   RÈGLES MAÎTRES POUR LE SCROLL
+*******************************/
 
-
-/* App prend toute la hauteur visible */
-.app {
-  height: calc(100vh - 90px); /* ← ADAPTE à la hauteur du top-menu + header */
-  display: flex;
-  overflow: hidden;
+/* Par défaut : la page peut scroller verticalement */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;       /* Scroll vertical autorisé */
+  overflow-x: hidden;     /* Pas de scroll horizontal */
 }
 
-/* Le contenu à droite peut occuper tout l'espace */
+/* Quand l’onglet DOCUMENTS est actif → pas de scroll global */
+body.no-scroll {
+  overflow: hidden !important;
+}
+
+/******************************
+   STRUCTURE DU LAYOUT
+*******************************/
+
+/* Conteneur principal de l'application */
+.app {
+  height: calc(100vh - 90px); /* Ajuste selon hauteur header + top menu */
+  display: flex;
+  overflow: hidden; /* Empêche scroll global dans le layout */
+}
+
+/* Zone de contenu (panneaux) */
 .content {
   flex: 1;
   display: flex;
   flex-direction: column;
-  overflow: hidden; /* important */
+  overflow-y: auto;    /* Scroll normal pour les autres onglets */
+  overflow-x: hidden;
 }
 
-/* La section Documents doit prendre toute la hauteur */
-/* Seulement pour Documents */
+/* Quand l’onglet Documents est ouvert → plus de scroll dans .content */
 body.no-scroll .content {
-  overflow: hidden;  /* empêche le scroll global quand ON est dans Documents */
+  overflow: hidden !important;
 }
 
+/******************************
+   PANEL DOCUMENTS
+*******************************/
+
+/* Le panneau Documents occupe TOUT l'espace disponible */
 #panel-documents {
   flex: 1;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow: hidden; /* Le panel lui-même ne scrolle pas */
 }
 
+/* L’iframe occupe toute la hauteur du panel et devient le SEUL scroll */
 #docsFrame {
   flex: 1;
   width: 100%;
   border: none;
-  overflow-y: auto;
+  overflow-y: auto;  /* Le seul ascenseur */
+  overflow-x: hidden;
 }
+
 
 
 
