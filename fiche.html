@@ -10,6 +10,13 @@
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
    <style>
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;      /* 🔥 scroll global possible par défaut */
+  overflow-x: hidden;    /* pas de scroll horizontal */
+}
 
 .bouton-ancienne {
   all: unset;
@@ -508,13 +515,7 @@ button.danger:hover {
 
 /* === COMPORTEMENT DÉFINITIF DES ASCENSEURS === */
 
-/* Empêche tout scroll global et horizontal */
-html, body {
-  height: 100%;
-  margin: 0;
-  padding: 0;
-  overflow: hidden; /* 🚫 plus d’ascenseur global */
-}
+
 
 /* Conteneur principal */
 .app {
@@ -545,9 +546,7 @@ nav {
 
 /* === Comportement responsive (mobile) === */
 @media (max-width: 900px) {
-  html, body {
-    overflow: visible; /* le menu mobile utilise un overlay fixe */
-  }
+ 
 
   nav {
     position: fixed;
@@ -1103,51 +1102,12 @@ footer {
     margin-left: 0;
   }
 }
-html, body {
-  overflow-x: hidden !important; /* stoppe tout déplacement horizontal */
-}
+
 
 
 
 
 	   /* === CORRECTION : supprimer la bande blanche à gauche sur mobile === */
-@media (max-width: 900px) {
-  html, body {
-    margin: 0;
-    padding: 0;
-    overflow-x: hidden !important; /* 🚫 empêche tout débordement horizontal */
-    background-color: #f4f6f8; /* même fond que ton contenu */
-  }
-
-  .app {
-    overflow: hidden;
-    width: 100vw; /* ✅ force à prendre toute la largeur visible */
-    position: relative;
-  }
-
-  nav {
-    position: fixed;
-    top: 0;
-    left: -260px;
-    width: 260px;
-    bottom: 0;
-    background: #fff;
-    box-shadow: 3px 0 10px rgba(0, 0, 0, 0.2);
-    transition: left 0.3s ease;
-    z-index: 2000;
-  }
-
-  nav.open {
-    left: 0;
-  }
-
-  .content {
-    width: 100vw; /* ✅ empêche tout “vide” à gauche */
-    padding: 15px;
-    background: #f4f6f8;
-    box-sizing: border-box;
-  }
-}
 
 
 /* === MENU SUPÉRIEUR AVEC DÉROULANTS === */
@@ -1242,10 +1202,8 @@ html, body {
   color: white;
 }
 
-/* Le body ne scroll plus dans l’onglet Documents */
-body.no-scroll {
-  overflow: hidden !important;
-}
+
+
 
 /* App prend toute la hauteur visible */
 .app {
@@ -1263,19 +1221,23 @@ body.no-scroll {
 }
 
 /* La section Documents doit prendre toute la hauteur */
+/* Seulement pour Documents */
+body.no-scroll .content {
+  overflow: hidden;  /* empêche le scroll global quand ON est dans Documents */
+}
+
 #panel-documents {
   flex: 1;
   display: flex;
   flex-direction: column;
-  overflow: hidden; /* elle-même ne doit PAS scroller */
+  overflow: hidden;
 }
 
-/* L’iframe occupe TOUT l'espace restant et scrolle seul */
 #docsFrame {
   flex: 1;
   width: 100%;
   border: none;
-  overflow-y: auto; /* le SEUL ascenseur */
+  overflow-y: auto;
 }
 
 
