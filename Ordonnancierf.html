@@ -17441,12 +17441,11 @@ onAuthStateChanged(auth, async (user) => {
     // Vérification accès page
     const pages = data.pages || {};
     const currentPath = window.location.pathname;
-    const currentPage = "Ordonnancier";
+    const currentPage = Ordonnancier;
 
     if (!pages[currentPage]) {
       const modal = document.getElementById("modal-no-access");
       modal.style.display = "flex";
-
       
 
       return; // Stoppe le reste du script
