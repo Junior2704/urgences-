@@ -1352,9 +1352,9 @@ html, body {
 <section id="panel-medsurgences" class="panel" style="display:none;">
     <h3>💊 Gestion des médicaments aux Urgences</h3>
 
-    <iframe id="medsurgencesFrame"
-            style="width:100%; height:90vh; border:none; border-radius:10px;">
-    </iframe>
+    <<iframe id="medsurgencesFrame"
+        style="width:100%; border:none; border-radius:10px; overflow:hidden;"></iframe>
+
 </section>
 
 
@@ -3740,7 +3740,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
 });
 
+function ajusterHauteurIframe() {
+  const iframe = document.getElementById("medsurgencesFrame");
+  if (!iframe || !iframe.contentWindow) return;
 
+  const hauteur = iframe.contentWindow.document.body.scrollHeight;
+  iframe.style.height = hauteur + "px";
+}
+
+document.getElementById("medsurgencesFrame").addEventListener("load", () => {
+  ajusterHauteurIframe();
+  setTimeout(ajusterHauteurIframe, 500); // deuxième ajustement au cas où
+});
 </script>
 
 </body>
