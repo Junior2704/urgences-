@@ -1303,6 +1303,48 @@ section.panel {
 section.panel.active {
     display: block !important;
 }
+/* === Comportement maître des panels === */
+/* Forcer le comportement : panels masqués par défaut */
+section.panel {
+  display: none !important;
+  flex: 1 1 auto;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Panel visible uniquement quand il a la classe active */
+section.panel.active {
+  display: block !important;
+  overflow: auto;
+}
+
+/* Assurer que panel-documents n'est pas forcé visible ailleurs */
+#panel-documents {
+  display: none !important; /* masqué tant que pas .active */
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Quand panel-documents est actif, on l'affiche en flex pour permettre iframe plein écran */
+#panel-documents.active {
+  display: flex !important;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Iframe prend tout l'espace restant dans le panel documents */
+#panel-documents iframe,
+#docsFrame {
+  flex: 1 1 auto !important;
+  width: 100% !important;
+  height: auto !important;
+  border: none;
+  overflow-y: auto !important; /* SEUL ascenseur du contenu iframé */
+}
+
+/* Nettoyage : n'autorise aucun autre css à forcer #panel-documents visible */
+#panel-documents[style] { display: none !important; } /* si inline-style existe, on le neutralise */
 
 
 
@@ -3711,46 +3753,61 @@ onAuthStateChanged(auth, async (user) => {
 });
 function initNavigation() {
   const items = document.querySelectorAll('.nav-item');
-  
+
   items.forEach(item => {
     item.addEventListener('click', () => {
-      
-      // Désactiver tous les onglets
+      // Gestion active sur les boutons
       items.forEach(i => i.classList.remove('active'));
       item.classList.add('active');
-      
+
+      // Masquer tous les panels proprement (via classes)
       document.querySelectorAll('section[id^="panel-"]').forEach(sec => {
-    sec.classList.remove('active');
-});
+        sec.classList.remove('active');
+      });
 
-const panel = document.getElementById('panel-' + module);
-if (panel) panel.classList.add('active');
+      // Afficher le panel correspondant en ajoutant la classe active
+      const module = item.getAttribute('data-module');
+      const panel = document.getElementById('panel-' + module);
+      if (panel) panel.classList.add('active');
 
-
-      // Charger l'historique si nécessaire
+      // Charger l’historique si nécessaire
       if (module === 'historique') {
-        chargerHistoriqueComplet();
+        if (typeof chargerHistoriqueComplet === 'function') chargerHistoriqueComplet();
       }
 
-      if (module === "documents") {
-    document.body.classList.add("no-scroll-docs");
-} else {
-    document.body.classList.remove("no-scroll-docs");
-}
-
+      // Gestion spécifique : mode Documents -> scroll interne iframe
+      if (module === 'documents') {
+        document.body.classList.add('no-scroll-docs'); // voir CSS que tu as ajouté avant
+      } else {
+        document.body.classList.remove('no-scroll-docs');
+      }
     });
   });
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  // Activer l’onglet actif au chargement
-  const ongletActif = document.querySelector(".nav-item.active");
+  // 1) Supprimer tout 'style.display' inline anciennement laissé dans le HTML (si présent)
+  document.querySelectorAll('section[id^="panel-"]').forEach(sec => {
+    sec.style.display = ''; // vide l'inline-style pour que notre CSS s'applique
+    sec.classList.remove('active');
+  });
+
+  // 2) Activer l’onglet par défaut (celui qui a .nav-item.active)
+  const ongletActif = document.querySelector('.nav-item.active') || document.querySelector('.nav-item');
   if (ongletActif) {
-    const module = ongletActif.getAttribute("data-module");
-    const panel = document.getElementById("panel-" + module);
-    if (panel) panel.style.display = "block";
+    const module = ongletActif.getAttribute('data-module');
+    const panel = document.getElementById('panel-' + module);
+    if (panel) panel.classList.add('active');
+
+    // Appliquer la classe no-scroll-docs si nécessaire
+    if (module === 'documents') {
+      document.body.classList.add('no-scroll-docs');
+    } else {
+      document.body.classList.remove('no-scroll-docs');
+    }
   }
 
+  // Initialiser la navigation
   initNavigation();
 });
 
