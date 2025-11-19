@@ -3590,16 +3590,15 @@ window.masquerLoader = function() {
 };
 
 updateTime();
-
-	setInterval(updateTime, 1000);
-  function openDocsTab(tab, url) {
+setInterval(updateTime, 1000);
+  
+function openDocsTab(tab, url) {
   document.querySelectorAll(".docs-tab").forEach(t => t.classList.remove("active"));
   document.getElementById(tab).classList.add("active");
 
   const patientId = urlParams.get("id");
   document.getElementById("docsFrame").src = url + "?id=" + patientId;
 }
-
 // Ligne de test de fin
 console.log("Script terminé correctement ✅");
 </script>
