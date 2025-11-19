@@ -1908,7 +1908,6 @@ html, body {
   const db = firebase.firestore();
 	// Récupérer l'ID du patient depuis l'URL
 const urlParams = new URLSearchParams(window.location.search);
-const patientId = urlParams.get("id");
 
 // Créer la référence au document patient
 const patientRef = db.collection("patients").doc(patientId);
