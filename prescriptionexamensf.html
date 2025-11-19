@@ -373,6 +373,80 @@
     <p>Vous n’avez pas accès à cette page.</p>
   </div>
 </div>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBKp5-7NNy0Gyl0tNbDgD-BxucYdg8ArWo",
+    authDomain: "urgences-a8ed4.firebaseapp.com",
+    projectId: "urgences-a8ed4"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+let medecinNom = "";
+  let medecinSpecialite = "";
+  let medecinLieu = "";
+
+onAuthStateChanged(auth, async (user) => {
+  if (!user) {
+    window.location.href = "accueil.html";
+    return;
+  }
+
+  try {
+    const docRef = doc(db, "medecins", user.uid);
+    const docSnap = await getDoc(docRef);
+
+    if (!docSnap.exists()) {
+      alert("Utilisateur non trouvé, veuillez vous reconnecter.");
+      window.location.href = "accueil.html";
+      return;
+    }
+
+    const data = docSnap.data();
+    const medecinNom = data.nom || "";
+    const medecinSpecialite = data.specialite || "";
+    const medecinLieu = data.lieu || "";
+
+    // variables globales
+    window.medecinNom = medecinNom;
+    window.medecinSpecialite = medecinSpecialite;
+    window.medecinLieu = medecinLieu;
+
+   
+const pages = data.pages || {};
+    const currentPath = window.location.pathname;
+const currentPage = currentPath.substring(currentPath.lastIndexOf("/") + 1).replace(".html", "");
+
+// Mapping pour Firestore
+const pageMapping = {
+  "prescriptionexamensf": "prescriptionexamens" // Ordonnancierf.html utilise les droits de Ordonnancier
+};
+
+const pageKey = pageMapping[currentPage] || currentPage;
+console.log("Page actuelle :", currentPage);
+console.log("Page Firestore :", pageKey);
+if (!pages[pageKey]) {
+  const modal = document.getElementById("modal-no-access");
+  if (modal) modal.style.display = "flex";
+  console.warn("Accès refusé à", currentPage);
+  return; // Stoppe l'exécution pour ceux qui n'ont pas accès
+} else {
+  console.log("Accès autorisé à", currentPage);
+  // Ici tu peux mettre tout le code spécifique à cette page
+}
+
+  } catch (error) {
+    console.error("Erreur chargement médecin :", error);
+    alert("Une erreur est survenue, veuillez réessayer plus tard.");
+  }
+});
+</script>
 <script>
 const firebaseConfig = {
   apiKey: "AIzaSyBKp5-7NNy0Gyl0tNbDgD-BxucYdg8ArWo",
@@ -494,80 +568,7 @@ function telechargerExamens(){
   doc.save("Prescription_Examens.pdf");
 }
 </script>
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyBKp5-7NNy0Gyl0tNbDgD-BxucYdg8ArWo",
-    authDomain: "urgences-a8ed4.firebaseapp.com",
-    projectId: "urgences-a8ed4"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
-
-let medecinNom = "";
-  let medecinSpecialite = "";
-  let medecinLieu = "";
-
-onAuthStateChanged(auth, async (user) => {
-  if (!user) {
-    window.location.href = "accueil.html";
-    return;
-  }
-
-  try {
-    const docRef = doc(db, "medecins", user.uid);
-    const docSnap = await getDoc(docRef);
-
-    if (!docSnap.exists()) {
-      alert("Utilisateur non trouvé, veuillez vous reconnecter.");
-      window.location.href = "accueil.html";
-      return;
-    }
-
-    const data = docSnap.data();
-    const medecinNom = data.nom || "";
-    const medecinSpecialite = data.specialite || "";
-    const medecinLieu = data.lieu || "";
-
-    // variables globales
-    window.medecinNom = medecinNom;
-    window.medecinSpecialite = medecinSpecialite;
-    window.medecinLieu = medecinLieu;
-
-   
-const pages = data.pages || {};
-    const currentPath = window.location.pathname;
-const currentPage = currentPath.substring(currentPath.lastIndexOf("/") + 1).replace(".html", "");
-
-// Mapping pour Firestore
-const pageMapping = {
-  "prescriptionexamensf": "prescriptionexamens" // Ordonnancierf.html utilise les droits de Ordonnancier
-};
-
-const pageKey = pageMapping[currentPage] || currentPage;
-console.log("Page actuelle :", currentPage);
-console.log("Page Firestore :", pageKey);
-if (!pages[pageKey]) {
-  const modal = document.getElementById("modal-no-access");
-  if (modal) modal.style.display = "flex";
-  console.warn("Accès refusé à", currentPage);
-  return; // Stoppe l'exécution pour ceux qui n'ont pas accès
-} else {
-  console.log("Accès autorisé à", currentPage);
-  // Ici tu peux mettre tout le code spécifique à cette page
-}
-
-  } catch (error) {
-    console.error("Erreur chargement médecin :", error);
-    alert("Une erreur est survenue, veuillez réessayer plus tard.");
-  }
-});
-</script>
 
 </body>
 </html>
