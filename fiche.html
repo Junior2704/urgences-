@@ -1263,11 +1263,7 @@ body.no-scroll-docs #panel-documents {
   overflow: hidden !important;     /* 🚫 le panel documents ne scrolle plus */
 }
 
-#panel-documents {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
+
 
 /* L’iframe prend 100% de la hauteur du panel */
 #docsFrame {
@@ -1276,6 +1272,26 @@ body.no-scroll-docs #panel-documents {
   border: none;
   overflow-y: auto;                /* ✔️ SEUL ascenseur */
   overflow-x: hidden;
+}
+/* --- SECTION DOCUMENTS EN MODE FLEX --- */
+#panel-documents {
+    display: flex !important;
+    flex-direction: column;
+    height: calc(100vh - 140px); /* adapte : 140px = header + topbar */
+    overflow: hidden !important;
+}
+
+/* En mode documents, pas de scroll dans la section */
+body.no-scroll-docs #panel-documents {
+    overflow: hidden;
+}
+
+/* L’iframe prend TOUT l’espace restant */
+#panel-documents iframe {
+    flex: 1 !important;
+    width: 100%;
+    border: none;
+    overflow-y: auto !important;
 }
 
 
