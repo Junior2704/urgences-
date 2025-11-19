@@ -1242,15 +1242,18 @@ html, body {
   color: white;
 }
 
+#panel-documents {
+  height: calc(100vh - 140px); /* Ajuste si nécessaire selon la hauteur du header/top-menu */
+  overflow: hidden; /* empêche la section elle-même de scroller */
+  display: flex;
+  flex-direction: column;
+}
 #docsFrame {
   width: 100%;
-  height: calc(100vh - 200px); /* ajuste selon ton layout */
+  flex: 1;             /* prend toute la hauteur restante */
+  overflow-y: auto;     /* seul ascenseur autorisé */
+  overflow-x: hidden;
   border: none;
-  border-radius: 10px;
-  overflow: hidden; /* empêche le scroll interne */
-}
-#docsFrame html, #docsFrame body {
-  overflow: hidden !important;
 }
 
 
@@ -1744,7 +1747,8 @@ html, body {
     <div id="tab-etiq" class="docs-tab" onclick="openDocsTab('tab-etiq','etiquettes.html')">Étiquettes</div>
   </div>
 
-  <iframe id="docsFrame"></iframe>
+<iframe id="docsFrame" scrolling="auto"></iframe>
+
 </section>
 
 
