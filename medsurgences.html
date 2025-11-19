@@ -16216,49 +16216,69 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     };
 
-    // --- historique ---
-    async function loadHistory(){
-      const container = document.getElementById('history');
-      container.innerHTML = '<div class="muted">Chargement...</div>';
-      try {
-        const snap = await db.collection('patients').doc(patientId).collection('meds-urgences').orderBy('createdAt','desc').get();
-        container.innerHTML = '';
-        if(snap.empty){ container.innerHTML = '<div class="muted">Aucune demande</div>'; return; }
-        snap.forEach(doc=>{
-          const d = doc.data();
-          const el = document.createElement('div'); el.className='history-item';
-          const left = document.createElement('div');
-          left.innerHTML = `<div><strong>${d.product}</strong></div><div class="muted">${d.comment || ''}</div>`;
-          const right = document.createElement('div');
+    /async function loadHistory(){
+  const container = document.getElementById('history');
+  container.innerHTML = '<div class="muted">Chargement...</div>';
+  try {
+    const snap = await db.collection('patients').doc(patientId).collection('meds-urgences').orderBy('createdAt','desc').get();
+    container.innerHTML = '';
+    if(snap.empty){ container.innerHTML = '<div class="muted">Aucune demande</div>'; return; }
 
-          const created = d.createdAt?.toDate?.() ?? new Date();
-          const due = d.dueAt?.toDate?.() ?? null;
-          const now = new Date();
-          let lateness = '';
-          if(d.status !== 'pris' && due && due < now) lateness = '<span class="badge" style="background:#ffdede">En retard</span>';
-          const statusBadge = `<span class="badge">${d.status}</span>`;
+    snap.forEach(doc=>{
+      const d = doc.data();
+      const el = document.createElement('div'); 
+      el.className='history-item';
+      const left = document.createElement('div');
+      const right = document.createElement('div');
 
-          let info = `<div class="muted">Demande: ${created.toLocaleString()}</div>`;
-          if(due) info += `<div class="muted">Pour: ${due.toLocaleString()}</div>`;
-          right.innerHTML = info + '<div style="margin-top:6px">' + lateness + ' ' + statusBadge + '</div>';
+      // Affichage produit + commentaire demande
+      left.innerHTML = `
+        <div><strong>${d.product}</strong></div>
+        ${d.comment ? `<div class="muted" style="font-style:italic;color:#555">Demande: ${d.comment}</div>` : ''}
+        ${d.takeComment ? `<div class="muted" style="font-style:italic;color:#064e22">Prise: ${d.takeComment}</div>` : ''}
+      `;
 
-          // bouton prendre si pas pris
-          if(d.status !== 'pris'){
-            const takeBtn = document.createElement('button'); takeBtn.className='btn'; takeBtn.textContent='Prendre';
-            takeBtn.onclick = ()=> openTakeModal(doc.id,d.product);
-            right.appendChild(takeBtn);
-          }
+      const created = d.createdAt?.toDate?.() ?? new Date();
+      const due = d.dueAt?.toDate?.() ?? null;
+      const now = new Date();
 
-          // bouton supprimer (optionnel)
-          const delBtn = document.createElement('button'); delBtn.className='btn'; delBtn.style.marginLeft='6px'; delBtn.textContent='Supprimer';
-          delBtn.onclick = ()=> deleteRequest(doc.id);
-          right.appendChild(delBtn);
+      let lateness = '';
+      if(d.status !== 'pris' && due && due < now) lateness = '<span class="badge" style="background:#ffdede;color:#a00;font-weight:600;">En retard</span>';
 
-          el.appendChild(left); el.appendChild(right);
-          container.appendChild(el);
-        });
-      }catch(err){ console.error(err); container.innerHTML = '<div class="muted">Erreur chargement</div>'; }
-    }
+      const statusBadge = `<span class="badge" style="font-weight:700;font-size:14px;">${d.status}</span>`;
+
+      let info = `<div class="muted" style="margin-bottom:4px;">Créé: ${created.toLocaleString()}</div>`;
+      if(due) info += `<div class="muted" style="margin-bottom:4px;">Pour: ${due.toLocaleString()}</div>`;
+
+      right.innerHTML = info + '<div style="margin-top:6px; display:flex; gap:6px; align-items:center;">' + lateness + ' ' + statusBadge + '</div>';
+
+      // bouton prendre si pas pris
+      if(d.status !== 'pris'){
+        const takeBtn = document.createElement('button'); 
+        takeBtn.className='btn'; 
+        takeBtn.textContent='Prendre';
+        takeBtn.onclick = ()=> openTakeModal(doc.id,d.product);
+        right.appendChild(takeBtn);
+      }
+
+      // bouton supprimer
+      const delBtn = document.createElement('button'); 
+      delBtn.className='btn'; 
+      delBtn.textContent='Supprimer';
+      delBtn.style.marginLeft='6px';
+      delBtn.onclick = ()=> deleteRequest(doc.id);
+      right.appendChild(delBtn);
+
+      el.appendChild(left); 
+      el.appendChild(right);
+      container.appendChild(el);
+    });
+
+  } catch(err){
+    console.error(err); 
+    container.innerHTML = '<div class="muted">Erreur chargement</div>';
+  }
+}
 
     // --- supprimer demande (simple) ---
     async function deleteRequest(docId){
@@ -16305,11 +16325,70 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     // --- helper pour notifications simples ---
-    function afficherBulle(msg,type='info'){
-      // minimal: alert box non intrusif
-      const el = document.createElement('div'); el.textContent = msg; el.style.position='fixed'; el.style.right='12px'; el.style.bottom='12px'; el.style.padding='10px 12px'; el.style.borderRadius='8px'; el.style.background = type==='success'?'#e6ffed':'#333'; el.style.color = type==='success'?'#064e22':'#fff'; document.body.appendChild(el);
-      setTimeout(()=> el.remove(),3000);
-    }
+// Conteneur global pour les bulles
+let notificationContainer = document.getElementById('notification-container');
+if (!notificationContainer) {
+  notificationContainer = document.createElement('div');
+  notificationContainer.id = 'notification-container';
+  notificationContainer.style.position = 'fixed';
+  notificationContainer.style.top = '12px';
+  notificationContainer.style.right = '12px'; // EN HAUT À DROITE
+  notificationContainer.style.display = 'flex';
+  notificationContainer.style.flexDirection = 'column';
+  notificationContainer.style.gap = '8px'; // espace vertical entre bulles
+  notificationContainer.style.zIndex = 9999;
+  document.body.appendChild(notificationContainer);
+}
+
+// Fonction pour afficher une bulle
+function afficherBulle(msg, type = 'info') {
+  const el = document.createElement('div');
+  el.textContent = msg;
+  el.style.padding = '10px 14px';
+  el.style.borderRadius = '8px';
+  el.style.boxShadow = '0 2px 6px rgba(0,0,0,0.2)';
+  el.style.fontSize = '14px';
+  el.style.fontWeight = '500';
+  el.style.opacity = '0';
+  el.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+  el.style.transform = 'translateY(-10px)';
+
+  // --- Code couleur selon type ---
+  switch (type) {
+    case 'success':
+      el.style.background = '#e6ffed'; // vert clair
+      el.style.color = '#064e22';      // texte vert foncé
+      break;
+    case 'error':
+      el.style.background = '#ffdede'; // rouge clair
+      el.style.color = '#a00';         // texte rouge foncé
+      break;
+    case 'warning':
+      el.style.background = '#fff4e5'; // orange clair
+      el.style.color = '#663c00';      // texte orange foncé
+      break;
+    default: // info ou autre
+      el.style.background = '#333';    // gris foncé
+      el.style.color = '#fff';         // texte blanc
+      break;
+  }
+
+  notificationContainer.appendChild(el);
+
+  // Animation d'entrée
+  requestAnimationFrame(() => {
+    el.style.opacity = '1';
+    el.style.transform = 'translateY(0)';
+  });
+
+  // Suppression automatique après 3 secondes
+  setTimeout(() => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(-10px)';
+    el.addEventListener('transitionend', () => el.remove());
+  }, 3000);
+}
+
 
     // --- initial load ---
     if(!patientId){ alert('Aucun id patient trouvé dans l\'URL. Ajoutez ?id=<patientId>'); }

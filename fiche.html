@@ -603,32 +603,7 @@ main {
   z-index: 9999;
   align-items: flex-end;
 }
-	.bubble {
-  max-width: 300px;
-  padding: 10px 15px;
-  border-radius: 8px;
-  color: white;
-  font-family: sans-serif;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-  animation: fadeout 0.5s ease-in-out 1.5s forwards;
-  word-wrap: break-word;
-  text-align: left;
-}
 
-.administratif {
-  background-color: #2196F3; /* bleu */
-}
-
-.alerte {
-  background-color: #f44336; /* rouge */
-}
-
-@keyframes fadeout {
-  to {
-    opacity: 0;
-    transform: translateX(-20px);
-  }
-}
 
 .exam-button {
   background-color: #007BFF;
@@ -1908,21 +1883,70 @@ const patientId = urlParams.get("id");
 // Créer la référence au document patient
 const patientRef = db.collection("patients").doc(patientId);
 
-  function afficherBulle(texte, type) {
-    let container = document.getElementById('bubble-container');
-    if (!container) {
-      container = document.createElement('div');
-      container.id = 'bubble-container';
-      document.body.appendChild(container);
-    }
-    const bulle = document.createElement('div');
-    bulle.className = `bubble ${type}`;
-    bulle.textContent = texte;
-    container.appendChild(bulle);
-    setTimeout(() => {
-      bulle.remove();
-    }, 3000);
+ // Conteneur global pour les bulles
+let notificationContainer = document.getElementById('notification-container');
+if (!notificationContainer) {
+  notificationContainer = document.createElement('div');
+  notificationContainer.id = 'notification-container';
+  notificationContainer.style.position = 'fixed';
+  notificationContainer.style.top = '12px';
+  notificationContainer.style.right = '12px'; // EN HAUT À DROITE
+  notificationContainer.style.display = 'flex';
+  notificationContainer.style.flexDirection = 'column';
+  notificationContainer.style.gap = '8px'; // espace vertical entre bulles
+  notificationContainer.style.zIndex = 9999;
+  document.body.appendChild(notificationContainer);
+}
+
+// Fonction pour afficher une bulle
+function afficherBulle(msg, type = 'info') {
+  const el = document.createElement('div');
+  el.textContent = msg;
+  el.style.padding = '10px 14px';
+  el.style.borderRadius = '8px';
+  el.style.boxShadow = '0 2px 6px rgba(0,0,0,0.2)';
+  el.style.fontSize = '14px';
+  el.style.fontWeight = '500';
+  el.style.opacity = '0';
+  el.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+  el.style.transform = 'translateY(-10px)';
+
+  // --- Code couleur selon type ---
+  switch (type) {
+    case 'success':
+      el.style.background = '#e6ffed'; // vert clair
+      el.style.color = '#064e22';      // texte vert foncé
+      break;
+    case 'error':
+      el.style.background = '#ffdede'; // rouge clair
+      el.style.color = '#a00';         // texte rouge foncé
+      break;
+    case 'warning':
+      el.style.background = '#fff4e5'; // orange clair
+      el.style.color = '#663c00';      // texte orange foncé
+      break;
+    default: // info ou autre
+      el.style.background = '#333';    // gris foncé
+      el.style.color = '#fff';         // texte blanc
+      break;
   }
+
+  notificationContainer.appendChild(el);
+
+  // Animation d'entrée
+  requestAnimationFrame(() => {
+    el.style.opacity = '1';
+    el.style.transform = 'translateY(0)';
+  });
+
+  // Suppression automatique après 3 secondes
+  setTimeout(() => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(-10px)';
+    el.addEventListener('transitionend', () => el.remove());
+  }, 3000);
+}
+
 function openTab(tabId, event) {
   document.querySelectorAll(".tab-content").forEach(tab => tab.style.display = "none");
   document.querySelectorAll(".tablink").forEach(btn => btn.classList.remove("active"));
@@ -1971,10 +1995,10 @@ document.getElementById("btnValiderSortie").addEventListener("click", async () =
   try {
     await updateHospitalisationField("sortie", sortie);
     afficherSortieListe(sortie);
-    afficherBulle("✔️ Sortie enregistrée", "administratif");
+    afficherBulle("✔️ Sortie enregistrée", "success");
   } catch (err) {
     console.error("Erreur enregistrement sortie :", err);
-    afficherBulle("❌ Erreur lors de l’enregistrement de la sortie", "alerte");
+    afficherBulle("❌ Erreur lors de l’enregistrement de la sortie", "error");
   }
 });
 
@@ -2011,7 +2035,7 @@ async function chargerPatient(patientId) {
   try {
     const doc = await db.collection("patients").doc(patientId).get();
     if (!doc.exists) {
-      afficherBulle("❌ Patient introuvable", "alerte");
+      afficherBulle("❌ Patient introuvable", "error");
       return;
     }
 
@@ -2103,7 +2127,7 @@ document.getElementById("importanceAllergies").checked = data.importanceAllergie
 
   } catch (err) {
     console.error("Erreur chargement patient :", err);
-    afficherBulle("❌ Erreur de chargement", "alerte");
+    afficherBulle("❌ Erreur de chargement", "error");
   } 
   masquerLoader();
 }
@@ -2111,14 +2135,14 @@ document.getElementById("importanceAllergies").checked = data.importanceAllergie
 document.getElementById("allergies").addEventListener("change", async () => {
   const value = document.getElementById("allergies").value.trim() || "aucun";
   await patientRef.update({ allergies: value });
-  afficherBulle("💾 Allergies enregistrées", "administratif");
+  afficherBulle("💾 Allergies enregistrées", "success");
 });
 
 // Switch allergie(s) importantes
 document.getElementById("importanceAllergies").addEventListener("change", async () => {
   const isImportant = document.getElementById("importanceAllergies").checked;
   await patientRef.update({ importanceAllergies: isImportant });
-  afficherBulle(isImportant ? "⚠️ Allergie(s) importantes activée(s)" : "✅ Pas d’allergie majeure", "administratif");
+  afficherBulle(isImportant ? "⚠️ Allergie(s) importantes activée(s)" : "✅ Pas d’allergie majeure", "default");
 });
 
 async function updateHospitalisationField(field, value) {
@@ -2138,7 +2162,7 @@ async function updateHospitalisationField(field, value) {
     
   } catch (err) {
     console.error(`Erreur mise à jour ${field} :`, err);
-    afficherBulle("❌ Erreur d’enregistrement", "alerte");
+    afficherBulle("❌ Erreur d’enregistrement", "error");
   }
 }
 
@@ -2246,7 +2270,7 @@ function afficherSortieListe(sortie) {
 
     await patientRef.update({ hospitalisations });
     sortieListe.innerHTML = "<p>Sortie supprimée.</p>";
-    afficherBulle("🗑️ Sortie supprimée", "administratif");
+    afficherBulle("🗑️ Sortie supprimée", "success");
   });
 }
 document.addEventListener("DOMContentLoaded", () => {
@@ -2352,18 +2376,18 @@ async function ajouterEntreeHistorique(texte) {
   const taille = parseFloat(document.getElementById("taille").value);
 
   if (!poids || !taille) {
-    afficherBulle("❌ Veuillez entrer un poids et une taille valides", "alerte");
+    afficherBulle("❌ Veuillez entrer un poids et une taille valides", "warning");
     return;
   }
 
   try {
     await patientRef.update({ poids, taille });
     ajouterEntreeHistorique(`Poids/Taille/IMC enregistrés: ${poids}kg / ${taille}cm`);
-    afficherBulle("✔️ Poids et taille enregistrés", "administratif");
+    afficherBulle("✔️ Poids et taille enregistrés", "success");
     chargerPatient(patientId); // 🔄 recalcul IMC
   } catch (err) {
     console.error("Erreur enregistrement poids/taille :", err);
-    afficherBulle("❌ Erreur lors de l’enregistrement du poids/taille", "alerte");
+    afficherBulle("❌ Erreur lors de l’enregistrement du poids/taille", "error");
   }
 });
 
@@ -2383,10 +2407,10 @@ document.getElementById("btnSaveConst").addEventListener("click", async () => {
 
   try {
     await updateHospitalisationField("constantes", constantes);
-    afficherBulle("✔️ Constantes enregistrées", "administratif");
+    afficherBulle("✔️ Constantes enregistrées", "success");
   } catch (err) {
     console.error("Erreur enregistrement constantes :", err);
-    afficherBulle("❌ Erreur lors de l’enregistrement des constantes", "alerte");
+    afficherBulle("❌ Erreur lors de l’enregistrement des constantes", "error");
   }
 });
 
@@ -2421,7 +2445,7 @@ document.getElementById("btnSaveConst").addEventListener("click", async () => {
       fields.style.display = "none";
       successDiv.style.display = "none";
       await updateHospitalisationField("scope", { scopeActive: false, numero: "" });
-      afficherBulle("✔️ Scope désactivé", "administratif");
+      afficherBulle("✔️ Scope désactivé", "success");
       return;
     }
     fields.style.display = "block";
@@ -2432,7 +2456,7 @@ document.getElementById("btnSaveConst").addEventListener("click", async () => {
   document.getElementById("btnConnectScope").addEventListener("click", async () => {
     const numero = numInput.value.trim();
     if (!numero) {
-      afficherBulle("❌Veuillez entrer un numéro de scope", "alerte");
+      afficherBulle("❌Veuillez entrer un numéro de scope", "warning");
       return;
     }
     document.getElementById("scopeLoading").style.display = "inline";
@@ -2440,7 +2464,7 @@ document.getElementById("btnSaveConst").addEventListener("click", async () => {
       document.getElementById("scopeLoading").style.display = "none";
       successDiv.style.display = "block";
       await updateHospitalisationField("scope", { scopeActive: true, numero });
-      afficherBulle(`✔️ Scope ${numero} connecté`, "administratif");
+      afficherBulle(`✔️ Scope ${numero} connecté`, "success");
     }, 1500);
   });
 
@@ -2448,7 +2472,7 @@ document.getElementById("btnSaveConst").addEventListener("click", async () => {
   document.getElementById("btnOpenScope").addEventListener("click", () => {
     const numero = numInput.value.trim();
     if (!numero) {
-      afficherBulle("❌Numéro de scope manquant", "alerte");
+      afficherBulle("❌Numéro de scope manquant", "warning");
       return;
     }
     window.location.href =`scope.html?id=${encodeURIComponent(patientId)}`;
@@ -2545,7 +2569,7 @@ document.getElementById("btnSaveExamen").addEventListener("click", async () => {
   const examens = Array.from(checkboxes).map(cb => cb.value);
 
   if (examens.length === 0) {
-    afficherBulle("❌ Veuillez sélectionner au moins un examen", "alerte");
+    afficherBulle("❌ Veuillez sélectionner au moins un examen", "warning");
     return;
   }
 
@@ -2572,13 +2596,13 @@ document.getElementById("btnSaveExamen").addEventListener("click", async () => {
     await patientRef.update({ hospitalisations });
 
     modalExamen.style.display = "none";
-    afficherBulle("✔️ Examens enregistrés", "administratif");
+    afficherBulle("✔️ Examens enregistrés", "success");
     ajouterEntreeHistorique(`📋 Examens demandés : ${examens.join(", ")}`);
 	  reinitialiserFormulaireExamen();
 	  chargerExamens();
   } catch (err) {
     console.error("Erreur enregistrement examens :", err);
-    afficherBulle("❌ Erreur enregistrement", "alerte");
+    afficherBulle("❌ Erreur enregistrement", "error");
   }
   
 });
@@ -2613,7 +2637,7 @@ btnAnnulerCode.addEventListener("click", () => {
 btnValiderCode.addEventListener("click", async () => {
   const code = inputCode.value.trim();
   if (!code) {
-    afficherBulle("⚠️ Veuillez entrer un code", "alerte");
+    afficherBulle("⚠️ Veuillez entrer un code", "warning");
     return;
   }
 
@@ -2622,7 +2646,7 @@ btnValiderCode.addEventListener("click", async () => {
     const codeAttendu = codeDoc.data().CCH;
 
     if (code !== codeAttendu) {
-      afficherBulle("❌ Code incorrect", "alerte");
+      afficherBulle("❌ Code incorrect", "warning");
       return;
     }
 
@@ -2661,12 +2685,12 @@ btnValiderCode.addEventListener("click", async () => {
             hospitalisationActive: false
           });
 
-          afficherBulle("✅ Hospitalisation clôturée", "administratif");
+          afficherBulle("✅ Hospitalisation clôturée", "success");
           window.location.href = `urgences.html`;
         }
       } catch (error) {
         console.error("Erreur clôture hospitalisation :", error);
-        afficherBulle("⚠️ Erreur de clôture", "alerte");
+        afficherBulle("⚠️ Erreur de clôture", "error");
       } finally {
         document.getElementById("modalCloture").style.display = "none";
       }
@@ -2674,7 +2698,7 @@ btnValiderCode.addEventListener("click", async () => {
 
   } catch (err) {
     console.error("Erreur lors de la vérification du code :", err);
-    afficherBulle("Erreur de vérification du code", "alerte");
+    afficherBulle("Erreur de vérification du code", "error");
   }
 });
 
@@ -2732,7 +2756,7 @@ document.getElementById("adminNaissance").value = data.dateNaissance || "";
  modalAdmin.classList.add("show");
   } catch (e) {
     console.error("Erreur ouverture admin :", e);
-    afficherBulle("❌Erreur chargement gestion dministrative", "alerte");
+    afficherBulle("❌Erreur chargement gestion dministrative", "error");
   }
 });
 
@@ -2752,11 +2776,11 @@ const dateNaissance = document.getElementById("adminNaissance").value.trim();
 
   try {
     await patientRef.update({ adresse, telephone, email, sexe, dateNaissance });
-    afficherBulle("✔️ Coordonnées mises à jour", "administratif");
+    afficherBulle("✔️ Coordonnées mises à jour", "success");
     modalAdmin.style.display = "none";
   } catch (e) {
     console.error("Erreur maj admin :", e);
-    afficherBulle("❌Erreur enregistrement admin", "alerte");
+    afficherBulle("❌Erreur enregistrement données administratives", "error");
   }
 });
 
@@ -2778,7 +2802,7 @@ champAutreActe.style.display = "none";
 champAutreActe.style.marginTop = "8px";
 
 document.getElementById("btnFermerActe").addEventListener("click", () => {
-  afficherBulle("ℹ️ Fermeture sans enregistrement", "administratif");
+  afficherBulle("ℹ️ Fermeture sans enregistrement", "default");
 });
 
 
@@ -2910,7 +2934,7 @@ async function supprimerActeRealise(index) {
 
   ajouterEntreeHistorique(`❌ Acte supprimé : ${acteSupprimé.type} (par ${acteSupprimé.realisateur})`);
   afficherActesRealises(document.getElementById("filtreTypeActe")?.value || "tous");
-  afficherBulle("🗑️ Acte supprimé", "administratif");
+  afficherBulle("🗑️ Acte supprimé", "success");
 }
 
 document.getElementById("btnEnregistrerActe").addEventListener("click", async () => {
@@ -2919,7 +2943,7 @@ document.getElementById("btnEnregistrerActe").addEventListener("click", async ()
   const remarque = document.getElementById("remarqueActe").value.trim();
 
   if (!type) {
-    afficherBulle("❌ Veuillez saisir un type d’acte", "alerte");
+    afficherBulle("❌ Veuillez saisir un type d’acte", "warning");
     return;
   }
 
@@ -2949,12 +2973,12 @@ document.getElementById("btnEnregistrerActe").addEventListener("click", async ()
 
     await patientRef.update({ hospitalisations });
 
-    afficherBulle("✔️ Acte enregistré", "administratif");
+    afficherBulle("✔️ Acte enregistré", "success");
     document.getElementById("rechercherActe").value = "";
     document.getElementById("remarqueActe").value = "";
   } catch (err) {
     console.error("Erreur enregistrement acte :", err);
-    afficherBulle("❌ Erreur lors de l’enregistrement de l’acte", "alerte");
+    afficherBulle("❌ Erreur lors de l’enregistrement de l’acte", "error");
   }
 });
 
@@ -3039,9 +3063,9 @@ document.getElementById('readVitaleBtn').addEventListener('click', () => {
     const isSuccess = Math.random() < 0.8; // 80% ok-20%erreur
 
     if (isSuccess) {
-      afficherBulle("✅ Lecture Carte Vitale terminée !", "administratif");
+      afficherBulle("✅ Lecture Carte Vitale terminée !", "success");
     } else {
-      afficherBulle("❌ Erreur lecture Carte Vitale - Veuillez ressayer", "alerte");
+      afficherBulle("❌ Erreur lecture Carte Vitale - Veuillez ressayer", "warning");
     }
   }, duration);
 });
@@ -3098,11 +3122,11 @@ document.getElementById("btnEnregistrerGlasgow").addEventListener("click", async
     await patientRef.update({ hospitalisations });
 
     await ajouterEntreeHistorique(texte);
-    afficherBulle("✔️ Score de Glasgow enregistré", "administratif");
+    afficherBulle("✔️ Score de Glasgow enregistré", "succcess");
     document.getElementById("modalGlasgow").style.display = "none";
   } catch (e) {
     console.error("Erreur enregistrement Glasgow :", e);
-    afficherBulle("❌ Erreur enregistrement", "alerte");
+    afficherBulle("❌ Erreur enregistrement", "error");
   }
 });
 function ajouterHorodatage() {
@@ -3148,10 +3172,10 @@ async function enregistrerDossierMedical() {
 
   try {
     await updateHospitalisationField("dossierMedical", dossierMedical);
-    afficherBulle("✔️ Dossier médical enregistré", "administratif");
+    afficherBulle("✔️ Dossier médical enregistré", "success");
   } catch (err) {
     console.error("Erreur enregistrement dossier médical :", err);
-    afficherBulle("❌ Erreur lors de l’enregistrement du dossier médical", "alerte");
+    afficherBulle("❌ Erreur lors de l’enregistrement du dossier médical", "error");
   }
 }
 
@@ -3162,10 +3186,10 @@ async function enregistrerEvolution() {
 
   try {
     await updateHospitalisationField("evolution", evolution);
-    afficherBulle("✔️ Évolution enregistrée", "administratif");
+    afficherBulle("✔️ Évolution enregistrée", "success");
   } catch (err) {
     console.error("Erreur enregistrement évolution :", err);
-    afficherBulle("❌ Erreur lors de l’enregistrement de l’évolution", "alerte");
+    afficherBulle("❌ Erreur lors de l’enregistrement de l’évolution", "error");
   }
 }
 
@@ -3382,7 +3406,7 @@ async function supprimerActe(indexActe) {
     // Charger le document patient
     const snap = await patientRef.get();
     if (!snap.exists) {
-      afficherBulle("❌ Patient introuvable", "alerte");
+      afficherBulle("❌ Patient introuvable", "error");
       return;
     }
 
@@ -3392,7 +3416,7 @@ async function supprimerActe(indexActe) {
     const hosp = hospitalisations[hospIndex];
 
     if (!hosp || !hosp.actes) {
-      afficherBulle("❌ Aucun acte à supprimer", "alerte");
+      afficherBulle("❌ Aucun acte à supprimer", "warning");
       return;
     }
 
@@ -3403,11 +3427,11 @@ async function supprimerActe(indexActe) {
     hospitalisations[hospIndex] = hosp;
     await patientRef.update({ hospitalisations });
 
-    afficherBulle("🗑️ Acte supprimé", "administratif");
+    afficherBulle("🗑️ Acte supprimé", "success");
     await chargerActes(); // 🔄 Rafraîchir la liste à l’écran
   } catch (err) {
     console.error("Erreur suppression acte :", err);
-    afficherBulle("❌ Erreur lors de la suppression", "alerte");
+    afficherBulle("❌ Erreur lors de la suppression", "error");
   }
 }
 
@@ -3447,13 +3471,13 @@ async function remplirDepuisAncienneHospi(champ) {
     const index = data.hospitalisationIndex ?? 0;
 
     if (index <= 0) {
-      afficherBulle("❌ Aucune hospitalisation antérieure", "alerte");
+      afficherBulle("❌ Aucune hospitalisation antérieure", "warning");
       return;
     }
 
     const ancienne = data.hospitalisations?.[index - 1]?.dossierMedical;
     if (!ancienne || !ancienne[champ]) {
-      afficherBulle(`❌ Pas d'ancien contenu pour ${champ}`, "alerte");
+      afficherBulle(`❌ Pas d'ancien contenu pour ${champ}`, "warning");
       return;
     }
 
@@ -3472,11 +3496,11 @@ async function remplirDepuisAncienneHospi(champ) {
     textarea.selectionStart = textarea.selectionEnd = nouvellePosition;
     textarea.focus();
 
-    afficherBulle(`📁 Ancien ${champ} inséré`, "administratif");
+    afficherBulle(`📁 Ancien ${champ} inséré`, "default");
 
   } catch (err) {
     console.error("Erreur récupération données précédentes :", err);
-    afficherBulle("❌ Erreur de récupération", "alerte");
+    afficherBulle("❌ Erreur de récupération", "error");
   }
 }
 
@@ -3493,7 +3517,7 @@ document.addEventListener("DOMContentLoaded", () => {
     chargerPatient(patientId);   // ✅ passer l’ID
     chargerActes();
   } else {
-    afficherBulle("❌ Aucun patientId fourni dans l’URL", "alerte");
+    afficherBulle("❌ Aucun patientId fourni dans l’URL", "warning");
   }
 });
 
@@ -3701,7 +3725,7 @@ document.addEventListener('click', () => {
         window.location.href = "index.html";
       })
       .catch((error) => {
-        afficherBulle("Erreur de déconnexion" ,"alerte");
+        afficherBulle("Erreur de déconnexion" ,"error");
       });
   }
 document.addEventListener("DOMContentLoaded", () => {
