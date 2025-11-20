@@ -3631,7 +3631,28 @@ function openDocsTab(tabId, file) {
     // charge l’URL avec ?id=
     document.getElementById("docsFrame").src = url;
 }
+function openSection(panelId) {
+    // Masquer toutes les sections
+    document.querySelectorAll(".panel").forEach(panel => {
+        panel.classList.remove("active");
+        panel.style.display = "none";
+    });
 
+    // Activer la section demandée
+    const panel = document.getElementById(panelId);
+    if (panel) {
+        panel.style.display = "block";
+        panel.classList.add("active");
+    }
+
+    // Mettre à jour la barre latérale si elle existe
+    document.querySelectorAll(".nav-item").forEach(item => {
+        item.classList.remove("active");
+        if (item.dataset.module === panelId.replace("panel-", "")) {
+            item.classList.add("active");
+        }
+    });
+}
 
 // Ligne de test de fin
 console.log("Script terminé correctement ✅");
@@ -3917,28 +3938,7 @@ document.querySelector('[data-module="documents"]').addEventListener('click', ()
     openDocsTab('tab-docs', 'docs.html');
 });
 
-function openSection(panelId) {
-    // Masquer toutes les sections
-    document.querySelectorAll(".panel").forEach(panel => {
-        panel.classList.remove("active");
-        panel.style.display = "none";
-    });
 
-    // Activer la section demandée
-    const panel = document.getElementById(panelId);
-    if (panel) {
-        panel.style.display = "block";
-        panel.classList.add("active");
-    }
-
-    // Mettre à jour la barre latérale si elle existe
-    document.querySelectorAll(".nav-item").forEach(item => {
-        item.classList.remove("active");
-        if (item.dataset.module === panelId.replace("panel-", "")) {
-            item.classList.add("active");
-        }
-    });
-}
 
 </script>
 
