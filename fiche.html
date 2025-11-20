@@ -1303,14 +1303,12 @@ section.panel.active {
   <div class="dropdown">
     <button class="dropbtn">📑 Documents ▼</button>
     <div class="dropdown-content">
-      <a href="#" onclick="window.location.href='Ordonnancier.html?id=' + patientId">Ordonnancier</a>
-      <a href="#" onclick="window.location.href='Certificatmedical.html?id=' + patientId">Certificats Médicaux</a>
-      <a href="#" onclick="window.location.href='prescriptionexamens.html?id=' + patientId">Prescipteur d'examens</a>
-      <a href="#" onclick="window.location.href='rapporthospitalisationl.html?id=' + patientId">Rapport d'hospitalisation</a>
-      <a href="#" onclick="window.location.href='fichesconseil.html?id=' + patientId">Fiches Conseils</a>
-      <a href="#" onclick="window.location.href='uploadpdf.html?id=' + patientId">Accès PDF patients</a>
-      <a href="#" onclick="window.location.href='etiquettes.html?id=' + patientId">Etiquettes</a>
-
+      <a href="#" onclick="openDocumentFromMenu('tab-ordo', 'Ordonnancierf.html')">Ordonnancier</a>
+<a href="#" onclick="openDocumentFromMenu('tab-cert', 'Certificatmedicalf.html')">Certificats Médicaux</a>
+<a href="#" onclick="openDocumentFromMenu('tab-exams', 'prescriptionexamensf.html')">Prescripteur d'examens</a>
+<a href="#" onclick="openDocumentFromMenu('tab-fiches', 'fichesconseilf.html')">Fiches Conseils</a>
+<a href="#" onclick="openDocumentFromMenu('tab-pdf', 'uploadpdff.html')">Accès PDF patients</a>
+<a href="#" onclick="openDocumentFromMenu('tab-etiq', 'etiquettesf.html')">Étiquettes</a>
 
 
     </div>
@@ -1321,8 +1319,9 @@ section.panel.active {
     <div class="dropdown-content">
       <a href="#" onclick="openSection('panel-patient')">Identité</a>
       <a href="#" onclick="openSection('panel-admission')">Admission et Orientation</a>
-      <a href="#" onclick="openSection('panel-constantes')">Admission et Orientation</a>
       <a href="#" onclick="openSection('panel-dossier')">Dossier Médical</a>
+      <a href="#" onclick="openSection('panel-constantes')">Constantes</a>
+
 
 
     </div>
@@ -3653,7 +3652,20 @@ function openSection(panelId) {
         }
     });
 }
+window.openDocumentFromMenu = function(tabId, file) {
+    // 1️⃣ Ouvrir la section Documents
+    openSection('panel-documents');
 
+    // 2️⃣ Activer l'onglet désiré
+    document.querySelectorAll(".docs-tab").forEach(t => t.classList.remove("active"));
+    document.getElementById(tabId).classList.add("active");
+
+    // 3️⃣ Construire l'URL avec le patientId
+    const url = file + "?id=" + patientId;
+
+    // 4️⃣ Charger dans l’iframe
+    document.getElementById("docsFrame").src = url;
+};
 // Ligne de test de fin
 console.log("Script terminé correctement ✅");
 </script>
