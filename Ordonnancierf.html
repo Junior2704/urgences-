@@ -1510,7 +1510,48 @@ const htmlFinal = htmlMessage
 });
 
 
-function getCare
+function getCaretCoordinates(textarea, position) {
+    const div = document.createElement('div');
+    const style = getComputedStyle(textarea);
+
+    // Copier les styles essentiels
+    div.style.position = 'absolute';
+    div.style.visibility = 'hidden';
+    div.style.whiteSpace = 'pre-wrap';
+    div.style.wordWrap = 'break-word';
+    div.style.font = style.font;
+    div.style.fontSize = style.fontSize;
+    div.style.padding = style.padding;
+    div.style.border = style.border;
+    div.style.overflow = 'auto';
+    div.style.width = textarea.offsetWidth + 'px';
+    div.style.lineHeight = style.lineHeight;
+
+    // Texte jusqu’au curseur
+    div.textContent = textarea.value.substring(0, position);
+
+    // Span pour la position exacte du curseur
+    const span = document.createElement('span');
+    span.textContent = textarea.value.substring(position) || '.';
+    div.appendChild(span);
+
+    document.body.appendChild(div);
+
+    // Calcul de la position relative au textarea
+    const spanRect = span.getBoundingClientRect();
+    const textareaRect = textarea.getBoundingClientRect();
+
+    const scrollTop = textarea.scrollTop;
+    const scrollLeft = textarea.scrollLeft;
+    const paddingTop = parseInt(style.paddingTop);
+    const paddingLeft = parseInt(style.paddingLeft);
+
+    const top = spanRect.top - div.getBoundingClientRect().top + textareaRect.top + window.scrollY - scrollTop + paddingTop;
+    const left = spanRect.left - div.getBoundingClientRect().left + textareaRect.left + window.scrollX - scrollLeft + paddingLeft;
+
+    document.body.removeChild(div);
+    return { top, left };
+}
 
 
 
