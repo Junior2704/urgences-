@@ -724,25 +724,14 @@
   <input type="text" name="query" placeholder="Rechercher sur le Vidal">
   <button type="submit">Rechercher</button>
 </form>
-			<label for="search-medicaments">🔎 Rechercher Médicaments</label>
-			<input type="text" id="search-medicaments" class="search-bar" placeholder="Tapez pour rechercher un médicament..." onkeyup="filterMedicaments()" />
 			
-	<div id="medicaments-list">
-<div class="medicament-item" ondblclick="addMedicamentToPrescription(' ')">--Prescription libre--</div>
-<div class="medicament-item" ondblclick="addMedicamentToPrescription('A 313 200 000 UI POUR CENT, pommade')">A 313 200 000 UI POUR CENT, pommade</div>
-<div class="medicament-item" ondblclick="addMedicamentToPrescription('A 313 50 000 U.I., capsule molle')">A 313 50 000 U.I., capsule molle</div>
-
-</div>
-
 
 		<div id="prescription" class="ordonnance" style="display: none;">
   <h2>Ordonnance Médicale</h2>
   <div class="date-info">
     <span>Date : <span id="current-date"></span></span>
   </div>
-  <div class="patient-info">
-    <span><span id="patient-name-display"></span>, <span id="patient-age-display"></span> ans</span>
-  </div>
+
 
   <div class="form-group">
     <label for="prescription-text">🖊️ Prescription libre</label>
