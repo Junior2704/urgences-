@@ -680,7 +680,30 @@
   padding: 10px 20px;
   font-size: 14px;
 }
+#prescription-text {
+    width: 100%;              /* pleine largeur */
+    min-height: 150px;        /* hauteur confortable */
+    padding: 12px;            /* espace intérieur */
+    border: 1px solid #ccc;   /* bord gris clair */
+    border-radius: 10px;      /* bords arrondis */
+    font-size: 14px;
+    font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+    box-sizing: border-box;
+    resize: vertical;          /* possibilité d'agrandir verticalement */
+    transition: border-color 0.3s, box-shadow 0.3s;
+  }
 
+  #prescription-text:focus {
+    border-color: #1a73e8;    /* bord bleu lors du focus */
+    box-shadow: 0 0 5px rgba(26, 115, 232, 0.5);
+    outline: none;
+  }
+
+  .form-group label {
+    font-weight: 600;
+    margin-bottom: 6px;
+    display: block;
+  }
 </style>
 
 		<h1>💊 Ordonnancier Médical</h1>
@@ -734,7 +757,7 @@
 
 
   <div class="form-group">
-    <label for="prescription-text">🖊️ Prescription libre</label>
+    <label for="prescription-text">🖊️ Prescription :</label>
     <textarea id="prescription-text" rows="8" placeholder="Tapez ici votre prescription..."></textarea>
   </div>
 
