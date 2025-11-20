@@ -1515,8 +1515,8 @@ const htmlFinal = htmlMessage
 function getCaretCoordinates(element, position) {
     const div = document.createElement('div');
     const style = getComputedStyle(element);
-    
-    // copier les styles nécessaires pour reproduire le rendu
+
+    // Copier les styles essentiels
     div.style.position = 'absolute';
     div.style.whiteSpace = 'pre-wrap';
     div.style.visibility = 'hidden';
@@ -1525,22 +1525,30 @@ function getCaretCoordinates(element, position) {
     div.style.border = style.border;
     div.style.overflow = 'auto';
     div.style.width = element.offsetWidth + 'px';
-    
+    div.style.lineHeight = style.lineHeight;
+    div.style.letterSpacing = style.letterSpacing;
+
+    // Div contenant le texte jusqu'au curseur
     div.textContent = element.value.substring(0, position);
-    
+
+    // Span pour la position exacte
     const span = document.createElement('span');
     span.textContent = element.value.substring(position) || '.';
     div.appendChild(span);
-    
+
     document.body.appendChild(div);
-    const rect = span.getBoundingClientRect();
-    const coords = { 
-        top: rect.top - div.getBoundingClientRect().top, 
-        left: rect.left - div.getBoundingClientRect().left 
-    };
+
+    // Calculer la position relative au textarea
+    const rectDiv = div.getBoundingClientRect();
+    const rectTextarea = element.getBoundingClientRect();
+    const top = span.offsetTop - element.scrollTop + rectTextarea.top + window.scrollY;
+    const left = span.offsetLeft - element.scrollLeft + rectTextarea.left + window.scrollX;
+
     document.body.removeChild(div);
-    return coords;
+
+    return { top, left };
 }
+
 
 let medicaments = [];
 fetch('medicaments.json')
