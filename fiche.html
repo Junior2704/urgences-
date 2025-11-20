@@ -3816,8 +3816,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const observer = new MutationObserver(() => {
     if (panelDocs.style.display !== "none") {
       // La section Documents vient de s'ouvrir → charger l’onglet par défaut
-      const defaultTabId = 'tab-ordo';
-      const defaultUrl = 'Ordonnancierf.html';
+      const defaultTabId = 'tab-docs';
+      const defaultUrl = 'docs.html';
 
       // Appeler ta fonction pour ouvrir le contenu et mettre l’onglet actif
       openDocsTab(defaultTabId, defaultUrl);
