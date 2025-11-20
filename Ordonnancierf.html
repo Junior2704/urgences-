@@ -1511,6 +1511,37 @@ const htmlFinal = htmlMessage
   }
 });
 
+
+function getCaretCoordinates(element, position) {
+    const div = document.createElement('div');
+    const style = getComputedStyle(element);
+    
+    // copier les styles nécessaires pour reproduire le rendu
+    div.style.position = 'absolute';
+    div.style.whiteSpace = 'pre-wrap';
+    div.style.visibility = 'hidden';
+    div.style.font = style.font;
+    div.style.padding = style.padding;
+    div.style.border = style.border;
+    div.style.overflow = 'auto';
+    div.style.width = element.offsetWidth + 'px';
+    
+    div.textContent = element.value.substring(0, position);
+    
+    const span = document.createElement('span');
+    span.textContent = element.value.substring(position) || '.';
+    div.appendChild(span);
+    
+    document.body.appendChild(div);
+    const rect = span.getBoundingClientRect();
+    const coords = { 
+        top: rect.top - div.getBoundingClientRect().top, 
+        left: rect.left - div.getBoundingClientRect().left 
+    };
+    document.body.removeChild(div);
+    return coords;
+}
+
 let medicaments = [];
 fetch('medicaments.json')
   .then(res => res.json())
