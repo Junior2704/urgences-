@@ -3829,6 +3829,45 @@ document.addEventListener("DOMContentLoaded", () => {
   // On observe les changements de style (display)
   observer.observe(panelDocs, { attributes: true, attributeFilter: ['style'] });
 });
+document.addEventListener("DOMContentLoaded", () => {
+  // --- Parcourir toutes les sections avec onglets internes ---
+  document.querySelectorAll('section[id^="panel-"]').forEach(section => {
+    // Si la section est active au démarrage
+    if (section.classList.contains('active')) {
+      ouvrirPremierOnglet(section);
+    }
+
+    // Observer les changements de classe "active" pour ouvrir le premier onglet si nécessaire
+    const observer = new MutationObserver(() => {
+      if (section.classList.contains('active')) {
+        ouvrirPremierOnglet(section);
+      }
+    });
+    observer.observe(section, { attributes: true, attributeFilter: ['class'] });
+  });
+
+  // Fonction qui ouvre le premier onglet d'une section
+  function ouvrirPremierOnglet(section) {
+    const subTabs = section.querySelectorAll('.sub-tab'); // tes sous-onglets
+    const subContents = section.querySelectorAll('.sub-tab-content'); // contenu associé
+    if (subTabs.length === 0) return;
+
+    // Retirer active de tous les onglets et contenus
+    subTabs.forEach(tab => tab.classList.remove('active'));
+    subContents.forEach(content => content.classList.remove('active'));
+
+    // Activer le premier
+    subTabs[0].classList.add('active');
+    if (subContents[0]) subContents[0].classList.add('active');
+
+    // Si c'est la section Documents, charger le contenu
+    if (section.id === 'panel-documents' && typeof openDocsTab === 'function') {
+      const defaultTabId = subTabs[0].id;
+      const defaultUrl = subTabs[0].getAttribute('data-url');
+      openDocsTab(defaultTabId, defaultUrl);
+    }
+  }
+});
 
 </script>
 
