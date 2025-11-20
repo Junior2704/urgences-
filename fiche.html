@@ -3642,6 +3642,11 @@ function openSection(panelId) {
         if (item.dataset.module === panelId.replace("panel-", "")) {
             item.classList.add("active");
         }
+        if (panelId === "panel-medsurgences") {
+    const url = "medsurgences.html?id=" + patientId;
+    document.getElementById("medsurgencesFrame").src = url;
+}
+
     });
 }
 window.openDocumentFromMenu = function(tabId, file) {
