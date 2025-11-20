@@ -300,8 +300,68 @@ body {
     opacity: 1;
   }
 }
+
+/* ===== Centrage absolu 100% fiable pour affichage dans iframe ===== */
+html, body {
+  height: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box;
+  overflow: hidden; /* on laisse le scroll à l'intérieur de la card si besoin */
+  position: relative; /* nécessaire pour le positionnement absolu de .card */
+}
+
+/* Si tu veux permettre un petit scroll interne quand la carte est trop grande : */
+body.allow-card-scroll {
+  overflow: auto;
+}
+
+/* Centre la card quel que soit le parent (iframe ou page normale) */
+.card {
+  position: absolute !important;
+  left: 50% !important;
+  top: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  width: 420px;
+  max-width: calc(100% - 40px); /* garde un padding sur petits écrans */
+  box-sizing: border-box;
+  /* limite la hauteur pour autoriser le scroll interne si nécessaire */
+  max-height: calc(100% - 40px);
+  overflow: auto; /* seul l'intérieur de la carte scroll si contenu trop grand */
+  margin: 0 !important; /* annule tout margin qui pourrait interférer */
+}
+
+/* footer : s'il existe, on le laisse mais il ne pousse pas la card */
 footer {
-  margin-top: 40px;   /* au lieu de auto */
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 8px;
+  margin: 0;
+  width: auto;
+  background: transparent;
+}
+
+/* Bulles / modales : ne doivent pas influencer la taille du document */
+#bubble-container,
+#emailModal,
+#loadingModal,
+#fileNameModal,
+#emailSelectModal {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  pointer-events: auto;
+  display: none; /* par défaut masquées comme déjà dans ton code */
+}
+
+/* Si tu utilises la modale de sélection d'emails (qui s'affiche), elle passe en flex lorsque montrée */
+#emailSelectModal.show {
+  display: flex !important;
+  justify-content: center;
+  align-items: center;
 }
 
   </style>
