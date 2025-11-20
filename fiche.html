@@ -1281,10 +1281,9 @@ section.panel.active {
   display: flex;
   flex-direction: column;
   flex: 1;
-  overflow-y: scroll;           /* scroll permanent, plus fluide */
-  scrollbar-width: thin;        /* Firefox */
-  scrollbar-color: #0078d4 #f4f6f8; /* couleur de la scrollbar */
-  padding-right: 10px;          /* espace pour la scrollbar */
+  overflow-y: auto;      /* permet le scroll vertical */
+  padding-right: 15px;   /* ✅ espace pour la scrollbar */
+  box-sizing: content-box; /* évite que padding soit inclus dans la largeur */
 }
 
 
