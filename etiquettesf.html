@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>🎟️ Générateur d’étiquettes patient</title>
+<link rel="icon" type="image/jpeg" href="logo.jpg">
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
+
+<!-- Librairies PDF & code-barres -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+
+<style>
+:root {
+  --primary: #0078d4;
+  --primary-dark: #005ea2;
+  --bg: #f5f7fa;
+  --card-bg: #fff;
+  --radius: 12px;
+}
+body {
+  margin: 0;
+  font-family: "Segoe UI", Tahoma, sans-serif;
+  background: var(--bg);
+  color: #333;
+}
+header {
+  background: var(--primary);
+  color: white;
+  padding: 20px;
+  text-align: center;
+  font-size: 1.4rem;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+}
+main {
+  max-width: 900px;
+  margin: 30px auto;
+  background: var(--card-bg);
+  padding: 30px;
+  border-radius: var(--radius);
+  box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+}
+button {
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 18px;
+  margin: 6px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+  font-size: 1rem;
+}
+button:hover { background: var(--primary-dark); transform: translateY(-2px); }
+button.secondary { background: #6c757d; }
+button.secondary:hover { background: #5a6268; }
+
+label { font-weight:600; margin-top:10px; display:block; }
+input[type="number"] { width:70px; padding:4px; margin-left:8px; }
+
+#preview {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px,1fr));
+  gap: 12px;
+  margin-top: 25px;
+}
+.preview-card {
+  border: 1px solid #ddd;
+  border-radius: var(--radius);
+  padding: 12px;
+  background: #fafafa;
+  font-size: 0.9rem;
+  text-align: center;
+  position: relative;
+}
+.preview-card img { margin-top:8px; max-width:130px; }
+.preview-title {
+  position:absolute;
+  top:8px;
+  right:12px;
+  font-size:0.8rem;
+  color:#999;
+}
+footer {
+  text-align:center;
+  color:#777;
+  margin-top:40px;
+  font-size:0.85rem;
+}
+</style>
+</head>
+<body>
+
+<header>🎟️ Générateur d’étiquettes patient</header>
+
+<main>
+  <div id="infos">Chargement du patient...</div>
+
+  <hr style="margin:20px 0;">
+  <div>
+    <label>Nombre d’étiquettes d’identité :
+      <input type="number" id="nbIdentite" value="4" min="0">
+    </label>
+    <label>Nombre d’étiquettes d’adresse :
+      <input type="number" id="nbAdresse" value="2" min="0">
+    </label>
+  </div>
+
+  <div style="margin-top:15px;">
+    <button id="btnDefault">🧾 Planche par défaut</button>
+    <button id="btnIdentite">👤 Identité uniquement</button>
+    <button id="btnAdresse">🏠 Adresse uniquement</button>
+    <button id="btnGenerer" class="secondary">🖨️ Générer PDF (manuel)</button>
+  </div>
+
+  <h3 style="margin-top:25px;">Aperçu des modèles</h3>
+  <div id="preview"></div>
+</main>
+
+<footer>© 2025 — GestUrg | Impression étiquettes</footer>
+
+<script>
+/* --- FIREBASE --- */
+const firebaseConfig = {
+  apiKey: "AIzaSyBKp5-7NNy0Gyl0tNbDgD-BxucYdg8ArWo",
+  authDomain: "urgences-a8ed4.firebaseapp.com",
+  projectId: "urgences-a8ed4"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+const urlParams = new URLSearchParams(window.location.search);
+const patientId = urlParams.get("id");
+let patientData = null;
+
+/* --- CHARGER PATIENT --- */
+db.collection("patients").doc(patientId).get().then(doc=>{
+  if(!doc.exists) { 
+    document.getElementById("infos").textContent = "❌ Patient introuvable"; 
+    return; 
+  }
+  patientData = doc.data();
+  document.getElementById("infos").innerHTML = `
+    <b>${patientData.prenom} ${patientData.nom}</b><br>
+    Né(e) le ${patientData.dateNaissance || "?"}<br>
+    ID: ${patientId}
+  `;
+  majApercu();
+});
+
+/* --- APERÇU --- */
+function majApercu(){
+  if(!patientData) return;
+  const preview = document.getElementById("preview");
+  preview.innerHTML = "";
+
+  const canvas = document.createElement("canvas");
+  JsBarcode(canvas, patientId, {format:"CODE128", width:1, height:25, displayValue:false});
+  const barcodeData = canvas.toDataURL("image/png");
+
+  const div1=document.createElement("div");
+  div1.className="preview-card";
+  div1.innerHTML=`<div class='preview-title'>Identité</div>
+    <b>${patientData.prenom} ${patientData.nom}</b><br>
+    Né(e) le ${patientData.dateNaissance || "?"}<br>
+    ID: ${patientId}<br>
+    <img src='${barcodeData}'>`;
+  preview.appendChild(div1);
+
+  const div2=document.createElement("div");
+  div2.className="preview-card";
+  div2.innerHTML=`<div class='preview-title'>Adresse</div>
+    <b>${patientData.prenom} ${patientData.nom}</b><br>
+    ${patientData.adresse || "Adresse non renseignée"}<br>
+    ${patientData.telephone || ""}`;
+  preview.appendChild(div2);
+}
+
+/* --- TEXTE ADAPTATIF --- */
+function layoutText(doc, text, maxWidth, maxHeight, initialSize = 10, minSize = 5) {
+  let size = initialSize;
+  let lines = [];
+  const lineHeight = 4; // mm entre lignes
+  doc.setFontSize(size);
+
+  while (size >= minSize) {
+    // Couper le texte en lignes selon la largeur
+    const words = text.split(" ");
+    let current = "";
+    lines = [];
+    for (const word of words) {
+      const test = current ? current + " " + word : word;
+      if (doc.getTextWidth(test) < maxWidth) current = test;
+      else {
+        lines.push(current);
+        current = word;
+      }
+    }
+    if (current) lines.push(current);
+
+    const totalHeight = lines.length * lineHeight;
+    if (totalHeight <= maxHeight) break; // ok
+    size -= 0.5;
+    doc.setFontSize(size);
+  }
+
+  // Si encore trop haut → tronquer
+  while (lines.length * lineHeight > maxHeight) {
+    lines.pop();
+  }
+  if (lines.length * lineHeight > maxHeight && lines.length > 0) {
+    lines[lines.length - 1] += "…";
+  }
+
+  return { size, lines };
+}
+
+/* --- GÉNÉRATION PDF --- */
+function genererPDF(nbIdentite, nbAdresse) {
+  if(!patientData) return alert("Patient non chargé");
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({unit:"mm", format:"a4"});
+
+  const marginLeft=5, marginTop=10;
+  const labelW=63, labelH=35, cols=3, rows=8;
+  const maxLabels = cols * rows;
+  let count = 0;
+  const total = Math.min(nbIdentite + nbAdresse, maxLabels);
+
+  const canvas=document.createElement("canvas");
+  JsBarcode(canvas, patientId,{format:"CODE128",width:1,height:20,displayValue:false});
+  const barcodeData=canvas.toDataURL("image/png");
+function formatTel(num) {
+  if (!num) return "";
+  // Supprime tout sauf les chiffres
+  const digits = num.replace(/\D/g, "");
+  // Groupes de 2 chiffres
+  return digits.replace(/(\d{2})(?=\d)/g, "$1 ").trim();
+}
+
+  function placer(contenu, barcode=false){
+    if(count >= maxLabels) return;
+    const row=Math.floor(count/cols);
+    const col=count%cols;
+    const x=marginLeft+col*labelW;
+    const y=marginTop+row*labelH;
+
+    let offsetY=y+8;
+
+    for (const line of contenu) {
+      const { size, lines } = layoutText(doc, line, labelW-4, labelH-12);
+      doc.setFontSize(size);
+      for (const l of lines) {
+        doc.text(l, x+2, offsetY);
+        offsetY += 4;
+        if (offsetY > y + labelH - 10) break; // pas plus bas que la zone code-barres
+      }
+    }
+
+    if(barcode){
+      doc.addImage(barcodeData,"PNG",x+2,y+labelH-12,40,10);
+    }
+    count++;
+  }
+
+  for(let i=0;i<nbIdentite && count<maxLabels;i++){
+    placer([
+      `${patientData.prenom} ${patientData.nom}`,
+      `Né(e) le ${patientData.dateNaissance || ""}`,
+      `ID : ${patientId}`
+    ],true);
+  }
+
+  for(let i=0;i<nbAdresse && count<maxLabels;i++){
+    placer([
+      `${patientData.prenom} ${patientData.nom}`,
+      patientData.adresse || "Adresse inconnue",
+      patientData.telephone ? "Tel : " + formatTel(patientData.telephone) : "",
+	  
+
+    ]);
+  }
+
+  doc.output("dataurlnewwindow");
+}
+
+/* --- BOUTONS --- */
+document.getElementById("btnDefault").onclick=()=>genererPDF(19,5);
+document.getElementById("btnIdentite").onclick=()=>genererPDF(24,0);
+document.getElementById("btnAdresse").onclick=()=>genererPDF(0,24);
+document.getElementById("btnGenerer").onclick=()=>{
+  const nbId=parseInt(document.getElementById("nbIdentite").value);
+  const nbAdr=parseInt(document.getElementById("nbAdresse").value);
+  genererPDF(nbId, nbAdr);
+};
+</script>
+</body>
+</html>

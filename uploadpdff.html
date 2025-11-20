@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Uploader un PDF</title>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
+<link rel="icon" type="image/jpeg" href="logo.jpg">
+  <!-- EmailJS -->
+  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+  
+
+  <style>
+  body {
+  font-family: "Segoe UI", sans-serif;
+  background: #f4f6f9;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;         /* Remplace min-height:100vh */
+  min-height: 100%;     /* Important pour éviter l'écrasement */
+  margin: 0;
+  padding: 0;
+}
+html {
+  height: 100%;         /* Nécessaire pour que body puisse utiliser 100% */
+}
+
+.card {
+  background: white;
+  padding: 30px;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  width: 420px;
+  max-width: 90%; /* pour mobile */
+  text-align: center;
+  box-sizing: border-box; /* évite que padding augmente la largeur */
+}
+
+    button {
+      background-color: #1a73e8;
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      margin: 10px;
+      font-size: 15px;
+      transition: background-color 0.3s ease;
+    }
+    button:hover { background-color: #155ab6; }
+    input[type="file"] { margin-top: 15px; }
+    #linkContainer { margin-top: 20px; }
+    #linkContainer a {
+      color: #1a73e8;
+      text-decoration: none;
+      word-break: break-all;
+    }
+/* === Bouton d'upload stylé === */
+.custom-file-upload {
+  display: inline-block;
+  padding: 10px 18px;
+  background-color: #1a73e8;
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  font-size: 15px;
+}
+.custom-file-upload:hover {
+  background-color: #155ab6;
+}
+
+/* Cache l'input file d'origine */
+#pdfInput {
+  display: none;
+}
+
+/* Affichage du nom de fichier */
+#fileNameDisplay {
+  margin-top: 10px;
+  font-size: 14px;
+  color: #333;
+  background: #f1f3f4;
+  padding: 8px 12px;
+  border-radius: 6px;
+  display: inline-block;
+  max-width: 90%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+    /* Modale email */
+    #emailModal, #loadingModal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      backdrop-filter: blur(2px);
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+    }
+    .modal-content {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      width: 320px;
+      text-align: center;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+      animation: fadeIn 0.3s ease-out;
+    }
+    @keyframes fadeIn {
+      from {opacity: 0; transform: scale(0.95);}
+      to {opacity: 1; transform: scale(1);}
+    }
+
+    /* Loader animation */
+    .loader {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #1a73e8;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 20px auto;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    #bubble-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 9999;
+  align-items: flex-end;
+}
+	.bubble {
+  max-width: 300px;
+  padding: 10px 15px;
+  border-radius: 8px;
+  color: white;
+  font-family: sans-serif;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  animation: fadeout 0.5s ease-in-out 1.5s forwards;
+  word-wrap: break-word;
+  text-align: left;
+}
+
+.administratif {
+  background-color: #2196F3; /* bleu */
+}
+
+.alerte {
+  background-color: #f44336; /* rouge */
+}
+
+@keyframes fadeout {
+  to {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+}
+#emailSelectModal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(6px);
+  justify-content: center;
+  align-items: center;
+  z-index: 200;
+  animation: fadeInModal 0.3s ease-out;
+}
+
+#emailSelectModal.show {
+  display: flex;
+}
+
+#emailSelectModal .modal-content {
+  width: 380px;
+  max-width: 90%;
+  background: linear-gradient(to bottom right, #ffffff, #f9fafc);
+  border-radius: 16px;
+  padding: 28px 26px 22px;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.18);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  animation: slideUpModal 0.35s ease-out;
+  transform-origin: center;
+}
+
+#emailSelectModal h3 {
+  text-align: center;
+  margin-top: 0;
+  font-size: 1.25rem;
+  color: #1e293b;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+#emailSelectModal .email-options {
+  margin-top: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#emailSelectModal label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  background: #f8fafc;
+  transition: background 0.2s ease, transform 0.1s ease;
+  border: 1px solid transparent;
+}
+
+#emailSelectModal label:hover {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  transform: scale(1.02);
+}
+
+#emailSelectModal input[type="checkbox"] {
+  accent-color: #2563eb;
+  transform: scale(1.15);
+}
+
+#emailSelectModal input[type="email"] {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  font-size: 0.9rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+#emailSelectModal input[type="email"]:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+  outline: none;
+}
+
+#emailSelectModal .modal-actions {
+  margin-top: 22px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+#emailSelectModal button {
+  flex: 1;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: none;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background 0.25s ease, transform 0.1s ease;
+}
+
+#emailSelectModal .btn-cancel {
+  background: #e2e8f0;
+  color: #1e293b;
+}
+
+#emailSelectModal .btn-cancel:hover {
+  background: #cbd5e1;
+}
+
+#emailSelectModal .btn-confirm {
+  background: #2563eb;
+  color: #fff;
+  box-shadow: 0 3px 10px rgba(37, 99, 235, 0.25);
+}
+
+#emailSelectModal .btn-confirm:hover {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+}
+
+/* --- ANIMATIONS --- */
+@keyframes fadeInModal {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUpModal {
+  from {
+    transform: translateY(30px) scale(0.98);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+footer {
+  margin-top: auto; /* pousse le footer en bas */
+  padding: 15px;
+  text-align: center; /* centre le texte à l'intérieur */
+  color: #777;
+  font-size: 0.9rem;
+  width: 100%; /* assure que le footer prend toute la largeur */
+}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <img src="https://junior2704.github.io/urgences-/logo.jpg" alt="Logo" style="height:60px; margin-bottom:10px;">
+    <h2>Uploader un PDF</h2>
+   <label for="pdfInput" class="custom-file-upload">📁 Choisir un fichier PDF</label>
+   <br>
+<input type="file" id="pdfInput" accept="application/pdf">
+<div id="fileNameDisplay">Aucun fichier sélectionné</div>
+    <div id="linkContainer"></div>
+    <div>
+      <button id="btnLien">🔗 Créer un lien</button>
+      <button id="btnEmail">📨 Envoyer par e-mail</button>
+	  <!-- Ajoute ce bouton à côté des autres boutons -->
+<button id="btnAnnuler">❌ Annuler l'upload</button>
+
+    </div>
+  </div>
+
+  <!-- Modale Email -->
+  <div id="emailModal">
+    <div class="modal-content">
+      <h3>Envoi du lien</h3>
+      <p>Entrez l’adresse e-mail du destinataire :</p>
+      <input type="email" id="emailInput" placeholder="exemple@mail.com"
+             style="padding:8px; width:90%; border:1px solid #ccc; border-radius:6px;">
+      <br><br>
+      <button id="btnEnvoyerMail">Envoyer</button>
+      <button onclick="closeModal()" style="background:#ccc;">Annuler</button>
+    </div>
+  </div>
+
+  <!-- Modale de chargement -->
+  <div id="loadingModal">
+    <div class="modal-content">
+      <img src="https://junior2704.github.io/urgences-/logo.jpg" alt="Logo" style="height:60px; margin-bottom:10px;">
+      <div class="loader"></div>
+      <p>Envoi de l’e-mail en cours...</p>
+    </div>
+  </div>
+<!-- Modale pour nom du fichier -->
+<div id="fileNameModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); backdrop-filter:blur(2px); justify-content:center; align-items:center; z-index:100;">
+  <div class="modal-content">
+    <h3>Nom du fichier</h3>
+    <p>Vous pouvez modifier le nom avant enregistrement :</p>
+    <input type="text" id="fileNameInput" style="padding:8px; width:90%; border:1px solid #ccc; border-radius:6px;">
+    <br><br>
+    
+    <button onclick="closeFileNameModal()" style="background:#ccc;">Annuler</button>
+    <button id="btnValiderNom">Valider</button>
+  </div>
+</div>
+<!-- Modale de sélection des e-mails -->
+<div id="emailSelectModal">
+  <div class="modal-content">
+    <h3>📧 Choisissez les destinataires</h3>
+    <form id="emailSelectForm">
+      <div id="emailCheckboxes" class="email-options"></div>
+
+      <hr>
+
+      <label>
+        <input type="checkbox" id="otherEmailCheck"> Autre destinataire :
+      </label>
+      <input type="email" id="otherEmailInput" placeholder="exemple@mail.com" disabled>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-cancel" onclick="closeEmailSelectModal()">Annuler</button>
+        <button type="button" id="confirmEmails" class="btn-confirm">Envoyer</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<footer> © 2025 — GestUrg2 | UploadPDF  </footer>
+  <script>
+  // === Configuration Firebase ===
+  const firebaseConfig = {
+    apiKey: "AIzaSyBKp5-7NNy0Gyl0tNbDgD-BxucYdg8ArWo",
+    authDomain: "urgences-a8ed4.firebaseapp.com",
+    projectId: "urgences-a8ed4"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  const patientId = new URLSearchParams(window.location.search).get("id");
+  let patientRef = null;
+
+  if (!patientId) {
+    afficherBulle("⚠️ Aucun ID patient fourni. Les emails ne seront pas pré-remplis.", "administratif");
+  } else {
+    patientRef = db.collection("patients").doc(patientId);
+  }
+
+  let pdfBase64 = "";
+  let lienPdf = "";
+
+async function chargerDepuisFirestore() {
+  if (!patientRef) return; // pas de patient -> ne fait rien
+
+  const doc = await patientRef.get();
+  if (!doc.exists) {
+    afficherBulle("❌ Patient non trouvé", "alerte");
+    return;
+  }
+
+  const data = doc.data();
+  const index = data.hospitalisationIndex ?? 0;
+  const hospi = data.hospitalisations?.[index] || {};
+  const patientEmail = data.email || "";
+  const sexe = data.sexe || '';
+  const nom = data.nom || '';
+  const prenom = data.prenom || '';
+  const dateDebut = hospi.dateDebut || '';
+  const motif = hospi.motif || '';
+  const moyen = hospi.moyen || '';
+  const adresse = data.adresse || '';
+  window.patientData = data;
+}
+let nomPdf = ""; // contiendra le nom du PDF choisi
+
+function openFileNameModal(defaultName) {
+  document.getElementById("fileNameInput").value = defaultName;
+  document.getElementById("fileNameModal").style.display = "flex";
+}
+
+function closeFileNameModal() {
+  document.getElementById("fileNameModal").style.display = "none";
+}
+
+document.getElementById("pdfInput").addEventListener("change", async function(e) {
+  const file = e.target.files[0];
+  if (!file) return afficherBulle("Veuillez sélectionner un fichier PDF.","alerte");
+
+  // Affiche le nom du fichier choisi
+  document.getElementById("fileNameDisplay").textContent = file.name;
+
+  // Ouvre la modale pour modifier le nom
+  openFileNameModal(file.name);
+
+  // Lecture du fichier pour conversion base64
+  const reader = new FileReader();
+  reader.onload = () => {
+    pdfBase64 = reader.result.split(",")[1];
+    console.log("✅ PDF converti en base64, taille:", pdfBase64.length);
+  };
+  reader.readAsDataURL(file);
+});
+
+document.getElementById("btnValiderNom").addEventListener("click", () => {
+  nomPdf = document.getElementById("fileNameInput").value.trim() || "Document.pdf";
+  closeFileNameModal();
+  afficherBulle(`✅ Nom choisi : ${nomPdf}`, "administratif");
+});
+function openEmailSelectModal(emailsString) {
+	    if (!pdfBase64) return afficherBulle("Veuillez sélectionner un fichier PDF.","alerte");
+
+  const modal = document.getElementById("emailSelectModal");
+  const container = document.getElementById("emailCheckboxes");
+  container.innerHTML = "";
+
+  const emails = (emailsString || "").split("//").filter(e => e.includes("@"));
+  if (emails.length === 0) {
+    container.innerHTML = "<p style='color:#777;'>Aucune adresse trouvée pour ce patient.</p>";
+  } else {
+    emails.forEach((email, i) => {
+      const id = "emailCheck_" + i;
+      container.innerHTML += `
+        <label style="display:flex; align-items:center; gap:6px; margin:6px 0;">
+          <input type="checkbox" id="${id}" value="${email}" checked>
+          ${email}
+        </label>`;
+    });
+  }
+
+  modal.style.display = "flex";
+}
+document.getElementById("btnAnnuler").addEventListener("click", () => {
+  // Réinitialiser l'input file
+  const pdfInput = document.getElementById("pdfInput");
+  pdfInput.value = ""; 
+
+  // Réinitialiser le nom affiché
+  document.getElementById("fileNameDisplay").textContent = "Aucun fichier sélectionné";
+
+  // Vider la variable base64
+  pdfBase64 = "";
+
+  // Supprimer le lien s'il a été généré
+  document.getElementById("linkContainer").innerHTML = "";
+
+  // Réinitialiser le nom du PDF
+  nomPdf = "";
+
+  afficherBulle("❌ Upload annulé", "alerte");
+});
+
+function closeEmailSelectModal() {
+  document.getElementById("emailSelectModal").style.display = "none";
+}
+
+document.getElementById("otherEmailCheck").addEventListener("change", (e) => {
+  document.getElementById("otherEmailInput").disabled = !e.target.checked;
+});
+
+    // === Créer un lien temporaire (7 jours) ===
+    document.getElementById("btnLien").addEventListener("click", async () => {
+	    if (!pdfBase64) return afficherBulle("Veuillez sélectionner un fichier PDF.","alerte");
+
+      const id = Math.random().toString(36).substring(2, 10);
+
+      await db.collection("liens_pdfs").doc(id).set({
+        base64: pdfBase64,
+        nomFichier: nomPdf || "Document_upload.pdf",
+        dateCreation: firebase.firestore.FieldValue.serverTimestamp(),
+      });
+
+      lienPdf = `https://junior2704.github.io/urgences-/monpdf.html?id=${id}`;
+      document.getElementById("linkContainer").innerHTML =
+        `<p>✅ Lien valide 7 jours :</p><a href="${lienPdf}" target="_blank">${lienPdf}</a>`;
+    });
+
+document.getElementById("btnEmail").addEventListener("click", async () => {
+  let emails = "";
+  if (patientRef) {
+    const doc = await patientRef.get();
+    if (doc.exists) emails = doc.data().email || "";
+  }
+  openEmailSelectModal(emails); // Si pas d'ID, emailsString sera vide -> modale vide
+});
+
+    function closeModal() {
+      document.getElementById("emailModal").style.display = "none";
+    }
+
+    // === Modale de chargement ===
+    function showLoadingModal() {
+      document.getElementById("loadingModal").style.display = "flex";
+    }
+    function hideLoadingModal() {
+      document.getElementById("loadingModal").style.display = "none";
+    }
+
+document.getElementById("confirmEmails").addEventListener("click", async function () {
+  try {
+    showLoadingModal();
+
+    // 🔍 Récupère les cases cochées
+    const checkedBoxes = document.querySelectorAll("#emailCheckboxes input[type='checkbox']:checked");
+    let destinataires = Array.from(checkedBoxes).map(cb => cb.value);
+
+    const otherChecked = document.getElementById("otherEmailCheck").checked;
+    const otherEmail = document.getElementById("otherEmailInput").value.trim();
+    if (otherChecked && otherEmail) destinataires.push(otherEmail);
+
+    if (destinataires.length === 0) {
+      hideLoadingModal();
+      alert("Veuillez cocher au moins une adresse e-mail.");
+      return;
+    }
+
+    console.log("📧 Envoi à :", destinataires.join(", "));
+
+    // 1️⃣ Création d’un ID unique
+    let idUnique, docSnap;
+    do {
+      idUnique = Math.random().toString(36).substring(2, 10);
+      docSnap = await db.collection("liens_pdfs").doc(idUnique).get();
+    } while (docSnap.exists);
+
+    // 2️⃣ Récupération infos patient
+    const doc = await patientRef.get();
+    if (!doc.exists) {
+      afficherBulle("❌ Patient non trouvé", "alerte");
+      hideLoadingModal();
+      return;
+    }
+
+    const data = doc.data();
+    const firstName = data.prenom || "";
+    const lastName = data.nom || "";
+    const fileName = nomPdf || `Document - ${firstName} ${lastName}.pdf`;
+
+    // 3️⃣ Enregistrement du PDF dans Firestore
+    await db.collection("liens_pdfs").doc(idUnique).set({
+      base64: pdfBase64,
+      nom: fileName,
+      dateCreation: firebase.firestore.FieldValue.serverTimestamp(),
+    });
+
+    // 4️⃣ Lien d’accès temporaire
+    const lienPdf = `https://junior2704.github.io/urgences-/monpdf.html?id=${idUnique}`;
+    console.log("✅ Lien Firestore :", lienPdf);
+
+    // 5️⃣ Corps du mail dynamique (reprend ton template complet)
+    let htmlMessage = `
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Votre document</title>
+</head>
+<body style="margin:0; padding:0; background-color:#f4f6f9; font-family:'Segoe UI', Roboto, Arial, sans-serif; color:#333;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="max-width:640px; margin:auto; background:white; border-radius:10px; box-shadow:0 3px 10px rgba(0,0,0,0.08); overflow:hidden;">
+    <tr>
+      <td style="background-color:#0057a4; padding:24px; text-align:center;">
+        <img src="https://junior2704.github.io/urgences-/logo.jpg" alt="Logo Hôpital" style="height:60px; display:block; margin:0 auto 10px auto;">
+        <h1 style="color:white; font-size:22px; margin:0;">Centre Hospitalier</h1>
+        <p style="color:#dce6f3; margin:6px 0 0; font-size:14px;">Service des Urgences</p>
+      </td>
+    </tr>
+    <tr>
+      <td style="padding:30px;">
+        <h2 style="color:#0057a4; font-weight:600; margin-top:0;">Votre document</h2>
+        <p style="font-size:16px; line-height:1.6;">
+          Bonjour ${firstName} ${lastName},
+        </p>
+        <p style="font-size:15px; line-height:1.6; color:#555;">
+          Votre médecin vous a envoyé un document intitulé <strong>${fileName}</strong>.
+          Celui-ci est disponible au téléchargement grâce au lien suivant :
+        </p>
+        <div style="text-align:center; margin:30px 0;">
+          <a href="${lienPdf}" 
+             style="background-color:#0057a4; color:white; padding:14px 32px; text-decoration:none; border-radius:8px; font-weight:500; display:inline-block;">
+            🔗 Voir le document
+          </a>
+        </div>
+        <p style="font-size:15px; line-height:1.6; color:#555;">
+          ⚠️ Ce lien est valable 7 jours. Au-delà, il ne sera plus accessible pour des raisons de confidentialité.
+        </p>
+        <p style="font-size:14px; color:#777;">
+          Pour toute question, contactez le service des Urgences :
+          <a href="mailto:urgences.hopj@gmail.com" style="color:#0057a4;">urgences.hopj@gmail.com</a>
+        </p>
+        <hr style="border:none; border-top:1px solid #e0e0e0; margin:30px 0;">
+        <p style="font-size:13px; color:#999; text-align:center;">
+          Service des Urgences<br>
+          <em>Cet e-mail a été généré automatiquement, merci de ne pas y répondre.</em>
+        </p>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+
+    // 6️⃣ Configuration de tes comptes EmailJS
+    const comptesEmailJS = [
+      { serviceID: "service_o07vuso", templateID: "template_vj03i4u", publicKey: "CZapZCcxYfJ8-acLS" },
+      { serviceID: "service_o3i8ac9", templateID: "template_0wbzbwe", publicKey: "j5G-06rjQm0P6wriE" },
+      { serviceID: "service_qij0y5a", templateID: "template_3qdes3p", publicKey: "nh2zkdRVJcGcE-Jwe" }
+    ];
+
+    // 7️⃣ Envoi à chaque destinataire avec fallback sur plusieurs comptes
+    for (const email of destinataires) {
+      let mailEnvoye = false;
+      let derniereErreur = "";
+
+      for (const compte of comptesEmailJS) {
+        try {
+          console.log(`📨 Tentative d’envoi à ${email} via ${compte.serviceID}...`);
+          await emailjs.send(compte.serviceID, compte.templateID, {
+            to_email: email,
+            html_message: htmlMessage,
+            subject: "Votre document est disponible !"
+          }, compte.publicKey);
+
+          console.log(`✅ E-mail envoyé à ${email} via ${compte.serviceID}`);
+          afficherBulle(`📨 E-mail envoyé à ${email}`, "administratif");
+          mailEnvoye = true;
+          break;
+        } catch (error) {
+          console.warn(`⚠️ Échec avec ${compte.serviceID}:`, error.text || error);
+          derniereErreur = error.text || "";
+
+          if (derniereErreur.toLowerCase().includes("quota")) {
+            console.log("🔁 Quota dépassé, essai avec le compte suivant...");
+          } else {
+            break;
+          }
+        }
+      }
+
+      if (!mailEnvoye) {
+        afficherBulle(`❌ Échec d'envoi à ${email}`, "alerte");
+      }
+    }
+
+    hideLoadingModal();
+    afficherBulle("📨 Envois terminés !", "administratif");
+    setTimeout(() => { location.reload(true); }, 2000);
+
+
+  } catch (err) {
+    hideLoadingModal();
+    console.error("❌ Erreur d'envoi :", err);
+    alert("Erreur : " + err.message);
+  }
+});
+function afficherBulle(texte, type) {
+    let container = document.getElementById('bubble-container');
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'bubble-container';
+      document.body.appendChild(container);
+    }
+    const bulle = document.createElement('div');
+    bulle.className = `bubble ${type}`;
+    bulle.textContent = texte;
+    container.appendChild(bulle);
+    setTimeout(() => {
+      bulle.remove();
+    }, 3000);
+  }
+  </script>
+</body>
+</html>
