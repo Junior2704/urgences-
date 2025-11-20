@@ -1518,31 +1518,30 @@ function getCaretCoordinates(element, position) {
 
     // Copier les styles essentiels
     div.style.position = 'absolute';
-    div.style.whiteSpace = 'pre-wrap';
     div.style.visibility = 'hidden';
+    div.style.whiteSpace = 'pre-wrap';
+    div.style.wordWrap = 'break-word';
     div.style.font = style.font;
+    div.style.fontSize = style.fontSize;
     div.style.padding = style.padding;
     div.style.border = style.border;
     div.style.overflow = 'auto';
     div.style.width = element.offsetWidth + 'px';
     div.style.lineHeight = style.lineHeight;
-    div.style.letterSpacing = style.letterSpacing;
 
-    // Div contenant le texte jusqu'au curseur
     div.textContent = element.value.substring(0, position);
 
-    // Span pour la position exacte
     const span = document.createElement('span');
     span.textContent = element.value.substring(position) || '.';
     div.appendChild(span);
 
     document.body.appendChild(div);
 
-    // Calculer la position relative au textarea
-    const rectDiv = div.getBoundingClientRect();
-    const rectTextarea = element.getBoundingClientRect();
-    const top = span.offsetTop - element.scrollTop + rectTextarea.top + window.scrollY;
-    const left = span.offsetLeft - element.scrollLeft + rectTextarea.left + window.scrollX;
+    const spanRect = span.getBoundingClientRect();
+    const elementRect = element.getBoundingClientRect();
+
+    const top = spanRect.top + window.scrollY;
+    const left = spanRect.left + window.scrollX;
 
     document.body.removeChild(div);
 
