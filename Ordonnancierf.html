@@ -985,38 +985,45 @@ displayCurrentDate();
 
 async function validatePrescription() {
   const prescriptionText = document.getElementById("prescription-text").value.trim();
+
   if (!prescriptionText) {
     afficherBulle("⛔ La prescription est vide !", "alerte");
     return;
   }
 
-  document.getElementById("validate-prescription-btn").disabled = true;
+  // 1️⃣ Verrouiller la zone de texte
+  document.getElementById("prescription-text").setAttribute("readonly", "true");
+
+  // 2️⃣ Désactiver le bouton valider
+  document.getElementById("validate-prescription-btn").style.display = "none";
+
+  // 3️⃣ Afficher les boutons mails / imprimer / télécharger
   document.querySelector(".buttons-wrapper").style.display = "block";
 
-  // Génération du PDF en base64
-  const pdfBase64 = await genererOrdo(false);
+  // 4️⃣ Création PDF
+  const pdfBase64 = await genererOrdo(false); // génère le PDF sans le télécharger
 
-  try {
-    // --- Création d'un ID unique dans Firestore ---
-    const ordonnancesRef = db.collection("ordonnances");
-    const newDocRef = ordonnancesRef.doc(); // ID auto-généré
-
-    await newDocRef.set({
-      idPatient: getIdFromURL(),          // Récupère l'ID du patient depuis l'URL
-      dateCreation: firebase.firestore.FieldValue.serverTimestamp(),
-      type: "Ordonnance médicale",
-      texte: prescriptionText,
-      pdfBase64: pdfBase64
-    });
-
-    console.log("✅ Ordonnance sauvegardée dans Firestore avec ID :", newDocRef.id);
-    afficherBulle("✅ Ordonnance enregistrée", "administratif");
-
-  } catch (error) {
-    console.error("❌ Erreur sauvegarde Firestore :", error);
-    afficherBulle("❌ Erreur lors de l'enregistrement", "alerte");
+  // 5️⃣ Enregistrement dans Firestore
+  const patientId = getIdFromURL();
+  if (patientId) {
+    try {
+      const idUnique = Math.random().toString(36).substring(2, 10);
+      await db.collection("ordonnances").doc(idUnique).set({
+        patientId: patientId,
+        dateCreation: new Date().toISOString(),
+        type: "ordonnance médicale",
+        textePrescription: prescriptionText,
+        pdfBase64: pdfBase64
+      });
+      console.log("✅ Ordonnance enregistrée avec ID unique :", idUnique);
+      afficherBulle("✅ Ordonnance enregistrée !", "success");
+    } catch (err) {
+      console.error("❌ Erreur enregistrement Firestore :", err);
+      afficherBulle("❌ Erreur enregistrement", "alerte");
+    }
   }
 }
+
 
 
 async function genererOrdo(telecharger = false) {
