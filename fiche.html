@@ -3808,7 +3808,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
 });
 
+document.addEventListener("DOMContentLoaded", () => {
+  // Quand on ouvre la section Documents, appliquer l’onglet par défaut
+  const panelDocs = document.getElementById("panel-documents");
 
+  const observer = new MutationObserver(() => {
+    if (panelDocs.style.display !== "none") {
+      // La section Documents vient de s'ouvrir → on charge l’onglet par défaut
+      openDocsTab('tab-ordo', 'Ordonnancierf.html');
+      observer.disconnect(); // évite de répéter
+    }
+  });
+
+  // On observe les changements de style (display)
+  observer.observe(panelDocs, { attributes: true, attributeFilter: ['style'] });
+});
 </script>
 
 </body>
