@@ -1288,7 +1288,7 @@ section.panel.active {
 }
 #panel-historique.active {
   display: flex
-  
+
 }
 
 
@@ -3881,6 +3881,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 });
+// Quand on ouvre l'onglet Documents, on charge automatiquement l'historique
+document.querySelector('[data-module="documents"]').addEventListener('click', () => {
+    // sélectionne automatiquement le bon onglet
+    openDocsTab('tab-docs', 'docs.html');
+});
+
 
 </script>
 
