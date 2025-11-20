@@ -841,6 +841,8 @@
   </div>
 </div>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/textarea-caret@3.1.0/index.js"></script>
+
 <script>
 let db;
 let patientRef; // ✅ rendu global
@@ -1597,12 +1599,11 @@ textarea.addEventListener("input", function() {
     autoBox.appendChild(div);
   });
 
-  // positionne sous la ligne actuelle
-  const { top, left } = getCaretCoordinates(textarea, textarea.selectionEnd);
-  autoBox.style.top = (top + 4) + "px";  // top = position verticale du curseur, +4px pour descendre un peu sous le mot
-autoBox.style.left = left + "px";       // left = position horizontale du curseur
-autoBox.style.width = textarea.offsetWidth + "px"; // la bulle fait la même largeur que le textarea
-autoBox.style.display = "block";       // afficher la bulle
+ const coords = window.getCaretCoordinates(textarea, textarea.selectionEnd);
+autoBox.style.top = (coords.top + coords.height + textarea.offsetTop) + "px"; // sous le curseur
+autoBox.style.left = (coords.left + textarea.offsetLeft) + "px";
+autoBox.style.width = textarea.offsetWidth + "px";
+autoBox.style.display = "block";
 
   const textareaRect = textarea.getBoundingClientRect();
   autoBox.style.top = (top + window.scrollY + 20) + "px"; // 20px offset pour la ligne
