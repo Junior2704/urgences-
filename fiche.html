@@ -1277,6 +1277,13 @@ section.panel.active {
     border: none;
     overflow: auto;   /* le seul ascenseur visible */
 }
+#panel-historique {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow-y: auto;  /* ✅ active le scroll vertical */
+  padding-right: 10px; /* pour éviter que le dernier élément soit caché par la scrollbar */
+}
 
 
   </style>
