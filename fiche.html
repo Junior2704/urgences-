@@ -3849,32 +3849,26 @@ document.addEventListener("DOMContentLoaded", () => {
   const panelDocs = document.getElementById("panel-documents");
 
   const observer = new MutationObserver(() => {
-    if (panelDocs.classList.contains("active")) {
+    if (panelDocs.style.display !== "none") {
 
-      // ➜ ON RÉCUPÈRE LE PREMIER ONGLET AVEC SON ONCLICK
-      const firstTab = panelDocs.querySelector(".docs-tab");
+      // attendre que patientId soit disponible
+      const waitForPatientId = setInterval(() => {
+        if (typeof patientId !== "undefined" && patientId !== null && patientId !== "") {
 
-      if (firstTab) {
-        // extrait l’appel openDocsTab('tab-xxx','url.html')
-        const onclick = firstTab.getAttribute("onclick");
+          clearInterval(waitForPatientId);
 
-        const match = onclick.match(/openDocsTab\('([^']+)','([^']+)'\)/);
+          // ouvrir l’onglet correctement AVEC l'id
+          openDocsTab("tab-docs", "docs.html");
 
-        if (match) {
-          const tabId = match[1];
-          const url = match[2];
-
-          // Appel normal
-          openDocsTab(tabId, url);
+          observer.disconnect();
         }
-      }
-
-      observer.disconnect(); // on arrête l'observation
+      }, 50); // vérifie toutes les 50 ms
     }
   });
 
-  observer.observe(panelDocs, { attributes: true, attributeFilter: ['class'] });
+  observer.observe(panelDocs, { attributes: true, attributeFilter: ["style"] });
 });
+
 
 document.addEventListener("DOMContentLoaded", () => {
   // --- Parcourir toutes les sections avec onglets internes ---
