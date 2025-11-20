@@ -704,26 +704,30 @@
     margin-bottom: 6px;
     display: block;
   }
+#prescription-text {
+  width: 100%;
+  border-radius: 8px;
+  padding: 10px;
+  box-sizing: border-box;
+  font-size: 14px;
+}
+
 .autocomplete-box {
   position: absolute;
   background: white;
   border: 1px solid #ccc;
   border-radius: 8px;
-  max-height: 150px;
-  max-width: 100%;
-  overflow-x: auto;  /* scroll horizontal si nécessaire */
-  overflow-y: auto;  /* scroll vertical si nécessaire */
-  white-space: nowrap;
+  max-height: 200px;
+  overflow-y: auto;
+  overflow-x: auto; /* scroll horizontal si nécessaire */
   z-index: 1000;
   display: none;
+  white-space: nowrap; /* empêche le retour à la ligne */
 }
 
 .autocomplete-item {
-  display: inline-block;
   padding: 6px 10px;
   cursor: pointer;
-  margin-right: 4px;
-  border-radius: 4px;
 }
 
 .autocomplete-item:hover {
@@ -782,11 +786,12 @@
   </div>
 
 
- <div class="form-group" style="position:relative;">
+ <div class="form-group" style="position: relative;">
   <label for="prescription-text">🖊️ Prescription :</label>
   <textarea id="prescription-text" rows="8" placeholder="Tapez ici votre prescription..."></textarea>
   <div id="autocomplete-box" class="autocomplete-box"></div>
 </div>
+
 
 
   <button id="validate-prescription-btn" class="btn" onclick="validatePrescription()">✔️ Valider la prescription</button>
@@ -1506,7 +1511,7 @@ const htmlFinal = htmlMessage
   }
 });
 
-llet medicaments = [];
+let medicaments = [];
 fetch('medicaments.json')
   .then(res => res.json())
   .then(data => {
@@ -1520,14 +1525,15 @@ const autoBox = document.getElementById("autocomplete-box");
 
 textarea.addEventListener("input", function() {
   const text = this.value;
-  const lastWordMatch = text.match(/(\S{3,})$/); // dernier mot >= 3 caractères
-  if (!lastWordMatch) {
+  const words = text.split(/\s+/);
+  const lastWord = words.pop(); // mot en cours
+
+  if (lastWord.length < 3) {
     autoBox.style.display = "none";
     return;
   }
-  const lastWord = lastWordMatch[1].toLowerCase();
 
-  const matches = medicaments.filter(med => med.toLowerCase().includes(lastWord));
+  const matches = medicaments.filter(med => med.toLowerCase().includes(lastWord.toLowerCase()));
   if (matches.length === 0) {
     autoBox.style.display = "none";
     return;
@@ -1539,9 +1545,7 @@ textarea.addEventListener("input", function() {
     div.className = "autocomplete-item";
     div.textContent = med;
     div.addEventListener("click", () => {
-      const words = textarea.value.split(/\s+/);
-      words.pop();
-      words.push(med);
+      words.push(med); // remplace le mot en cours
       textarea.value = words.join(" ") + " ";
       autoBox.style.display = "none";
       textarea.focus();
@@ -1549,22 +1553,25 @@ textarea.addEventListener("input", function() {
     autoBox.appendChild(div);
   });
 
-  // Calcul pour afficher au niveau de la ligne en cours
-  const lineHeight = parseInt(window.getComputedStyle(textarea).lineHeight) || 20;
-  const lines = textarea.value.substr(0, textarea.selectionStart).split("\n");
-  const currentLine = lines.length - 1;
-  const rect = textarea.getBoundingClientRect();
-  autoBox.style.top = (currentLine * lineHeight + textarea.scrollTop) + "px";
-  autoBox.style.left = "0px";
+  // positionne sous la ligne actuelle
+  const { top, left } = getCaretCoordinates(textarea, textarea.selectionEnd);
+  const textareaRect = textarea.getBoundingClientRect();
+  autoBox.style.top = (top + window.scrollY + 20) + "px"; // 20px offset pour la ligne
+  autoBox.style.left = textareaRect.left + window.scrollX + "px";
+
+  // largeur max = largeur du textarea
+  autoBox.style.width = textarea.offsetWidth + "px";
+
   autoBox.style.display = "block";
 });
 
-// Fermer la boîte si on clique ailleurs
-document.addEventListener("click", function(e) {
+// fermer si clic ailleurs
+document.addEventListener("click", e => {
   if (!autoBox.contains(e.target) && e.target !== textarea) {
     autoBox.style.display = "none";
   }
 });
+
 
 
 
