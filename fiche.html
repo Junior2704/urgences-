@@ -1251,6 +1251,28 @@ section.panel.active {
 }
 
 
+/* --- Correction finale pour la section Documents --- */
+
+/* Le panel Documents ne doit pas scroller */
+#panel-documents {
+    overflow: hidden !important; 
+    display: flex;
+    flex-direction: column;
+}
+
+/* Les onglets de documents gardent leur hauteur normale */
+.docs-tabs {
+    flex-shrink: 0;
+}
+
+/* L’iframe occupe toute la hauteur restante */
+#docsFrame {
+    flex: 1;                     /* prend tout l'espace restant */
+    width: 100%;
+    height: auto;
+    border: none;
+    overflow: auto;              /* ⬅ seul ascenseur */
+}
 
 
 
