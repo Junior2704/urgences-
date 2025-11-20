@@ -736,27 +736,30 @@
 
 
 		<div id="prescription" class="ordonnance" style="display: none;">
-			<h2>Ordonnance Médicale</h2>
-			<div class="date-info">
-				<span>Date : <span id="current-date"></span></span>
-			</div>
-			<div class="patient-info">
-				<span><span id="patient-name-display"></span>, <span id="patient-age-display"></span> ans</span>
-			</div>
+  <h2>Ordonnance Médicale</h2>
+  <div class="date-info">
+    <span>Date : <span id="current-date"></span></span>
+  </div>
+  <div class="patient-info">
+    <span><span id="patient-name-display"></span>, <span id="patient-age-display"></span> ans</span>
+  </div>
 
-			<div class="prescription-list" id="medicaments-list-display"></div>
+  <div class="form-group">
+    <label for="prescription-text">🖊️ Prescription libre</label>
+    <textarea id="prescription-text" rows="8" placeholder="Tapez ici votre prescription..."></textarea>
+  </div>
 
-			<button id="validate-prescription-btn" class="btn" onclick="validatePrescription()">✔️ Valider la prescription</button>
+  <button id="validate-prescription-btn" class="btn" onclick="validatePrescription()">✔️ Valider la prescription</button>
 
-			<div class="buttons-wrapper" style="display:none;">
-				<button class="btn-print" onclick="window.print()">🖨️ Imprimer l'Ordonnance</button>
-				<button class="btn-download" onclick="genererOrdo(true)">📥 Télécharger Ordonnance</button>
-				<button type="button" id="btnEnvoyerMail" style="padding:10px 20px; background-color:#004AAD; color:white; border:none; border-radius:5px; cursor:pointer;">
-  Envoyer l'ordonnance par e-mail
-</button>
+  <div class="buttons-wrapper" style="display:none;">
+    <button class="btn-print" onclick="window.print()">🖨️ Imprimer l'Ordonnance</button>
+    <button class="btn-download" onclick="genererOrdo(true)">📥 Télécharger Ordonnance</button>
+    <button type="button" id="btnEnvoyerMail" style="padding:10px 20px; background-color:#004AAD; color:white; border:none; border-radius:5px; cursor:pointer;">
+      Envoyer l'ordonnance par e-mail
+    </button>
+  </div>
+</div>
 
-			</div>
-		</div>
 	</div>
 <!-- Modale de sélection des e-mails -->
 <div id="emailSelectModal">
@@ -838,7 +841,7 @@ window.addEventListener("DOMContentLoaded", async () => {
   // --- Chargement des infos du patient ---
   await remplirInfosPatientDepuisFirestore();
 
-  prescriptionItems = [];
+
 });
 const envoyerMailBtn = document.getElementById("btnEnvoyerMail");
   
@@ -916,282 +919,144 @@ function filterMedicaments() {
   afficherMedicaments(filtres);
 }
 
-function addMedicamentToPrescription(med) {
-  // Si le tableau global n'existe pas, on le crée
-  if (!window.prescriptionItems) {
-    window.prescriptionItems = [];
-  }
 
-  // Demander posologie et durée
-  const posology = prompt(`💊 Entrez la posologie pour ${med} :`);
-  const duration = prompt(`⏱️ Entrez la durée du traitement pour ${med} (en jours) :`);
 
-  // Ajouter à la prescription globale
-  window.prescriptionItems.push({
-    medicament: med,
-    posology: posology || "—",
-    duration: duration || ""
-  });
+		// Supprime toutes les références à la liste de médicaments et prescriptionItems
 
-  console.log("🩺 Médicament ajouté :", window.prescriptionItems);
+function updatePatientDisplay() {
+  const prenom = document.getElementById("patient-first-name").value.trim();
+  const nom = document.getElementById("patient-last-name").value.trim();
+  const age = document.getElementById("patient-age").value.trim();
 
-  updatePrescriptionDisplay();
-
-  // Afficher la section ordonnance si cachée
-  document.getElementById("prescription").style.display = "block";
-
-  // Mettre à jour infos patient dans l'ordonnance
-  updatePatientDisplay();
+  document.getElementById("patient-name-display").textContent = prenom && nom ? `${prenom} ${nom}` : "Nom du patient";
+  document.getElementById("patient-age-display").textContent = age || "--";
 }
 
+function displayCurrentDate() {
+  const now = new Date();
+  const formattedDate = now.toLocaleDateString("fr-FR", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+  document.getElementById("current-date").textContent = formattedDate;
+}
+displayCurrentDate();
 
-		// Mise à jour affichage ordonnance avec édition possible
-		function updatePrescriptionDisplay() {
-			const listDiv = document.getElementById("medicaments-list-display");
-			listDiv.innerHTML = "";
-
-			prescriptionItems.forEach((item, index) => {
-				const div = document.createElement("div");
-				div.className = "prescription-item";
-
-				// Nom médicament (non éditable)
-				const medName = document.createElement("span");
-				medName.className = "med-name";
-				medName.textContent = item.medicament;
-				div.appendChild(medName);
-
-				// Posologie editable
-				const posInput = document.createElement("input");
-				posInput.type = "text";
-				posInput.value = item.posology;
-				posInput.title = "🖊️ Modifier la posologie";
-				posInput.addEventListener("input", () => {
-					prescriptionItems[index].posology = posInput.value;
-				});
-				div.appendChild(posInput);
-
-				// Durée editable
-				const durInput = document.createElement("input");
-				durInput.type = "text";
-				durInput.value = item.duration;
-				durInput.title = "🖊️ Modifier la durée (en jours)";
-				durInput.addEventListener("input", () => {
-				prescriptionItems[index].duration = durInput.value;
-				});
-				div.appendChild(durInput);
-
-				// Bouton supprimer
-				const delBtn = document.createElement("button");
-				delBtn.className = "btn-delete";
-				delBtn.textContent = "🗑️ Supprimer";
-				delBtn.title = "Supprimer ce médicament";
-				delBtn.addEventListener("click", () => {
-					prescriptionItems.splice(index, 1);
-					updatePrescriptionDisplay();
-					if (prescriptionItems.length === 0) {
-						// Cacher la prescription si vide
-						document.getElementById("prescription").style.display = "none";
-					}
-				});
-				div.appendChild(delBtn);
-
-				listDiv.appendChild(div);
-			});
-		}
-
-		// Met à jour les infos patient dans la prescription
-		function updatePatientDisplay() {
-			const prenom = document.getElementById("patient-first-name").value.trim();
-			const nom = document.getElementById("patient-last-name").value.trim();
-			const age = document.getElementById("patient-age").value.trim();
-
-			document.getElementById("patient-name-display").textContent = prenom && nom ? `${prenom} ${nom}` : "Nom du patient";
-			document.getElementById("patient-age-display").textContent = age || "--";
-		}
-
-		// Affiche la date actuelle formatée
-		function displayCurrentDate() {
-			const now = new Date();
-			const formattedDate = now.toLocaleDateString("fr-FR", {
-				year: "numeric",
-				month: "long",
-				day: "numeric",
-			});
-			document.getElementById("current-date").textContent = formattedDate;
-		}
-		displayCurrentDate();
-
-		async function validatePrescription() {
-  if (prescriptionItems.length === 0) {
-    afficherBulle("⛔ La prescription est vide !","alerte");
+async function validatePrescription() {
+  const prescriptionText = document.getElementById("prescription-text").value.trim();
+  if (!prescriptionText) {
+    afficherBulle("⛔ La prescription est vide !", "alerte");
     return;
   }
 
-  // Verrouiller les inputs posologie/durée et cacher les boutons supprimer
-  const inputsPos = document.querySelectorAll("#medicaments-list-display input[type='text']");
-  inputsPos.forEach(input => input.setAttribute("readonly", "true"));
-
-  const btnDeletes = document.querySelectorAll(".btn-delete");
-  btnDeletes.forEach(btn => btn.style.display = "none");
-
   document.getElementById("validate-prescription-btn").disabled = true;
-
-  // Afficher les boutons imprimer et télécharger
   document.querySelector(".buttons-wrapper").style.display = "block";
 
-  const patientId = getIdFromURL();
-  if (patientId) {
-    try {
-      const docRef = db.collection("patients").doc(patientId);
-      const docSnap = await docRef.get();
+  // Génération du PDF en base64
+  const pdfBase64 = await genererOrdo(false);
 
-      if (docSnap.exists) {
-        const ordonnance = {
-          date: new Date().toISOString(),
-          medecin: medecinNom,
-          prescription: prescriptionItems
-        };
-        await docRef.update({
-          ordonnances: firebase.firestore.FieldValue.arrayUnion(ordonnance)
-        });
-        console.log("✅ Ordonnance ajoutée à la fiche du patient Firestore.");
-      } else {
-        console.warn("⚠️ Aucun document patient trouvé pour l'ID donné.");
-      }
-    } catch (error) {
-      console.error("❌ Erreur lors de l'enregistrement dans Firestore :", error);
-    }
+  try {
+    // --- Création d'un ID unique dans Firestore ---
+    const ordonnancesRef = db.collection("ordonnances");
+    const newDocRef = ordonnancesRef.doc(); // ID auto-généré
+
+    await newDocRef.set({
+      idPatient: getIdFromURL(),          // Récupère l'ID du patient depuis l'URL
+      dateCreation: firebase.firestore.FieldValue.serverTimestamp(),
+      type: "Ordonnance médicale",
+      texte: prescriptionText,
+      pdfBase64: pdfBase64
+    });
+
+    console.log("✅ Ordonnance sauvegardée dans Firestore avec ID :", newDocRef.id);
+    afficherBulle("✅ Ordonnance enregistrée", "administratif");
+
+  } catch (error) {
+    console.error("❌ Erreur sauvegarde Firestore :", error);
+    afficherBulle("❌ Erreur lors de l'enregistrement", "alerte");
   }
 }
 
-		// Filtrer la liste de médicaments
-		function filterMedicaments() {
-			const filter = document.getElementById("search-medicaments").value.toLowerCase();
-			const medicaments = document.querySelectorAll("#medicaments-list .medicament-item");
-			medicaments.forEach(med => {
-				const text = med.textContent.toLowerCase();
-				med.style.display = text.includes(filter) ? "block" : "none";
-			});
-		}
 
 async function genererOrdo(telecharger = false) {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
-
-  // 🔹 Configuration de base
   const marginLeft = 20;
   let y = 25;
   const lineHeight = 8;
   const pageHeight = doc.internal.pageSize.height;
 
+  const prescriptionText = document.getElementById("prescription-text")?.value.trim() || "";
 
-  return new Promise((resolve, reject) => {
-    
-      try {
-        // === ENTÊTE BLEUE ===
-        doc.setFillColor(52, 152, 219);
-        doc.rect(0, 0, 210, 20, "F");
-        doc.setFontSize(20);
-        doc.setTextColor(255, 255, 255);
-        doc.text("Ordonnance Médicale", 105, 14, { align: "center" });
+  try {
+    // Entête
+    doc.setFillColor(52, 152, 219);
+    doc.rect(0, 0, 210, 20, "F");
+    doc.setFontSize(20);
+    doc.setTextColor(255, 255, 255);
+    doc.text("Ordonnance Médicale", 105, 14, { align: "center" });
 
-       
+    // Médecin
+    doc.setFontSize(14);
+    doc.setTextColor(0,0,0);
+    doc.text(`${window.medecinNom || "Dr Non renseigné"}`, marginLeft, 35);
+    doc.text(`${window.medecinSpecialite || ""}`, marginLeft, 43);
 
-        // === INFOS MÉDECIN ===
-        doc.setFontSize(14);
-        doc.setTextColor(0, 0, 0);
-        doc.text(`${window.medecinNom || "Dr Non renseigné"}`, marginLeft, 35);
-        doc.text(`${window.medecinSpecialite || ""}`, marginLeft, 43);
+    // Date et lieu
+    const currentDate = new Date().toLocaleDateString("fr-FR");
+    doc.text(`Le ${currentDate}`, 150, 35);
+    doc.text(`À ${window.medecinLieu || "Lyon"}`, 150, 43);
 
-        // === DATE & LIEU ===
-        const currentDate = new Date().toLocaleDateString("fr-FR");
-        doc.text(`Le ${currentDate}`, 150, 35);
-        doc.text(`À ${window.medecinLieu || "Lyon"}`, 150, 43);
+    // Patient
+    const firstName = document.getElementById("patient-first-name")?.value.trim() || "";
+    const lastName = document.getElementById("patient-last-name")?.value.trim() || "";
+    const age = document.getElementById("patient-age")?.value.trim() || "";
+    const sexe = document.getElementById("sexe")?.value || "";
+    const fullName = `${sexe} ${firstName} ${lastName}, ${age} ans`.trim();
+    y = 60;
+    doc.text(fullName, marginLeft, y);
+    const textWidth = doc.getTextWidth(fullName);
+    doc.setLineWidth(0.5);
+    doc.line(marginLeft, y + 2, marginLeft + textWidth, y + 2);
+    y += 20;
 
-        // === PATIENT ===
-        const firstName = document.getElementById("patient-first-name")?.value.trim() || "";
-        const lastName = document.getElementById("patient-last-name")?.value.trim() || "";
-        const age = document.getElementById("patient-age")?.value.trim() || "";
-        const sexe = document.getElementById("sexe")?.value || "";
-        const fullName = `${sexe} ${firstName} ${lastName}, ${age} ans`.trim();
-
-        y = 60;
-        doc.text(fullName, marginLeft, y);
-        const textWidth = doc.getTextWidth(fullName);
-        doc.setLineWidth(0.5);
-        doc.line(marginLeft, y + 2, marginLeft + textWidth, y + 2);
-        y += 20;
-
-        // === TITRE PRESCRIPTION ===
-        doc.setFillColor(230, 230, 230);
-        doc.rect(0, y - 8, 210, 12, "F");
-        doc.setFontSize(16);
-        doc.setFont("helvetica", "bold");
-        doc.setTextColor(0, 0, 0);
-        doc.text("PRESCRIPTION", 105, y, { align: "center" });
-        y += 15;
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(12);
-
-        // === PRESCRIPTIONS ===
-        const items = window.prescriptionItems || [];
-		console.log("💊 prescriptionItems :", window.prescriptionItems);
-
-        if (Array.isArray(items) && items.length > 0) {
-          items.forEach((item) => {
-            const medicament = item.medicament || "Médicament non spécifié";
-            const posology = item.posology || "-";
-            const duration = item.duration || "";
-
-            let line = `• ${medicament} : ${posology}`;
-            if (duration.trim() !== "") line += ` pendant ${duration} jours`;
-
-            const splitLine = doc.splitTextToSize(line, 160);
-            if (y + splitLine.length * 8 > pageHeight - 20) {
-              doc.addPage();
-              y = 20;
-            }
-            doc.text(splitLine, marginLeft + 5, y);
-            y += splitLine.length * 8;
-          });
-        } else {
-          doc.text("⛔ Aucune prescription disponible.", marginLeft + 5, y);
-        }
-
-        // === SIGNATURE ===
-        y += 25;
-        const signatureText = `${window.medecinNom || "Dr Non renseigné"}\n${window.medecinSpecialite || ""}`;
-        const pageWidth = doc.internal.pageSize.width;
-        const splitSignature = doc.splitTextToSize(signatureText, 60);
-        doc.text(splitSignature, pageWidth - 75, pageHeight - 30);
-
-        // === EXPORT BASE64 ===
-        const pdfData = doc.output("datauristring");
-        window.pdfBase64 = pdfData.split(",")[1];
-        console.log("✅ PDF généré (ordo), taille base64:", window.pdfBase64.length);
-
-        // === SI téléchargement demandé ===
-        if (telecharger) {
-          const fileName = `Ordonnance - ${firstName || ""} ${lastName || ""}.pdf`;
-          doc.save(fileName);
-          console.log("📄 Téléchargement lancé");
-        }
-
-        resolve(window.pdfBase64);
-      } catch (error) {
-        reject(error);
+    // Prescription libre
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "normal");
+    const splitText = doc.splitTextToSize(prescriptionText, 160);
+    splitText.forEach(line => {
+      if (y + lineHeight > pageHeight - 20) {
+        doc.addPage();
+        y = 20;
       }
-   
+      doc.text(line, marginLeft + 5, y);
+      y += lineHeight;
+    });
 
-    
-  });
+    // Signature
+    y += 25;
+    const signatureText = `${window.medecinNom || "Dr Non renseigné"}\n${window.medecinSpecialite || ""}`;
+    const pageWidth = doc.internal.pageSize.width;
+    const splitSignature = doc.splitTextToSize(signatureText, 60);
+    doc.text(splitSignature, pageWidth - 75, pageHeight - 30);
+
+    // Export base64
+    const pdfData = doc.output("datauristring");
+    window.pdfBase64 = pdfData.split(",")[1];
+
+    if (telecharger) {
+      const fileName = `Ordonnance - ${firstName || ""} ${lastName || ""}.pdf`;
+      doc.save(fileName);
+    }
+
+    return window.pdfBase64;
+
+  } catch (error) {
+    console.error("❌ Erreur génération PDF :", error);
+    return "";
+  }
 }
-
-
-
-
-
-
 
 
 document.getElementById("new-prescription-btn").addEventListener("click", function () {
