@@ -3617,19 +3617,18 @@ window.masquerLoader = function() {
 updateTime();
 setInterval(updateTime, 1000);
   
-function openDocsTab(tabId, url) {
-    // Retire "active" de tous les onglets
-    document.querySelectorAll('.docs-tab').forEach(t => t.classList.remove('active'));
+function openDocsTab(tabId, file) {
+    // récupère l’ID du patient
+    const url = file + "?id=" + patientId;
 
-    // Active celui cliqué
-    document.getElementById(tabId).classList.add('active');
+    // active l’onglet
+    document.querySelectorAll(".docs-tab").forEach(t => t.classList.remove("active"));
+    document.getElementById(tabId).classList.add("active");
 
-    // Charge la page
-    document.getElementById('docsFrame').src = url;
-
-    // 🧠 Sauvegarde du dernier onglet utilisé
-    localStorage.setItem("lastDocsTab", JSON.stringify({ tabId, url }));
+    // charge l’URL avec ?id=
+    document.getElementById("docsFrame").src = url;
 }
+
 
 // Ligne de test de fin
 console.log("Script terminé correctement ✅");
