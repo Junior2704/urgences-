@@ -3617,13 +3617,20 @@ window.masquerLoader = function() {
 updateTime();
 setInterval(updateTime, 1000);
   
-function openDocsTab(tab, url) {
-  document.querySelectorAll(".docs-tab").forEach(t => t.classList.remove("active"));
-  document.getElementById(tab).classList.add("active");
+function openDocsTab(tabId, url) {
+    // Retire "active" de tous les onglets
+    document.querySelectorAll('.docs-tab').forEach(t => t.classList.remove('active'));
 
- 
-  document.getElementById("docsFrame").src = url + "?id=" + patientId;
+    // Active celui cliqué
+    document.getElementById(tabId).classList.add('active');
+
+    // Charge la page
+    document.getElementById('docsFrame').src = url;
+
+    // 🧠 Sauvegarde du dernier onglet utilisé
+    localStorage.setItem("lastDocsTab", JSON.stringify({ tabId, url }));
 }
+
 // Ligne de test de fin
 console.log("Script terminé correctement ✅");
 </script>
@@ -3728,6 +3735,21 @@ function initNavigation() {
       }
     });
   });
+  // Gestion spéciale de l'ouverture de la section Documents
+document.querySelector('[data-module="documents"]').addEventListener('click', () => {
+
+    const last = localStorage.getItem("lastDocsTab");
+
+    if (last) {
+        // 🔁 Revenir sur le dernier onglet visité
+        const { tabId, url } = JSON.parse(last);
+        openDocsTab(tabId, url);
+    } else {
+        // 🆕 1er lancement : ouvrir l’onglet par défaut
+        openDocsTab('tab-docs', 'docs.html');   // mets ici ton onglet par défaut
+    }
+});
+
 }
 
 document.addEventListener("DOMContentLoaded", () => {
