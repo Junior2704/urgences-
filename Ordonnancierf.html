@@ -704,26 +704,32 @@
     margin-bottom: 6px;
     display: block;
   }
-  .autocomplete-box {
+.autocomplete-box {
   position: absolute;
   background: white;
   border: 1px solid #ccc;
   border-radius: 8px;
-  max-height: 200px;
-  overflow-y: auto;
-  width: calc(100% - 22px);
+  max-height: 150px;
+  max-width: 100%;
+  overflow-x: auto;  /* scroll horizontal si nécessaire */
+  overflow-y: auto;  /* scroll vertical si nécessaire */
+  white-space: nowrap;
   z-index: 1000;
   display: none;
 }
 
 .autocomplete-item {
+  display: inline-block;
   padding: 6px 10px;
   cursor: pointer;
+  margin-right: 4px;
+  border-radius: 4px;
 }
 
 .autocomplete-item:hover {
   background-color: #f0f0f0;
 }
+
 </style>
 
 		<h1>💊 Ordonnancier Médical</h1>
@@ -776,11 +782,12 @@
   </div>
 
 
-  <div class="form-group">
-    <label for="prescription-text">🖊️ Prescription :</label>
-    <textarea id="prescription-text" rows="8" placeholder="Tapez ici votre prescription..."></textarea>
-     <div id="autocomplete-box" class="autocomplete-box"></div>
-  </div>
+ <div class="form-group" style="position:relative;">
+  <label for="prescription-text">🖊️ Prescription :</label>
+  <textarea id="prescription-text" rows="8" placeholder="Tapez ici votre prescription..."></textarea>
+  <div id="autocomplete-box" class="autocomplete-box"></div>
+</div>
+
 
   <button id="validate-prescription-btn" class="btn" onclick="validatePrescription()">✔️ Valider la prescription</button>
 
@@ -1492,7 +1499,7 @@ const htmlFinal = htmlMessage
   }
 });
 
-let medicaments = [];
+llet medicaments = [];
 fetch('medicaments.json')
   .then(res => res.json())
   .then(data => {
@@ -1506,13 +1513,14 @@ const autoBox = document.getElementById("autocomplete-box");
 
 textarea.addEventListener("input", function() {
   const text = this.value;
-  const lastWord = text.split(/\s+/).pop(); // mot en cours
-  if (lastWord.length < 3) {
+  const lastWordMatch = text.match(/(\S{3,})$/); // dernier mot >= 3 caractères
+  if (!lastWordMatch) {
     autoBox.style.display = "none";
     return;
   }
+  const lastWord = lastWordMatch[1].toLowerCase();
 
-  const matches = medicaments.filter(med => med.toLowerCase().includes(lastWord.toLowerCase()));
+  const matches = medicaments.filter(med => med.toLowerCase().includes(lastWord));
   if (matches.length === 0) {
     autoBox.style.display = "none";
     return;
@@ -1525,8 +1533,8 @@ textarea.addEventListener("input", function() {
     div.textContent = med;
     div.addEventListener("click", () => {
       const words = textarea.value.split(/\s+/);
-      words.pop(); // supprime le mot en cours
-      words.push(med); // remplace par la suggestion
+      words.pop();
+      words.push(med);
       textarea.value = words.join(" ") + " ";
       autoBox.style.display = "none";
       textarea.focus();
@@ -1534,9 +1542,13 @@ textarea.addEventListener("input", function() {
     autoBox.appendChild(div);
   });
 
+  // Calcul pour afficher au niveau de la ligne en cours
+  const lineHeight = parseInt(window.getComputedStyle(textarea).lineHeight) || 20;
+  const lines = textarea.value.substr(0, textarea.selectionStart).split("\n");
+  const currentLine = lines.length - 1;
   const rect = textarea.getBoundingClientRect();
-  autoBox.style.top = rect.bottom + window.scrollY + "px";
-  autoBox.style.left = rect.left + window.scrollX + "px";
+  autoBox.style.top = (currentLine * lineHeight + textarea.scrollTop) + "px";
+  autoBox.style.left = "0px";
   autoBox.style.display = "block";
 });
 
