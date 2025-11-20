@@ -13,20 +13,16 @@
   
 
   <style>
-  body {
-  font-family: "Segoe UI", sans-serif;
-  background: #f4f6f9;
+  html, body {
+  height: 100%;
+}
+
+body {
   display: flex;
+  flex-direction: column;
   justify-content: center;
-  align-items: center;
-  height: 100%;         /* Remplace min-height:100vh */
-  min-height: 100%;     /* Important pour éviter l'écrasement */
-  margin: 0;
-  padding: 0;
 }
-html {
-  height: 100%;         /* Nécessaire pour que body puisse utiliser 100% */
-}
+
 
 .card {
   background: white;
@@ -305,13 +301,9 @@ html {
   }
 }
 footer {
-  margin-top: auto; /* pousse le footer en bas */
-  padding: 15px;
-  text-align: center; /* centre le texte à l'intérieur */
-  color: #777;
-  font-size: 0.9rem;
-  width: 100%; /* assure que le footer prend toute la largeur */
+  margin-top: 40px;   /* au lieu de auto */
 }
+
   </style>
 </head>
 <body>
