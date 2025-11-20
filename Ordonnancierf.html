@@ -704,6 +704,26 @@
     margin-bottom: 6px;
     display: block;
   }
+  .autocomplete-box {
+  position: absolute;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+  width: calc(100% - 22px);
+  z-index: 1000;
+  display: none;
+}
+
+.autocomplete-item {
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+.autocomplete-item:hover {
+  background-color: #f0f0f0;
+}
 </style>
 
 		<h1>💊 Ordonnancier Médical</h1>
@@ -759,6 +779,7 @@
   <div class="form-group">
     <label for="prescription-text">🖊️ Prescription :</label>
     <textarea id="prescription-text" rows="8" placeholder="Tapez ici votre prescription..."></textarea>
+     <div id="autocomplete-box" class="autocomplete-box"></div>
   </div>
 
   <button id="validate-prescription-btn" class="btn" onclick="validatePrescription()">✔️ Valider la prescription</button>
@@ -1471,6 +1492,60 @@ const htmlFinal = htmlMessage
   }
 });
 
+let medicaments = [];
+fetch('medicaments.json')
+  .then(res => res.json())
+  .then(data => {
+    medicaments = data;
+    console.log("✅ Médicaments chargés :", medicaments.length);
+  })
+  .catch(err => console.error("❌ Erreur chargement JSON :", err));
+
+const textarea = document.getElementById("prescription-text");
+const autoBox = document.getElementById("autocomplete-box");
+
+textarea.addEventListener("input", function() {
+  const text = this.value;
+  const lastWord = text.split(/\s+/).pop(); // mot en cours
+  if (lastWord.length < 3) {
+    autoBox.style.display = "none";
+    return;
+  }
+
+  const matches = medicaments.filter(med => med.toLowerCase().includes(lastWord.toLowerCase()));
+  if (matches.length === 0) {
+    autoBox.style.display = "none";
+    return;
+  }
+
+  autoBox.innerHTML = "";
+  matches.forEach(med => {
+    const div = document.createElement("div");
+    div.className = "autocomplete-item";
+    div.textContent = med;
+    div.addEventListener("click", () => {
+      const words = textarea.value.split(/\s+/);
+      words.pop(); // supprime le mot en cours
+      words.push(med); // remplace par la suggestion
+      textarea.value = words.join(" ") + " ";
+      autoBox.style.display = "none";
+      textarea.focus();
+    });
+    autoBox.appendChild(div);
+  });
+
+  const rect = textarea.getBoundingClientRect();
+  autoBox.style.top = rect.bottom + window.scrollY + "px";
+  autoBox.style.left = rect.left + window.scrollX + "px";
+  autoBox.style.display = "block";
+});
+
+// Fermer la boîte si on clique ailleurs
+document.addEventListener("click", function(e) {
+  if (!autoBox.contains(e.target) && e.target !== textarea) {
+    autoBox.style.display = "none";
+  }
+});
 
 
 
