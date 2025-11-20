@@ -3849,21 +3849,33 @@ document.addEventListener("DOMContentLoaded", () => {
   const panelDocs = document.getElementById("panel-documents");
 
   const observer = new MutationObserver(() => {
-    if (panelDocs.style.display !== "none") {
-      // La section Documents vient de s'ouvrir → charger l’onglet par défaut
-      const defaultTabId = 'tab-docs';
-      const defaultUrl = 'docs.html';
+    if (panelDocs.classList.contains("active")) {
 
-      // Appeler ta fonction pour ouvrir le contenu et mettre l’onglet actif
-      openDocsTab(defaultTabId, defaultUrl);
+      // ➜ ON RÉCUPÈRE LE PREMIER ONGLET AVEC SON ONCLICK
+      const firstTab = panelDocs.querySelector(".docs-tab");
+
+      if (firstTab) {
+        // extrait l’appel openDocsTab('tab-xxx','url.html')
+        const onclick = firstTab.getAttribute("onclick");
+
+        const match = onclick.match(/openDocsTab\('([^']+)','([^']+)'\)/);
+
+        if (match) {
+          const tabId = match[1];
+          const url = match[2];
+
+          // Appel normal
+          openDocsTab(tabId, url);
+        }
+      }
 
       observer.disconnect(); // on arrête l'observation
     }
   });
 
-  // On observe les changements de style (display)
-  observer.observe(panelDocs, { attributes: true, attributeFilter: ['style'] });
+  observer.observe(panelDocs, { attributes: true, attributeFilter: ['class'] });
 });
+
 document.addEventListener("DOMContentLoaded", () => {
   // --- Parcourir toutes les sections avec onglets internes ---
   document.querySelectorAll('section[id^="panel-"]').forEach(section => {
