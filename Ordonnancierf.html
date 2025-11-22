@@ -1035,7 +1035,7 @@ async function validatePrescription() {
         patientId: patientId,
         dateCreation: new Date().toISOString(),
         type: "ordonnance médicale",
-        textePrescription: prescriptionText,
+        contenu: prescriptionText,
         pdfBase64: pdfBase64
       });
       console.log("✅ Ordonnance enregistrée avec ID unique :", idUnique);
