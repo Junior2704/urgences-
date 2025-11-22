@@ -5,8 +5,8 @@
 <title>Historique des documents</title>
 <style>
     :root {
-        --primary-color: #007bff; /* Bleu hôpital moderne */
-        --secondary-color: #f0f4f8; /* Fond clair */
+        --primary-color: #007bff;
+        --secondary-color: #f0f4f8;
         --text-color: #333;
         --hover-color: #e6f0ff;
     }
@@ -38,16 +38,12 @@
         padding: 15px 20px;
         box-shadow: 0 4px 10px rgba(0,0,0,0.08);
         margin-bottom: 15px;
-        transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
-        cursor: pointer;
         display: flex;
         justify-content: space-between;
         align-items: center;
     }
 
     li:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(0,0,0,0.15);
         background-color: var(--hover-color);
     }
 
@@ -60,20 +56,75 @@
     .doc-date {
         font-size: 0.9em;
         color: #555;
+        margin-left: 15px;
     }
 
-    @media (max-width: 600px) {
-        li {
-            flex-direction: column;
-            align-items: flex-start;
-        }
-        .doc-date {
-            margin-top: 5px;
-        }
+  .btn-loupe {
+    cursor: pointer;
+    background: none;
+    border: none;
+    font-size: 1.3em;
+    color: #444;
+    padding: 4px;
+}
+
+.btn-loupe:hover {
+    color: var(--primary-color);
+}
+.doc-contenu {
+    font-size: 0.85em;
+    color: #666;
+    margin-left: 15px;
+    font-style: italic;
+    max-width: 40%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+
+    /* === MODALE === */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 9999;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background-color: rgba(0,0,0,0.6);
+    }
+
+    .modal-content {
+        background-color: #fff;
+        margin: 40px auto;
+        padding: 20px;
+        border-radius: 10px;
+        width: 80%;
+        height: 80%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    iframe {
+        flex: 1;
+        width: 100%;
+        border: none;
+    }
+
+    .close {
+        background: red;
+        color: white;
+        border: none;
+        padding: 8px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+        margin-bottom: 10px;
+        align-self: flex-end;
     }
 </style>
 
-<!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
 </head>
@@ -81,9 +132,16 @@
     <h1>Historique des documents</h1>
     <ul id="documentList"></ul>
 
-    <script>
-        // --- Configuration Firebase ---
-        const firebaseConfig = {
+    <!-- ===== MODALE POUR AFFICHER LE PDF ===== -->
+    <div id="pdfModal" class="modal">
+        <div class="modal-content">
+            <button class="close" onclick="fermerModal()">Fermer</button>
+            <iframe id="pdfViewer"></iframe>
+        </div>
+    </div>
+
+<script>
+const firebaseConfig = {
     apiKey: "AIzaSyBKp5-7NNy0Gyl0tNbDgD-BxucYdg8ArWo",
     authDomain: "urgences-a8ed4.firebaseapp.com",
     projectId: "urgences-a8ed4",
@@ -91,80 +149,100 @@
     messagingSenderId: "392921498200",
     appId: "1:392921498200:web:7ccce767332c67c697c02d",
     measurementId: "G-C74MK2KYDL"
-  };
+};
 
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 
-        // --- Récupérer l'ID patient depuis l'URL ---
-        const urlParams = new URLSearchParams(window.location.search);
-        const idPatient = urlParams.get('id');
-        if (!idPatient) {
-            alert("Aucun ID patient trouvé dans l'URL !");
-            throw new Error("Aucun ID patient dans l'URL");
+const urlParams = new URLSearchParams(window.location.search);
+const idPatient = urlParams.get('id');
+if (!idPatient) {
+    alert("Aucun ID patient trouvé !");
+    throw new Error("Aucun ID patient");
+}
+
+const documentList = document.getElementById('documentList');
+const modal = document.getElementById('pdfModal');
+const pdfViewer = document.getElementById('pdfViewer');
+
+function b64toBlob(b64Data, contentType = '', sliceSize = 512) {
+    const byteCharacters = atob(b64Data);
+    const byteArrays = [];
+    for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
+        const slice = byteCharacters.slice(offset, offset + sliceSize);
+        const byteNumbers = new Array(slice.length);
+        for (let i = 0; i < slice.length; i++) {
+            byteNumbers[i] = slice.charCodeAt(i);
         }
+        byteArrays.push(new Uint8Array(byteNumbers));
+    }
+    return new Blob(byteArrays, { type: contentType });
+}
 
-        const documentList = document.getElementById('documentList');
+function ouvrirModal(blob) {
+    const url = URL.createObjectURL(blob);
+    pdfViewer.src = url;
+    modal.style.display = "block";
+}
 
-        // --- Fonction utilitaire pour convertir base64 en Blob ---
-        function b64toBlob(b64Data, contentType = '', sliceSize = 512) {
-            const byteCharacters = atob(b64Data);
-            const byteArrays = [];
-            for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
-                const slice = byteCharacters.slice(offset, offset + sliceSize);
-                const byteNumbers = new Array(slice.length);
-                for (let i = 0; i < slice.length; i++) {
-                    byteNumbers[i] = slice.charCodeAt(i);
-                }
-                const byteArray = new Uint8Array(byteNumbers);
-                byteArrays.push(byteArray);
-            }
-            return new Blob(byteArrays, { type: contentType });
-        }
+function fermerModal() {
+    modal.style.display = "none";
+    pdfViewer.src = "";
+}
 
-        // --- Fonction pour afficher les documents ---
-        function afficherDocuments() {
-            db.collection('ordonnances')
-              .where('idPatient', '==', idPatient)
-              .get()
-              .then(querySnapshot => {
-                  if (querySnapshot.empty) {
-                      documentList.innerHTML = "<li>Aucun document trouvé pour ce patient.</li>";
-                      return;
-                  }
+function afficherDocuments() {
+    db.collection('documents')
+      .where('patientId', '==', idPatient)
+      .get()
+      .then(querySnapshot => {
+          if (querySnapshot.empty) {
+              documentList.innerHTML = "<li>Aucun document trouvé.</li>";
+              return;
+          }
 
-                  // Mettre les documents dans un tableau
-                  const docsArray = [];
-                  querySnapshot.forEach(doc => {
-                      docsArray.push(doc.data());
-                  });
+          const docsArray = [];
+          querySnapshot.forEach(doc => docsArray.push(doc.data()));
 
-                  // Trier par dateCreation descendante côté client
-                  docsArray.sort((a, b) => b.dateCreation.seconds - a.dateCreation.seconds);
+          docsArray.sort((a, b) => b.dateCreation.seconds - a.dateCreation.seconds);
 
-                  // Affichage
-                  docsArray.forEach(data => {
-                      const li = document.createElement('li');
-                      li.innerHTML = `<span class="doc-type">${data.type}</span>
-                                      <span class="doc-date">${new Date(data.dateCreation.seconds * 1000).toLocaleString()}</span>`;
-                      
-                      li.addEventListener('dblclick', () => {
-                          const blob = b64toBlob(data.pdfBase64, 'application/pdf');
-                          const url = URL.createObjectURL(blob);
-                          window.open(url, '_blank');
-                      });
+         docsArray.forEach(data => {
+    const extrait = data.contenu 
+        ? data.contenu.substring(0, 50) + "…" 
+        : "(pas de contenu)";
 
-                      documentList.appendChild(li);
-                  });
-              })
-              .catch(error => {
-                  console.error("Erreur lors de la récupération des documents:", error);
-                  documentList.innerHTML = "<li>Erreur lors du chargement des documents.</li>";
-              });
-        }
+    const li = document.createElement('li');
 
-        // --- Charger les documents ---
-        afficherDocuments();
-    </script>
+    li.innerHTML = `
+        <span class="doc-type">${data.type}</span>
+
+        <span class="doc-date">
+            ${new Date(data.dateCreation.seconds * 1000).toLocaleString()}
+        </span>
+
+        <span class="doc-contenu">
+            ${extrait}
+        </span>
+
+        <button class="btn-loupe">🔎</button>
+    `;
+
+    li.querySelector('.btn-loupe').addEventListener('click', () => {
+        const blob = b64toBlob(data.pdfBase64, "application/pdf");
+        ouvrirModal(blob);
+    });
+
+    documentList.appendChild(li);
+});
+
+      })
+      .catch(err => {
+          console.error(err);
+          documentList.innerHTML = "<li>Erreur lors du chargement.</li>";
+      });
+}
+
+afficherDocuments();
+</script>
+
 </body>
 </html>
