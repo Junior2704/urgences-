@@ -1033,7 +1033,7 @@ async function validatePrescription() {
       const idUnique = Math.random().toString(36).substring(2, 10);
       await db.collection("documents").doc(idUnique).set({
         patientId: patientId,
-        dateCreation: new Date().toISOString(),
+          dateCreation: formatDate(new Date()),
         type: "ordonnance médicale",
         contenu: prescriptionText,
         pdfBase64: pdfBase64
@@ -1047,6 +1047,16 @@ async function validatePrescription() {
   }
 }
 
+function formatDate(date) {
+  const pad = (n) => n.toString().padStart(2, '0');
+  const jour = pad(date.getDate());
+  const mois = pad(date.getMonth() + 1); // Les mois vont de 0 à 11
+  const annee = date.getFullYear();
+  const heures = pad(date.getHours());
+  const minutes = pad(date.getMinutes());
+  const secondes = pad(date.getSeconds());
+  return `${jour}/${mois}/${annee} ${heures}:${minutes}:${secondes}`;
+}
 
 
 async function genererOrdo(telecharger = false) {
