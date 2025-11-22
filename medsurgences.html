@@ -16277,7 +16277,31 @@ document.addEventListener("DOMContentLoaded", () => {
       const d = doc.data();
       const item = document.createElement("div");
       item.className = "history-item";
-      item.dataset.status = d.status;
+      // --- Calcul du statut ---
+let status = d.status; // par défaut (pris)
+
+// calculiquement seulement si pas déjà pris
+if (status !== "pris") {
+    const now = new Date();
+    const due = d.dueAt?.toDate?.() ? d.dueAt.toDate() : null;
+
+    if (due) {
+        const diff = (now - due) / 60000; // différence en minutes
+
+        if (Math.abs(diff) <= 10) {
+            status = "a-donner";     // ±10 minutes autour de l’heure prévue
+        } else if (diff < -10) {
+            status = "prevu";        // plus de 10 min avant
+        } else {
+            status = "en-retard";    // plus de 10 min après
+        }
+    }
+}
+
+// appliquer le statut calculé
+d.status = status; 
+item.dataset.status = status;
+
 
       const name = `<strong>${d.product}</strong>`;
 
