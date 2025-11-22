@@ -16360,11 +16360,36 @@ async function showDetails(docId) {
 
     document.getElementById("detail-content").innerHTML = html;
     document.getElementById("modal-details").style.display = "flex";
+     document.getElementById("detail-delete").onclick = deleteFromModal;
 }
 
 function closeDetails() {
     document.getElementById("modal-details").style.display = "none";
 }
+async function deleteFromModal() {
+    if (!currentDetailId) return;
+
+    if (!confirm("Supprimer cette demande ?")) return;
+
+    try {
+        await db
+          .collection("patients")
+          .doc(patientId)
+          .collection("meds-urgences")
+          .doc(currentDetailId)
+          .delete();
+
+        afficherBulle("✔️ Demande supprimée", "success");
+
+        closeDetails();
+        loadHistory();
+
+    } catch (err) {
+        console.error(err);
+        alert("Erreur : " + err.message);
+    }
+}
+
 
 document.getElementById("detail-delete").onclick = async () => {
     if (!currentDetailId) return;
