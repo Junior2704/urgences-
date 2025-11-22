@@ -205,7 +205,8 @@ function afficherDocuments() {
 
           docsArray.sort((a, b) => b.dateCreation.seconds - a.dateCreation.seconds);
 
-         docsArray.forEach(data => {
+   
+    docsArray.forEach(data => {
     const extrait = data.contenu 
         ? data.contenu.substring(0, 50) + "…" 
         : "(pas de contenu)";
@@ -216,7 +217,7 @@ function afficherDocuments() {
         <span class="doc-type">${data.type}</span>
 
         <span class="doc-date">
-            ${new Date(data.dateCreation.seconds * 1000).toLocaleString()}
+            ${data.dateCreation} 
         </span>
 
         <span class="doc-contenu">
