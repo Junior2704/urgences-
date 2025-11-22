@@ -1031,7 +1031,7 @@ async function validatePrescription() {
   if (patientId) {
     try {
       const idUnique = Math.random().toString(36).substring(2, 10);
-      await db.collection("ordonnances").doc(idUnique).set({
+      await db.collection("documents").doc(idUnique).set({
         patientId: patientId,
         dateCreation: new Date().toISOString(),
         type: "ordonnance médicale",
