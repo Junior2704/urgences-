@@ -16360,7 +16360,7 @@ async function showDetails(docId) {
 
     document.getElementById("detail-content").innerHTML = html;
     document.getElementById("modal-details").style.display = "flex";
-     document.getElementById("detail-delete").onclick = deleteFromModal;
+     document.getElementById("btnDeleteDetail").onclick = deleteFromModal;
 }
 
 function closeDetails() {
@@ -16413,36 +16413,6 @@ document.getElementById("detail-delete").onclick = async () => {
         alert("Erreur : " + err.message);
     }
 };
-
-async function showDetails(docId) {
-  const docSnap = await db
-    .collection("patients")
-    .doc(patientId)
-    .collection("meds-urgences")
-    .doc(docId)
-    .get();
-
-  if (!docSnap.exists) return;
-
-  const d = docSnap.data();
-  const created = d.createdAt?.toDate()?.toLocaleString() || "";
-  const due = d.dueAt?.toDate()?.toLocaleString() || "—";
-  const taken = d.takenAt?.toDate()?.toLocaleString() || "—";
-
-  const html = `
-    <p><strong>Nom :</strong> ${d.product}</p>
-    <p><strong>Commentaire demande :</strong><br>${d.comment || "—"}</p>
-    <p><strong>Créé le :</strong> ${created}</p>
-    <p><strong>Pour le :</strong> ${due}</p>
-    <p><strong>Statut :</strong> ${d.status}</p>
-    <p><strong>Commentaire prise :</strong><br>${d.takeComment || "—"}</p>
-    <p><strong>Prise le :</strong> ${taken}</p>
-  `;
-
-  document.getElementById("detail-content").innerHTML = html;
-
-  document.getElementById("modal-details").style.display = "flex";
- document.getElementById("btnDeleteDetail").onclick = deleteFromModal;
 
 
 function closeDetails() {
