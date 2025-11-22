@@ -1031,13 +1031,17 @@ async function validatePrescription() {
   if (patientId) {
     try {
       const idUnique = Math.random().toString(36).substring(2, 10);
-      await db.collection("documents").doc(idUnique).set({
-        patientId: patientId,
-          dateCreation: formatDate(new Date()),
-        type: "ordonnance médicale",
-        contenu: prescriptionText,
-        pdfBase64: pdfBase64
-      });
+      const dateFormatted = formatDate(new Date());
+console.log("📅 Date formatée envoyée :", dateFormatted);
+
+await db.collection("documents").doc(idUnique).set({
+  patientId: patientId,
+  dateCreation: dateFormatted,
+  type: "ordonnance médicale",
+  contenu: prescriptionText,
+  pdfBase64: pdfBase64
+});
+
       console.log("✅ Ordonnance enregistrée avec ID unique :", idUnique);
       afficherBulle("✅ Ordonnance enregistrée !", "success");
     } catch (err) {
