@@ -208,7 +208,7 @@ footer {
 
 <form id="invoiceForm">
   <div class="btn-container">
-    <button onclick="history.back()">⬅️ Retour</button>
+    <button id="retourBtn" onclick="history.back()">⬅️ Retour</button>
     <button type="button" id="resetBtn" class="button danger">❌ Réinitialiser</button>
     <button type="button" id="readVitaleBtn" class="button">🆔 Lecture Carte Vitale</button>
   </div>
@@ -677,7 +677,7 @@ function formatDate(date) {
   function verrouillerFormulaire(){
     // Désactive tous les inputs/selects et boutons (sauf downloadPdfBtn & sendEmailBtn)
     document.querySelectorAll('#invoiceForm input, #invoiceForm select, #invoiceForm button').forEach(el => {
-      if(el.id === 'downloadPdfBtn' || el.id === 'sendEmailBtn') return;
+      if(el.id === 'downloadPdfBtn' || el.id === 'sendEmailBtn'|| el.id === 'retourBtn'|| el.id === 'readvitalBtn'|| el.id === 'resetBtn') return;
       el.disabled = true;
     });
     // Hide remove buttons visually
