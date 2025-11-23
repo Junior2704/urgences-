@@ -714,7 +714,7 @@
 
 #autocomplete-box {
     position: absolute;
-    z-index: 1000;
+    z-index: 99999;
     background: white;
     border: 1px solid #ccc;
     max-height: 200px;
@@ -723,6 +723,7 @@
     border-radius: 6px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.15);
 }
+
 
 
 
@@ -819,7 +820,7 @@
  <div class="form-group" style="position: relative;">
   <label for="prescription-text">🖊️ Prescription :</label>
   <textarea id="prescription-text" rows="8" placeholder="Tapez ici votre prescription..."></textarea>
-  <div id="autocomplete-box" class="autocomplete-box"></div>
+
   
 </div>
 <div class="form-group">
@@ -886,6 +887,9 @@
     <p>Vous n’avez pas accès à cette page.</p>
   </div>
 </div>
+
+<div id="autocomplete-box"></div>
+
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/textarea-caret@3.1.0/index.js"></script>
 
