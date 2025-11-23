@@ -806,15 +806,11 @@
 		</div>
     </div>
     
-		<div class="form-group">
-			<form class="vidal-search" action="https://www.vidal.fr/recherche.html" method="get" target="_blank">
-  <input type="text" name="query" placeholder="Rechercher sur le Vidal">
-  <button type="submit">Rechercher</button>
-</form>
+		
 			
 
 		<div id="prescription" class="ordonnance" >
-  <h2>Ordonnance Médicale</h2>
+  <h2>Ordonnance</h2>
   <div class="date-info">
     <span>Date : <span id="current-date"></span></span>
   </div>
@@ -826,7 +822,11 @@
   <div id="autocomplete-box" class="autocomplete-box"></div>
   
 </div>
-
+<div class="form-group">
+			<form class="vidal-search" action="https://www.vidal.fr/recherche.html" method="get" target="_blank">
+  <input type="text" name="query" placeholder="Rechercher sur le Vidal">
+  <button type="submit">Rechercher</button>
+</form>
 
 
   <button id="validate-prescription-btn" class="btn" onclick="validatePrescription()">✔️ Valider la prescription</button>
