@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <link rel="icon" type="image/jpeg" href="logo.png" />
 <meta charset="UTF-8">
 <title>Historique des documents</title>
 <style>
@@ -293,6 +292,70 @@
 </div>
 
 <script>
+// Conteneur global pour les bulles
+let notificationContainer = document.getElementById('notification-container');
+if (!notificationContainer) {
+  notificationContainer = document.createElement('div');
+  notificationContainer.id = 'notification-container';
+  notificationContainer.style.position = 'fixed';
+  notificationContainer.style.top = '12px';
+  notificationContainer.style.right = '12px'; // EN HAUT À DROITE
+  notificationContainer.style.display = 'flex';
+  notificationContainer.style.flexDirection = 'column';
+  notificationContainer.style.gap = '8px'; // espace vertical entre bulles
+  notificationContainer.style.zIndex = 9999;
+  document.body.appendChild(notificationContainer);
+}
+
+// Fonction pour afficher une bulle
+function afficherBulle(msg, type = 'info') {
+  const el = document.createElement('div');
+  el.textContent = msg;
+  el.style.padding = '10px 14px';
+  el.style.borderRadius = '8px';
+  el.style.boxShadow = '0 2px 6px rgba(0,0,0,0.2)';
+  el.style.fontSize = '14px';
+  el.style.fontWeight = '500';
+  el.style.opacity = '0';
+  el.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+  el.style.transform = 'translateY(-10px)';
+
+  // --- Code couleur selon type ---
+  switch (type) {
+    case 'success':
+      el.style.background = '#e6ffed'; // vert clair
+      el.style.color = '#064e22';      // texte vert foncé
+      break;
+    case 'error':
+      el.style.background = '#ffdede'; // rouge clair
+      el.style.color = '#a00';         // texte rouge foncé
+      break;
+    case 'warning':
+      el.style.background = '#fff4e5'; // orange clair
+      el.style.color = '#663c00';      // texte orange foncé
+      break;
+    default: // info ou autre
+      el.style.background = '#333';    // gris foncé
+      el.style.color = '#fff';         // texte blanc
+      break;
+  }
+
+  notificationContainer.appendChild(el);
+
+  // Animation d'entrée
+  requestAnimationFrame(() => {
+    el.style.opacity = '1';
+    el.style.transform = 'translateY(0)';
+  });
+
+  // Suppression automatique après 3 secondes
+  setTimeout(() => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(-10px)';
+    el.addEventListener('transitionend', () => el.remove());
+  }, 3000);
+}
+/* --- Initialisation compat Firebase (inchangée) --- */
 const firebaseConfig = {
     apiKey: "AIzaSyBKp5-7NNy0Gyl0tNbDgD-BxucYdg8ArWo",
     authDomain: "urgences-a8ed4.firebaseapp.com",
@@ -309,7 +372,7 @@ const db = firebase.firestore();
 const urlParams = new URLSearchParams(window.location.search);
 const idPatient = urlParams.get('id');
 if (!idPatient) {
-    alert("Aucun ID patient trouvé !");
+    afficherBulle("Aucun ID patient trouvé !", "warning");
     throw new Error("Aucun ID patient");
 }
 
@@ -342,6 +405,7 @@ function fermerModal() {
     pdfViewer.src = "";
 }
 
+/* --- Fonction d'affichage des documents (corrigée) --- */
 function afficherDocuments() {
     db.collection('documents')
       .where('patientId', '==', idPatient)
@@ -353,65 +417,76 @@ function afficherDocuments() {
           }
 
           const docsArray = [];
-querySnapshot.forEach(doc => {
-    docsArray.push({
-        id: doc.id,   // ← ID du document Firestore
-        ...doc.data() // ← contenu du document
-    });
-});
+          querySnapshot.forEach(doc => {
+              docsArray.push({
+                  id: doc.id,
+                  ...doc.data()
+              });
+          });
 
-          docsArray.sort((a, b) => b.dateCreation.seconds - a.dateCreation.seconds);
+          docsArray.sort((a, b) => {
+              // robustesse : vérifier l'existence de dateCreation
+              const aSec = a.dateCreation?.seconds || 0;
+              const bSec = b.dateCreation?.seconds || 0;
+              return bSec - aSec;
+          });
 
-   
- docsArray.forEach(data => {
-    const extrait = data.contenu 
-        ? data.contenu.substring(0, 50) + "…" 
-        : "(pas de contenu)";
+          documentList.innerHTML = ""; // clear list avant ajout
 
-    const li = document.createElement('li');
+          docsArray.forEach(data => {
+              const extrait = data.contenu ? data.contenu.substring(0, 50) + "…" : "(pas de contenu)";
+              const li = document.createElement('li');
 
-    // Boutons
-    let boutonsHTML = `<button class="btn-loupe">🔎</button>`;
-    if (peutSupprimer) {
-        boutonsHTML += `<button class="btn-delete" data-doc-id="${data.id}">🗑️</button>`;
-    }
+              // construit l'html des boutons — on utilise window.peutSupprimer
+              let boutonsHTML = `<button class="btn-loupe" type="button">🔎</button>`;
+              if (window.peutSupprimer) {
+                  boutonsHTML += `<button class="btn-delete" type="button" data-doc-id="${data.id}">🗑️</button>`;
+              }
 
-    li.innerHTML = `
-        <span class="doc-type">${data.type}</span>
-        <span class="doc-date">${data.dateCreation}</span>
-        <span class="doc-contenu">${extrait}</span>
-        <div style="display:flex; gap:10px;">
-            ${boutonsHTML}
-        </div>
-    `;
+              li.innerHTML = `
+                  <div style="display:flex; align-items:center; gap:12px;">
+                    <span class="doc-type">${data.type || ""}</span>
+                    <span class="doc-date">${data.dateCreation ? new Date((data.dateCreation.seconds||0)*1000).toLocaleString() : ""}</span>
+                    <span class="doc-contenu">${extrait}</span>
+                  </div>
+                  <div style="display:flex; gap:10px;">
+                      ${boutonsHTML}
+                  </div>
+              `;
 
-    // Evenements
-    li.querySelector('.btn-loupe').addEventListener('click', () => {
-        const blob = b64toBlob(data.pdfBase64, "application/pdf");
-        ouvrirModal(blob);
-    });
+              // écouteurs — ajout après innerHTML (important)
+              const btnLoupe = li.querySelector('.btn-loupe');
+              if (btnLoupe) {
+                  btnLoupe.addEventListener('click', () => {
+                      const blob = b64toBlob(data.pdfBase64, "application/pdf");
+                      ouvrirModal(blob);
+                  });
+              }
 
-li.querySelector('.btn-delete')?.addEventListener('click', (e) => {
-    const idDoc = e.target.getAttribute("data-doc-id");
-    ouvrirConfirmDeleteModal(idDoc);
-});
+              const btnDelete = li.querySelector('.btn-delete');
+              if (btnDelete) {
+                  btnDelete.addEventListener('click', (e) => {
+                      const idDoc = e.currentTarget.getAttribute("data-doc-id");
+                      console.log("clic supprimer doc:", idDoc);
+                      ouvrirConfirmDeleteModal(idDoc);
+                  });
+              }
 
-
-    documentList.appendChild(li);
-});
-
-
+              documentList.appendChild(li);
+          });
       })
       .catch(err => {
           console.error(err);
           documentList.innerHTML = "<li>Erreur lors du chargement.</li>";
       });
 }
+
+/* --- Suppression — modales et boutons --- */
 let documentToDelete = null;
 
 function ouvrirConfirmDeleteModal(docId) {
     documentToDelete = docId;
-    document.getElementById("confirmDeleteModal").style.display = "block";
+    document.getElementById("confirmDeleteModal").style.display = "flex";
 }
 
 function fermerConfirmDeleteModal() {
@@ -428,97 +503,85 @@ document.getElementById("btnConfirmDelete").onclick = async function() {
         await db.collection("documents").doc(documentToDelete).delete();
         fermerConfirmDeleteModal();
         afficherDocuments(); // recharge la liste
-        alert("Document supprimé !");
+        afficherBulle("Document supprimé !", "success");
     } catch (err) {
         console.error(err);
-        alert("Erreur lors de la suppression.");
+        afficherBulle("Erreur lors de la suppression.", "error");
     }
 };
+
 document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("confirmDeleteModal").style.display = "none";
 });
-
-
 </script>
+
 <script type="module">
+  /* --- Module Firebase (modulaire) : on l'utilise seulement pour l'auth et la récupération du doc "medecins" --- */
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
   import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-  const firebaseConfig = {
+  const firebaseConfigMod = {
     apiKey: "AIzaSyBKp5-7NNy0Gyl0tNbDgD-BxucYdg8ArWo",
     authDomain: "urgences-a8ed4.firebaseapp.com",
     projectId: "urgences-a8ed4"
   };
 
-  const app = initializeApp(firebaseConfig);
+  const app = initializeApp(firebaseConfigMod);
   const auth = getAuth(app);
-  const db = getFirestore(app);
+  const fdb = getFirestore(app);
 
-  // Déconnexion
-  
-// Récupération du droit de suppression (à faire après onAuthStateChanged)
-let peutSupprimer = false; // variable globale
+  // IMPORTANT : ne pas déclarer `let peutSupprimer` dans la portée du module.
+  // On définit la variable globale window.peutSupprimer pour que le script non-modulaire l'utilise.
+  window.peutSupprimer = false;
 
-onAuthStateChanged(auth, async (user) => {
-    if (!user) {
-        window.location.href = "index.html";
-        return;
-    }
+  onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+          window.location.href = "index.html";
+          return;
+      }
 
-    try {
-        const docRef = doc(db, "medecins", user.uid);
-        const docSnap = await getDoc(docRef);
+      try {
+          const docRef = doc(fdb, "medecins", user.uid);
+          const docSnap = await getDoc(docRef);
 
-        if (docSnap.exists()) {
-            const data = docSnap.data();
+          if (docSnap.exists()) {
+              const data = docSnap.data();
 
-            // Récupération du droit de suppression
-            
+              // Définit la variable globale (accessible depuis le script non-module)
+              window.peutSupprimer = !!(data.pages?.suprdocs);
 
-            // Infos médecin
-            const medecinNom = data.nom || "";
-            const medecinSpecialite = data.specialite || "";
-            const medecinLieu = data.lieu || "";
+              // infos médecin (stockées globalement si besoin)
+              window.medecinNom = data.nom || "";
+              window.medecinSpecialite = data.specialite || "";
+              window.medecinLieu = data.lieu || "";
 
-            window.medecinNom = medecinNom;
-            window.medecinSpecialite = medecinSpecialite;
-            window.medecinLieu = medecinLieu;
-			window.peutSupprimer = data.pages?.suprdocs || false;
+              // Vérification d'accès à la page
+              const pages = data.pages || {};
+              const currentPage = window.location.pathname.split("/").pop().replace(".html", "");
+              if (!pages[currentPage]) {
+                  const modal = document.getElementById("modal-no-access");
+                  if (modal) modal.style.display = "flex";
+                  console.warn("Accès refusé à", currentPage);
+                  return;
+              }
 
+              // Appelle l'affichage après avoir défini window.peutSupprimer
+              afficherDocuments();
 
+          } else {
+              const modal = document.getElementById("modal-no-access");
+              if (modal) modal.style.display = "flex";
+              console.warn("Médecin non trouvé");
+              return;
+          }
 
-            // Mise à jour des éléments HTML si présents
-            
-
-            // Vérification d'accès à la page
-            const pages = data.pages || {};
-            const currentPage = window.location.pathname.split("/").pop().replace(".html", "");
-            if (!pages[currentPage]) {
-                const modal = document.getElementById("modal-no-access");
-                if (modal) modal.style.display = "flex";
-                console.warn("Accès refusé à", currentPage);
-                return;
-            }
-
-            // Affichage des documents **après avoir défini le droit de suppression**
-            afficherDocuments();
-
-        } else {
-            // Si le document médecin n'existe pas
-            const modal = document.getElementById("modal-no-access");
-            if (modal) modal.style.display = "flex";
-            console.warn("Médecin non trouvé");
-            return;
-        }
-
-    } catch (error) {
-        console.error("Erreur lors de la récupération du médecin :", error);
-    }
-});
-
-  
+      } catch (error) {
+          console.error("Erreur lors de la récupération du médecin :", error);
+      }
+  });
 </script>
+
 
 </body>
 </html>
