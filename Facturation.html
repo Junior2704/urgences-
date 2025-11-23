@@ -547,7 +547,10 @@ addItemBtn.addEventListener('click', () => createItemRow());
       }
     }
   });
-
+function getIdFromURL() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('id');
+  }
   // ---------- Lecture Carte Vitale simulée ----------
   document.getElementById('readVitaleBtn').addEventListener('click', () => {
     const modal = document.getElementById('vitaleModal');
@@ -620,12 +623,31 @@ const prestations = [...itemsTable.querySelectorAll('tr')].map(row => {
     const bar = document.getElementById('progressBar');
     bar.style.width = '0%';
     setTimeout(()=> bar.style.width = '100%', 100);
-
+const pdfBase64 = await creerFacture(false);
     try {
-      // Enregistrement Firestore
-      const ref = await db.collection('factures').add(factureData);
-      currentFactureId = ref.id;
+      // 5️⃣ Enregistrement dans Firestore
+  const patientId = getIdFromURL();
+  if (patientId) {
+    try {
+      const idUnique = Math.random().toString(36).substring(2, 10);
+      const dateFormatted = formatDate(new Date());
+console.log("📅 Date formatée envoyée :", dateFormatted);
 
+await db.collection("documents").doc(idUnique).set({
+  patientId: patientId,
+  dateCreation: dateFormatted,
+  type: "Facture",
+  contenu: totalTTC,
+  pdfBase64: pdfBase64
+});
+
+      console.log("✅ Ordonnance enregistrée avec ID unique :", idUnique);
+      afficherBulle("✅ Ordonnance enregistrée !", "success");
+    } catch (err) {
+      console.error("❌ Erreur enregistrement Firestore :", err);
+      afficherBulle("❌ Erreur enregistrement", "alerte");
+    }
+  }
       // fin animation & lock
       setTimeout(()=> {
         popup.style.display = 'none';
