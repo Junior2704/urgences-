@@ -634,13 +634,17 @@ const pdfBase64 = await creerFacture(false);
       const dateFormatted = formatDate(new Date());
 console.log("📅 Date formatée envoyée :", dateFormatted);
 
+const totalTTCNumber = parseFloat(grandTotalElem.textContent || '0'); // nombre
+const totalTTCStr = totalTTCNumber.toFixed(2); // string pour affichage si nécessaire
+
 await db.collection("documents").doc(idUnique).set({
   patientId: patientId,
   dateCreation: dateFormatted,
   type: "Facture",
-  contenu: totalTTC,
+  contenu: totalTTCNumber, // <- c'est un nombre sûr
   pdfBase64: pdfBase64
 });
+
 
       console.log("✅ Ordonnance enregistrée avec ID unique :", idUnique);
       afficherBulle("✅ Ordonnance enregistrée !", "success");
