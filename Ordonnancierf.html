@@ -771,7 +771,7 @@
   to { transform: rotate(360deg); }
 }
 </style>
-
+<div id="autocomplete-box"></div>
 
      
 
@@ -890,7 +890,7 @@
 
 
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/textarea-caret@3.1.0/index.js"></script>
+
 
 <script>
 let db;
@@ -1785,7 +1785,54 @@ if (!pages[pageKey]) {
   }
 });
 </script>
+<script>
+(function(){ 
+    var properties = [
+        'direction', 'boxSizing', 'width', 'height', 'overflowX', 'overflowY',
+        'borderTopWidth', 'borderRightWidth', 'borderBottomWidth', 'borderLeftWidth',
+        'paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft',
+        'fontStyle', 'fontVariant', 'fontWeight', 'fontStretch', 'fontSize',
+        'fontSizeAdjust', 'lineHeight', 'fontFamily', 'textAlign',
+        'textTransform', 'textIndent', 'textDecoration', 'letterSpacing',
+        'wordSpacing', 'tabSize', 'MozTabSize'
+    ];
 
-<div id="autocomplete-box"></div>
+    function getCaretCoordinates(element, position) {
+        var div = document.createElement('div');
+        document.body.appendChild(div);
+
+        var style = div.style;
+        var computed = window.getComputedStyle(element);
+
+        style.whiteSpace = 'pre-wrap';
+        style.position = 'absolute';
+        style.visibility = 'hidden';
+
+        properties.forEach(function (prop) {
+            style[prop] = computed[prop];
+        });
+
+        var text = element.value.substring(0, position);
+        div.textContent = text;
+
+        var span = document.createElement('span');
+        span.textContent = element.value.substring(position) || '.';
+        div.appendChild(span);
+
+        var coordinates = {
+            left: span.offsetLeft,
+            top: span.offsetTop,
+            height: span.offsetHeight
+        };
+
+        document.body.removeChild(div);
+        return coordinates;
+    }
+
+    window.getCaretCoordinates = getCaretCoordinates;
+})();
+</script>
+
+
 	</body>
 	</html>
