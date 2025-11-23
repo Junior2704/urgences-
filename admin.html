@@ -118,7 +118,8 @@
         <th>Fiches Conseil</th>
         <th>Gestionnaire Radiologie</th>
         <th>Ordonnancier</th>
-   
+   <th>Documents patients</th>
+      <th>Suppression documents patients</th>
 
         <th>Paramètres</th>
         <th>Prescription Examens</th>
@@ -257,6 +258,8 @@ tr.innerHTML = `
   <td><input type="checkbox" ${pages.fichesconseil ? "checked" : ""} onchange="toggleAccess('${id}', 'fichesconseil', this.checked)"></td>
   <td><input type="checkbox" ${pages.gestionnaireradiologie ? "checked" : ""} onchange="toggleAccess('${id}', 'gestionnaireradiologie', this.checked)"></td>
   <td><input type="checkbox" ${pages.Ordonnancier ? "checked" : ""} onchange="toggleAccess('${id}', 'Ordonnancier', this.checked)"></td>
+  <td><input type="checkbox" ${pages.docs ? "checked" : ""} onchange="toggleAccess('${id}', 'docs', this.checked)"></td>
+  <td><input type="checkbox" ${pages.suprdocs ? "checked" : ""} onchange="toggleAccess('${id}', 'suprdocs', this.checked)"></td>
 
   <td><input type="checkbox" ${pages.parametres ? "checked" : ""} onchange="toggleAccess('${id}', 'parametres', this.checked)"></td>
   <td><input type="checkbox" ${pages.prescriptionexamens ? "checked" : ""} onchange="toggleAccess('${id}', 'prescriptionexamens', this.checked)"></td>
@@ -356,6 +359,8 @@ await setDoc(doc(db, "medecins", user.uid), {
     fiche_conseil: false,
     gestionnaire_radiologie: false,
     ordonnancier: false,
+    docs: false,
+    suprdocs: false,
     parametres: false,
     prescriptions_examens: false,
     rapport_hospitalisation: false,
