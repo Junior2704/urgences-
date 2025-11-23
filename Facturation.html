@@ -577,6 +577,14 @@ function getIdFromURL() {
     container.appendChild(div);
     setTimeout(()=> div.remove(), 3000);
   }
+function blobToBase64(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result.split(',')[1]); 
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
 
   // ---------- Valider paiement ----------
   document.getElementById('validateBtn').addEventListener('click', async () => {
@@ -624,7 +632,8 @@ const prestations = [...itemsTable.querySelectorAll('tr')].map(row => {
     const bar = document.getElementById('progressBar');
     bar.style.width = '0%';
     setTimeout(()=> bar.style.width = '100%', 100);
-const pdfBase64 = await creerFacture(false);
+const pdfBlob = await creerFacture(false);
+const pdfBase64 = await blobToBase64(pdfBlob);
     try {
       // 5️⃣ Enregistrement dans Firestore
   const patientId = getIdFromURL();
