@@ -482,7 +482,9 @@ onAuthStateChanged(auth, async (user) => {
             window.medecinNom = medecinNom;
             window.medecinSpecialite = medecinSpecialite;
             window.medecinLieu = medecinLieu;
-			window.peutSupprimer = data.suprdocs || false;
+			window.peutSupprimer = data.pages?.suprdocs || false;
+
+
 
             // Mise à jour des éléments HTML si présents
             
