@@ -1060,7 +1060,7 @@ console.log("📅 Date formatée envoyée :", dateFormatted);
 await db.collection("documents").doc(idUnique).set({
   patientId: patientId,
   dateCreation: dateFormatted,
-  type: "ordonnance médicale",
+  type: "Ordonnance médicale",
   contenu: prescriptionText,
   pdfBase64: pdfBase64
 });
