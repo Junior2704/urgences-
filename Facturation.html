@@ -607,6 +607,7 @@ const prestations = [...itemsTable.querySelectorAll('tr')].map(row => {
       alert('Veuillez ajouter au moins une prestation.');
       return;
     }
+  const totalTTC = parseFloat(grandTotalElem.textContent || '0').toFixed(2);
 
     const factureData = {
       patient: { nom, prenom, naissance },
