@@ -1577,7 +1577,8 @@ function getCaretCoordinates(textarea, position) {
 
     // Calcul de la position relative au textarea
     const spanRect = span.getBoundingClientRect();
-    const textareaRect = textarea.getBoundingClientRect();
+    const textareaRect = textarea.getBoundingClien
+  tRect();
 
     const scrollTop = textarea.scrollTop;
     const scrollLeft = textarea.scrollLeft;
@@ -1693,7 +1694,7 @@ window.masquerLoader = function() {
   }
 };
 
-const textarea = document.getElementById("prescription-text");
+
 const autocompleteBox = document.getElementById("autocomplete-box");
 
 textarea.addEventListener("input", updateAutocompletePosition);
