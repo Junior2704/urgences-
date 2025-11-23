@@ -713,7 +713,6 @@
 }
 
 #autocomplete-box {
-   width: 300px;
     position: absolute;
     z-index: 1000;
     background: white;
@@ -721,7 +720,10 @@
     max-height: 200px;
     overflow-y: auto;
     display: none;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
 }
+
 
 
 .autocomplete-item {
@@ -1600,6 +1602,14 @@ fetch('medicaments.json')
 const textarea = document.getElementById("prescription-text");
 const autoBox = document.getElementById("autocomplete-box");
 
+function updateAutocompletePosition() {
+  const coords = window.getCaretCoordinates(textarea, textarea.selectionEnd);
+  const rect = textarea.getBoundingClientRect();
+
+  autoBox.style.left = (rect.left + coords.left + 5 + window.scrollX) + "px";
+  autoBox.style.top = (rect.top + coords.top + 25 + window.scrollY - textarea.scrollTop) + "px";
+}
+
 textarea.addEventListener("input", function() {
   const text = this.value;
   const words = text.split(/\s+/);
@@ -1610,7 +1620,10 @@ textarea.addEventListener("input", function() {
     return;
   }
 
-  const matches = medicaments.filter(med => med.toLowerCase().includes(lastWord.toLowerCase()));
+  const matches = medicaments.filter(med =>
+    med.toLowerCase().includes(lastWord.toLowerCase())
+  );
+
   if (matches.length === 0) {
     autoBox.style.display = "none";
     return;
@@ -1621,30 +1634,24 @@ textarea.addEventListener("input", function() {
     const div = document.createElement("div");
     div.className = "autocomplete-item";
     div.textContent = med;
+
     div.addEventListener("click", () => {
       words.push(med); // remplace le mot en cours
       textarea.value = words.join(" ") + " ";
       autoBox.style.display = "none";
       textarea.focus();
     });
+
     autoBox.appendChild(div);
   });
 
- const coords = window.getCaretCoordinates(textarea, textarea.selectionEnd);
-autoBox.style.top = (coords.top + coords.height + textarea.offsetTop) + "px"; // sous le curseur
-autoBox.style.left = (coords.left + textarea.offsetLeft) + "px";
-autoBox.style.width = textarea.offsetWidth + "px";
-autoBox.style.display = "block";
-
-  const textareaRect = textarea.getBoundingClientRect();
-  autoBox.style.top = (top + window.scrollY + 20) + "px"; // 20px offset pour la ligne
-  autoBox.style.left = textareaRect.left + window.scrollX + "px";
-
-  // largeur max = largeur du textarea
-  autoBox.style.width = textarea.offsetWidth + "px";
-
+  updateAutocompletePosition();
   autoBox.style.display = "block";
 });
+
+// repositionner si l’utilisateur clique ou scrolle
+textarea.addEventListener("click", updateAutocompletePosition);
+textarea.addEventListener("scroll", updateAutocompletePosition);
 
 // fermer si clic ailleurs
 document.addEventListener("click", e => {
@@ -1652,6 +1659,7 @@ document.addEventListener("click", e => {
     autoBox.style.display = "none";
   }
 });
+
 
 
 window.afficherLoader = function() {
@@ -1682,6 +1690,21 @@ window.masquerLoader = function() {
   }
 };
 
+const textarea = document.getElementById("prescription-text");
+const autocompleteBox = document.getElementById("autocomplete-box");
+
+textarea.addEventListener("input", updateAutocompletePosition);
+textarea.addEventListener("scroll", updateAutocompletePosition);
+textarea.addEventListener("click", updateAutocompletePosition);
+
+function updateAutocompletePosition() {
+    const caret = window.getCaretCoordinates(textarea, textarea.selectionEnd);
+
+    const rect = textarea.getBoundingClientRect();
+
+    autocompleteBox.style.left = (rect.left + caret.left + 5) + "px";
+    autocompleteBox.style.top  = (rect.top + caret.top + 25 - textarea.scrollTop) + "px";
+}
 
 	</script>
 <script type="module">
