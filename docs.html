@@ -434,7 +434,16 @@ function afficherDocuments() {
           documentList.innerHTML = ""; // clear list avant ajout
 
           docsArray.forEach(data => {
-              const extrait = data.contenu ? data.contenu.substring(0, 50) + "…" : "(pas de contenu)";
+let extrait = "(pas de contenu)";
+
+if (typeof data.contenu === "string") {
+    extrait = data.contenu.substring(0, 50) + "…";
+}
+else if (data.contenu && typeof data.contenu.text === "string") {
+    // exemple : PDF avec texte extrait
+    extrait = data.contenu.text.substring(0, 50) + "…";
+}
+
               const li = document.createElement('li');
 
               // construit l'html des boutons — on utilise window.peutSupprimer
