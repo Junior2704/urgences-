@@ -576,9 +576,12 @@ document.addEventListener("DOMContentLoaded", () => {
               return;
           }
 
-      } catch (error) {
+      }   catch (error) {
           console.error("Erreur lors de la récupération du médecin :", error);
+          const modal = document.getElementById("modal-no-access");
+          if (modal) modal.style.display = "flex";
       }
+
   });
 </script>
 
