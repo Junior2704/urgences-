@@ -98,7 +98,7 @@ body {
       backdrop-filter: blur(2px);
       justify-content: center;
       align-items: center;
-      z-index: 100;
+      z-index: 9999;
     }
     .modal-content {
       background: white;
@@ -399,7 +399,7 @@ footer {
              style="padding:8px; width:90%; border:1px solid #ccc; border-radius:6px;">
       <br><br>
       <button id="btnEnvoyerMail">Envoyer</button>
-      <button onclick="closeModal()" style="background:#ccc;">Annuler</button>
+<button type="button" id="btnEmailCancel" class="btn-cancel" onclick="closeEmailSelectModal()">Annuler</button>
     </div>
   </div>
 
@@ -460,7 +460,7 @@ footer {
   let patientRef = null;
 
   if (!patientId) {
-    afficherBulle("⚠️ Aucun ID patient fourni. Les emails ne seront pas pré-remplis.", "administratif");
+    afficherBulle("⚠️ Aucun ID patient fourni. Les emails ne seront pas pré-remplis.", "warning");
   } else {
     patientRef = db.collection("patients").doc(patientId);
   }
@@ -473,7 +473,7 @@ async function chargerDepuisFirestore() {
 
   const doc = await patientRef.get();
   if (!doc.exists) {
-    afficherBulle("❌ Patient non trouvé", "alerte");
+    afficherBulle("❌ Patient non trouvé", "error");
     return;
   }
 
@@ -503,7 +503,7 @@ function closeFileNameModal() {
 
 document.getElementById("pdfInput").addEventListener("change", async function(e) {
   const file = e.target.files[0];
-  if (!file) return afficherBulle("Veuillez sélectionner un fichier PDF.","alerte");
+  if (!file) return afficherBulle("Veuillez sélectionner un fichier PDF.","warning");
 
   // Affiche le nom du fichier choisi
   document.getElementById("fileNameDisplay").textContent = file.name;
@@ -523,10 +523,10 @@ document.getElementById("pdfInput").addEventListener("change", async function(e)
 document.getElementById("btnValiderNom").addEventListener("click", () => {
   nomPdf = document.getElementById("fileNameInput").value.trim() || "Document.pdf";
   closeFileNameModal();
-  afficherBulle(`✅ Nom choisi : ${nomPdf}`, "administratif");
+  afficherBulle(`✅ Nom choisi : ${nomPdf}`, "success");
 });
 function openEmailSelectModal(emailsString) {
-	    if (!pdfBase64) return afficherBulle("Veuillez sélectionner un fichier PDF.","alerte");
+	    if (!pdfBase64) return afficherBulle("Veuillez sélectionner un fichier PDF.","warning");
 
   const modal = document.getElementById("emailSelectModal");
   const container = document.getElementById("emailCheckboxes");
@@ -565,7 +565,7 @@ document.getElementById("btnAnnuler").addEventListener("click", () => {
   // Réinitialiser le nom du PDF
   nomPdf = "";
 
-  afficherBulle("❌ Upload annulé", "alerte");
+  afficherBulle("❌ Upload annulé", "default");
 });
 
 function closeEmailSelectModal() {
@@ -578,7 +578,7 @@ document.getElementById("otherEmailCheck").addEventListener("change", (e) => {
 
     // === Créer un lien temporaire (7 jours) ===
     document.getElementById("btnLien").addEventListener("click", async () => {
-	    if (!pdfBase64) return afficherBulle("Veuillez sélectionner un fichier PDF.","alerte");
+	    if (!pdfBase64) return afficherBulle("Veuillez sélectionner un fichier PDF.","warning");
 
       const id = Math.random().toString(36).substring(2, 10);
 
@@ -644,7 +644,7 @@ document.getElementById("confirmEmails").addEventListener("click", async functio
     // 2️⃣ Récupération infos patient
     const doc = await patientRef.get();
     if (!doc.exists) {
-      afficherBulle("❌ Patient non trouvé", "alerte");
+      afficherBulle("❌ Patient non trouvé", "error");
       hideLoadingModal();
       return;
     }
@@ -738,7 +738,7 @@ document.getElementById("confirmEmails").addEventListener("click", async functio
           }, compte.publicKey);
 
           console.log(`✅ E-mail envoyé à ${email} via ${compte.serviceID}`);
-          afficherBulle(`📨 E-mail envoyé à ${email}`, "administratif");
+          afficherBulle(`📨 E-mail envoyé à ${email}`, "success");
           mailEnvoye = true;
           break;
         } catch (error) {
@@ -754,13 +754,20 @@ document.getElementById("confirmEmails").addEventListener("click", async functio
       }
 
       if (!mailEnvoye) {
-        afficherBulle(`❌ Échec d'envoi à ${email}`, "alerte");
+        afficherBulle(`❌ Échec d'envoi à ${email}`, "error");
       }
     }
 
-    hideLoadingModal();
-    afficherBulle("📨 Envois terminés !", "administratif");
-    setTimeout(() => { location.reload(true); }, 2000);
+   hideLoadingModal();
+afficherBulle("📨 Envois terminés !", "success");
+
+// Change le bouton "Annuler" → "Terminé"
+document.getElementById("btnEmailCancel").textContent = "Terminé";
+document.getElementById("btnEmailCancel").style.background = "#4ade80"; // vert
+document.getElementById("btnEmailCancel").style.color = "#fff";
+
+// Ne recharge plus la page immédiatement
+// setTimeout(() => { location.reload(true); }, 2000);
 
 
   } catch (err) {
@@ -769,21 +776,54 @@ document.getElementById("confirmEmails").addEventListener("click", async functio
     alert("Erreur : " + err.message);
   }
 });
-function afficherBulle(texte, type) {
-    let container = document.getElementById('bubble-container');
-    if (!container) {
-      container = document.createElement('div');
-      container.id = 'bubble-container';
-      document.body.appendChild(container);
-    }
-    const bulle = document.createElement('div');
-    bulle.className = `bubble ${type}`;
-    bulle.textContent = texte;
-    container.appendChild(bulle);
-    setTimeout(() => {
-      bulle.remove();
-    }, 3000);
+function afficherBulle(msg, type = 'info') {
+  const el = document.createElement('div');
+  el.textContent = msg;
+  el.style.padding = '10px 14px';
+  el.style.borderRadius = '8px';
+  el.style.boxShadow = '0 2px 6px rgba(0,0,0,0.2)';
+  el.style.fontSize = '14px';
+  el.style.fontWeight = '500';
+  el.style.opacity = '0';
+  el.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+  el.style.transform = 'translateY(-10px)';
+
+  // --- Code couleur selon type ---
+  switch (type) {
+    case 'success':
+      el.style.background = '#e6ffed'; // vert clair
+      el.style.color = '#064e22';      // texte vert foncé
+      break;
+    case 'error':
+      el.style.background = '#ffdede'; // rouge clair
+      el.style.color = '#a00';         // texte rouge foncé
+      break;
+    case 'warning':
+      el.style.background = '#fff4e5'; // orange clair
+      el.style.color = '#663c00';      // texte orange foncé
+      break;
+    default: // info ou autre
+      el.style.background = '#333';    // gris foncé
+      el.style.color = '#fff';         // texte blanc
+      break;
   }
+
+  notificationContainer.appendChild(el);
+
+  // Animation d'entrée
+  requestAnimationFrame(() => {
+    el.style.opacity = '1';
+    el.style.transform = 'translateY(0)';
+  });
+
+  // Suppression automatique après 3 secondes
+  setTimeout(() => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(-10px)';
+    el.addEventListener('transitionend', () => el.remove());
+  }, 3000);
+}
+
   </script>
 </body>
 </html>
