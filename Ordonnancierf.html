@@ -711,30 +711,48 @@
   box-sizing: border-box;
   font-size: 14px;
 }
-
+/* Container général */
 #autocomplete-box {
     position: absolute;
-    z-index: 99999;
-    background: white;
-    border: 1px solid #ccc;
-    max-height: 200px;
-    overflow-y: auto;
+    background: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+    border: 1px solid rgba(0,0,0,0.08);
+    width: 100%;
+    z-index: 9999;
     display: none;
-    border-radius: 6px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    overflow: hidden;
+    animation: fadeIn 120ms ease-out;
+    backdrop-filter: blur(8px);
 }
 
+/* Animation d'apparition */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-3px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
 
-
-
+/* Élément individuel */
 .autocomplete-item {
-  padding: 6px 10px;
-  cursor: pointer;
+    padding: 10px 14px;
+    font-size: 15px;
+    font-weight: 400;
+    cursor: pointer;
+    transition: background 0.15s ease, padding-left 0.2s ease;
 }
 
+/* Au survol */
 .autocomplete-item:hover {
-  background-color: #f0f0f0;
+    background: #f5f7fb;
+    padding-left: 18px;
 }
+
+/* Style quand c'est sélectionné avec le clavier (si tu ajoutes navigation clavier) */
+.autocomplete-item.active {
+    background: #e7eefc;
+    font-weight: 500;
+}
+
 #loadingScreen {
   position: fixed;
   inset: 0;
