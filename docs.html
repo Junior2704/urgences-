@@ -455,7 +455,7 @@ else if (data.contenu && typeof data.contenu.text === "string") {
               li.innerHTML = `
                   <div style="display:flex; align-items:center; gap:12px;">
                     <span class="doc-type">${data.type || ""}</span>
-                    <span class="doc-date">${data.dateCreation ? new Date((data.dateCreation.seconds||0)*1000).toLocaleString() : ""}</span>
+<span class="doc-date">${data.dateCreation || ""}</span>
                     <span class="doc-contenu">${extrait}</span>
                   </div>
                   <div style="display:flex; gap:10px;">
