@@ -391,13 +391,10 @@ querySnapshot.forEach(doc => {
         ouvrirModal(blob);
     });
 
-if (window.peutSupprimer) {
-    const btnDelete = li.querySelector('.btn-delete');
-    btnDelete.addEventListener('click', (e) => {
-        const idDoc = e.target.getAttribute("data-doc-id");
-        ouvrirConfirmDeleteModal(idDoc);
-    });
-}
+li.querySelector('.btn-delete')?.addEventListener('click', (e) => {
+    const idDoc = e.target.getAttribute("data-doc-id");
+    ouvrirConfirmDeleteModal(idDoc);
+});
 
 
     documentList.appendChild(li);
