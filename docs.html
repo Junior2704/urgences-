@@ -391,8 +391,12 @@ querySnapshot.forEach(doc => {
         ouvrirModal(blob);
     });
 
-    if (window.peutSupprimer) {
-    boutonsHTML += `<button class="btn-delete" data-doc-id="${data.id}">🗑️</button>`;
+if (window.peutSupprimer) {
+    const btnDelete = li.querySelector('.btn-delete');
+    btnDelete.addEventListener('click', (e) => {
+        const idDoc = e.target.getAttribute("data-doc-id");
+        ouvrirConfirmDeleteModal(idDoc);
+    });
 }
 
 
