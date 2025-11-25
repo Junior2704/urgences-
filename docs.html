@@ -136,8 +136,10 @@
     background: rgba(0,0,0,0.45);
     backdrop-filter: blur(3px);
     z-index: 9999;
-    justify-content: center;
-    align-items: center;
+    
+    display: flex;           /* ajouté */
+    justify-content: center; /* centré horizontalement */
+    align-items: center;     /* centré verticalement */
 }
 
 /* Petite boîte centrée */
@@ -425,11 +427,11 @@ function afficherDocuments() {
           });
 
           docsArray.sort((a, b) => {
-              // robustesse : vérifier l'existence de dateCreation
-              const aSec = a.dateCreation?.seconds || 0;
-              const bSec = b.dateCreation?.seconds || 0;
-              return bSec - aSec;
-          });
+    const dateA = parseDateFR(a.dateCreation);
+    const dateB = parseDateFR(b.dateCreation);
+    return dateB - dateA; // du plus récent au plus ancien
+});
+
 
           documentList.innerHTML = ""; // clear list avant ajout
 
@@ -518,6 +520,13 @@ document.getElementById("btnConfirmDelete").onclick = async function() {
         afficherBulle("Erreur lors de la suppression.", "error");
     }
 };
+function parseDateFR(dateStr) {
+    if (!dateStr) return new Date(0); // valeur par défaut
+    const [datePart, timePart] = dateStr.split(" ");
+    const [day, month, year] = datePart.split("/").map(Number);
+    const [hours, minutes, seconds] = timePart.split(":").map(Number);
+    return new Date(year, month - 1, day, hours, minutes, seconds);
+}
 
 document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("confirmDeleteModal").style.display = "none";
