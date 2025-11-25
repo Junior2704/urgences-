@@ -80,7 +80,7 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-}
+ }
 
 
     /* === MODALE === */
@@ -124,10 +124,8 @@
         align-self: flex-end;
     }
 	
-}
-/* ===== MODALE DE CONFIRMATION (version compacte) ===== */
+
 #confirmDeleteModal {
-    display: none;
     position: fixed;
     top: 0;
     left: 0;
@@ -135,12 +133,13 @@
     height: 100%;
     background: rgba(0,0,0,0.45);
     backdrop-filter: blur(3px);
-    z-index: 9999;
-    
-    display: flex;           /* ajouté */
-    justify-content: center; /* centré horizontalement */
-    align-items: center;     /* centré verticalement */
+    z-index: 10000;      /* valeur plus élevée */
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
+
+
 
 /* Petite boîte centrée */
 #confirmDeleteModal .modal-content {
