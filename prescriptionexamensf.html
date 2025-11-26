@@ -642,9 +642,12 @@ async function validerPrescription() {
   try {
     const idUnique = Math.random().toString(36).substring(2, 10);
     const dateCreation = new Date().toLocaleString("fr-FR");
-
+    const prenom = document.getElementById("patient-first-name").value.trim();
+    const nom = document.getElementById("patient-last-name").value.trim();
+const fileName = `Prescription - ${prenom || ""} ${nom || ""}.pdf`;
     await db.collection("documents").doc(idUnique).set({
       patientId: patientId,
+      nomFicher: fileName,
       dateCreation: dateCreation,
       type: "Prescription d’examens",
       contenu: examensAvecCommentaires,
