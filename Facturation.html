@@ -650,7 +650,7 @@ await db.collection("documents").doc(idUnique).set({
   patientId: patientId,
   dateCreation: dateFormatted,
   type: "Facture",
-  contenu: totalTTCNumber, // <- c'est un nombre sûr
+contenu: totalTTCStr + " €",   // <-- maintenant une string avec € 
   pdfBase64: pdfBase64
 });
 
