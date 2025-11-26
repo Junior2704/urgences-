@@ -11,6 +11,8 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<!-- EmailJS (fallback d'envoi d'e-mails multi-comptes) -->
+<script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
 
   <style>
     body {
@@ -341,30 +343,61 @@
     <label><input type="checkbox" onchange="toggleExam(this)" value="EOS posture globale"> Posture globale</label>
   </div>
   <br><br>
+  <div class="form-group hidden-field">
   <label for="commentaireExamen">💬 Commentaire</label><br>
   <textarea id="commentaireExamen" placeholder="Détails supplémentaires..." oninput="updateOrdonnance()"></textarea>
-
+</div>
   <div id="prescription-list" class="prescription-list"></div>
+
+<!-- Bouton de validation -->
+<div class="d-grid mb-3" style="margin-top:20px; text-align:center;">
+  <button id="btnValiderPrescription" type="button" class="exam-button"
+          style="background:#2563eb; color:white; padding:14px; font-size:18px; border-radius:10px;"
+          onclick="validerPrescription()">
+    📝 Valider & enregistrer la prescription
+  </button>
+</div>
+
+<!-- Zone affichée après validation -->
+<div id="postValidationActions" style="display:none; margin-top:20px; text-align:center;">
+  <h3>✔ Prescription validée</h3>
+
+  <button type="button" class="exam-button" style="background:#16a34a; margin:8px 6px;" onclick="telechargerPrescription()">
+    📥 Télécharger la prescription
+  </button>
+
+  <button type="button" class="exam-button" id="btnOpenEmailModal" style="background:#0ea5e9; margin:8px 6px;">
+    ✉ Envoyer par e-mail
+  </button>
+</div>
  </div> 
+<!-- ===== Modal sélection e-mails ===== -->
+<!-- ===== Modal sélection e-mails ===== -->
+<div id="emailSelectModal" style="display:none; position: fixed; inset:0; background:rgba(0,0,0,0.45); backdrop-filter:blur(6px); justify-content:center; align-items:center; z-index:200;">
+  <div class="modal-content" style="width:380px; max-width:90%; background:white; border-radius:16px; padding:20px;">
+    <h3 style="text-align:center; margin-top:0;">📧 Choisissez les destinataires</h3>
 
-<div id="ordonnance" class="ordonnance" style="display:none;">
-  <h2>🧪 Prescription d’Examens</h2>
-  <div class="date-info">Date : <span id="current-date"></span></div>
-  <div class="doctor-info">
-    <span id="medecin-nom-display">Dr Nom</span><br />
-    <span id="medecin-specialite-display">Spécialité</span>
-  </div>
-  <div class="patient-info">
-    <span id="patient-name-display">Nom du patient</span>
-  </div>
-  <div class="prescription-list" id="examens-list-display"></div>
-  <div class="commentaire-display" id="commentaire-display" style="margin-top:10px;"></div>
+    <div id="emailCheckboxes" style="margin-top:12px; display:flex; flex-direction:column; gap:8px; max-height:220px; overflow:auto; padding-right:6px;"></div>
 
-  <div class="buttons-wrapper" style="display:none;">
-    <button class="btn-print" onclick="window.print()">🖨️ Imprimer</button>
-    <button class="btn-download" onclick="telechargerExamens()">📥 Télécharger PDF</button>
+    <hr style="margin:12px 0;">
+
+    <label style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+      <input type="checkbox" id="otherEmailCheck"> Autre destinataire :
+    </label>
+    <input type="email" id="otherEmailInput" placeholder="exemple@mail.com" disabled style="margin-top:6px; width:100%; padding:8px; border-radius:8px; border:1px solid #cbd5e1;">
+
+    <div style="margin-top:12px; display:flex; gap:10px; justify-content:flex-end;">
+      <button onclick="closeEmailSelectModal()" style="background:#e2e8f0; padding:8px 12px; border-radius:8px; border:none;">Annuler</button>
+      <button id="confirmEmails" style="background:#2563eb; color:white; padding:8px 12px; border-radius:8px; border:none;">Envoyer</button>
+    </div>
   </div>
 </div>
+
+
+
+<div id="notification-container" style="position:fixed; top:12px; right:12px; z-index:99999;"></div>
+
+
 
 <div id="bubble-container"></div>
 <div id="modal-no-access" class="modalna">
@@ -488,30 +521,57 @@ function toggleSublist(listId){
 }
 
 function toggleExam(checkbox){
-  const value = checkbox.value;
+  const exam = checkbox.value;  // <-- corrige ici
+  
   const prescriptionList = document.getElementById("prescription-list");
-  if(checkbox.checked){
+
+  if (checkbox.checked) {
+
     const div = document.createElement("div");
     div.className = "prescription-item";
-    div.dataset.exam = value;
-    div.innerHTML = `${value} <button class="btn-delete" onclick="removeExam(this)">✖</button>`;
+    div.dataset.exam = exam;
+
+    div.innerHTML = `
+      <div style="display:flex; flex-direction:column; width:100%;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span><strong>${exam}</strong></span>
+
+          <button onclick="removeExam('${exam}')"
+                  style="border:none; background:transparent; font-size:20px; cursor:pointer;">×</button>
+        </div>
+
+        <textarea 
+          class="comment-exam"
+          placeholder="Commentaire pour cet examen…"
+          data-comment-for="${exam}"
+          style="margin-top:6px; padding:6px; border-radius:6px; border:1px solid #ccc; width:100%; min-height:45px;"></textarea>
+      </div>
+    `;
+
     prescriptionList.appendChild(div);
+
   } else {
-    Array.from(prescriptionList.children).forEach(child=>{
-      if(child.dataset.exam === value) prescriptionList.removeChild(child);
+    Array.from(prescriptionList.children).forEach(child => {
+      if (child.dataset.exam === exam) prescriptionList.removeChild(child);
     });
   }
+
   checkIfPrescriptionsRemain();
   updateOrdonnance();
 }
 
-function removeExam(btn){
-  const div = btn.parentElement;
-  const val = div.dataset.exam;
-  div.parentElement.removeChild(div);
-  document.querySelectorAll('input[type="checkbox"]').forEach(cb=>{
-    if(cb.value === val) cb.checked = false;
+
+function removeExam(exam){
+  const prescriptionList = document.getElementById("prescription-list");
+
+  Array.from(prescriptionList.children).forEach(div => {
+    if (div.dataset.exam === exam) div.remove();
   });
+
+  document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+    if (cb.value === exam) cb.checked = false;
+  });
+
   checkIfPrescriptionsRemain();
   updateOrdonnance();
 }
@@ -528,22 +588,6 @@ function checkIfPrescriptionsRemain(){
   }
 }
 
-function updateOrdonnance(){
-  const patientName = document.getElementById("patient-first-name").value + " " + document.getElementById("patient-last-name").value;
-  document.getElementById("patient-name-display").textContent = patientName;
-  document.getElementById("medecin-nom-display").textContent = medecinNom;
-  document.getElementById("medecin-specialite-display").textContent = medecinSpecialite;
-  const today = new Date();
-  document.getElementById("current-date").textContent = today.toLocaleDateString();
-  const examensList = document.getElementById("examens-list-display");
-  examensList.innerHTML = "";
-  Array.from(document.getElementById("prescription-list").children).forEach(item=>{
-    const div = document.createElement("div");
-    div.textContent = item.dataset.exam;
-    examensList.appendChild(div);
-  });
-  document.getElementById("commentaire-display").textContent = document.getElementById("commentaireExamen").value;
-}
 
 function telechargerExamens(){
   const { jsPDF } = window.jspdf;
@@ -567,6 +611,490 @@ function telechargerExamens(){
   }
   doc.save("Prescription_Examens.pdf");
 }
+
+async function validerPrescription() {
+  const prenom = document.getElementById("patient-first-name").value.trim();
+  const nom = document.getElementById("patient-last-name").value.trim();
+
+  if (!prenom || !nom) {
+    afficherBulle("Veuillez remplir nom et prénom du patient", "warning");
+    return;
+  }
+
+  const nb = document.getElementById("prescription-list").children.length;
+  if (nb === 0) {
+    afficherBulle("Aucun examen sélectionné", "warning");
+    return;
+  }
+
+  const pdfBase64 = await genererPrescription(false);
+
+  const examensAvecCommentaires = Array.from(document.getElementById("prescription-list").children).map(div => {
+  const exam = div.dataset.exam;
+  const commentaire = div.querySelector(".comment-exam")?.value.trim() || "";
+  return { examen: exam, commentaire: commentaire };
+});
+
+
+  const commentaire = document.getElementById("commentaireExamen").value.trim();
+  const contenuFinal = items + (commentaire ? "\nCommentaire : " + commentaire : "");
+
+  try {
+    const idUnique = Math.random().toString(36).substring(2, 10);
+    const dateCreation = new Date().toLocaleString("fr-FR");
+
+    await db.collection("documents").doc(idUnique).set({
+      patientId: patientId,
+      dateCreation: dateCreation,
+      type: "Prescription d’examens",
+      contenu: examensAvecCommentaires,
+      pdfBase64: pdfBase64
+    });
+
+    afficherBulle("✔ Prescription enregistrée", "success");
+
+  } catch (err) {
+    console.error(err);
+    afficherBulle("Erreur enregistrement Firestore", "alerte");
+    return;
+  }
+
+  // Désactiver tout
+  const allInputs = document.querySelectorAll("input, textarea, select, button");
+  allInputs.forEach(el => {
+    if (!el.closest("#postValidationActions") && !el.closest("#emailSelectModal")) {
+      el.disabled = true;
+    }
+  });
+
+  document.getElementById("btnValiderPrescription").style.display = "none";
+  document.getElementById("postValidationActions").style.display = "block";
+}
+function telechargerPrescription() {
+  genererPrescription(true);
+  afficherBulle("📥 PDF téléchargé", "success");
+}
+/* ---------- Notifications (comme Certificat) ---------- */
+function afficherBulle(msg, type = 'info') {
+  const container = document.getElementById('notification-container');
+  if (!container) return;
+  const el = document.createElement('div');
+  el.textContent = msg;
+  el.style.padding = '10px 14px';
+  el.style.borderRadius = '8px';
+  el.style.boxShadow = '0 2px 6px rgba(0,0,0,0.2)';
+  el.style.fontSize = '14px';
+  el.style.fontWeight = '500';
+  el.style.opacity = '0';
+  el.style.transform = 'translateY(-8px)';
+  el.style.transition = 'opacity 0.25s, transform 0.25s';
+  el.style.marginTop = '6px';
+  switch (type) {
+    case 'success': el.style.background = '#e6ffed'; el.style.color = '#064e22'; break;
+    case 'alerte': case 'error': el.style.background = '#ffdede'; el.style.color = '#a00'; break;
+    case 'warning': el.style.background = '#fff4e5'; el.style.color = '#663c00'; break;
+    default: el.style.background = '#333'; el.style.color = '#fff'; break;
+  }
+  container.appendChild(el);
+  requestAnimationFrame(() => { el.style.opacity = '1'; el.style.transform = 'translateY(0)'; });
+  setTimeout(() => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(-8px)';
+    el.addEventListener('transitionend', () => el.remove());
+  }, 3000);
+}
+
+/* ---------- Génération PDF (style certificat) ---------- */
+async function genererPrescription(telecharger = false) {
+  try {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    const prenom = document.getElementById("patient-first-name").value.trim();
+    const nom = document.getElementById("patient-last-name").value.trim();
+    const commentaire = document.getElementById("commentaireExamen").value.trim();
+
+    // entête bleu
+    doc.setFillColor(52, 152, 219);
+    doc.rect(0, 0, 210, 20, 'F');
+    doc.setFontSize(20);
+    doc.setTextColor(255,255,255);
+    doc.text("Prescription d'examens", 105, 14, { align: "center" });
+
+    doc.setTextColor(0,0,0);
+    doc.setFontSize(14);
+    doc.text(window.medecinNom || "Dr [Nom]", 20, 30);
+    doc.text(window.medecinSpecialite || "[Spécialité]", 20, 38);
+
+    const currentDate = new Date().toLocaleDateString("fr-FR");
+    doc.text(`Le ${currentDate}`, 150, 30);
+    if (window.medecinLieu) doc.text(`À ${window.medecinLieu}`, 150, 38);
+
+    doc.setFontSize(12);
+    doc.text(`Je soussigné(e) ${window.medecinNom || "Dr [Nom]"}, prescris les examens suivants pour ${prenom} ${nom} :`, 20, 55);
+
+    let y = 70;
+    const items = Array.from(document.getElementById("prescription-list").children)
+      .map(d => d.dataset.exam);
+
+    const examensCommentes = Array.from(document.getElementById("prescription-list").children).map(div => {
+  return {
+    examen: div.dataset.exam,
+    commentaire: div.querySelector(".comment-exam")?.value.trim() || ""
+  };
+});
+
+examensCommentes.forEach(e => {
+  const lines = doc.splitTextToSize(`- ${e.examen}`, 170);
+  doc.text(lines, 20, y);
+  y += lines.length * 8;
+
+  if (e.commentaire) {
+    const cLines = doc.splitTextToSize(`   Commentaire : ${e.commentaire}`, 160);
+    doc.text(cLines, 25, y);
+    y += cLines.length * 8;
+  }
+});
+
+
+    if (commentaire) {
+      const comY = y + 6;
+      doc.text("Commentaire :", 20, comY);
+      const comLines = doc.splitTextToSize(commentaire, 170);
+      doc.text(comLines, 20, comY + 8);
+      y = comY + comLines.length * 8 + 8;
+    }
+
+    doc.text(`Prescription remise en main propre le ${currentDate}.`, 20, y + 18);
+    doc.text(`${window.medecinNom || "Dr [Nom]"}`, 150, y + 40);
+
+    const pdfData = doc.output("datauristring");
+    const base64 = pdfData.split(",")[1] || "";
+
+    if (telecharger) {
+      const fileName = `Prescription - ${prenom || ""} ${nom || ""}.pdf`;
+      doc.save(fileName);
+    }
+    return base64;
+  } catch (err) {
+    console.error("Erreur génération prescription :", err);
+    return "";
+  }
+}
+
+/* ---------- Validation et enregistrement Firestore ---------- */
+async function validerPrescription() {
+  const prenom = document.getElementById("patient-first-name").value.trim();
+  const nom = document.getElementById("patient-last-name").value.trim();
+
+  if (!prenom || !nom) {
+    afficherBulle("Veuillez remplir le nom et prénom du patient", "warning");
+    return;
+  }
+  const nb = document.getElementById("prescription-list").children.length;
+  if (nb === 0) {
+    afficherBulle("Aucun examen sélectionné", "warning");
+    return;
+  }
+
+  afficherBulle("Enregistrement en cours...", "administratif");
+
+  // Génère PDF base64 (sans téléchargement)
+  const pdfBase64 = await genererPrescription(false);
+
+  // contenu textuel
+  const items = Array.from(document.getElementById("prescription-list").children)
+    .map(d => d.dataset.exam)
+    .join("\n");
+  const commentaire = document.getElementById("commentaireExamen").value.trim();
+  const contenuFinal = items + (commentaire ? "\nCommentaire : " + commentaire : "");
+
+  try {
+    // id unique pour le document (documents)
+    const idUniqueDoc = Math.random().toString(36).substring(2, 10);
+    const dateCreation = new Date().toLocaleString("fr-FR");
+
+    // patientId est défini plus haut dans ton fichier (const patientId = urlParams.get("id");)
+    await db.collection("documents").doc(idUniqueDoc).set({
+      patientId: patientId || null,
+      dateCreation: dateCreation,
+      type: "Prescription d’examens",
+      contenu: contenuFinal,
+      pdfBase64: pdfBase64
+    });
+
+    afficherBulle("✅ Prescription enregistrée", "success");
+
+  } catch (err) {
+    console.error("Erreur enregistrement prescription :", err);
+    afficherBulle("❌ Erreur enregistrement", "alerte");
+    return;
+  }
+
+  // verrouillage formulaire (sauf postValidationActions et modal)
+  const allInputs = document.querySelectorAll("input, textarea, select, button");
+  allInputs.forEach(el => {
+    if (!el.closest("#postValidationActions") && !el.closest("#emailSelectModal")) {
+      el.disabled = true;
+    }
+  });
+
+  const btn = document.getElementById("btnValiderPrescription");
+  if (btn) btn.style.display = "none";
+  document.getElementById("postValidationActions").style.display = "block";
+}
+
+/* ---------- Téléchargement après validation ---------- */
+function telechargerPrescription() {
+  genererPrescription(true);
+  afficherBulle("📥 PDF téléchargé", "success");
+}
+
+/* ---------- Modal e-mails : ouverture / remplissage / confirmation ---------- */
+function openEmailSelectModalWithString(emailsString) {
+  const modal = document.getElementById("emailSelectModal");
+  const container = document.getElementById("emailCheckboxes");
+  container.innerHTML = "";
+
+  const emails = (emailsString || "").split("//").map(e=>e.trim()).filter(e => e.includes("@"));
+  if (emails.length === 0) {
+    container.innerHTML = "<p style='color:#777;'>Aucune adresse trouvée pour ce patient.</p>";
+  } else {
+    emails.forEach((email, i) => {
+      const id = "emailCheck_" + i;
+      const label = document.createElement("label");
+      label.style.display = 'flex';
+      label.style.alignItems = 'center';
+      label.style.gap = '8px';
+      label.style.padding = '8px 10px';
+      label.style.borderRadius = '8px';
+      label.style.background = '#f8fafc';
+      label.style.border = '1px solid transparent';
+      label.innerHTML = `<input type="checkbox" id="${id}" value="${email}" checked style="transform:scale(1.1); margin-right:6px;"> ${email}`;
+      container.appendChild(label);
+    });
+  }
+
+  document.getElementById("otherEmailCheck").checked = false;
+  document.getElementById("otherEmailInput").value = "";
+  document.getElementById("otherEmailInput").disabled = true;
+
+  modal.style.display = "flex";
+}
+
+async function openEmailSelectModal() {
+  if (!patientId) {
+    openEmailSelectModalWithString("");
+    return;
+  }
+  try {
+    const docSnap = await db.collection("patients").doc(patientId).get();
+    const emailsField = (docSnap.exists && docSnap.data().email) ? docSnap.data().email : "";
+    openEmailSelectModalWithString(emailsField);
+  } catch (err) {
+    console.error("Erreur récupération emails patient :", err);
+    openEmailSelectModalWithString("");
+  }
+}
+
+function closeEmailSelectModal() {
+  const modal = document.getElementById("emailSelectModal");
+  if (modal) modal.style.display = "none";
+}
+
+/* active/désactive champ "autre email" */
+document.addEventListener('change', function(e) {
+  if (e.target && e.target.id === 'otherEmailCheck') {
+    document.getElementById('otherEmailInput').disabled = !e.target.checked;
+  }
+});
+
+/* ---------- Envoi par e-mail (multi-compte EmailJS) ---------- */
+async function envoyerPrescriptionParEmail(destinataires = []) {
+  if (!Array.isArray(destinataires) || destinataires.length === 0) {
+    afficherBulle("Aucun destinataire", "alerte"); return;
+  }
+
+  try {
+    // Génère le PDF base64
+    const pdfBase64 = await genererPrescription(false);
+
+    // Crée id unique pour liens_pdfs (évite collision)
+    let idUnique, docSnap;
+    do {
+      idUnique = Math.random().toString(36).substring(2, 10);
+      docSnap = await db.collection("liens_pdfs").doc(idUnique).get();
+    } while (docSnap.exists);
+
+    const prenom = document.getElementById("patient-first-name").value.trim();
+    const nom = document.getElementById("patient-last-name").value.trim();
+    const fileName = `Prescription - ${prenom} ${nom}.pdf`;
+
+    // Enregistrement du base64 dans liens_pdfs (utilise nomFichier ici uniquement pour la page monpdf)
+    await db.collection("liens_pdfs").doc(idUnique).set({
+      base64: pdfBase64,
+      nomFichier: fileName,
+      dateCreation: firebase.firestore.FieldValue.serverTimestamp(),
+    });
+
+    const lienPdf = `https://junior2704.github.io/urgences-/monpdf.html?id=${idUnique}`;
+
+    // Template HTML adapté
+           const htmlMessage = `
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Ordonnance médicale</title>
+</head>
+<body style="margin:0; padding:0; background-color:#f4f6f9; font-family:'Segoe UI', Roboto, Arial, sans-serif; color:#333;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="max-width:640px; margin:auto; background:white; border-radius:10px; box-shadow:0 3px 10px rgba(0,0,0,0.08); overflow:hidden;">
+    <tr>
+      <td style="background-color:#1a73e8; padding:24px; text-align:center;">
+        <img src="https://junior2704.github.io/urgences-/logo.png" alt="Logo Hôpital" style="height:60px; display:block; margin:0 auto 10px auto;">
+        <h1 style="color:white; font-size:22px; margin:0;">Centre Hospitalier</h1>
+        <p style="color:#dce6f3; margin:6px 0 0; font-size:14px;">Service des Urgences</p>
+      </td>
+    </tr>
+
+    <tr>
+      <td style="padding:30px;">
+        <h2 style="color:#1a73e8; font-weight:600; margin-top:0;">Votre prescription d'examens</h2>
+
+        <p style="font-size:16px; line-height:1.6;">
+          Bonjour <strong>{{patient_prenom}} {{patient_nom}}</strong>,
+        </p>
+
+        <p style="font-size:15px; line-height:1.6; color:#555;">
+          Votre prescription pour un(des) examen(s) vient d’être validée par le médecin responsable et est désormais disponible.
+          Elle vous permettra de réaliser le ou les examen(s) demandé(s). Pensez à communiquer les résultats à votre médecin traitant !
+        </p>
+
+        <div style="text-align:center; margin:30px 0;">
+          <a href="{{lien_compte_rendu}}" 
+             style="background-color:#1a73e8; color:white; padding:14px 32px; text-decoration:none; border-radius:8px; font-weight:500; display:inline-block;">
+            🩻 Voir la prescription
+          </a>
+        </div>
+
+        <p style="font-size:15px; line-height:1.6; color:#555;">
+          ⚠️ Ce lien reste actif 7 jours pour garantir la confidentialité de vos données.
+          Au-delà, le document sera automatiquement supprimé.
+        </p>
+
+        <p style="font-size:14px; color:#777;">
+          Pour toute question, merci de contacter le service des Urgences :
+          <a href="mailto:urgences.hopj@gmail.com" style="color:#1a73e8;">urgences.hopj@gmail.com</a>
+        </p>
+
+        <hr style="border:none; border-top:1px solid #e0e0e0; margin:30px 0;">
+        <p style="font-size:13px; color:#999; text-align:center;">
+          Service des Urgences<br>
+          <em>Cet e-mail a été généré automatiquement, merci de ne pas y répondre.</em>
+        </p>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+
+    // Multi-comptes EmailJS (fallback)
+    const comptesEmailJS = [
+      { serviceID: "service_o07vuso", templateID: "template_vj03i4u", publicKey: "CZapZCcxYfJ8-acLS" },
+      { serviceID: "service_o3i8ac9", templateID: "template_0wbzbwe", publicKey: "j5G-06rjQm0P6wriE" },
+      { serviceID: "service_qij0y5a", templateID: "template_3qdes3p", publicKey: "nh2zkdRVJcGcE-Jwe" }
+    ];
+
+    // Initialise EmailJS si présent
+    if (window.emailjs && emailjs.init) {
+      try { emailjs.init("CZapZCcxYfJ8-acLS"); } catch(e) { /* ignore */ }
+    }
+
+    for (const email of destinataires) {
+      const emailTrim = email.trim();
+      if (!emailTrim || !emailTrim.includes("@")) {
+        afficherBulle(`Adresse invalide : ${emailTrim}`, "alerte");
+        continue;
+      }
+      let envoye = false;
+      for (const compte of comptesEmailJS) {
+        try {
+          // remplace variables dans template HTML si besoin
+        
+const htmlFinal = htmlMessage
+  .replace(/{{patient_prenom}}/g, prenom)
+  .replace(/{{patient_nom}}/g, nom)
+  .replace(/{{lien_compte_rendu}}/g, lienPdf);
+          // send via EmailJS
+          if (!window.emailjs || !emailjs.send) throw new Error("EmailJS non chargé");
+
+          await emailjs.send(compte.serviceID, compte.templateID, {
+            to_email: emailTrim,
+            subject: "Votre prescription d'examens est disponible",
+            html_message: htmlFinal
+          }, compte.publicKey);
+
+          afficherBulle(`📨 Envoyé : ${emailTrim}`, "administratif");
+          envoye = true;
+          break;
+        } catch (err) {
+          console.warn("Échec envoi via", compte.serviceID, err);
+          // si quota, essaie le suivant, sinon arrête la boucle interne
+          const texteErr = (err && err.text) ? err.text.toLowerCase() : String(err).toLowerCase();
+          if (texteErr.includes("quota") || texteErr.includes("quota") || texteErr.includes("exceeded")) {
+            continue; // essaie le compte suivant
+          } else {
+            // erreur fatale : on quitte l'essai de ce destinataire
+            break;
+          }
+        }
+      } // end comptes loop
+
+      if (!envoye) {
+        afficherBulle(`❌ Échec d'envoi à ${emailTrim}`, "alerte");
+      }
+    } // end destinataires loop
+
+    afficherBulle("📨 Envois terminés !", "administratif");
+  } catch (err) {
+    console.error("Erreur envoyerPrescriptionParEmail :", err);
+    afficherBulle("Erreur envoi", "alerte");
+  }
+}
+
+/* ---------- Confirmation modale : collecte destinataires et envoi ---------- */
+document.addEventListener('click', async function(e) {
+  if (e.target && e.target.id === 'confirmEmails') {
+    try {
+      const checkedBoxes = document.querySelectorAll("#emailCheckboxes input[type='checkbox']:checked");
+      let destinataires = Array.from(checkedBoxes).map(cb => cb.value.trim());
+
+      const otherChecked = document.getElementById("otherEmailCheck").checked;
+      const otherEmail = document.getElementById("otherEmailInput").value.trim();
+      if (otherChecked && otherEmail) destinataires.push(otherEmail);
+
+      if (destinataires.length === 0) {
+        afficherBulle("Veuillez cocher au moins une adresse e-mail.", "warning");
+        return;
+      }
+
+      closeEmailSelectModal();
+      afficherBulle("Envoi en cours...", "administratif");
+      await envoyerPrescriptionParEmail(destinataires);
+    } catch (err) {
+      console.error("Erreur confirmEmails :", err);
+      afficherBulle("Erreur lors de l'envoi", "alerte");
+    }
+  }
+});
+
+/* ---------- Bind du bouton ouvrir modal (post-validation) ---------- */
+document.addEventListener('click', function(e) {
+  if (e.target && e.target.id === 'btnOpenEmailModal') {
+    openEmailSelectModal();
+  }
+});
+
 </script>
 
 
