@@ -90,6 +90,9 @@ footer {
   margin-top:40px;
   font-size:0.85rem;
 }
+.hidden-field {
+    display: none !important;
+}
 </style>
 </head>
 <body>
@@ -97,8 +100,9 @@ footer {
 
 
 <main>
+  <div class="form-group hidden-field">
   <div id="infos">Chargement du patient...</div>
-
+</div>
   <hr style="margin:20px 0;">
   <div>
     <label>Nombre d’étiquettes d’identité :
