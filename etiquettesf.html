@@ -93,6 +93,13 @@ footer {
 .hidden-field {
     display: none !important;
 }
+	  hr {
+  border: none;
+  height: 4px;
+  background-color: #0078d4; 
+  border-radius: 2px;
+  margin: 20px 0;
+}
 </style>
 </head>
 <body>
@@ -112,7 +119,7 @@ footer {
     <button id="btnAdresse">🏠 Adresse uniquement</button>
     
   </div>
-    <hr style="margin:20px 0;">
+    <hr>
    <h3 style="margin-top:25px;">Palche personalisée</h3>
 <div>
     <label>Nombre d’étiquettes d’identité :
@@ -123,7 +130,7 @@ footer {
     </label>
     <button id="btnGenerer" class="secondary">🖨️ Générer PDF (manuel)</button>
   </div>
-<hr style="margin:20px 0;">
+<hr>
   <h3 style="margin-top:25px;">Aperçu des modèles</h3>
   <div id="preview"></div>
 </main>
