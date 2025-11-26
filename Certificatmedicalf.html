@@ -340,6 +340,7 @@
 
       await db.collection("documents").doc(idUnique).set({
         patientId: patientId,
+        nomFichier: fileName,
         dateCreation: dateFormatted,
         type: "Certificat médical",
         contenu: contenuFinal,
