@@ -103,20 +103,22 @@ footer {
   <div class="form-group hidden-field">
   <div id="infos">Chargement du patient...</div>
 </div>
-  <hr style="margin:20px 0;">
-  <div>
+
+  
+  <div style="margin-top:15px;">
+    <button id="btnDefault">🧾 Planche par défaut</button>
+    <button id="btnIdentite">👤 Identité uniquement</button>
+    <button id="btnAdresse">🏠 Adresse uniquement</button>
+    
+  </div>
+    <hr style="margin:20px 0;">
+<div>
     <label>Nombre d’étiquettes d’identité :
       <input type="number" id="nbIdentite" value="4" min="0">
     </label>
     <label>Nombre d’étiquettes d’adresse :
       <input type="number" id="nbAdresse" value="2" min="0">
     </label>
-  </div>
-
-  <div style="margin-top:15px;">
-    <button id="btnDefault">🧾 Planche par défaut</button>
-    <button id="btnIdentite">👤 Identité uniquement</button>
-    <button id="btnAdresse">🏠 Adresse uniquement</button>
     <button id="btnGenerer" class="secondary">🖨️ Générer PDF (manuel)</button>
   </div>
 
