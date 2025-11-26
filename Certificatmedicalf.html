@@ -336,6 +336,9 @@
     try {
       const idUnique = Math.random().toString(36).substring(2,10);
       const dateFormatted = formatDate(new Date());
+      const nom = document.getElementById('nom').value.trim();
+      const prenom = document.getElementById('prenom').value.trim();
+      const fileName = `Certificat - ${prenom} ${nom}.pdf`;
       if (!patientId) { afficherBulle("Erreur : aucun patientId reçu", "alerte"); return; }
 
       await db.collection("documents").doc(idUnique).set({
