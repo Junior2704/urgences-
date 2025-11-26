@@ -143,23 +143,20 @@
 
 /* Petite boîte centrée */
 #confirmDeleteModal .modal-content {
+
     width: 360px;
     background: #ffffff;
     border-radius: 14px;
     padding: 24px 26px;
     box-shadow: 0 10px 40px rgba(0,0,0,0.12);
     text-align: center;
-    animation: fadeInScale 0.25s ease-out;
 
     /* hauteur réduite */
     height: auto;
     max-height: 220px;
 }
 
-@keyframes fadeInScale {
-    from { opacity: 0; transform: scale(0.90); }
-    to   { opacity: 1; transform: scale(1); }
-}
+
 
 /* Titre */
 #confirmDeleteModal h3 {
@@ -258,41 +255,43 @@
   padding: 10px 20px;
   font-size: 14px;
 }
+
+
 #loadingScreen {
   position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.6);
-  display: none;
+  top: 0; left: 0; right: 0; bottom: 0;
+  display: flex;
   align-items: center;
   justify-content: center;
   flex-direction: column;
-  z-index: 99999;
-  color: white;
-  font-family: 'Inter', sans-serif;
-  transition: opacity 0.5s ease;
-}
-
-#loadingScreen.hidden {
-  opacity: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 999999;
 }
 
 .loader-content {
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .spinner {
-  border: 6px solid rgba(255, 255, 255, 0.3);
-  border-top: 6px solid white;
+  border: 6px solid rgba(255,255,255,0.3);
+  border-top: 6px solid #007bff;
   border-radius: 50%;
-  width: 60px;
-  height: 60px;
-  animation: spin 1s linear infinite;
-  margin-bottom: 20px;
+  width: 70px;
+  height: 70px;
+  animation: spin 0.9s linear infinite;
+  margin-bottom: 16px;
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
 }
+
+
+
 
 </style>
 
@@ -300,6 +299,14 @@
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
+<!-- Écran de chargement -->
+<div id="loadingScreen">
+  <div class="loader-content">
+    <div class="spinner"></div>
+    <h2>Chargement des documents...</h2>
+    <p>Merci de patienter quelques instants</p>
+  </div>
+</div>
     <h1>Historique des documents</h1>
     <ul id="documentList"></ul>
 
@@ -327,14 +334,7 @@
     <p>Vous n’avez pas accès à cette page.</p>
   </div>
 </div>
-<!-- Écran de chargement -->
-<div id="loadingScreen">
-  <div class="loader-content">
-    <div class="spinner"></div>
-    <h2>Chargement des données...</h2>
-    <p>Merci de patienter quelques instants</p>
-  </div>
-</div>
+
 <script>
 // Conteneur global pour les bulles
 let notificationContainer = document.getElementById('notification-container');
@@ -528,8 +528,10 @@ else if (data.contenu && typeof data.contenu.text === "string") {
 
               documentList.appendChild(li);
           });
+		      masquerLoader();
       })
-       masquerLoader();
+
+ 
       .catch(err => {
           console.error(err);
           documentList.innerHTML = "<li>Erreur lors du chargement.</li>";
@@ -571,34 +573,19 @@ function parseDateFR(dateStr) {
     const [hours, minutes, seconds] = timePart.split(":").map(Number);
     return new Date(year, month - 1, day, hours, minutes, seconds);
 }
-// --- Affiche l’écran de chargement ---
 window.afficherLoader = function() {
-  let loader = document.getElementById("loadingScreen");
-  if (!loader) {
-    loader = document.createElement("div");
-    loader.id = "loadingScreen";
-    loader.innerHTML = `
-      <div class="loader-content">
-        <div class="spinner"></div>
-        <h2>Chargement...</h2>
-      </div>
-    `;
-    document.body.appendChild(loader);
-  }
-  loader.style.display = "flex";
-  loader.classList.remove("hidden");
+    const loader = document.getElementById("loadingScreen");
+    if (!loader) return;
+    loader.style.display = "flex"; // force l'affichage
 };
 
-// --- Masque l’écran de chargement ---
 window.masquerLoader = function() {
-  const loader = document.getElementById("loadingScreen");
-  if (loader) {
-    loader.classList.add("hidden");
-    setTimeout(() => {
-      loader.style.display = "none";
-    }, 500); // délai pour l’animation
-  }
+    const loader = document.getElementById("loadingScreen");
+    if (!loader) return;
+    loader.style.display = "none";  // masquage direct
 };
+
+
 
 document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("confirmDeleteModal").style.display = "none";
