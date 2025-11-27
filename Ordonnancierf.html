@@ -846,7 +846,7 @@ html, body {
 </form>
 
 
-  <button id="validate-prescription-btn" class="btn" onclick="validatePrescription()">✔️ Valider la prescription</button>
+<button id="validate-prescription-btn" class="btn" onclick="openConfirmModal()">✔️ Valider la prescription</button>
 
   <div class="buttons-wrapper" style="display:none;">
     <button class="btn-print" onclick="window.print()">🖨️ Imprimer l'Ordonnance</button>
@@ -901,6 +901,41 @@ html, body {
   <div class="card">
     <h2>⛔️ Accès refusé</h2>
     <p>Vous n’avez pas accès à cette page.</p>
+  </div>
+</div>
+<!-- 🔶 MODALE DE CONFIRMATION VALIDATION -->
+<div id="confirmPrescriptionModal" class="modal" style="display:none;">
+  <div class="modal-content" style="max-width:600px;">
+
+    <h2>Confirmation</h2>
+
+    <!-- Bandeau d'avertissement -->
+    <div style="
+      background:#ffb84d;
+      color:#5a3d00;
+      padding:12px;
+      border-radius:8px;
+      margin-bottom:15px;
+      font-weight:600;
+      text-align:center;
+      ">
+      ⚠️ Attention : valider la prescription va la verrouiller et l’enregistrer définitivement.
+    </div>
+
+    <!-- Prévisualisation -->
+    <h3 style="margin-top:10px; text-align:left;">Prévisualisation :</h3>
+    <div id="preview-ordo" 
+        style="background:#f8f9fa; padding:15px; border-radius:8px;
+               border:1px solid #ddd; text-align:left; max-height:250px;
+               overflow-y:auto;">
+    </div>
+
+    <!-- Boutons -->
+    <div class="modal-buttons" style="margin-top:20px;">
+      <button class="btnModal ecraser" onclick="confirmValidation()">✔️ Valider</button>
+      <button class="btnModal fermer" onclick="closeConfirmModal()">Annuler</button>
+    </div>
+
   </div>
 </div>
 
@@ -1667,6 +1702,39 @@ window.masquerLoader = function() {
     }, 500); // délai pour l’animation
   }
 };
+
+/* --------------------------------------------------
+   🔶 OUVERTURE DE LA MODALE DE CONFIRMATION
+-------------------------------------------------- */
+function openConfirmModal() {
+  const text = document.getElementById("prescription-text").value.trim();
+
+  if (!text) {
+    afficherBulle("⛔ La prescription est vide !", "alerte");
+    return;
+  }
+
+  // Injection de l’aperçu dans la modale
+  document.getElementById("preview-ordo").textContent = text;
+
+  // Affichage de la modale
+  document.getElementById("confirmPrescriptionModal").style.display = "flex";
+}
+
+/* --------------------------------------------------
+   🔶 FERMETURE
+-------------------------------------------------- */
+function closeConfirmModal() {
+  document.getElementById("confirmPrescriptionModal").style.display = "none";
+}
+
+/* --------------------------------------------------
+   🔶 VALIDATION RÉELLE (déclenche l’ancienne fonction)
+-------------------------------------------------- */
+function confirmValidation() {
+  closeConfirmModal();
+  validatePrescription(); // 🔥 Appelle TA vraie fonction déjà en place
+}
 
 
 const autocompleteBox = document.getElementById("autocomplete-box");
