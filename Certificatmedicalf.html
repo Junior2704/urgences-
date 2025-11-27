@@ -111,7 +111,7 @@
 
           <div class="d-grid mb-3">
             <button id="btnGenererInitial" type="button" class="btn btn-primary btn-lg"
-                    onclick="validerCertificat()">
+                    onclick="openConfirmModal()">
               📝 Valider & enregistrer le certificat
             </button>
           </div>
@@ -157,7 +157,41 @@
 
   <!-- petit conteneur pour notifications si besoin -->
   <div id="notification-container" style="position:fixed; top:12px; right:12px; z-index:99999;"></div>
+<!-- 🔶 MODALE DE CONFIRMATION VALIDATION -->
+<div id="confirmPrescriptionModal" class="modal" style="display:none;">
+  <div class="modal-content" style="max-width:600px;">
 
+    <h2>Confirmation</h2>
+
+    <!-- Bandeau d'avertissement -->
+    <div style="
+      background:#ffb84d;
+      color:#5a3d00;
+      padding:12px;
+      border-radius:8px;
+      margin-bottom:15px;
+      font-weight:600;
+      text-align:center;
+      ">
+      ⚠️ Attention : valider la prescription va verrouiller la modification et l’enregistrer définitivement dans le dossier patient.
+    </div>
+
+    <!-- Prévisualisation -->
+    <h3 style="margin-top:10px; text-align:left;">Prescription :</h3>
+    <div id="preview-ordo" 
+        style="background:#f8f9fa; padding:15px; border-radius:8px;
+               border:1px solid #ddd; text-align:left; max-height:250px;
+               overflow-y:auto;">
+    </div>
+
+    <!-- Boutons -->
+    <div class="modal-buttons" style="margin-top:20px;">
+      <button class="btnModal ecraser" onclick="confirmValidation()">✔️ Valider</button>
+      <button class="btnModal fermer" onclick="closeConfirmModal()">Annuler</button>
+    </div>
+
+  </div>
+</div>
 <script>
   // --- Firebase (compat) init (ton config existant) ---
   const firebaseConfig = {
@@ -639,6 +673,74 @@
       if (input) { input.value = ""; input.style.display = 'none'; }
     });
   }
+/* --------------------------------------------------
+   🔶 OUVERTURE DE LA MODALE DE CONFIRMATION
+-------------------------------------------------- */
+function openConfirmModal() {
+
+  // Construire la prévisualisation du certificat
+  const nom = document.getElementById("nom").value.trim();
+  const prenom = document.getElementById("prenom").value.trim();
+  const dateNaissance = document.getElementById("dateNaissance").value;
+  const sexe = document.getElementById("sexe").value;
+
+  if (!nom || !prenom) {
+    afficherBulle("⛔ Veuillez remplir Nom et Prénom.", "alerte");
+    return;
+  }
+
+  // Préparation du texte du certificat
+  let preview = `Certificat médical\n`;
+  preview += `Patient : ${prenom} ${nom}\n`;
+  preview += `Né(e) le : ${dateNaissance}\n`;
+  preview += `Sexe : ${sexe}\n\n`;
+  preview += `Mentions :\n`;
+
+  const conditions = [
+    { id: 'condition1', inputId: 'input1', label: "Aptitude classe :" },
+    { id: 'condition2', inputId: 'input2', label: "Aptitude sportive :" },
+    { id: 'condition3', inputId: 'input3', label: "Dispense de sport :" },
+    { id: 'condition4', inputId: 'input4', label: "Absence :" }
+  ];
+
+  let auMoinsUne = false;
+
+  conditions.forEach(c => {
+    const cb = document.getElementById(c.id);
+    if (cb && cb.checked) {
+      auMoinsUne = true;
+      const val = document.getElementById(c.inputId)?.value || "";
+      preview += ` - ${c.label} ${val}\n`;
+    }
+  });
+
+  if (!auMoinsUne) {
+    preview += "Aucune mention cochée.\n";
+  }
+
+  // Injection dans la modale
+  document.getElementById("preview-ordo").textContent = preview;
+
+  // Afficher la modale
+  document.getElementById("confirmPrescriptionModal").style.display = "flex";
+}
+
+/* --------------------------------------------------
+   🔶 FERMETURE
+-------------------------------------------------- */
+function closeConfirmModal() {
+  document.getElementById("confirmPrescriptionModal").style.display = "none";
+}
+
+/* --------------------------------------------------
+   🔶 VALIDATION RÉELLE (déclenche l’ancienne fonction)
+-------------------------------------------------- */
+function confirmValidation() {
+  closeConfirmModal();
+  validerCertificat(); // 🔥 Appelle TA vraie fonction déjà en place
+}
+
+
 </script>
 
 <!-- Auth / medecin data (module, as in your original file) -->
