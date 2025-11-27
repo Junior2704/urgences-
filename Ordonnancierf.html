@@ -1602,7 +1602,8 @@ const htmlFinal = htmlMessage
 
 
 let medicaments = [];
-fetch('medicaments.json')
+fetch('https://junior2704.github.io/urgences-/medicaments.json')
+
   .then(res => res.json())
   .then(data => {
     medicaments = data;
