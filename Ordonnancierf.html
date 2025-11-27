@@ -919,11 +919,11 @@ html, body {
       font-weight:600;
       text-align:center;
       ">
-      ⚠️ Attention : valider la prescription va la verrouiller et l’enregistrer définitivement.
+      ⚠️ Attention : valider la prescription va verrouiller la modification et l’enregistrer définitivement dans le dossier patient.
     </div>
 
     <!-- Prévisualisation -->
-    <h3 style="margin-top:10px; text-align:left;">Prévisualisation :</h3>
+    <h3 style="margin-top:10px; text-align:left;">Prescription :</h3>
     <div id="preview-ordo" 
         style="background:#f8f9fa; padding:15px; border-radius:8px;
                border:1px solid #ddd; text-align:left; max-height:250px;
@@ -1736,21 +1736,6 @@ function confirmValidation() {
   validatePrescription(); // 🔥 Appelle TA vraie fonction déjà en place
 }
 
-
-const autocompleteBox = document.getElementById("autocomplete-box");
-
-textarea.addEventListener("input", updateAutocompletePosition);
-textarea.addEventListener("scroll", updateAutocompletePosition);
-textarea.addEventListener("click", updateAutocompletePosition);
-
-function updateAutocompletePosition() {
-    const caret = window.getCaretCoordinates(textarea, textarea.selectionEnd);
-
-    const rect = textarea.getBoundingClientRect();
-
-    autocompleteBox.style.left = (rect.left + caret.left + 5) + "px";
-    autocompleteBox.style.top  = (rect.top + caret.top + 25 - textarea.scrollTop) + "px";
-}
 
 	</script>
 <script type="module">
