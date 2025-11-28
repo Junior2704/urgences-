@@ -3922,7 +3922,9 @@ document.querySelector('[data-module="documents"]').addEventListener('click', ()
     // sélectionne automatiquement le bon onglet
     openDocsTab('tab-docs', 'docs.html');
 });
-
+document.querySelector('[data-module="examens"]').addEventListener('click', () => {
+chargerExamens(patientId, hospiDoc.id);    
+});
 
 
 </script>
