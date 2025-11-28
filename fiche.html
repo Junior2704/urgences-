@@ -3923,7 +3923,19 @@ document.querySelector('[data-module="documents"]').addEventListener('click', ()
     openDocsTab('tab-docs', 'docs.html');
 });
 document.querySelector('[data-module="examens"]').addEventListener('click', () => {
-chargerExamens(patientId, hospiDoc.id);
+ const hospiSnap = await db.collection("patients")
+      .doc(patientId)
+      .collection("hospitalisations")
+      .orderBy("dateAdmission", "desc") // ou autre critère
+      .limit(1)
+      .get();
+
+    if (!hospiSnap.empty) {
+      const hospiDoc = hospiSnap.docs[0];   // dernier séjour
+      // --- Charger actes & examens depuis les sous-collections ---
+     
+       chargerExamens(patientId, hospiDoc.id);
+    }
 });
 
 
