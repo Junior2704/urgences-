@@ -3639,6 +3639,8 @@ window.openDocumentFromMenu = function(tabId, file) {
     // 4️⃣ Charger dans l’iframe
     document.getElementById("docsFrame").src = url;
 };
+
+
 // Ligne de test de fin
 console.log("Script terminé correctement ✅");
 </script>
@@ -3922,20 +3924,26 @@ document.querySelector('[data-module="documents"]').addEventListener('click', ()
     // sélectionne automatiquement le bon onglet
     openDocsTab('tab-docs', 'docs.html');
 });
-document.querySelector('[data-module="examens"]').addEventListener('click', () => {
- const hospiSnap = db.collection("patients")
+
+document.querySelector('[data-module="examens"]').addEventListener('click', async () => {
+  try {
+    const hospiSnap = await db.collection("patients")
       .doc(patientId)
       .collection("hospitalisations")
-      .orderBy("dateAdmission", "desc") // ou autre critère
+      .orderBy("dateAdmission", "desc")
       .limit(1)
       .get();
 
     if (!hospiSnap.empty) {
       const hospiDoc = hospiSnap.docs[0];   // dernier séjour
-      // --- Charger actes & examens depuis les sous-collections ---
-     
-       chargerExamens(patientId, hospiDoc.id);
+      await chargerExamens(patientId, hospiDoc.id);
+    } else {
+      console.warn("Aucune hospitalisation trouvée");
     }
+
+  } catch (e) {
+    console.error("Erreur chargement examens :", e);
+  }
 });
 
 
