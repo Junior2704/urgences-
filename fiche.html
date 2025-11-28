@@ -3923,7 +3923,7 @@ document.querySelector('[data-module="documents"]').addEventListener('click', ()
     openDocsTab('tab-docs', 'docs.html');
 });
 document.querySelector('[data-module="examens"]').addEventListener('click', () => {
-loadExamens(patientId);  
+chargerExamens(patientId, hospiDoc.id);
 });
 
 
