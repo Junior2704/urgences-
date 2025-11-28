@@ -3923,7 +3923,7 @@ document.querySelector('[data-module="documents"]').addEventListener('click', ()
     openDocsTab('tab-docs', 'docs.html');
 });
 document.querySelector('[data-module="examens"]').addEventListener('click', () => {
- const hospiSnap = await db.collection("patients")
+ const hospiSnap = db.collection("patients")
       .doc(patientId)
       .collection("hospitalisations")
       .orderBy("dateAdmission", "desc") // ou autre critère
