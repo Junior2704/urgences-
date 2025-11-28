@@ -50,8 +50,19 @@ window.allerAdmin = async function () {
         }
       }
 
-      // ➡️ Sinon, redirige vers la page principale
-      window.location.href = `urgences.html?uid=${user.uid}`;
+    // ➡️ Sinon, redirige vers la page principale
+// (mobile → urgences_mobile, ordinateur → urgences)
+function isMobileDevice() {
+  return /Android|iPhone|iPad|iPod|webOS|BlackBerry|Windows Phone|Mobile/i.test(navigator.userAgent)
+      || (window.innerWidth < 850);
+}
+
+if (isMobileDevice()) {
+  window.location.href = `urgences_mobile.html?uid=${user.uid}`;
+} else {
+  window.location.href = `urgences.html?uid=${user.uid}`;
+}
+
 
     } catch (error) {
   let errorMsg = "❌ Erreur de connexion. Veuillez réessayer.";

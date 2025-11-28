@@ -1,0 +1,635 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Urgences — Mobile</title>
+<link rel="icon" type="image/jpeg" href="logo.png">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --brand:#0078d4;
+    --bg:#f0f4f8;
+    --card:#ffffff;
+    --muted:#6b7280;
+    --radius:12px;
+  }
+  html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;background:var(--bg);color:#111;}
+  .app{padding:12px;max-width:520px;margin:0 auto;}
+  header{display:flex;align-items:center;gap:8px;margin-bottom:12px;}
+  header h1{font-size:18px;margin:0;color:var(--brand);}
+  .top-row{display:flex;gap:8px;align-items:center;width:100%;}
+  .search-wrap{flex:1; position:relative;}
+  .search{width:100%;padding:10px 12px;border-radius:10px;border:1px solid #d1d5db;font-size:15px;background:white}
+  #results{position:absolute;left:0;right:0;top:46px;background:white;border-radius:10px;box-shadow:0 8px 22px rgba(0,0,0,0.08);max-height:320px;overflow:auto;z-index:40;}
+  .res-item{padding:10px 12px;border-bottom:1px solid #f1f5f9;cursor:pointer;}
+  .res-item:last-child{border-bottom:0;}
+  .controls{display:flex;gap:8px;}
+  .btn{background:var(--brand);color:white;padding:10px 12px;border-radius:10px;border:0;font-weight:600;cursor:pointer;}
+  .btn.ghost{background:transparent;color:var(--brand);border:1px solid rgba(0,120,212,0.12);}
+
+  /* Liste mobile */
+  .list{margin-top:12px;display:flex;flex-direction:column;gap:10px;padding-bottom:80px;}
+  .patient-card{
+    background:var(--card);
+    border-radius:12px;
+    padding:10px;
+    display:flex;
+    gap:10px;
+    align-items:center;
+    box-shadow:0 6px 18px rgba(15,23,42,0.06);
+    cursor:grab;
+    user-select:none;
+    border-left:6px solid transparent;
+  }
+  .avatar{min-width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;color:white;font-size:15px}
+  .info{flex:1;min-width:0;}
+  .name{font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .meta{color:var(--muted);font-size:13px;margin-top:4px;display:flex;gap:8px;flex-wrap:wrap;}
+  .badge{padding:6px 8px;border-radius:999px;font-size:12px;font-weight:600;border:1px solid rgba(0,0,0,0.06);background:#fff}
+
+  /* gravité classes (appliquées au border-left et avatar) */
+  .g-P0{border-left-color:#4CAF50}
+  .g-P1{border-left-color:#F5B800}
+  .g-P2{border-left-color:#FF8A00}
+  .g-P3{border-left-color:#D9534F}
+  .g-Urgences_Vitales{border-left-color:#000000}
+  .g-Administratif{border-left-color:#4169E1}
+
+  /* avatar tint per gravité */
+  .avatar.g-P0{background:#4CAF50}
+  .avatar.g-P1{background:#f5b800;color:#111}
+  .avatar.g-P2{background:#ff8a00}
+  .avatar.g-P3{background:#d9534f}
+  .avatar.g-Urgences_Vitales{background:#222}
+  .avatar.g-Administratif{background:#4169E1}
+
+  .allergy-star{color:#d9534f;font-weight:900;margin-left:6px;font-size:16px}
+  .actions{display:flex;gap:8px;margin-top:6px}
+  .action-btn{padding:8px 10px;border-radius:10px;border:1px solid #e6eef8;background:transparent;font-size:13px;color:var(--brand);cursor:pointer}
+
+  /* modal */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);display:none;align-items:center;justify-content:center;z-index:1000;padding:16px;}
+  .modal{background:white;border-radius:14px;width:100%;max-width:480px;max-height:90vh;overflow:auto;padding:16px;box-shadow:0 16px 40px rgba(2,6,23,0.35)}
+  .modal h3{margin:0 0 8px;color:var(--brand)}
+  .field{margin-bottom:8px}
+  .field label{display:block;font-weight:700;font-size:13px;margin-bottom:4px;color:#333}
+  .field .val{white-space:pre-wrap;font-size:14px;color:#111;background:#f7fafc;padding:8px;border-radius:8px;border:1px solid #eef2f7}
+
+  .section-title{font-weight:700;color:var(--muted);font-size:12px;margin-top:12px;margin-bottom:6px}
+  .pill{white-space:nowrap;display:inline-block;padding:6px 8px;border-radius:999px;background:#eef6ff;color:var(--brand);font-weight:600;margin-right:6px;font-size:13px}
+
+  @media (min-width:520px){
+    .app{padding:20px}
+  }
+</style>
+</head>
+<body>
+<div class="app" role="application" aria-label="Vue mobile urgences">
+
+  <header>
+    <div style="flex:1">
+      <h1>Urgences — Patients</h1>
+      <div style="color:var(--muted);font-size:13px">Double-tap / appui long pour ouvrir fiche</div>
+    </div>
+  </header>
+
+  <div class="top-row">
+    <div class="search-wrap">
+      <input id="searchInput" class="search" type="search" placeholder="Rechercher nom / prénom / ID..." aria-label="Rechercher patient"/>
+      <div id="results" style="display:none" role="listbox" aria-label="Résultats de recherche"></div>
+    </div>
+    <div class="controls">
+      <button id="refreshBtn" class="btn" title="Rafraîchir">⤻</button>
+    </div>
+  </div>
+
+  <div id="list" class="list" aria-live="polite"></div>
+
+  <!-- Modal lecture seule -->
+  <div id="modal" class="modal-overlay" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="modal" role="document">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <h3 id="modalTitle">Fiche patient</h3>
+        <button id="closeModal" style="background:transparent;border:0;font-size:20px;cursor:pointer">✖️</button>
+      </div>
+
+      <div id="modalContent">
+        <div class="section-title">Identité</div>
+        <div class="field"><label>ID</label><div class="val" id="m-id">—</div></div>
+        <div class="field"><label>Nom / Prénom</label><div class="val" id="m-name">—</div></div>
+        <div class="field"><label>Sexe • Âge</label><div class="val" id="m-sexe-age">—</div></div>
+        <div class="field"><label>Allergies</label><div class="val" id="m-allergies">—</div></div>
+
+        <div class="section-title">Admission</div>
+        <div class="field"><label>Gravité</label><div class="val" id="m-grav">—</div></div>
+        <div class="field"><label>Motif</label><div class="val" id="m-motif">—</div></div>
+        <div class="field"><label>Moyen</label><div class="val" id="m-moyen">—</div></div>
+        <div class="field"><label>Position</label><div class="val" id="m-pos">—</div></div>
+
+        <div class="section-title">Dossier médical</div>
+        <div class="field"><label>Questionnaire</label><div class="val" id="m-questionnaire">—</div></div>
+        <div class="field"><label>Antécédents</label><div class="val" id="m-antecedents">—</div></div>
+        <div class="field"><label>Traitements</label><div class="val" id="m-traitements">—</div></div>
+        <div class="field"><label>Histoire</label><div class="val" id="m-histoire">—</div></div>
+        <div class="field"><label>Auscultation</label><div class="val" id="m-auscultation">—</div></div>
+
+        <div class="section-title">Constantes</div>
+<div class="field"><div class="val" id="m-constantes">—</div></div>
+
+
+        <div class="section-title">Examens</div>
+        <div class="field"><div class="val" id="m-exams">—</div></div>
+
+        <div class="section-title">Actes</div>
+        <div class="field"><div class="val" id="m-actes">—</div></div>
+
+        <div style="margin-top:12px;display:flex;gap:8px;">
+          <button id="closeBtn" class="btn" style="flex:1">Fermer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<!-- MODALE EXAMEN -->
+<div id="examModal" class="modal-overlay" style="display:none;z-index:2000">
+  <div class="modal">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <h3 id="exam-title">Examen</h3>
+      <button id="examClose" style="background:transparent;border:0;font-size:20px;cursor:pointer">✖️</button>
+    </div>
+
+    <div class="section-title">Informations</div>
+    <div class="field"><label>Type</label><div class="val" id="exam-type">—</div></div>
+    <div class="field"><label>Date demande</label><div class="val" id="exam-date-demande">—</div></div>
+    <div class="field"><label>Date réalisation</label><div class="val" id="exam-date-real">—</div></div>
+    <div class="field"><label>Commentaires</label><div class="val" id="exam-comments">—</div></div>
+
+    <div class="section-title">Compte-rendu</div>
+    <div class="field"><div class="val" id="exam-report">—</div></div>
+
+    <div class="section-title">Fichier</div>
+    <div class="field"><div class="val" id="exam-file">Aucun fichier</div></div>
+
+    <button id="examClose2" class="btn" style="margin-top:14px">Fermer</button>
+  </div>
+</div>
+<!-- MODALE ACTE -->
+<div id="acteModal" class="modal-overlay" style="display:none;z-index:2000">
+  <div class="modal">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <h3 id="acte-title">Acte</h3>
+      <button id="acteClose" style="background:transparent;border:0;font-size:20px;cursor:pointer">✖️</button>
+    </div>
+
+    <div class="section-title">Informations</div>
+    <div class="field"><label>Type</label><div class="val" id="acte-type">—</div></div>
+    <div class="field"><label>Date de demande</label><div class="val" id="acte-date-demande">—</div></div>
+    <div class="field"><label>Commentaires</label><div class="val" id="acte-comments">—</div></div>
+
+    <button id="acteClose2" class="btn" style="margin-top:14px">Fermer</button>
+  </div>
+</div>
+
+
+</div>
+
+<!-- Firebase compat (comme dans tes fichiers existants) -->
+<script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
+
+<script>
+/* ----------------------
+   Config Firebase (identique à tes fichiers)
+   ---------------------- */
+const firebaseConfig = {
+  apiKey: "AIzaSyBKp5-7NNy0Gyl0tNbDgD-BxucYdg8ArWo",
+  authDomain: "urgences-a8ed4.firebaseapp.com",
+  projectId: "urgences-a8ed4",
+  storageBucket: "urgences-a8ed4.firebasestorage.app",
+  messagingSenderId: "392921498200",
+  appId: "1:392921498200:web:7ccce767332c67c697c02d",
+  measurementId: "G-C74MK2KYDL"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+/* ----------------------
+   Utils
+   ---------------------- */
+const sansAccents = s => s ? s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase() : '';
+const ageFromDOB = dob => {
+  if(!dob) return '—';
+  const d = new Date(dob);
+  const diff = Date.now() - d.getTime();
+  const y = Math.floor(diff / (1000*60*60*24*365.25));
+  return y + ' ans';
+};
+const graviteClass = (g) => g ? 'g-' + String(g).replace(/\s+/g,'_') : 'g-Administratif';
+const graviteLabel = (g) => g ? String(g).replace(/_/g,' ') : '—';
+
+/* ----------------------
+   DOM refs
+   ---------------------- */
+const listEl = document.getElementById('list');
+const searchInput = document.getElementById('searchInput');
+const resultsBox = document.getElementById('results');
+const refreshBtn = document.getElementById('refreshBtn');
+
+const modalOverlay = document.getElementById('modal');
+const closeModal = document.getElementById('closeModal');
+const closeBtn = document.getElementById('closeBtn');
+
+const m_id = document.getElementById('m-id');
+const m_name = document.getElementById('m-name');
+const m_sexe_age = document.getElementById('m-sexe-age');
+const m_allergies = document.getElementById('m-allergies');
+const m_grav = document.getElementById('m-grav');
+const m_motif = document.getElementById('m-motif');
+const m_moyen = document.getElementById('m-moyen');
+const m_pos = document.getElementById('m-pos');
+const m_questionnaire = document.getElementById('m-questionnaire');
+const m_antecedents = document.getElementById('m-antecedents');
+const m_traitements = document.getElementById('m-traitements');
+const m_histoire = document.getElementById('m-histoire');
+const m_auscultation = document.getElementById('m-auscultation');
+const m_temp = document.getElementById('m-temp');
+const m_fc = document.getElementById('m-fc');
+const m_ta = document.getElementById('m-ta');
+const m_sat = document.getElementById('m-sat');
+const m_fr = document.getElementById('m-fr');
+const m_exams = document.getElementById('m-exams');
+const m_actes = document.getElementById('m-actes');
+
+let patientsCache = [];
+let lastOpenedId = null;
+
+/* ----------------------
+   Récupère et rend la liste (méthode loyale à urgences.html)
+   ---------------------- */
+async function fetchPatients(){
+  listEl.innerHTML = '<div style="padding:12px;color:var(--muted)">Chargement…</div>';
+  try{
+    const snap = await db.collection('patients').where('hospitalisationActive','==',true).get();
+    const arr = [];
+    snap.forEach(doc => {
+      const data = doc.data();
+      // respecter la logique : hospitalisationIndex -> hospitalisations[index]
+      const index = data.hospitalisationIndex ?? 0;
+      const hospi = (Array.isArray(data.hospitalisations) ? data.hospitalisations[index] : null) || {};
+      arr.push({
+        id: doc.id,
+        docData: data,
+        hospi
+      });
+    });
+
+    // tri : urgences vitales, P3,P2,P1,P0, puis alpha
+    const order = {'Urgences_Vitales':0,'P3':1,'P2':2,'P1':3,'P0':4,'Administratif':5};
+    arr.sort((a,b) => {
+      const oa = order[a.hospi?.gravite] ?? 6;
+      const ob = order[b.hospi?.gravite] ?? 6;
+      if(oa !== ob) return oa - ob;
+      const na = (a.docData.nom || '').toLowerCase();
+      const nb = (b.docData.nom || '').toLowerCase();
+      return na.localeCompare(nb);
+    });
+
+    patientsCache = arr;
+    renderList(arr);
+  }catch(e){
+    console.error(e);
+    listEl.innerHTML = '<div style="padding:12px;color:#d9534f">Erreur chargement patients.</div>';
+  }
+}
+
+function renderList(arr){
+  listEl.innerHTML = '';
+  if(arr.length === 0){
+    listEl.innerHTML = '<div style="padding:12px;color:var(--muted)">Aucun patient hospitalisé.</div>';
+    return;
+  }
+
+  arr.forEach(p => {
+    const card = document.createElement('div');
+    const gravite = p.hospi?.gravite || 'P0';
+    card.className = 'patient-card ' + graviteClass(gravite);
+    card.dataset.id = p.id;
+
+    const initials = document.createElement('div');
+    initials.className = 'avatar ' + graviteClass(gravite);
+    const nom = (p.docData.nom || '?').toString();
+    const prenom = (p.docData.prenom || '').toString();
+    initials.textContent = ( (nom[0]||'?') + (prenom[0]||'?') ).toUpperCase();
+
+    const info = document.createElement('div');
+    info.className = 'info';
+    const name = document.createElement('div');
+    name.className = 'name';
+    name.textContent = `${(nom || '—').toUpperCase()} ${(prenom || '')}`;
+
+    const meta = document.createElement('div');
+    meta.className = 'meta';
+    const age = document.createElement('div'); age.textContent = ageFromDOB(p.docData.dateNaissance);
+    const place = document.createElement('div'); place.textContent = p.docData.position || '—';
+    const grav = document.createElement('div'); grav.className = 'badge'; grav.textContent = graviteLabel(gravite);
+
+    meta.appendChild(age);
+    meta.appendChild(place);
+    meta.appendChild(grav);
+
+    info.appendChild(name);
+    info.appendChild(meta);
+
+    const rightCol = document.createElement('div');
+    rightCol.style.display='flex';
+    rightCol.style.flexDirection='column';
+    rightCol.style.alignItems='flex-end';
+
+    // allergy star (use importanceAllergies OR allergies text)
+    if(p.docData.importanceAllergies === true || (p.docData.allergies && p.docData.allergies.trim() && p.docData.allergies.trim().toLowerCase() !== 'aucun')){
+      const star = document.createElement('div');
+      star.className = 'allergy-star';
+      star.title = 'Allergie signalée';
+      star.textContent = '⭐';
+      rightCol.appendChild(star);
+    }
+
+    const actions = document.createElement('div'); actions.className='actions';
+    const btnView = document.createElement('button'); btnView.className='action-btn'; btnView.textContent='Voir';
+    btnView.addEventListener('click', (e)=>{ e.stopPropagation(); openModalFor(p.id); });
+    const btnGo = document.createElement('button'); btnGo.className='action-btn'; btnGo.textContent='→';
+    btnGo.addEventListener('click', (e)=>{ e.stopPropagation(); window.location.href = `fiche.html?id=${p.id}`; });
+    actions.appendChild(btnView); actions.appendChild(btnGo);
+    rightCol.appendChild(actions);
+
+    // double-click / touch long to open modal
+    card.addEventListener('dblclick', ()=> openModalFor(p.id));
+    let touchTimer = null;
+    card.addEventListener('touchstart', e=>{
+      touchTimer = setTimeout(()=> openModalFor(p.id),700);
+    });
+    card.addEventListener('touchend', e=>{ if(touchTimer) clearTimeout(touchTimer); });
+
+    card.appendChild(initials);
+    card.appendChild(info);
+    card.appendChild(rightCol);
+    listEl.appendChild(card);
+  });
+}
+
+/* ----------------------
+   Recherche autocomplete (local cache)
+   ---------------------- */
+searchInput.addEventListener('input', (e)=>{
+  const q = sansAccents(e.target.value.trim());
+  resultsBox.innerHTML=''; resultsBox.style.display='none';
+  if(q.length < 2) return;
+  const found = patientsCache.filter(p => {
+    const nom = sansAccents(p.docData.nom || '');
+    const pren = sansAccents(p.docData.prenom || '');
+    return nom.includes(q) || pren.includes(q) || p.id.toLowerCase().includes(q);
+  }).slice(0,30);
+
+  if(found.length === 0){
+    resultsBox.style.display='block';
+    resultsBox.innerHTML = '<div class="res-item">Aucun résultat</div>';
+    return;
+  }
+
+  found.forEach(p=>{
+    const d = document.createElement('div');
+    d.className='res-item';
+    d.textContent = `${p.docData.nom || ''} ${p.docData.prenom || ''} • ${p.hospi?.gravite || '—'} • ${p.docData.position||'—'}`;
+    d.addEventListener('click', ()=> openModalFor(p.id));
+    d.addEventListener('dblclick', ()=> window.location.href = `fiche.html?id=${p.id}`);
+    resultsBox.appendChild(d);
+  });
+  resultsBox.style.display='block';
+});
+
+// hide results on click outside
+document.addEventListener('click',(e)=>{
+  if(!document.querySelector('.search-wrap').contains(e.target)){
+    resultsBox.style.display='none';
+  }
+});
+
+/* ----------------------
+   Modal functions (loads patient document and fills modal using hospitalisationIndex)
+   ---------------------- */
+function showModal(){ modalOverlay.style.display='flex'; modalOverlay.setAttribute('aria-hidden','false'); }
+function hideModal(){ modalOverlay.style.display='none'; modalOverlay.setAttribute('aria-hidden','true'); }
+closeModal.addEventListener('click', hideModal);
+closeBtn.addEventListener('click', hideModal);
+
+async function openModalFor(id){
+  lastOpenedId = id;
+  try{
+    const doc = await db.collection('patients').doc(id).get();
+    if(!doc.exists){ alert('Patient introuvable'); return; }
+    const data = doc.data();
+    const index = data.hospitalisationIndex ?? 0;
+    const hospi = (Array.isArray(data.hospitalisations) ? data.hospitalisations[index] : null) || {};
+
+    // identité
+    m_id.textContent = id;
+    m_name.textContent = `${data.nom || '—'} ${data.prenom || ''}`;
+    m_sexe_age.textContent = `${data.sexe || '—'} • ${ageFromDOB(data.dateNaissance)}`;
+    m_allergies.textContent = data.allergies || (data.importanceAllergies ? 'Allergies (importantes)' : 'Aucune');
+
+    // admission
+    m_grav.textContent = hospi.gravite || '—';
+    m_motif.textContent = hospi.motif || '—';
+    m_moyen.textContent = hospi.moyen || '—';
+    m_pos.textContent = data.position || '—';
+
+    // dossier médical
+    const dm = hospi.dossierMedical || {};
+    m_questionnaire.textContent = dm.questionnaire || '—';
+    m_antecedents.textContent = dm.antecedents || '—';
+    m_traitements.textContent = dm.traitements || '—';
+    m_histoire.textContent = dm.histoire || '—';
+    m_auscultation.textContent = dm.auscultation || '—';
+
+    // ---------------------------
+// Constantes regroupées
+// ---------------------------
+const c = hospi.constantes || {};
+const constantesText = 
+    `Temp : ${c.temperature || "—"}\n` +
+    `FC : ${c.fc || "—"}\n` +
+    `TA : ${c.ta || "—"}\n` +
+    `SpO2 : ${c.saturation || "—"}\n` +
+    `FR : ${c.fr || "—"}\n` +
+    `Douleur : ${c.douleur || "—"}`;
+
+document.getElementById("m-constantes").textContent = constantesText;
+
+// ---------------------------
+// Examens
+// ---------------------------
+const exams = Array.isArray(hospi.examens)
+    ? hospi.examens
+    : (hospi.examensDemandes || []);
+
+if (exams.length) {
+  m_exams.innerHTML = "";
+  exams.forEach((e, i) => {
+    const s = document.createElement("span");
+    s.className = "pill";
+    s.textContent = e.type || e || "Examen";
+
+    // clic → ouvrir la modale examen
+    s.style.cursor = "pointer";
+    s.onclick = () => openExam(id, i);
+
+    m_exams.appendChild(s);
+  });
+} else {
+  m_exams.textContent = "Aucun";
+}
+
+// ---------------------------
+// Actes
+// ---------------------------
+let rawActes = Array.isArray(hospi.actes) ? hospi.actes : [];
+
+// Filtre les actes vides
+const actes = rawActes.filter(a => {
+  if (!a) return false;
+  if (typeof a === "string" && a.trim() === "") return false;
+  if (typeof a === "object" && Object.keys(a).length === 0) return false;
+  return true;
+});
+
+if (actes.length) {
+  m_actes.innerHTML = "";
+  actes.forEach((a, i) => {
+    const s = document.createElement("span");
+    s.className = "pill";
+    s.textContent = a.type || a || "Acte";
+
+    // clique → modale acte
+    s.style.cursor = "pointer";
+    s.onclick = () => openActe(id, i);
+
+    m_actes.appendChild(s);
+  });
+} else {
+  m_actes.textContent = "Aucun acte";
+}
+
+
+    showModal();
+  }catch(err){
+    console.error(err);
+    alert('Erreur récupération fiche');
+  }
+}
+/* ------------------------------------------------
+   MODALE EXAMEN
+---------------------------------------------------*/
+const examModal = document.getElementById('examModal');
+const examClose = document.getElementById('examClose');
+const examClose2 = document.getElementById('examClose2');
+
+function showExamModal(){ examModal.style.display='flex'; }
+function hideExamModal(){ examModal.style.display='none'; }
+
+examClose.onclick = hideExamModal;
+examClose2.onclick = hideExamModal;
+examModal.onclick = (e)=>{ if(e.target === examModal) hideExamModal(); };
+
+/* Charge un examen complet dans la modale */
+async function openExam(patientId, examIndex){
+  try {
+    const snap = await db.collection("patients").doc(patientId).get();
+    if (!snap.exists) return alert("Patient introuvable");
+
+    const data = snap.data();
+    const index = data.hospitalisationIndex ?? 0;
+    const hospi = data.hospitalisations?.[index] || {};
+    const exams = hospi.examens || hospi.examensDemandes || [];
+
+    const ex = exams[examIndex];
+    if (!ex) return;
+
+    // remplissage
+    document.getElementById("exam-title").textContent = ex.type || "Examen";
+    document.getElementById("exam-type").textContent = ex.type || "—";
+    document.getElementById("exam-date-demande").textContent = ex.dateDemande || "—";
+    document.getElementById("exam-date-real").textContent = ex.dateRealisation || "—";
+    document.getElementById("exam-comments").textContent = ex.commentaires || ex.commentaire || "—";
+    document.getElementById("exam-report").textContent = ex.compteRendu || "—";
+
+    const fileDiv = document.getElementById("exam-file");
+    if (ex.fichier) {
+      fileDiv.innerHTML = `<a href="${ex.fichier}" target="_blank">Voir fichier</a>`;
+    } else {
+      fileDiv.textContent = "Aucun fichier";
+    }
+
+    showExamModal();
+
+  } catch(e){
+    console.error(e);
+    alert("Erreur chargement examen");
+  }
+}
+
+/* ----------------------
+   Refresh / init
+   ---------------------- */
+refreshBtn.addEventListener('click', fetchPatients);
+window.addEventListener('load', fetchPatients);
+
+// close modal by clicking overlay
+modalOverlay.addEventListener('click', (e)=>{ if(e.target === modalOverlay) hideModal(); });
+
+/* ------------------------------------------------
+   MODALE ACTE
+---------------------------------------------------*/
+const acteModal = document.getElementById('acteModal');
+const acteClose = document.getElementById('acteClose');
+const acteClose2 = document.getElementById('acteClose2');
+
+function showActeModal(){ acteModal.style.display='flex'; }
+function hideActeModal(){ acteModal.style.display='none'; }
+
+acteClose.onclick = hideActeModal;
+acteClose2.onclick = hideActeModal;
+acteModal.onclick = (e)=>{ if(e.target === acteModal) hideActeModal(); };
+
+/* Charger un acte dans la modale */
+async function openActe(patientId, acteIndex){
+  try {
+    const snap = await db.collection("patients").doc(patientId).get();
+    if (!snap.exists) return alert("Patient introuvable");
+
+    const data = snap.data();
+    const index = data.hospitalisationIndex ?? 0;
+    const hospi = data.hospitalisations?.[index] || {};
+    const actes = Array.isArray(hospi.actes) ? hospi.actes : [];
+
+    const a = actes[acteIndex];
+    if (!a) return;
+
+    document.getElementById("acte-title").textContent = a.type || "Acte";
+    document.getElementById("acte-type").textContent = a.type || "—";
+    document.getElementById("acte-date-demande").textContent = a.date || "—";
+    document.getElementById("acte-comments").textContent = a.commentaires || "—";
+
+    showActeModal();
+
+  } catch(e){
+    console.error(e);
+    alert("Erreur chargement acte");
+  }
+}
+
+</script>
+</body>
+</html>
