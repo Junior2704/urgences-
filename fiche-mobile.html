@@ -588,8 +588,8 @@ medsDiv.textContent = "Chargement...";
 
 // hospitalisation actuelle
 const hospiIndex = data.hospitalisationIndex ?? 0;
-const hospi = data.hospitalisations?.[hospiIndex] || {};
-const meds = hospi.meds || [];
+const hospi2 = data.hospitalisations?.[hospiIndex] || {};
+const meds = hospi2.meds || [];
 
 if (!Array.isArray(meds) || meds.length === 0) {
     medsDiv.textContent = "Aucun médicament";
