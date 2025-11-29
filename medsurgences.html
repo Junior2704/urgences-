@@ -16396,28 +16396,50 @@ function closeDetails() {
     document.getElementById("modal-details").style.display = "none";
 }
 async function deleteFromModal() {
-    if (!currentDetailId) return;
+  if (!currentDetailId) return;
 
-    if (!confirm("Supprimer cette demande ?")) return;
+  if (!confirm("Supprimer cette demande ?")) return;
 
-    try {
-        await db
-          .collection("patients")
-          .doc(patientId)
-          .collection("meds-urgences")
-          .doc(currentDetailId)
-          .delete();
+  try {
+    const patientRef = db.collection("patients").doc(patientId);
+    const patientSnap = await patientRef.get();
 
-        afficherBulle("✔️ Demande supprimée", "success");
-
-        closeDetails();
-        loadHistory();
-
-    } catch (err) {
-        console.error(err);
-        alert("Erreur : " + err.message);
+    if (!patientSnap.exists) {
+      alert("Patient introuvable.");
+      return;
     }
+
+    const data = patientSnap.data();
+    const hosps = data.hospitalisations || [];
+
+    if (hosps.length === 0) {
+      alert("Aucune hospitalisation trouvée.");
+      return;
+    }
+
+    // Trier par dateDebut (desc) → on prend la dernière hospitalisation
+    hosps.sort((a, b) => new Date(b.dateDebut) - new Date(a.dateDebut));
+    const lastHospi = hosps[0];
+
+    // Filtrer : on retire l’élément dont l'id = currentDetailId
+    lastHospi.premed = (lastHospi.premed || []).filter(item => item.id !== currentDetailId);
+
+    // Sauvegarde du tableau complet hospitalisations
+    await patientRef.update({
+      hospitalisations: hosps
+    });
+
+    afficherBulle("✔️ Demande supprimée", "success");
+
+    closeDetails();
+    loadHistory();
+
+  } catch (err) {
+    console.error(err);
+    alert("Erreur : " + err.message);
+  }
 }
+
 
 
 
