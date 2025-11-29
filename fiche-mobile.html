@@ -599,6 +599,11 @@ else {
     medsDiv.innerHTML = "";
 
     meds.forEach((m, i) => {
+      console.log("---- med index", i, "----");
+console.log("m:", m);
+console.log("m.status initial:", m.status);
+console.log("m.dueAt raw:", m.dueAt);
+
         // m = le DOCUMENT du médicament (directement)
         const pill = document.createElement("span");
         pill.className = "pill";
