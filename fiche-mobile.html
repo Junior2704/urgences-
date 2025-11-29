@@ -611,22 +611,23 @@ else {
         // -----------------------------
         let status = m.status || "";
 
-        if (status !== "pris") {
-            const now = new Date();
-            const due = m.dueAt?.toDate?.() ? m.dueAt.toDate() : null;
+      if (status !== "pris") {
+    const now = new Date();
+    const due = m.dueAt?.toDate?.() ? m.dueAt.toDate() : null;
 
-            if (due) {
-                const diff = (now - due) / 60000;
+    if (due) {
+        const diff = (now - due) / 60000;
 
-                if (Math.abs(diff) <= 10) {
-                    status = "a-donner";
-                } else if (diff < -10) {
-                    status = "prevu";
-                } else {
-                    status = "en-retard";
-                }
-            }
+        if (diff >= -10 && diff <= 10) {
+            status = "a-donner";           // Dans la fenêtre ±10 min
+        } else if (diff < -10) {
+            status = "prevu";              // Plus de 10 min avant
+        } else if (diff > 10) {
+            status = "en-retard";          // Plus de 10 min après
         }
+    }
+}
+
 
         if (status === "pris") {
             pill.style.background = "#e8fff1";
