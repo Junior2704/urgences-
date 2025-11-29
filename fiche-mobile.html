@@ -84,6 +84,54 @@
   @media (min-width:520px){
     .app{padding:20px}
   }
+
+  /* MODE FULLSCREEN POUR MOBILE */
+@media (max-width: 768px) {
+
+  /* l'overlay couvre bien tout */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    padding: 0;
+    margin: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 9999 !important;
+  }
+
+  /* la modale devient une vraie page */
+  .modal {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+
+    border-radius: 0 !important;
+    margin: 0 !important;
+    padding: 20px !important;
+
+    background: white;
+    overflow-y: auto;
+    box-shadow: none !important;
+
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* supprimer les marges extérieures inutiles */
+  .modal .section-title {
+    margin-top: 18px;
+  }
+
+  /* améliorer la zone de fermeture */
+  .modal-close-btn {
+    font-size: 26px;
+    padding: 10px;
+  }
+}
+
 </style>
 </head>
 <body>
