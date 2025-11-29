@@ -16174,6 +16174,16 @@ document.addEventListener("DOMContentLoaded", () => {
 `;
 
     document.getElementById('medicaments-list').innerHTML = medicamentsHTML;
+function formatDate(d) {
+  const pad = n => n.toString().padStart(2, '0');
+  const jour = pad(d.getDate());
+  const mois = pad(d.getMonth() + 1);
+  const annee = d.getFullYear();
+  const heures = pad(d.getHours());
+  const minutes = pad(d.getMinutes());
+  const secondes = pad(d.getSeconds());
+  return `${jour}/${mois}/${annee} ${heures}:${minutes}:${secondes}`;
+}
 
     // --- recherche ---
     const searchInput = document.getElementById('search');
@@ -16216,18 +16226,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // prepare multiple events depending on frequency
       const events = [];
-      for(let i=0;i<repeatCount;i++){
-        const d = new Date(scheduled.getTime() + (everyHours ? i * everyHours * 3600 * 1000 : 0));
-        events.push({
-          product:name,
-          comment:comment,
-          createdAt: firebase.firestore.Timestamp.fromDate(new Date()),
-          dueAt: firebase.firestore.Timestamp.fromDate(d),
-          status: 'a-donner',
-          takenAt: null,
-          takeComment: null
-        });
-      }
+for (let i = 0; i < repeatCount; i++) {
+
+  const d = new Date(scheduled.getTime() + (everyHours ? i * everyHours * 3600 * 1000 : 0));
+  const formattedDueAt = formatDate(d);
+  const formattedCreatedAt = formatDate(new Date());
+
+  events.push({
+    product: name,
+    comment: comment,
+    createdAt: formattedCreatedAt,  // format JJ/MM/AAAA HH:MM:SS
+    dueAt: formattedDueAt,         // format JJ/MM/AAAA HH:MM:SS
+    status: 'a-donner',
+    takenAt: null,
+    takeComment: null
+  });
+}
+
 
       try{
         // Lire le doc patient et l'index d'hospitalisation
@@ -16243,14 +16258,6 @@ document.addEventListener("DOMContentLoaded", () => {
         // push events into array and update patient doc
         events.forEach(ev=> hospitalisations[index].meds.push(ev));
         await patientRef.update({ hospitalisations });
-
-        // Enregistrer aussi dans une sous-collection patients/{id}/meds-urgences
-        const batch = db.batch();
-        events.forEach(ev=>{
-          const newDoc = db.collection('patients').doc(patientId).collection('meds-urgences').doc();
-          batch.set(newDoc, ev);
-        });
-        await batch.commit();
 
         afficherBulle('✔️ Demande enregistrée','success');
         loadHistory();
