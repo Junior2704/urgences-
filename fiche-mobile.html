@@ -584,6 +584,7 @@ try {
   const hospiIndex = data.hospitalisationIndex ?? 0;
   const hospi = data.hospitalisations?.[hospiIndex] || {};
   const medsArray = hospi.meds || [];
+const medsDiv = document.getElementById("m-medicaments");
 
   if (!Array.isArray(medsArray) || medsArray.length === 0) {
     medsDiv.textContent = "Aucun médicament";
