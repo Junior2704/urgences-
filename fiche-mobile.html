@@ -283,6 +283,16 @@ const m_sat = document.getElementById('m-sat');
 const m_fr = document.getElementById('m-fr');
 const m_exams = document.getElementById('m-exams');
 const m_actes = document.getElementById('m-actes');
+const medModal = document.getElementById("medModal");
+const medClose = document.getElementById("medClose");
+const medClose2 = document.getElementById("medClose2");
+
+function showMedModal(){ medModal.style.display = "flex"; }
+function hideMedModal(){ medModal.style.display = "none"; }
+
+medClose.onclick = hideMedModal;
+medClose2.onclick = hideMedModal;
+medModal.onclick = e => { if (e.target === medModal) hideMedModal(); };
 
 let patientsCache = [];
 let lastOpenedId = null;
@@ -542,66 +552,72 @@ if (actes.length) {
 } else {
   m_actes.textContent = "Aucun acte";
 }
-// ---------------------------
-// Médicaments (historique) — lecture depuis la sous-collection patients/{id}/meds-urgences
-// ---------------------------
+
+
+// ----------------------------------------------------
+// MÉDICAMENTS AUX URGENCES (HOSPITALISATION ACTUELLE)
+// ----------------------------------------------------
 const medsDiv = document.getElementById("m-medicaments");
 medsDiv.textContent = "Chargement...";
 
 try {
-  // lecture de la sous-collection (même logique que medsurgences.html)
-  const medsSnap = await db.collection('patients').doc(id).collection('meds-urgences')
-    .orderBy('createdAt', 'desc') // si tu as ce champ
-    .get();
+  const hospiIndex = data.hospitalisationIndex ?? 0;
+  const hospi = data.hospitalisations?.[hospiIndex] || {};
 
-  // si pas de docs, on renvoie "Aucun médicament"
-  if (medsSnap.empty) {
+  const medsArray = hospi.meds || [];
+
+  if (!Array.isArray(medsArray) || medsArray.length === 0) {
     medsDiv.textContent = "Aucun médicament";
-  } else {
-    medsDiv.innerHTML = ""; // vide le container
-    medsSnap.forEach(doc => {
-      const m = doc.data();
-      // si tu veux uniquement l'historique : tu peux filtrer sur un champ 'type' ou 'historique'
-      // ex: if (m.type && m.type !== 'historique') return;
-
-      const pill = document.createElement("span");
-      pill.className = "pill";
-      pill.style.cursor = "pointer";
-      pill.style.padding = "6px 8px";
-      pill.style.marginRight = "6px";
-      pill.style.display = "inline-block";
-
-      // label lisible
-      const label = m.nom || m.product || m.produit || "Médicament";
-      pill.textContent = label;
-
-      // couleur selon statut (conforme à medsurgences.css)
-      const status = (m.status || m.statut || "").toString().toLowerCase();
-      if (status === "pris") {
-        pill.style.background = "#e8fff1";
-        pill.style.color = "#146c2e";
-        pill.style.border = "1px solid #cbf7d5";
-      } else if (status === "en-retard" || status === "en_retard") {
-        pill.style.background = "#ffecec";
-        pill.style.color = "#c62828";
-        pill.style.border = "1px solid #ffdada";
-      } else { // a-donner / a_donner / default
-        pill.style.background = "#dceaff";
-        pill.style.color = "#0d47a1";
-        pill.style.border = "1px solid #dceaff";
-      }
-
-      // clic → ouvre modale détail (on passe patient id + doc id)
-      pill.onclick = () => openMedicamentDoc(id, doc.id);
-
-      medsDiv.appendChild(pill);
-    });
+    return;
   }
-} catch (err) {
-  console.error("Erreur chargement meds:", err);
-  medsDiv.textContent = "Erreur chargement médicaments";
-}
 
+  medsDiv.innerHTML = "";
+
+  for (const medEntry of medsArray) {
+    const medId = medEntry.idMed || medEntry.id || null;
+    if (!medId) continue;
+
+    // récupère chaque médicament
+    const medSnap = await db.collection("patients").doc(id)
+                             .collection("meds-urgences").doc(medId).get();
+
+    if (!medSnap.exists) continue;
+    const m = medSnap.data();
+
+    const pill = document.createElement("span");
+    pill.className = "pill";
+    pill.style.cursor = "pointer";
+
+    pill.textContent = m.nom || "Médicament";
+
+    // code couleur
+    const status = (m.status || m.statut || "").toLowerCase();
+    if (status === "pris") {
+      pill.style.background = "#e8fff1"; // vert clair
+      pill.style.color = "#146c2e";
+      pill.style.border = "1px solid #cbf7d5";
+    } 
+    else if (status === "en-retard") {
+      pill.style.background = "#ffecec"; // rouge clair
+      pill.style.color = "#c62828";
+      pill.style.border = "1px solid #ffdada";
+    } 
+    else {
+      pill.style.background = "#dceaff"; // bleu clair
+      pill.style.color = "#0d47a1";
+      pill.style.border = "1px solid #d0e0ff";
+    }
+
+    // clic => ouvrir le document de détail
+    pill.onclick = () => openMedicamentDoc(id, medId);
+
+    medsDiv.appendChild(pill);
+  }
+
+} catch (e) {
+  console.error(e);
+  medsDiv.textContent = "Erreur de chargement";
+}
 
 
     showModal();
@@ -710,51 +726,26 @@ async function openActe(patientId, acteIndex){
     alert("Erreur chargement acte");
   }
 }
-/* ------------------------------------------------
-   MODALE MEDICAMENT
----------------------------------------------------*/
+async function openMedicamentDoc(patientId, medId) {
+  const snap = await db.collection("patients").doc(patientId)
+                       .collection("meds-urgences").doc(medId).get();
 
-const medModal = document.getElementById("medModal");
-const medClose = document.getElementById("medClose");
-const medClose2 = document.getElementById("medClose2");
-
-function showMedModal(){ medModal.style.display = "flex"; }
-function hideMedModal(){ medModal.style.display = "none"; }
-
-medClose.onclick = hideMedModal;
-medClose2.onclick = hideMedModal;
-medModal.onclick = (e)=>{ if(e.target === medModal) hideMedModal(); };
-
-/* ------------------------------------------------
-   MODALE MEDICAMENT — chargement depuis la sous-collection patients/{patientId}/meds-urgences/{docId}
----------------------------------------------------*/
-async function openMedicamentDoc(patientId, docId) {
-  try {
-    const docRef = await db.collection('patients').doc(patientId)
-                         .collection('meds-urgences').doc(docId).get();
-    if (!docRef.exists) {
-      alert("Détails du médicament introuvables");
-      return;
-    }
-    const m = docRef.data();
-
-    // remplissage modal (IDs des éléments HTML fournis plus bas)
-    document.getElementById("med-title").textContent = m.nom || m.product || "Médicament";
-    document.getElementById("med-nom").textContent = m.nom || m.product || "—";
-    document.getElementById("med-dose").textContent = m.dose || m.posologie || "—";
-    document.getElementById("med-voie").textContent = m.voie || m.route || "—";
-    // utilise les champs dateDemande / requestedAt / createdAt si présent
-    document.getElementById("med-ddm").textContent = m.dateDemande || m.requestedAt || (m.createdAt && (m.createdAt.toDate ? m.createdAt.toDate().toLocaleString() : m.createdAt)) || "—";
-    // takenAt / dateAdministration
-    document.getElementById("med-date-admin").textContent = m.takenAt || m.dateAdministration || "—";
-    document.getElementById("med-comments").textContent = m.commentaires || m.takeComment || m.comment || "—";
-
-    // ouvre la modale
-    showMedModal(); // ta fonction déjà fournie dans le patch précédent
-  } catch (err) {
-    console.error("Erreur openMedicamentDoc:", err);
-    alert("Erreur ouverture détail médicament");
+  if (!snap.exists) {
+    alert("Détails du médicament introuvables");
+    return;
   }
+
+  const m = snap.data();
+
+  document.getElementById("med-title").textContent = m.nom || "Médicament";
+  document.getElementById("med-nom").textContent = m.nom || "—";
+  document.getElementById("med-dose").textContent = m.dose || "—";
+  document.getElementById("med-voie").textContent = m.voie || "—";
+  document.getElementById("med-ddm").textContent = m.dateDemande || "—";
+  document.getElementById("med-date-admin").textContent = m.dateAdministration || "—";
+  document.getElementById("med-comments").textContent = m.commentaires || "—";
+
+  showMedModal();
 }
 
 
