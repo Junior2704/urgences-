@@ -393,11 +393,10 @@ function renderList(arr){
     }
 
     const actions = document.createElement('div'); actions.className='actions';
-    const btnView = document.createElement('button'); btnView.className='action-btn'; btnView.textContent='Voir';
+    const btnView = document.createElement('button'); btnView.className='action-btn'; btnView.textContent='🔎';
     btnView.addEventListener('click', (e)=>{ e.stopPropagation(); openModalFor(p.id); });
-    const btnGo = document.createElement('button'); btnGo.className='action-btn'; btnGo.textContent='→';
-    btnGo.addEventListener('click', (e)=>{ e.stopPropagation(); window.location.href = `fiche.html?id=${p.id}`; });
-    actions.appendChild(btnView); actions.appendChild(btnGo);
+   
+    actions.appendChild(btnView); 
     rightCol.appendChild(actions);
 
     // double-click / touch long to open modal
