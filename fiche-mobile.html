@@ -577,97 +577,81 @@ if (actes.length) {
 } else {
   m_actes.textContent = "Aucun acte";
 }
-// ---------------------------
-// MÉDICAMENTS — COULEURS + CHRONOLOGIE
-// ---------------------------
-try {
-  const hospiIndex = data.hospitalisationIndex ?? 0;
-  const hospi = data.hospitalisations?.[hospiIndex] || {};
-  const medsArray = hospi.meds || [];
+// ----------------------------------------------------
+// MÉDICAMENTS AUX URGENCES — VERSION CORRECTE POUR TA STRUCTURE
+// ----------------------------------------------------
 const medsDiv = document.getElementById("m-medicaments");
+medsDiv.textContent = "Chargement...";
 
-  if (!Array.isArray(medsArray) || medsArray.length === 0) {
+// hospitalisation actuelle
+const hospiIndex = data.hospitalisationIndex ?? 0;
+const hospi = data.hospitalisations?.[hospiIndex] || {};
+const meds = hospi.meds || [];
+
+if (!Array.isArray(meds) || meds.length === 0) {
     medsDiv.textContent = "Aucun médicament";
-    return;
-  }
+} 
+else {
+    medsDiv.innerHTML = "";
 
-  medsDiv.innerHTML = "";
+    meds.forEach((m, i) => {
+        // m = le DOCUMENT du médicament (directement)
+        const pill = document.createElement("span");
+        pill.className = "pill";
+        pill.style.cursor = "pointer";
 
-  for (const medEntry of medsArray) {
-    const medId = medEntry.idMed;
-    if (!medId) continue;
+        pill.textContent = m.nom || "Médicament";
 
-    // récupération du doc réel
-    const medSnap = await db.collection("patients").doc(id)
-                             .collection("meds-urgences").doc(medId).get();
-    if (!medSnap.exists) continue;
-    const d = medSnap.data();
+        // -----------------------------
+        // LOGIQUE CODE COULEUR EXACTE
+        // -----------------------------
+        let status = m.status || "";
 
-    const pill = document.createElement("span");
-    pill.className = "pill";
-    pill.style.cursor = "pointer";
-    pill.textContent = d.nom || "Médicament";
+        if (status !== "pris") {
+            const now = new Date();
+            const due = m.dueAt?.toDate?.() ? m.dueAt.toDate() : null;
 
-    // -------------------------
-    // LOGIQUE CODE COULEUR
-    // -------------------------
-    let status = d.status || d.statut || "";
+            if (due) {
+                const diff = (now - due) / 60000;
 
-    if (status !== "pris") {
-      const now = new Date();
-      const due = d.dueAt?.toDate?.() ? d.dueAt.toDate() : null;
-
-      if (due) {
-        const diff = (now - due) / 60000; // minutes
-
-        if (Math.abs(diff) <= 10) {
-          status = "a-donner";   // ±10 min autour
-        } else if (diff < -10) {
-          status = "prevu";      // avant l'heure
-        } else {
-          status = "en-retard";  // après de plus de 10 min
+                if (Math.abs(diff) <= 10) {
+                    status = "a-donner";
+                } else if (diff < -10) {
+                    status = "prevu";
+                } else {
+                    status = "en-retard";
+                }
+            }
         }
-      }
-    }
 
-    // -------------------------
-    // APPLICATION DES COULEURS
-    // -------------------------
+        if (status === "pris") {
+            pill.style.background = "#e8fff1";
+            pill.style.color = "#146c2e";
+            pill.style.border = "1px solid #cbf7d5";
+        }
+        else if (status === "en-retard") {
+            pill.style.background = "#ffecec";
+            pill.style.color = "#c62828";
+            pill.style.border = "1px solid #ffdada";
+        }
+        else if (status === "a-donner") {
+            pill.style.background = "#d7e9ff";
+            pill.style.color = "#0d47a1";
+            pill.style.border = "1px solid #c1d7ff";
+        }
+        else if (status === "prevu") {
+            pill.style.background = "#eef4ff";
+            pill.style.color = "#0d47a1";
+            pill.style.border = "1px solid #d0e0ff";
+        }
 
-    if (status === "pris") {
-      pill.style.background = "#e8fff1";   // vert très clair
-      pill.style.color = "#146c2e";
-      pill.style.border = "1px solid #cbf7d5";
-    }
-    else if (status === "en-retard") {
-      pill.style.background = "#ffeCEC";   // rouge clair
-      pill.style.color = "#c62828";
-      pill.style.border = "1px solid #ffdada";
-    }
-    else if (status === "a-donner") {
-      pill.style.background = "#d7e9ff";   // bleu moyen
-      pill.style.color = "#0d47a1";
-      pill.style.border = "1px solid #c1d7ff";
-    }
-    else if (status === "prevu") {
-      pill.style.background = "#eef4ff";   // bleu très clair
-      pill.style.color = "#0d47a1";
-      pill.style.border = "1px solid #d0e0ff";
-    }
-    else {
-      pill.style.background = "#dceaff";   // fallback
-      pill.style.color = "#0d47a1";
-      pill.style.border = "1px solid #d0e0ff";
-    }
+        // clic → ouvrir modale détaillée
+        pill.onclick = () => openMedicamentLocal(m);
 
-    pill.onclick = () => openMedicamentDoc(id, medId);
-
-    medsDiv.appendChild(pill);
-  }
-} catch (e) {
-  console.error("Erreur chargement médicaments:", e);
-  medsDiv.textContent = "Erreur chargement médicaments";
+        medsDiv.appendChild(pill);
+    });
 }
+
 
 
     showModal();
@@ -796,6 +780,17 @@ async function openMedicamentDoc(patientId, medId) {
   document.getElementById("med-comments").textContent = m.commentaires || "—";
 
   showMedModal();
+}
+function openMedicamentLocal(m) {
+    document.getElementById("med-title").textContent = m.nom || "Médicament";
+    document.getElementById("med-nom").textContent = m.nom || "—";
+    document.getElementById("med-dose").textContent = m.dose || "—";
+    document.getElementById("med-voie").textContent = m.voie || "—";
+    document.getElementById("med-ddm").textContent = m.dateDemande || "—";
+    document.getElementById("med-date-admin").textContent = m.dateAdministration || "—";
+    document.getElementById("med-comments").textContent = m.commentaires || "—";
+
+    showMedModal();
 }
 
 
