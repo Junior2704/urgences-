@@ -16271,100 +16271,99 @@ for (let i = 0; i < repeatCount; i++) {
   container.innerHTML = "<div class='muted'>Chargement...</div>";
 
   try {
-    const snap = await db
-      .collection("patients")
-      .doc(patientId)
-      .collection("meds-urgences")
-      .orderBy("createdAt", "desc")
-      .get();
+    // Lecture du patient
+    const doc = await db.collection("patients").doc(patientId).get();
+    if (!doc.exists) {
+      container.innerHTML = "<div class='muted'>Patient introuvable</div>";
+      return;
+    }
 
-    container.innerHTML = "";
+    const data = doc.data();
 
-    if (snap.empty) {
+    // Trouver l'hospitalisation en cours
+    const index = data.hospitalisationIndex ?? 0;
+    const hosp = data.hospitalisations?.[index];
+
+    if (!hosp || !hosp.meds || hosp.meds.length === 0) {
       container.innerHTML = "<div class='muted'>Aucune demande</div>";
       return;
     }
 
-    snap.forEach(doc => {
-      const d = doc.data();
+    // Convertir les dates JJ/MM/AAAA HH:MM:SS → Date pour trier
+    const parseDate = (str) => {
+      if (!str) return null;
+      const [d, h] = str.split(" ");
+      const [jj, mm, aaaa] = d.split("/");
+      const [HH, MM, SS] = h.split(":");
+      return new Date(aaaa, mm - 1, jj, HH, MM, SS);
+    };
+
+    // Tri DESC createdAt
+    const meds = [...hosp.meds].sort((a, b) => {
+      return parseDate(b.createdAt) - parseDate(a.createdAt);
+    });
+
+    container.innerHTML = "";
+
+    // Affichage
+    meds.forEach((d, i) => {
+
       const item = document.createElement("div");
       item.className = "history-item";
-      // --- Calcul du statut ---
-let status = d.status; // par défaut (pris)
 
-// calculiquement seulement si pas déjà pris
-if (status !== "pris") {
-    const now = new Date();
-    const due = d.dueAt?.toDate?.() ? d.dueAt.toDate() : null;
+      // ----------------------------
+      // 🔵 Calcul du statut
+      // ----------------------------
+      let status = d.status;
 
-    if (due) {
-        const diff = (now - due) / 60000; // différence en minutes
+      if (status !== "pris") {
+        const now = new Date();
+        const due = parseDate(d.dueAt);
 
-        if (Math.abs(diff) <= 10) {
-            status = "a-donner";     // ±10 minutes autour de l’heure prévue
-        } else if (diff < -10) {
-            status = "prevu";        // plus de 10 min avant
-        } else {
-            status = "en-retard";    // plus de 10 min après
+        if (due) {
+          const diff = (now - due) / 60000;
+
+          if (Math.abs(diff) <= 10) status = "a-donner";
+          else if (diff < -10) status = "prevu";
+          else status = "en-retard";
         }
-    }
-}
+      }
 
-// appliquer le statut calculé
-d.status = status; 
-item.dataset.status = status;
+      d.status = status;
+      item.dataset.status = status;
 
+      // Boutons et badge
+      const loupe = `
+        <button class="btn" onclick="showDetails(${i})">🔍</button>
+      `;
 
-      const name = `<strong>${d.product}</strong>`;
+      const takeBtn = d.status !== "pris"
+        ? `<button class="btn" onclick="openTakeModal(${i},'${d.product}')">Prendre</button>`
+        : "";
 
       const badge = `
-        <span class="badge" data-status="${d.status}">
-          ${d.status}
+        <span class="badge" data-status="${status}">
+          ${status}
         </span>
       `;
 
-      // BOUTON LOUPE (ouvre la modale détail)
-      const loupe = `
-        <button class="btn" onclick="showDetails('${doc.id}')">🔍</button>
-      `;
-
-      // bouton prise si pas pris
-      const takeBtn =
-        d.status !== "pris"
-          ? `<button class="btn" onclick="openTakeModal('${doc.id}','${d.product}')">Prendre</button>`
-          : "";
-
-      
       item.innerHTML = `
-    <div><strong>${d.product}</strong></div>
+        <div><strong>${d.product}</strong></div>
 
-    <div class="history-right">
-        <!-- le bouton supprimer est maintenant dans la modale, donc vide -->
-    </div>
-
-    <div class="history-center">
-        ${loupe}
-    </div>
-
-    <div class="history-center">
-        ${badge}
-    </div>
-
-    <div class="history-right">
-        ${takeBtn || ""}
-    </div>
-`;
-
-
-
+        <div class="history-center">${loupe}</div>
+        <div class="history-center">${badge}</div>
+        <div class="history-right">${takeBtn}</div>
+      `;
 
       container.appendChild(item);
     });
+
   } catch (err) {
     console.error(err);
     container.innerHTML = "<div class='muted'>Erreur chargement</div>";
   }
 }
+
 let currentDetailId = null;
 
 async function showDetails(docId) {
