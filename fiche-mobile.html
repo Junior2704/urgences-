@@ -139,6 +139,8 @@
         <div class="section-title">Constantes</div>
 <div class="field"><div class="val" id="m-constantes">—</div></div>
 
+<div class="section-title">Médicaments aux urgences</div>
+<div class="field"><div id="m-medicaments" class="val">Chargement...</div></div>
 
         <div class="section-title">Examens</div>
         <div class="field"><div class="val" id="m-exams">—</div></div>
@@ -152,6 +154,25 @@
       </div>
     </div>
   </div>
+<!-- MODALE MEDICAMENT -->
+<div id="medModal" class="modal-overlay" style="display:none;z-index:3000">
+  <div class="modal">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <h3 id="med-title">Médicament</h3>
+      <button id="medClose" style="background:none;border:0;font-size:20px;cursor:pointer">✖️</button>
+    </div>
+
+    <div class="section-title">Informations</div>
+    <div class="field"><label>Nom</label><div class="val" id="med-nom">—</div></div>
+    <div class="field"><label>Dose</label><div class="val" id="med-dose">—</div></div>
+    <div class="field"><label>Voie</label><div class="val" id="med-voie">—</div></div>
+    <div class="field"><label>Date demande</label><div class="val" id="med-ddm">—</div></div>
+    <div class="field"><label>Date administration</label><div class="val" id="med-date-admin">—</div></div>
+    <div class="field"><label>Commentaires</label><div class="val" id="med-comments">—</div></div>
+
+    <button id="medClose2" class="btn" style="margin-top:10px">Fermer</button>
+  </div>
+</div>
 
 <!-- MODALE EXAMEN -->
 <div id="examModal" class="modal-overlay" style="display:none;z-index:2000">
@@ -521,6 +542,45 @@ if (actes.length) {
 } else {
   m_actes.textContent = "Aucun acte";
 }
+// ------------------------------------------
+// Charge les médicaments (historique)
+// ------------------------------------------
+
+const medsDiv = document.getElementById("m-medicaments");
+medsDiv.textContent = "Chargement...";
+
+const medsSnap = await db.collection("medsurgences").doc(id).get();
+
+if (!medsSnap.exists || !medsSnap.data().historique) {
+  medsDiv.textContent = "Aucun médicament";
+} else {
+
+  const histo = medsSnap.data().historique;
+
+  if (!histo.length) {
+    medsDiv.textContent = "Aucun médicament";
+    return;
+  }
+
+  medsDiv.innerHTML = "";
+
+  histo.forEach((m, i) => {
+
+    const pill = document.createElement("span");
+    pill.className = "pill";
+    pill.textContent = m.nom || "Médicament";
+
+    // code couleur (même logique qu'en desktop)
+    if (m.dateAdministration) pill.style.background = "#4caf50";     // vert : administré
+    else if (m.enRetard) pill.style.background = "#f44336";          // rouge : en retard
+    else pill.style.background = "#ff9800";                           // orange : en attente
+
+    pill.style.cursor = "pointer";
+    pill.onclick = ()=> openMedicament(id, i);
+
+    medsDiv.appendChild(pill);
+  });
+}
 
 
     showModal();
@@ -628,6 +688,40 @@ async function openActe(patientId, acteIndex){
     console.error(e);
     alert("Erreur chargement acte");
   }
+}
+/* ------------------------------------------------
+   MODALE MEDICAMENT
+---------------------------------------------------*/
+
+const medModal = document.getElementById("medModal");
+const medClose = document.getElementById("medClose");
+const medClose2 = document.getElementById("medClose2");
+
+function showMedModal(){ medModal.style.display = "flex"; }
+function hideMedModal(){ medModal.style.display = "none"; }
+
+medClose.onclick = hideMedModal;
+medClose2.onclick = hideMedModal;
+medModal.onclick = (e)=>{ if(e.target === medModal) hideMedModal(); };
+
+/* Remplit la modale médicament */
+async function openMedicament(patientId, index) {
+  const snap = await db.collection("medsurgences").doc(patientId).get();
+  if (!snap.exists) return;
+
+  const meds = snap.data().historique || [];
+  const m = meds[index];
+  if (!m) return;
+
+  document.getElementById("med-title").textContent = m.nom || "Médicament";
+  document.getElementById("med-nom").textContent = m.nom || "—";
+  document.getElementById("med-dose").textContent = m.dose || "—";
+  document.getElementById("med-voie").textContent = m.voie || "—";
+  document.getElementById("med-ddm").textContent = m.dateDemande || "—";
+  document.getElementById("med-date-admin").textContent = m.dateAdministration || "—";
+  document.getElementById("med-comments").textContent = m.commentaires || "—";
+
+  showMedModal();
 }
 
 </script>
