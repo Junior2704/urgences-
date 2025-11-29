@@ -16266,54 +16266,81 @@ for (let i = 0; i < repeatCount; i++) {
       }
     };
 
-    async function loadHistory() {
+  async function loadHistory() {
   const container = document.getElementById("history");
   container.innerHTML = "<div class='muted'>Chargement...</div>";
+  console.log("➡️ loadHistory() lancé");
 
   try {
-    // Lecture du patient
-    const doc = await db.collection("patients").doc(patientId).get();
+    // Lire document patient
+    const ref = db.collection("patients").doc(patientId);
+    console.log("📄 Lecture patient:", patientId);
+
+    const doc = await ref.get();
+
     if (!doc.exists) {
+      console.error("❌ Patient introuvable");
       container.innerHTML = "<div class='muted'>Patient introuvable</div>";
       return;
     }
 
     const data = doc.data();
+    console.log("📌 Données patient :", data);
 
-    // Trouver l'hospitalisation en cours
+    // Vérifier index d’hospitalisation
     const index = data.hospitalisationIndex ?? 0;
+    console.log("🏥 Index hospitalisation:", index);
+
     const hosp = data.hospitalisations?.[index];
 
-    if (!hosp || !hosp.meds || hosp.meds.length === 0) {
+    if (!hosp) {
+      console.error("❌ Pas d'hospitalisation à cet index");
+      container.innerHTML = "<div class='muted'>Aucune hospitalisation</div>";
+      return;
+    }
+
+    console.log("📌 Hospitalisation actuelle:", hosp);
+
+    const meds = hosp.meds;
+
+    if (!meds || meds.length === 0) {
+      console.log("ℹ️ Aucun médicament enregistré");
       container.innerHTML = "<div class='muted'>Aucune demande</div>";
       return;
     }
 
-    // Convertir les dates JJ/MM/AAAA HH:MM:SS → Date pour trier
+    console.log("💊 Médicaments trouvés:", meds);
+
+    // Convertir "JJ/MM/AAAA HH:MM:SS" → Date
     const parseDate = (str) => {
       if (!str) return null;
-      const [d, h] = str.split(" ");
-      const [jj, mm, aaaa] = d.split("/");
-      const [HH, MM, SS] = h.split(":");
-      return new Date(aaaa, mm - 1, jj, HH, MM, SS);
+      try {
+        const [d, h] = str.split(" ");
+        const [jj, mm, aaaa] = d.split("/");
+        const [HH, MM, SS] = h.split(":");
+        return new Date(aaaa, mm - 1, jj, HH, MM, SS);
+      } catch (e) {
+        console.error("❌ Erreur parseDate:", e, str);
+        return null;
+      }
     };
 
-    // Tri DESC createdAt
-    const meds = [...hosp.meds].sort((a, b) => {
+    // Trier
+    const sorted = [...meds].sort((a, b) => {
       return parseDate(b.createdAt) - parseDate(a.createdAt);
     });
 
     container.innerHTML = "";
 
-    // Affichage
-    meds.forEach((d, i) => {
+    sorted.forEach((d, i) => {
+      console.log(`📄 Ligne ${i}`, d);
 
       const item = document.createElement("div");
       item.className = "history-item";
 
-      // ----------------------------
-      // 🔵 Calcul du statut
-      // ----------------------------
+      // -----------------------------
+      //   Calcul statut
+      // -----------------------------
       let status = d.status;
 
       if (status !== "pris") {
@@ -16332,24 +16359,23 @@ for (let i = 0; i < repeatCount; i++) {
       d.status = status;
       item.dataset.status = status;
 
-      // Boutons et badge
-      const loupe = `
-        <button class="btn" onclick="showDetails(${i})">🔍</button>
-      `;
-
-      const takeBtn = d.status !== "pris"
-        ? `<button class="btn" onclick="openTakeModal(${i},'${d.product}')">Prendre</button>`
-        : "";
-
       const badge = `
         <span class="badge" data-status="${status}">
           ${status}
         </span>
       `;
 
+      const loupe = `
+        <button class="btn" onclick="showDetails(${i})">🔍</button>
+      `;
+
+      const takeBtn =
+        status !== "pris"
+          ? `<button class="btn" onclick="openTakeModal(${i}, '${d.product}')">Prendre</button>`
+          : "";
+
       item.innerHTML = `
         <div><strong>${d.product}</strong></div>
-
         <div class="history-center">${loupe}</div>
         <div class="history-center">${badge}</div>
         <div class="history-right">${takeBtn}</div>
@@ -16359,7 +16385,7 @@ for (let i = 0; i < repeatCount; i++) {
     });
 
   } catch (err) {
-    console.error(err);
+    console.error("❌ ERREUR loadHistory():", err);
     container.innerHTML = "<div class='muted'>Erreur chargement</div>";
   }
 }
