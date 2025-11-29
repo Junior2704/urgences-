@@ -500,28 +500,53 @@ const constantesText =
 document.getElementById("m-constantes").textContent = constantesText;
 
 // ---------------------------
-// Examens
+// EXAMENS — couleur + clic = modale
 // ---------------------------
-const exams = Array.isArray(hospi.examens)
-    ? hospi.examens
-    : (hospi.examensDemandes || []);
+const examsRaw = Array.isArray(hospi.examens)
+  ? hospi.examens
+  : (Array.isArray(hospi.examensDemandes) ? hospi.examensDemandes : []);
 
-if (exams.length) {
-  m_exams.innerHTML = "";
-  exams.forEach((e, i) => {
-    const s = document.createElement("span");
-    s.className = "pill";
-    s.textContent = e.type || e || "Examen";
+// Filtre des entrées vides
+const exams = examsRaw.filter(e => {
+  if (!e) return false;
+  if (typeof e === "string" && e.trim() === "") return false;
+  if (typeof e === "object" && Object.keys(e).length === 0) return false;
+  return true;
+});
 
-    // clic → ouvrir la modale examen
-    s.style.cursor = "pointer";
-    s.onclick = () => openExam(id, i);
-
-    m_exams.appendChild(s);
-  });
+if (exams.length === 0) {
+  m_exams.textContent = "Aucun examen";
 } else {
-  m_exams.textContent = "Aucun";
+  m_exams.innerHTML = "";
+
+  exams.forEach((ex, i) => {
+    const pill = document.createElement("span");
+    pill.className = "pill";
+    pill.style.cursor = "pointer";
+    pill.textContent = ex.type || "Examen";
+
+    // ---------------------------
+    // CODE COULEUR EXAMENS
+    // ---------------------------
+    const realised = !!ex.dateRealisation;
+
+    if (realised) {
+      // VERT = réalisé
+      pill.style.background = "#e8fff1";
+      pill.style.color = "#146c2e";
+      pill.style.border = "1px solid #cbf7d5";
+    } else {
+      // BLEU = non réalisé
+      pill.style.background = "#d7e9ff";
+      pill.style.color = "#0d47a1";
+      pill.style.border = "1px solid #c1d7ff";
+    }
+
+    pill.onclick = () => openExam(id, i);
+    m_exams.appendChild(pill);
+  });
 }
+
 
 // ---------------------------
 // Actes
