@@ -542,45 +542,66 @@ if (actes.length) {
 } else {
   m_actes.textContent = "Aucun acte";
 }
-// ------------------------------------------
-// Charge les médicaments (historique)
-// ------------------------------------------
-
+// ---------------------------
+// Médicaments (historique) — lecture depuis la sous-collection patients/{id}/meds-urgences
+// ---------------------------
 const medsDiv = document.getElementById("m-medicaments");
 medsDiv.textContent = "Chargement...";
 
-const medsSnap = await db.collection("medsurgences").doc(id).get();
+try {
+  // lecture de la sous-collection (même logique que medsurgences.html)
+  const medsSnap = await db.collection('patients').doc(id).collection('meds-urgences')
+    .orderBy('createdAt', 'desc') // si tu as ce champ
+    .get();
 
-if (!medsSnap.exists || !medsSnap.data().historique) {
-  medsDiv.textContent = "Aucun médicament";
-} else {
-
-  const histo = medsSnap.data().historique;
-
-  if (!histo.length) {
+  // si pas de docs, on renvoie "Aucun médicament"
+  if (medsSnap.empty) {
     medsDiv.textContent = "Aucun médicament";
-    return;
+  } else {
+    medsDiv.innerHTML = ""; // vide le container
+    medsSnap.forEach(doc => {
+      const m = doc.data();
+      // si tu veux uniquement l'historique : tu peux filtrer sur un champ 'type' ou 'historique'
+      // ex: if (m.type && m.type !== 'historique') return;
+
+      const pill = document.createElement("span");
+      pill.className = "pill";
+      pill.style.cursor = "pointer";
+      pill.style.padding = "6px 8px";
+      pill.style.marginRight = "6px";
+      pill.style.display = "inline-block";
+
+      // label lisible
+      const label = m.nom || m.product || m.produit || "Médicament";
+      pill.textContent = label;
+
+      // couleur selon statut (conforme à medsurgences.css)
+      const status = (m.status || m.statut || "").toString().toLowerCase();
+      if (status === "pris") {
+        pill.style.background = "#e8fff1";
+        pill.style.color = "#146c2e";
+        pill.style.border = "1px solid #cbf7d5";
+      } else if (status === "en-retard" || status === "en_retard") {
+        pill.style.background = "#ffecec";
+        pill.style.color = "#c62828";
+        pill.style.border = "1px solid #ffdada";
+      } else { // a-donner / a_donner / default
+        pill.style.background = "#dceaff";
+        pill.style.color = "#0d47a1";
+        pill.style.border = "1px solid #dceaff";
+      }
+
+      // clic → ouvre modale détail (on passe patient id + doc id)
+      pill.onclick = () => openMedicamentDoc(id, doc.id);
+
+      medsDiv.appendChild(pill);
+    });
   }
-
-  medsDiv.innerHTML = "";
-
-  histo.forEach((m, i) => {
-
-    const pill = document.createElement("span");
-    pill.className = "pill";
-    pill.textContent = m.nom || "Médicament";
-
-    // code couleur (même logique qu'en desktop)
-    if (m.dateAdministration) pill.style.background = "#4caf50";     // vert : administré
-    else if (m.enRetard) pill.style.background = "#f44336";          // rouge : en retard
-    else pill.style.background = "#ff9800";                           // orange : en attente
-
-    pill.style.cursor = "pointer";
-    pill.onclick = ()=> openMedicament(id, i);
-
-    medsDiv.appendChild(pill);
-  });
+} catch (err) {
+  console.error("Erreur chargement meds:", err);
+  medsDiv.textContent = "Erreur chargement médicaments";
 }
+
 
 
     showModal();
@@ -704,25 +725,38 @@ medClose.onclick = hideMedModal;
 medClose2.onclick = hideMedModal;
 medModal.onclick = (e)=>{ if(e.target === medModal) hideMedModal(); };
 
-/* Remplit la modale médicament */
-async function openMedicament(patientId, index) {
-  const snap = await db.collection("medsurgences").doc(patientId).get();
-  if (!snap.exists) return;
+/* ------------------------------------------------
+   MODALE MEDICAMENT — chargement depuis la sous-collection patients/{patientId}/meds-urgences/{docId}
+---------------------------------------------------*/
+async function openMedicamentDoc(patientId, docId) {
+  try {
+    const docRef = await db.collection('patients').doc(patientId)
+                         .collection('meds-urgences').doc(docId).get();
+    if (!docRef.exists) {
+      alert("Détails du médicament introuvables");
+      return;
+    }
+    const m = docRef.data();
 
-  const meds = snap.data().historique || [];
-  const m = meds[index];
-  if (!m) return;
+    // remplissage modal (IDs des éléments HTML fournis plus bas)
+    document.getElementById("med-title").textContent = m.nom || m.product || "Médicament";
+    document.getElementById("med-nom").textContent = m.nom || m.product || "—";
+    document.getElementById("med-dose").textContent = m.dose || m.posologie || "—";
+    document.getElementById("med-voie").textContent = m.voie || m.route || "—";
+    // utilise les champs dateDemande / requestedAt / createdAt si présent
+    document.getElementById("med-ddm").textContent = m.dateDemande || m.requestedAt || (m.createdAt && (m.createdAt.toDate ? m.createdAt.toDate().toLocaleString() : m.createdAt)) || "—";
+    // takenAt / dateAdministration
+    document.getElementById("med-date-admin").textContent = m.takenAt || m.dateAdministration || "—";
+    document.getElementById("med-comments").textContent = m.commentaires || m.takeComment || m.comment || "—";
 
-  document.getElementById("med-title").textContent = m.nom || "Médicament";
-  document.getElementById("med-nom").textContent = m.nom || "—";
-  document.getElementById("med-dose").textContent = m.dose || "—";
-  document.getElementById("med-voie").textContent = m.voie || "—";
-  document.getElementById("med-ddm").textContent = m.dateDemande || "—";
-  document.getElementById("med-date-admin").textContent = m.dateAdministration || "—";
-  document.getElementById("med-comments").textContent = m.commentaires || "—";
-
-  showMedModal();
+    // ouvre la modale
+    showMedModal(); // ta fonction déjà fournie dans le patch précédent
+  } catch (err) {
+    console.error("Erreur openMedicamentDoc:", err);
+    alert("Erreur ouverture détail médicament");
+  }
 }
+
 
 </script>
 </body>
