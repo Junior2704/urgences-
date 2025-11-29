@@ -16393,74 +16393,80 @@ for (let i = 0; i < repeatCount; i++) {
 
 let currentDetailId = null;
 
-async function showDetails(docId) {
-    currentDetailId = docId;
+async function showDetails(medIndex) {
+  currentDetailId = medIndex;
 
-    const docSnap = await db
-      .collection("patients")
-      .doc(patientId)
-      .collection("meds-urgences")
-      .doc(docId)
-      .get();
+  const patientRef = db.collection("patients").doc(patientId);
+  const snap = await patientRef.get();
 
-    if (!docSnap.exists) return;
-    const d = docSnap.data();
+  if (!snap.exists) return;
+  const data = snap.data();
 
-    const created = d.createdAt?.toDate()?.toLocaleString() || "";
-    const due = d.dueAt?.toDate()?.toLocaleString() || "—";
-    const taken = d.takenAt?.toDate()?.toLocaleString() || "—";
+  const index = data.hospitalisationIndex ?? 0;
+  const meds = data.hospitalisations?.[index]?.meds || [];
 
-    const html = `
-        <p><strong>Nom :</strong> ${d.product}</p>
-        <p><strong>Commentaire demande :</strong><br>${d.comment || "—"}</p>
-        <p><strong>Créé le :</strong> ${created}</p>
-        <p><strong>Pour le :</strong> ${due}</p>
-        <p><strong>Statut :</strong> ${d.status}</p>
-        <p><strong>Commentaire prise :</strong><br>${d.takeComment || "—"}</p>
-        <p><strong>Prise le :</strong> ${taken}</p>
-    `;
+  const d = meds[medIndex];
+  if (!d) return;
 
-    document.getElementById("detail-content").innerHTML = html;
-    document.getElementById("modal-details").style.display = "flex";
-     document.getElementById("btnDeleteDetail").onclick = deleteFromModal;
+  // convertisseur "JJ/MM/AAAA HH:MM:SS" → Date
+  const parseDate = (str) => {
+    if (!str) return null;
+    const [datePart, timePart] = str.split(" ");
+    const [dd, mm, yyyy] = datePart.split("/");
+    const [h, m, s] = timePart.split(":");
+    return new Date(yyyy, mm - 1, dd, h, m, s);
+  };
+
+  const created = d.createdAt ? parseDate(d.createdAt).toLocaleString() : "—";
+  const due = d.dueAt ? parseDate(d.dueAt).toLocaleString() : "—";
+  const taken = d.takenAt ? parseDate(d.takenAt).toLocaleString() : "—";
+
+  const html = `
+    <p><strong>Nom :</strong> ${d.product}</p>
+    <p><strong>Commentaire demande :</strong><br>${d.comment || "—"}</p>
+    <p><strong>Créé le :</strong> ${created}</p>
+    <p><strong>Pour le :</strong> ${due}</p>
+    <p><strong>Statut :</strong> ${d.status}</p>
+    <p><strong>Commentaire prise :</strong><br>${d.takeComment || "—"}</p>
+    <p><strong>Prise le :</strong> ${taken}</p>
+  `;
+
+  document.getElementById("detail-content").innerHTML = html;
+  document.getElementById("modal-details").style.display = "flex";
+
+  document.getElementById("btnDeleteDetail").onclick = deleteFromModal;
 }
+
 
 function closeDetails() {
     document.getElementById("modal-details").style.display = "none";
 }
 async function deleteFromModal() {
-  if (!currentDetailId) return;
+  if (currentDetailId == null) return;
 
   if (!confirm("Supprimer cette demande ?")) return;
 
   try {
     const patientRef = db.collection("patients").doc(patientId);
-    const patientSnap = await patientRef.get();
+    const snap = await patientRef.get();
 
-    if (!patientSnap.exists) {
+    if (!snap.exists) {
       alert("Patient introuvable.");
       return;
     }
 
-    const data = patientSnap.data();
+    const data = snap.data();
+    const index = data.hospitalisationIndex ?? 0;
     const hosps = data.hospitalisations || [];
 
-    if (hosps.length === 0) {
-      alert("Aucune hospitalisation trouvée.");
+    if (!hosps[index] || !hosps[index].meds) {
+      alert("Aucune demande trouvée.");
       return;
     }
 
-    // Trier par dateDebut (desc) → on prend la dernière hospitalisation
-    hosps.sort((a, b) => new Date(b.dateDebut) - new Date(a.dateDebut));
-    const lastHospi = hosps[0];
+    hosps[index].meds.splice(currentDetailId, 1);
 
-    // Filtrer : on retire l’élément dont l'id = currentDetailId
-    lastHospi.premed = (lastHospi.premed || []).filter(item => item.id !== currentDetailId);
-
-    // Sauvegarde du tableau complet hospitalisations
-    await patientRef.update({
-      hospitalisations: hosps
-    });
+    await patientRef.update({ hospitalisations: hosps });
 
     afficherBulle("✔️ Demande supprimée", "success");
 
@@ -16472,6 +16478,7 @@ async function deleteFromModal() {
     alert("Erreur : " + err.message);
   }
 }
+
 
 
 
@@ -16494,33 +16501,49 @@ async function deleteFromModal() {
     function openTakeModal(docId, name){ currentTakingDocId = docId; takeName.value = name; takeComment.value=''; modalTake.style.display='flex'; }
     document.getElementById('take-cancel').onclick = ()=> modalTake.style.display='none';
 
-    document.getElementById('take-save').onclick = async ()=>{
-      modalTake.style.display='none';
-      if(!currentTakingDocId) return;
-      try{
-        const takeAt = firebase.firestore.Timestamp.fromDate(new Date());
-        await db.collection('patients').doc(patientId).collection('meds-urgences').doc(currentTakingDocId).update({ status:'pris', takenAt: takeAt, takeComment: takeComment.value || '' });
+    document.getElementById('take-save').onclick = async () => {
+  modalTake.style.display = 'none';
 
-        // Update patient.hospitalisations[index].meds corresponding entry (best-effort by matching product & createdAt within 5s)
-        const doc = await patientRef.get();
-        if(doc.exists){
-          const data = doc.data(); const index = data.hospitalisationIndex ?? 0; const hospitalisations = data.hospitalisations || [];
-          if(hospitalisations[index] && hospitalisations[index].meds){
-            // try to find the right med entry by product name and status
-            const meds = hospitalisations[index].meds;
-            for(let m of meds){
-              if(m.product === takeName.value && m.status !== 'pris'){
-                m.status = 'pris'; m.takenAt = takeAt; m.takeComment = takeComment.value || '';
-                break;
-              }
-            }
-            await patientRef.update({ hospitalisations });
-          }
-        }
+  if (currentTakingDocId == null) return;
 
-        afficherBulle('✔️ Prise enregistrée'); loadHistory();
-      }catch(err){ console.error(err); alert('Erreur: '+err.message); }
-    };
+  try {
+    const takeAt = new Date();
+
+    const patientRef = db.collection("patients").doc(patientId);
+    const snap = await patientRef.get();
+
+    if (!snap.exists) {
+      alert("Patient introuvable.");
+      return;
+    }
+
+    const data = snap.data();
+    const index = data.hospitalisationIndex ?? 0;
+    const hosps = data.hospitalisations || [];
+
+    if (!hosps[index] || !hosps[index].meds) {
+      alert("Erreur : aucune entrée trouvée.");
+      return;
+    }
+
+    const med = hosps[index].meds[currentTakingDocId];
+
+    med.status = "pris";
+    med.takenAt = takeAt.toLocaleString("fr-FR");
+    med.takeComment = takeComment.value || "";
+
+    await patientRef.update({
+      hospitalisations: hosps
+    });
+
+    afficherBulle("✔️ Prise enregistrée");
+    loadHistory();
+
+  } catch (err) {
+    console.error(err);
+    alert("Erreur: " + err.message);
+  }
+};
 
     // --- helper pour notifications simples ---
 // Conteneur global pour les bulles
