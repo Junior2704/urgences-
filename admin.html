@@ -111,6 +111,7 @@
 		  <th> </th>
         <th>Changer MDP</th>
         <th>Urgences</th>
+         <th>App mobile</th>
         <th>Accueil</th>
         <th>Certificat Médical</th>
 		<th>Facturation</th>
@@ -251,6 +252,8 @@ tr.innerHTML = `
     <button style="background:#0078d4" onclick="demanderChangement('${id}')">🔁 Demander un changement</button>
   </td>
   <td><input type="checkbox" ${pages.urgences ? "checked" : ""} onchange="toggleAccess('${id}', 'urgences', this.checked)"></td>
+    <td><input type="checkbox" ${pages.fiche-mobile ? "checked" : ""} onchange="toggleAccess('${id}', 'fiche-mobile', this.checked)"></td>
+
   <td><input type="checkbox" ${pages.accueil ? "checked" : ""} onchange="toggleAccess('${id}', 'accueil', this.checked)"></td>
   <td><input type="checkbox" ${pages.Certificatmedical ? "checked" : ""} onchange="toggleAccess('${id}', 'Certificatmedical', this.checked)"></td>
   <td><input type="checkbox" ${pages.Facturation ? "checked" : ""} onchange="toggleAccess('${id}', 'Facturation', this.checked)"></td>
