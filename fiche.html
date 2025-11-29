@@ -1991,24 +1991,38 @@ function afficherBulle(msg, type = 'info') {
 
 document.querySelector('[data-module="examens"]').addEventListener('click', async () => {
   try {
-    const hospiSnap = await db.collection("patients")
-      .doc(patientId)
-      .collection("hospitalisations")
-      .orderBy("dateAdmission", "desc")
-      .limit(1)
-      .get();
+    const patientDoc = await db.collection("patients").doc(patientId).get();
 
-    if (!hospiSnap.empty) {
-      const hospiDoc = hospiSnap.docs[0];   // dernier séjour
-      await chargerExamens(patientId, hospiDoc.id);
-    } else {
-      console.warn("Aucune hospitalisation trouvée");
+    if (!patientDoc.exists) {
+      console.warn("Patient introuvable");
+      return;
     }
+
+    const data = patientDoc.data();
+
+    // Le tableau des hospitalisations
+    const hospitalisations = data.hospitalisations || [];
+
+    if (hospitalisations.length === 0) {
+      console.warn("Aucune hospitalisation trouvée");
+      return;
+    }
+
+    // Trier par dateDebut décroissante pour obtenir la dernière
+    hospitalisations.sort((a, b) => {
+      return new Date(b.dateDebut) - new Date(a.dateDebut);
+    });
+
+    const derniereHospi = hospitalisations[0];
+
+    // On transmet l'ID patient + l'objet hospitalisation (ou son index)
+    await chargerExamens(patientId, derniereHospi.id || derniereHospi);
 
   } catch (e) {
     console.error("Erreur chargement examens :", e);
   }
 });
+
 
 function openTab(tabId, event) {
   document.querySelectorAll(".tab-content").forEach(tab => tab.style.display = "none");
