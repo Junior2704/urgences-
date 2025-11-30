@@ -922,7 +922,7 @@ async function openMedicamentDoc(patientId, medId) {
   document.getElementById("med-nom").textContent = m.product || "—";
     document.getElementById("med-ddm").textContent = m.createdAt || "—";
   document.getElementById("med-pr").textContent = m.dueAt || "—";
-  document.getElementById("med-date-admin").textContent = m.dateAdministration || "—";
+  document.getElementById("med-date-admin").textContent = m.takenAt || "—";
   document.getElementById("med-commentsd").textContent = m.comment || "—";
   document.getElementById("med-commentsp").textContent = m.takeComment || "—";
 
@@ -933,7 +933,7 @@ function openMedicamentLocal(m) {
   document.getElementById("med-nom").textContent = m.product || "—";
     document.getElementById("med-ddm").textContent = m.createdAt || "—";
   document.getElementById("med-pr").textContent = m.dueAt || "—";
-  document.getElementById("med-date-admin").textContent = m.dateAdministration || "—";
+  document.getElementById("med-date-admin").textContent = m.takenAt || "—";
   document.getElementById("med-commentsd").textContent = m.comment || "—";
   document.getElementById("med-commentsp").textContent = m.takeComment || "—";
 
