@@ -2,100 +2,11 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#1565c0">
   <meta charset="UTF-8">
   <title>Connexion</title>
   <link rel="icon" type="image/jpeg" href="logo.png">
-  <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-  // --- Config Firebase ---
-  const firebaseConfig = {
-    apiKey: "AIzaSyBKp5-7NNy0Gyl0tNbDgD-BxucYdg8ArWo",
-    authDomain: "urgences-a8ed4.firebaseapp.com",
-    projectId: "urgences-a8ed4"
-  };
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
-window.allerAdmin = async function () {
-    window.location.href = "connexionadmin.html";
-  }
-  window.seConnecter = async function () {
-  const email = document.getElementById("email").value.trim();
-  const password = document.getElementById("password").value;
-  const message = document.getElementById("message");
-  message.textContent = "";
-  message.style.color = "red";
-
-  try {
-    // 🔐 Connexion utilisateur
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    const user = userCredential.user;
-
-    // 🔎 Lecture du document Firestore
-    const ref = doc(db, "medecins", user.uid);
-    const snap = await getDoc(ref);
-
-    if (!snap.exists()) {
-      message.textContent = "❌ Erreur : votre compte n'existe pas dans Firestore.";
-      return;
-    }
-
-    const data = snap.data();
-
-    // 🔑 Vérification accès fiche-mobile AVANT toute redirection
-    if (!data.pages || data.pages["fichemobile"] !== true) {
-      message.textContent = "🚫 Accès refusé : vous n'avez pas les droits pour l'app mobile.";
-      return;
-    }
-
-    // 🔄 Vérification changement de mot de passe
-    if (data.doitChangerMDP === true) {
-      message.textContent= "Un changement de mot de passe a été demandé pour ce compte, veuillez vous connecter sur un ordinateur afin d'effectuer ce changement."
-      return;
-    }
-  window.location.href = `fiche-mobile.html?uid=${user.uid}`;
-    
-
-  } catch (error) {
-    let errorMsg = "❌ Erreur de connexion. Veuillez réessayer.";
-
-    switch (error.code) {
-      case "auth/invalid-email":
-        errorMsg = "⚠️ Email invalide.";
-        break;
-      case "auth/user-disabled":
-        errorMsg = "🚫 Compte désactivé.";
-        break;
-      case "auth/user-not-found":
-        errorMsg = "❌ Aucun compte trouvé.";
-        break;
-      case "auth/invalid-credential":
-        errorMsg = "🔑 Mot de passe incorrect.";
-        break;
-      case "auth/missing-password":
-        errorMsg = "⚠️ Merci de saisir un mot de passe.";
-        break;
-      case "auth/too-many-requests":
-        errorMsg = "🚨 Trop de tentatives. Essayez plus tard.";
-        break;
-      case "auth/network-request-failed":
-        errorMsg = "📶 Erreur réseau. Vérifiez votre connexion.";
-        break;
-      default:
-        errorMsg = "❌ Une erreur est survenue : " + error.message;
-        break;
-    }
-
-    message.textContent = errorMsg;
-  }
-};
-
-</script>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1565c0">
 
   <style>
     body {
@@ -107,155 +18,183 @@ window.allerAdmin = async function () {
       background: #f4f4f4;
     }
     #loginBox {
-      background: white;
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.1);
-      text-align: center;
-      width: 300px;
+      background:white;
+      padding:25px;
+      border-radius:12px;
+      width:350px;
+      margin:auto;
+      box-shadow:0 0 10px rgba(0,0,0,0.1);
+      text-align:center;
     }
     input {
-      padding: 10px;
-      width: 100%;
-      margin-bottom: 10px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
+      width:90%;
+      padding:10px;
+      margin:8px 0;
+      border:1px solid #ccc;
+      border-radius:8px;
     }
-
-  /* 🎨 Effet au survol pour tous les boutons */
-  button:hover {
-    opacity: 0.85;
-    transform: scale(1.05);
-    transition: all 0.2s ease-in-out;
-  }
-
-  /* 🧠 Optionnel : effet au clic pour plus de réalisme */
-  button:active {
-    transform: scale(0.98);
-  }
-
+    button {
+      background:#0078d4;
+      color:white;
+      border:none;
+      padding:10px 20px;
+      margin-top:10px;
+      border-radius:8px;
+      cursor:pointer;
+      width:90%;
+      font-size:16px;
+    }
+    button:hover {
+      opacity: 0.85;
+      transform: scale(1.05);
+      transition: all 0.2s ease-in-out;
+    }
     #message {
-      color: red;
-      margin-top: 10px;
-    }
-    img {
-      margin-top: 15px;
+      color:red;
+      margin-top:10px;
     }
   </style>
+
 </head>
 <body>
-<div id="loginBox" style="text-align:center; background:white; padding:25px; border-radius:12px; width:350px; margin:auto; box-shadow:0 0 10px rgba(0,0,0,0.1);">
+
+<div id="loginBox">
   <h2>🔐 Connexion</h2>
 
-  <input type="email" id="email" placeholder="Email" style="width:90%;padding:10px;margin:8px 0;border:1px solid #ccc;border-radius:8px;">
-  <input type="password" id="password" placeholder="Mot de passe" style="width:90%;padding:10px;margin:8px 0;border:1px solid #ccc;border-radius:8px;">
+  <input type="email" id="email" placeholder="Email">
+  <input type="password" id="password" placeholder="Mot de passe">
+  
+  <button onclick="seConnecter()">👤 Se connecter</button>
 
-  <!-- ✅ Bouton principal (utilisateur) -->
-  <button onclick="seConnecter()" 
-          style="background:#0078d4;color:white;border:none;padding:10px 20px;margin-top:10px;
-                 border-radius:8px;cursor:pointer;width:90%;font-size:16px;">
-    👤 Se connecter
-  </button>
-
-  <!-- ⚙️ Bouton secondaire (admin) -->
-  <button onclick="allerAdmin()" 
-          style="background:#ff9800;color:white;border:none;padding:10px 20px;margin-top:10px;
-                 border-radius:8px;cursor:pointer;width:90%;font-size:16px;">
-    🛠️ Portail Admin
-  </button>
-
-  <div id="message" style="margin-top:10px;color:red;"></div>
+  
+  <div id="message"></div>
   <img src="logo.png" alt="Logo" width="200" style="margin-top:15px;">
 </div>
 
+
+<!-- Service Worker -->
 <script>
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('./service-worker.js')
     .then(() => console.log("Service Worker enregistré !"));
 }
 </script>
+
+
+<!-- SCRIPT PRINCIPAL -->
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+/* -------------------------------------
+   🔥 Import Firebase
+--------------------------------------*/
+import {
+  initializeApp
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyBKp5-7NNy0Gyl0tNbDgD-BxucYdg8ArWo",
-    authDomain: "urgences-a8ed4.firebaseapp.com",
-    projectId: "urgences-a8ed4"
-  };
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  onAuthStateChanged,
+  setPersistence,
+  browserLocalPersistence
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
+import {
+  getFirestore,
+  doc,
+  getDoc
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-  window.seConnecterMobile = async function () {
-    const email = document.getElementById("email").value.trim();
-    const password = document.getElementById("password").value;
-    const msg = document.getElementById("message");
+/* -------------------------------------
+   ⚙️ Config Firebase
+--------------------------------------*/
+const firebaseConfig = {
+  apiKey: "AIzaSyBKp5-7NNy0Gyl0tNbDgD-BxucYdg8ArWo",
+  authDomain: "urgences-a8ed4.firebaseapp.com",
+  projectId: "urgences-a8ed4"
+};
 
-    msg.textContent = "";
-    msg.style.color = "red";
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-    try {
-      // 🔐 Connexion Firebase
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
+/* -------------------------------------
+   🧠 PERSISTENCE : rester connecté !
+--------------------------------------*/
+await setPersistence(auth, browserLocalPersistence);
 
-      // 🔍 Lecture du médecin dans Firestore
-      const ref = doc(db, "medecins", user.uid);
-      const snap = await getDoc(ref);
+/* -------------------------------------
+   🚀 AUTO-CONNEXION SI DÉJÀ AUTH
+--------------------------------------*/
+onAuthStateChanged(auth, async (user) => {
+  if (!user) return; // ⛔ pas connecté → rester sur login
 
-      if (!snap.exists()) {
-        msg.textContent = "❌ Erreur : utilisateur inconnu dans Firestore.";
-        return;
-      }
+  console.log("Session détectée → vérification des droits...");
 
-      const data = snap.data();
+  const ref = doc(db, "medecins", user.uid);
+  const snap = await getDoc(ref);
 
-      // ------------------------------------------------------
-      // 🔑 Vérification du droit d'accès : pages.fiche-mobile
-      // ------------------------------------------------------
-      if (!data.pages || data.pages["fiche-mobile"] !== true) {
-        msg.textContent = "🚫 Accès refusé : vous n'avez pas les droits pour la fiche mobile.";
-        return;
-      }
+  if (!snap.exists()) return;
 
-      // 🔄 Redirection si l'utilisateur doit changer son MDP
-      if (data.doitChangerMDP === true) {
-        window.location.href = "changer_mot_passe.html";
-        return;
-      }
+  const data = snap.data();
 
-      // ✔️ Accès autorisé → redirection
-      window.location.href = `fiche-mobile.html?uid=${user.uid}`;
+  // 🔄 Doit changer mot de passe ?
+  if (data.doitChangerMDP === true) {
+    window.location.href = "changer_mot_passe.html";
+    return;
+  }
 
-    } catch (error) {
-      let messageErreur = "❌ Erreur de connexion.";
+  // 🔑 Accès mobile
+  if (data.pages && data.pages["fiche-mobile"] === true) {
+    window.location.href = `fiche-mobile.html?uid=${user.uid}`;
+    return;
+  }
 
-      switch (error.code) {
-        case "auth/invalid-email":
-          messageErreur = "⚠️ Email invalide.";
-          break;
-        case "auth/user-not-found":
-          messageErreur = "❌ Aucun compte trouvé.";
-          break;
-        case "auth/invalid-credential":
-          messageErreur = "🔑 Mot de passe incorrect.";
-          break;
-        case "auth/missing-password":
-          messageErreur = "⚠️ Saisissez un mot de passe.";
-          break;
-        case "auth/too-many-requests":
-          messageErreur = "🚨 Trop de tentatives. Réessayez plus tard.";
-          break;
-      }
+  console.log("Utilisateur connecté mais pas de droits mobile.");
+});
 
-      msg.textContent = messageErreur;
+/* -------------------------------------
+   👤 Connexion manuelle
+--------------------------------------*/
+window.seConnecter = async function () {
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value;
+  const msg = document.getElementById("message");
+
+  msg.textContent = "";
+
+  try {
+    const cred = await signInWithEmailAndPassword(auth, email, password);
+    const user = cred.user;
+
+    const ref = doc(db, "medecins", user.uid);
+    const snap = await getDoc(ref);
+
+    if (!snap.exists()) {
+      msg.textContent = "❌ Compte introuvable dans Firestore.";
+      return;
     }
-  };
-</script>
 
+    const data = snap.data();
+
+    if (data.doitChangerMDP === true) {
+      window.location.href = "changer_mot_passe.html";
+      return;
+    }
+
+    if (!data.pages || data.pages["fiche-mobile"] !== true) {
+      msg.textContent = "🚫 Accès refusé pour l'app mobile.";
+      return;
+    }
+
+    window.location.href = `fiche-mobile.html?uid=${user.uid}`;
+
+  } catch (e) {
+    msg.textContent = "❌ Email ou mot de passe incorrect.";
+  }
+};
+
+
+</script>
 
 </body>
 </html>
