@@ -317,8 +317,9 @@
 
 <!-- === CIRCUITS PARTICULIERS === -->
 <section id="dashboard-circuits">
-  <h2 class="section-title">🧭 Circuits particuliers</h2>
+  <h2 class="section-title">🧭 Circuits</h2>
   <div class="circuits-grid">
+        <div class="circuit-card general"><h3 id="circuit-general">--</h3><p>🩺 Général</p></div>
     <div class="circuit-card pediatrie"><h3 id="circuit-pediatrie">--</h3><p>👶 Pédiatrie</p></div>
     <div class="circuit-card traumato"><h3 id="circuit-traumato">--</h3><p>🦴 Traumatologie</p></div>
     <div class="circuit-card ophtalmo"><h3 id="circuit-ophtalmo">--</h3><p>👀 Ophtalmologie</p></div>
@@ -496,7 +497,8 @@ async function updateCounts() {
 
 
 // --- Comptage des circuits particuliers ---
-const circuits = { pediatrie: 0, traumato: 0, ophtalmo: 0, gyn: 0, psy: 0 };
+// --- Comptage des circuits particuliers ---
+const circuits = { general: 0, pediatrie: 0, traumato: 0, ophtalmo: 0, gyn: 0, psy: 0 };
 
 snapshot.forEach(doc => {
   const data = doc.data();
@@ -504,14 +506,16 @@ snapshot.forEach(doc => {
   const hosp = data.hospitalisations?.[index] || {};
   const circuit = (hosp.circuit || "").toLowerCase();
 
-  if (circuit.includes("péd")) circuits.pediatrie++;
-  if (circuit.includes("trauma")) circuits.traumato++;
-  if (circuit.includes("ophtalmo")) circuits.ophtalmo++;
-  if (circuit.includes("gyn")) circuits.gyn++;
-  if (circuit.includes("psy")) circuits.psy++;
+  if (circuit.includes("péd") || circuit.includes("ped")) circuits.pediatrie++;
+  else if (circuit.includes("trauma")) circuits.traumato++;
+  else if (circuit.includes("ophtalmo")) circuits.ophtalmo++;
+  else if (circuit.includes("gyn")) circuits.gyn++;
+  else if (circuit.includes("psy")) circuits.psy++;
+  else circuits.general++; // ✔️ tous les autres vont dans "général"
 });
 
 // --- Affichage circuits particuliers ---
+animateUpdate(document.getElementById("circuit-general"), circuits.general);
 animateUpdate(document.getElementById("circuit-pediatrie"), circuits.pediatrie);
 animateUpdate(document.getElementById("circuit-traumato"), circuits.traumato);
 animateUpdate(document.getElementById("circuit-ophtalmo"), circuits.ophtalmo);
