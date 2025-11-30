@@ -252,7 +252,7 @@ tr.innerHTML = `
     <button style="background:#0078d4" onclick="demanderChangement('${id}')">🔁 Demander un changement</button>
   </td>
   <td><input type="checkbox" ${pages.urgences ? "checked" : ""} onchange="toggleAccess('${id}', 'urgences', this.checked)"></td>
-    <td><input type="checkbox" ${pages.fiche-mobile ? "checked" : ""} onchange="toggleAccess('${id}', 'fiche-mobile', this.checked)"></td>
+    <td><input type="checkbox" ${pages.fichemobile ? "checked" : ""} onchange="toggleAccess('${id}', 'fichemobile', this.checked)"></td>
 
   <td><input type="checkbox" ${pages.accueil ? "checked" : ""} onchange="toggleAccess('${id}', 'accueil', this.checked)"></td>
   <td><input type="checkbox" ${pages.Certificatmedical ? "checked" : ""} onchange="toggleAccess('${id}', 'Certificatmedical', this.checked)"></td>
