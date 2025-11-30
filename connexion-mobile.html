@@ -71,14 +71,17 @@ async function verifierDroitsEtRediriger(user) {
   const snap = await getDoc(ref);
 
   if (!snap.exists()) {
-    msg.textContent = "❌ Compte introuvable dans Firestore.";
+    document.getElementById("loader").style.display = "none";
+    document.getElementById("loginBox").style.display = "block";
     return;
   }
 
   const data = snap.data();
 
   if (!data.pages || data.pages["fichemobile"] !== true) {
-    msg.textContent = "🚫 Vous n'avez pas les droits pour la fiche mobile.";
+    document.getElementById("loader").style.display = "none";
+    document.getElementById("loginBox").style.display = "block";
+
     return;
   }
 
@@ -132,6 +135,53 @@ button {
   border: none;
 }
 button:hover { opacity: 0.9; }
+/* 🟦 Écran de chargement full-screen */
+#loader {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  transition: opacity 0.4s ease;
+}
+
+/* Logo centré */
+#loaderLogo {
+  width: 180px;
+  margin-bottom: 25px;
+  animation: fade 1.2s infinite alternate;
+}
+
+/* Animation légère du logo */
+@keyframes fade {
+  from { opacity: 0.4; }
+  to { opacity: 1; }
+}
+
+/* Spinner professionnel */
+.spinner {
+  width: 45px;
+  height: 45px;
+  border: 5px solid #d1d1d1;
+  border-top-color: #1976d2;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Cacher la box de connexion tant que pas validé */
+#loginBox {
+  display: none;
+}
+
 </style>
 
 </head>
@@ -144,6 +194,12 @@ button:hover { opacity: 0.9; }
   <button onclick="seConnecter()">Se connecter</button>
   <div id="message" style="color:red;margin-top:10px;"></div>
   <img src="logo.png" width="200">
+  <!-- ⭐ ÉCRAN DE CHARGEMENT ⭐ -->
+<div id="loader">
+  <img src="logo.png" id="loaderLogo">
+  <div class="spinner"></div>
+</div>
+
 </div>
 
 </body>
