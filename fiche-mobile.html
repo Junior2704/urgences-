@@ -986,33 +986,64 @@ const sb = document.getElementById("sidebar");
 const sbOverlay = document.getElementById("sidebarOverlay");
 const menuBtn = document.getElementById("menuBtn");
 
+// Pages internes
+const pageAccueil = document.getElementById("pageAccueil");
+const pageUrgences = document.getElementById("pageUrgences");
+
+// --- OUVERTURE / FERMETURE MENU ---
 menuBtn.onclick = () => {
   sb.classList.add("open");
   sbOverlay.classList.add("show");
 };
-
 sbOverlay.onclick = () => {
   sb.classList.remove("open");
   sbOverlay.classList.remove("show");
 };
 
-function goHome(){
-  window.location.href = "accueil-professionnel.html"; // page d’accueil à toi
+// --- CHARGEMENT PAR DÉFAUT : ACCUEIL ---
+window.addEventListener("load", () => {
+  ouvrirAccueil();
+  startHorloge();
+});
+
+// --- FONCTIONS POUR CHANGER DE "PAGE" ---
+function ouvrirAccueil(){
+  pageUrgences.style.display = "none";
+  pageAccueil.style.display = "block";
+  sb.classList.remove("open");
+  sbOverlay.classList.remove("show");
 }
 
-function goUrgences(){
-  window.location.href = "fiche-mobile.html";
+function ouvrirUrgences(){
+  pageAccueil.style.display = "none";
+  pageUrgences.style.display = "block";
+  sb.classList.remove("open");
+  sbOverlay.classList.remove("show");
 }
 
+// --- MENUS ---
+function goHome(){ ouvrirAccueil(); }
+function goUrgences(){ ouvrirUrgences(); }
+
+// --- HORLOGE ---
+function startHorloge(){
+  const el = document.getElementById("accueilHeure");
+  setInterval(() => {
+    const d = new Date();
+    el.textContent = d.toLocaleTimeString("fr-FR", {hour: "2-digit", minute:"2-digit"});
+  }, 1000);
+}
+
+// --- MESSAGE DE BIENVENUE EN FONCTION DU MEDECIN CONNECTÉ ---
+if (window.medecinNom){
+  document.getElementById("accueilBienvenue").textContent =
+    "Bienvenue Dr " + window.medecinNom;
+}
+
+// --- LOGOUT ---
 function logout(){
   if(confirm("Voulez-vous vous déconnecter ?")){
-    if(firebase && firebase.auth){
-      firebase.auth().signOut().then(()=>{
-        window.location.href = "index.html";
-      });
-    } else {
-      window.location.href = "index.html";
-    }
+    firebase.auth().signOut().then(()=> window.location.href="accueil.html");
   }
 }
 </script>
