@@ -1,112 +1,30 @@
-<!-- accueil.html -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Connexion</title>
-  <link rel="icon" type="image/jpeg" href="logo.png">
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#1565c0">
+<meta charset="UTF-8">
+<title>Connexion Mobile</title>
+<link rel="icon" type="image/jpeg" href="logo.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1565c0">
 
-  <style>
-    body {
-      font-family: sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      background: #f4f4f4;
-    }
-    #loginBox {
-      background:white;
-      padding:25px;
-      border-radius:12px;
-      width:350px;
-      margin:auto;
-      box-shadow:0 0 10px rgba(0,0,0,0.1);
-      text-align:center;
-    }
-    input {
-      width:90%;
-      padding:10px;
-      margin:8px 0;
-      border:1px solid #ccc;
-      border-radius:8px;
-    }
-    button {
-      background:#0078d4;
-      color:white;
-      border:none;
-      padding:10px 20px;
-      margin-top:10px;
-      border-radius:8px;
-      cursor:pointer;
-      width:90%;
-      font-size:16px;
-    }
-    button:hover {
-      opacity: 0.85;
-      transform: scale(1.05);
-      transition: all 0.2s ease-in-out;
-    }
-    #message {
-      color:red;
-      margin-top:10px;
-    }
-  </style>
-
-</head>
-<body>
-
-<div id="loginBox">
-  <h2>🔐 Connexion</h2>
-
-  <input type="email" id="email" placeholder="Email">
-  <input type="password" id="password" placeholder="Mot de passe">
-  
-  <button onclick="seConnecter()">👤 Se connecter</button>
-
-  
-  <div id="message"></div>
-  <img src="logo.png" alt="Logo" width="200" style="margin-top:15px;">
-</div>
-
-
-<!-- Service Worker -->
-<script>
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./service-worker.js')
-    .then(() => console.log("Service Worker enregistré !"));
-}
-</script>
-
-
-<!-- SCRIPT PRINCIPAL -->
 <script type="module">
-/* -------------------------------------
-   🔥 Import Firebase
---------------------------------------*/
-import {
-  initializeApp
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-
-import {
-  getAuth,
-  signInWithEmailAndPassword,
-  onAuthStateChanged,
-  setPersistence,
-  browserLocalPersistence
+/* --------------------------------------------------------------------------
+   🔥 Firebase – Une SEULE instance centralisée pour TOUT le fichier
+-------------------------------------------------------------------------- */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { 
+  getAuth, 
+  signInWithEmailAndPassword, 
+  onAuthStateChanged, 
+  setPersistence, 
+  browserLocalPersistence 
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-
-import {
-  getFirestore,
-  doc,
-  getDoc
+import { 
+  getFirestore, 
+  doc, 
+  getDoc 
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-/* -------------------------------------
-   ⚙️ Config Firebase
---------------------------------------*/
 const firebaseConfig = {
   apiKey: "AIzaSyBKp5-7NNy0Gyl0tNbDgD-BxucYdg8ArWo",
   authDomain: "urgences-a8ed4.firebaseapp.com",
@@ -117,44 +35,14 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-/* -------------------------------------
-   🧠 PERSISTENCE : rester connecté !
---------------------------------------*/
+/* --------------------------------------------------------------------------
+   🔄 Activation de la PERSISTENCE
+-------------------------------------------------------------------------- */
 await setPersistence(auth, browserLocalPersistence);
 
-/* -------------------------------------
-   🚀 AUTO-CONNEXION SI DÉJÀ AUTH
---------------------------------------*/
-onAuthStateChanged(auth, async (user) => {
-  if (!user) return; // ⛔ pas connecté → rester sur login
-
-  console.log("Session détectée → vérification des droits...");
-
-  const ref = doc(db, "medecins", user.uid);
-  const snap = await getDoc(ref);
-
-  if (!snap.exists()) return;
-
-  const data = snap.data();
-
-  // 🔄 Doit changer mot de passe ?
-  if (data.doitChangerMDP === true) {
-    window.location.href = "changer_mot_passe.html";
-    return;
-  }
-
-  // 🔑 Accès mobile
-  if (data.pages && data.pages["fiche-mobile"] === true) {
-    window.location.href = `fiche-mobile.html?uid=${user.uid}`;
-    return;
-  }
-
-  console.log("Utilisateur connecté mais pas de droits mobile.");
-});
-
-/* -------------------------------------
-   👤 Connexion manuelle
---------------------------------------*/
+/* --------------------------------------------------------------------------
+   🔍 Connexion utilisateur
+-------------------------------------------------------------------------- */
 window.seConnecter = async function () {
   const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value;
@@ -163,38 +51,100 @@ window.seConnecter = async function () {
   msg.textContent = "";
 
   try {
-    const cred = await signInWithEmailAndPassword(auth, email, password);
-    const user = cred.user;
+    const userCred = await signInWithEmailAndPassword(auth, email, password);
+    const user = userCred.user;
 
-    const ref = doc(db, "medecins", user.uid);
-    const snap = await getDoc(ref);
+    await verifierDroitsEtRediriger(user);
 
-    if (!snap.exists()) {
-      msg.textContent = "❌ Compte introuvable dans Firestore.";
-      return;
-    }
-
-    const data = snap.data();
-
-    if (data.doitChangerMDP === true) {
-      window.location.href = "changer_mot_passe.html";
-      return;
-    }
-
-    if (!data.pages || data.pages["fichemobile"] !== true) {
-      msg.textContent = "🚫 Accès refusé pour l'app mobile.";
-      return;
-    }
-
-    window.location.href = `fiche-mobile.html?uid=${user.uid}`;
-
-  } catch (e) {
-    msg.textContent = "❌ Email ou mot de passe incorrect.";
+  } catch (error) {
+    msg.textContent = "❌ Erreur : " + (error.message || "Connexion impossible.");
   }
 };
 
+/* --------------------------------------------------------------------------
+   🔎 Vérification Firestore + Redirection
+-------------------------------------------------------------------------- */
+async function verifierDroitsEtRediriger(user) {
+  const msg = document.getElementById("message");
+
+  const ref = doc(db, "medecins", user.uid);
+  const snap = await getDoc(ref);
+
+  if (!snap.exists()) {
+    msg.textContent = "❌ Compte introuvable dans Firestore.";
+    return;
+  }
+
+  const data = snap.data();
+
+  if (!data.pages || data.pages["fiche-mobile"] !== true) {
+    msg.textContent = "🚫 Vous n'avez pas les droits pour la fiche mobile.";
+    return;
+  }
+
+  if (data.doitChangerMDP === true) {
+    window.location.href = "changer_mot_passe.html";
+    return;
+  }
+
+  window.location.href = `fiche-mobile.html?uid=${user.uid}`;
+}
+
+/* --------------------------------------------------------------------------
+   🔁 Vérification AUTOMATIQUE au chargement (connexion persistante)
+-------------------------------------------------------------------------- */
+onAuthStateChanged(auth, async (user) => {
+  if (!user) return;
+
+  console.log("Session détectée → vérification des droits…");
+
+  await verifierDroitsEtRediriger(user);
+});
 
 </script>
+
+<style>
+body {
+  font-family: sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: #f4f4f4;
+}
+#loginBox {
+  background: white;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 0 15px rgba(0,0,0,0.1);
+  text-align: center;
+  width: 300px;
+}
+input, button {
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
+  border-radius: 8px;
+}
+button {
+  background: #1976d2;
+  color: white;
+  border: none;
+}
+button:hover { opacity: 0.9; }
+</style>
+
+</head>
+<body>
+
+<div id="loginBox">
+  <h2>🔐 Connexion</h2>
+  <input type="email" id="email" placeholder="Email">
+  <input type="password" id="password" placeholder="Mot de passe">
+  <button onclick="seConnecter()">Se connecter</button>
+  <div id="message" style="color:red;margin-top:10px;"></div>
+  <img src="logo.png" width="200">
+</div>
 
 </body>
 </html>
