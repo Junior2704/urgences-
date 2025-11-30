@@ -293,7 +293,6 @@
         <div class="field"><div class="val" id="m-actes">—</div></div>
 
         <div style="margin-top:12px;display:flex;gap:8px;">
-          <button id="closeBtn" class="btn" style="flex:1">Fermer</button>
         </div>
       </div>
     </div>
@@ -406,7 +405,6 @@ const refreshBtn = document.getElementById('refreshBtn');
 
 const modalOverlay = document.getElementById('modal');
 const closeModal = document.getElementById('closeModal');
-const closeBtn = document.getElementById('closeBtn');
 
 const m_id = document.getElementById('m-id');
 const m_name = document.getElementById('m-name');
@@ -598,7 +596,6 @@ document.addEventListener('click',(e)=>{
 function showModal(){ modalOverlay.style.display='flex'; modalOverlay.setAttribute('aria-hidden','false'); }
 function hideModal(){ modalOverlay.style.display='none'; modalOverlay.setAttribute('aria-hidden','true'); }
 closeModal.addEventListener('click', hideModal);
-closeBtn.addEventListener('click', hideModal);
 
 async function openModalFor(id){
   lastOpenedId = id;
