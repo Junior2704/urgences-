@@ -24,79 +24,87 @@
 window.allerAdmin = async function () {
     window.location.href = "connexionadmin.html";
   }
-  // --- Fonction de connexion ---
   window.seConnecter = async function () {
-    const email = document.getElementById("email").value.trim();
-    const password = document.getElementById("password").value;
-    const message = document.getElementById("message");
-    message.textContent = "";
-    message.style.color = "red";
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value;
+  const message = document.getElementById("message");
+  message.textContent = "";
+  message.style.color = "red";
 
-    try {
-      // 🔐 Connexion utilisateur
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
+  try {
+    // 🔐 Connexion utilisateur
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
 
-      // 🔎 Vérifie dans Firestore si "doitChangerMDP" est vrai
-      const ref = doc(db, "medecins", user.uid);
-      const snap = await getDoc(ref);
+    // 🔎 Lecture du document Firestore
+    const ref = doc(db, "medecins", user.uid);
+    const snap = await getDoc(ref);
 
-      if (snap.exists()) {
-        const data = snap.data();
-        if (data.doitChangerMDP === true) {
-          // ➡️ Redirection vers la page de changement de mot de passe
-          window.location.href = "changer_mot_passe.html";
-          return;
-        }
-      }
+    if (!snap.exists()) {
+      message.textContent = "❌ Erreur : votre compte n'existe pas dans Firestore.";
+      return;
+    }
 
-    // ➡️ Sinon, redirige vers la page principale
-// (mobile → urgences_mobile, ordinateur → urgences)
-function isMobileDevice() {
-  return /Android|iPhone|iPad|iPod|webOS|BlackBerry|Windows Phone|Mobile/i.test(navigator.userAgent)
-      || (window.innerWidth < 850);
-}
+    const data = snap.data();
 
-if (isMobileDevice()) {
-  window.location.href = `fiche-mobile.html?uid=${user.uid}`;
-} else {
-  window.location.href = `urgences.html?uid=${user.uid}`;
-}
+    // 🔑 Vérification accès fiche-mobile AVANT toute redirection
+    if (!data.pages || data.pages["fiche-mobile"] !== true) {
+      message.textContent = "🚫 Accès refusé : vous n'avez pas les droits pour la fiche mobile.";
+      return;
+    }
 
+    // 🔄 Vérification changement de mot de passe
+    if (data.doitChangerMDP === true) {
+      window.location.href = "changer_mot_passe.html";
+      return;
+    }
 
-    } catch (error) {
-  let errorMsg = "❌ Erreur de connexion. Veuillez réessayer.";
+    // 📱 Redirection selon le device
+    function isMobileDevice() {
+      return /Android|iPhone|iPad|iPod|webOS|BlackBerry|Windows Phone|Mobile/i.test(navigator.userAgent)
+          || (window.innerWidth < 850);
+    }
 
-  switch (error.message) {
-    case "Firebase: Error (auth/invalid-email).":
-      errorMsg = "⚠️ Email invalide. Vérifiez l'adresse saisie.";
-      break;
-    case "Firebase: Error (auth/user-disabled).":
-      errorMsg = "🚫 Ce compte a été désactivé. Contactez un administrateur.";
-      break;
-    case "Firebase: Error (auth/user-not-found).":
-      errorMsg = "❌ Aucun compte trouvé avec cet email.";
-      break;
-    case "Firebase: Error (auth/invalid-credential).":
-      errorMsg = "🔑 Mot de passe incorrect.";
-      break;
-    case "Firebase: Error (auth/missing-password).":
-      errorMsg = "⚠️ Merci de saisir un mot de passe.";
-      break;
-    case "Firebase: Error (auth/too-many-requests).":
-      errorMsg = "🚨 Vous avez tenté de vous connecté trop de fois avec un mot de passe éronné. Merci de réessayer plus tard";
-      break;
-    case "Firebase: Error (auth/network-request-failed).":
-      errorMsg = "📶 Problème de connexion réseau. Vérifiez votre connexion Internet.";
-      break;
-    default:
-      errorMsg = "❌ Une erreur est survenue : " + error.message;
-      break;
+    if (isMobileDevice()) {
+      window.location.href = `fiche-mobile.html?uid=${user.uid}`;
+    } else {
+      window.location.href = `urgences.html?uid=${user.uid}`;
+    }
+
+  } catch (error) {
+    let errorMsg = "❌ Erreur de connexion. Veuillez réessayer.";
+
+    switch (error.code) {
+      case "auth/invalid-email":
+        errorMsg = "⚠️ Email invalide.";
+        break;
+      case "auth/user-disabled":
+        errorMsg = "🚫 Compte désactivé.";
+        break;
+      case "auth/user-not-found":
+        errorMsg = "❌ Aucun compte trouvé.";
+        break;
+      case "auth/invalid-credential":
+        errorMsg = "🔑 Mot de passe incorrect.";
+        break;
+      case "auth/missing-password":
+        errorMsg = "⚠️ Merci de saisir un mot de passe.";
+        break;
+      case "auth/too-many-requests":
+        errorMsg = "🚨 Trop de tentatives. Essayez plus tard.";
+        break;
+      case "auth/network-request-failed":
+        errorMsg = "📶 Erreur réseau. Vérifiez votre connexion.";
+        break;
+      default:
+        errorMsg = "❌ Une erreur est survenue : " + error.message;
+        break;
+    }
+
+    message.textContent = errorMsg;
   }
+};
 
-  message.textContent = errorMsg;
-}
-  };
 </script>
 
   <style>
