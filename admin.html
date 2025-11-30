@@ -121,6 +121,8 @@
         <th>Ordonnancier</th>
    <th>Documents patients</th>
       <th>Suppression documents patients</th>
+            <th>Envoi email au patient</th>
+
 
         <th>Paramètres</th>
         <th>Prescription Examens</th>
@@ -263,6 +265,7 @@ tr.innerHTML = `
   <td><input type="checkbox" ${pages.Ordonnancier ? "checked" : ""} onchange="toggleAccess('${id}', 'Ordonnancier', this.checked)"></td>
   <td><input type="checkbox" ${pages.docs ? "checked" : ""} onchange="toggleAccess('${id}', 'docs', this.checked)"></td>
   <td><input type="checkbox" ${pages.suprdocs ? "checked" : ""} onchange="toggleAccess('${id}', 'suprdocs', this.checked)"></td>
+  <td><input type="checkbox" ${pages.mailto ? "checked" : ""} onchange="toggleAccess('${id}', 'mailto', this.checked)"></td>
 
   <td><input type="checkbox" ${pages.parametres ? "checked" : ""} onchange="toggleAccess('${id}', 'parametres', this.checked)"></td>
   <td><input type="checkbox" ${pages.prescriptionexamens ? "checked" : ""} onchange="toggleAccess('${id}', 'prescriptionexamens', this.checked)"></td>
