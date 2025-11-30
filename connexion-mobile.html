@@ -97,7 +97,11 @@ async function verifierDroitsEtRediriger(user) {
    🔁 Vérification AUTOMATIQUE au chargement (connexion persistante)
 -------------------------------------------------------------------------- */
 onAuthStateChanged(auth, async (user) => {
-  if (!user) return;
+  if (!user) {
+    document.getElementById("loader").style.display = "none";
+    document.getElementById("loginBox").style.display = "block";
+    return;
+  }
 
   console.log("Session détectée → vérification des droits…");
 
