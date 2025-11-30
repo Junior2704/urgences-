@@ -576,7 +576,7 @@ animateUpdate(document.getElementById("circuit-psy"), circuits.psy);
     setInterval(() => {
       current = (current + 1) % steps.length;
       showStep(current);
-    }, 15000 );
+    }, 100 );
 	 function goFullScreen() {
     const doc = document.documentElement;
     if (doc.requestFullscreen) doc.requestFullscreen();
