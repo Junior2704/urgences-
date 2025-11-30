@@ -16326,9 +16326,10 @@ for (let i = 0; i < repeatCount; i++) {
     };
 
     // Trier
-    const sorted = [...meds].sort((a, b) => {
-      return parseDate(b.createdAt) - parseDate(a.createdAt);
-    });
+    const sorted = meds
+  .map((m, originalIndex) => ({ ...m, originalIndex }))
+  .sort((a, b) => parseDate(b.createdAt) - parseDate(a.createdAt));
+
 
     container.innerHTML = "";
 
@@ -16366,13 +16367,15 @@ for (let i = 0; i < repeatCount; i++) {
       `;
 
       const loupe = `
-        <button class="btn" onclick="showDetails(${i})">🔎</button>
+        <button class="btn" onclick="showDetails(${d.originalIndex})">🔎</button>
+
       `;
 
-      const takeBtn =
-        status !== "pris"
-          ? `<button class="btn" onclick="openTakeModal(${i}, '${d.product}')">Andministrer</button>`
-          : "";
+     const takeBtn =
+  status !== "pris"
+    ? `<button class="btn" onclick="openTakeModal(${d.originalIndex}, '${d.product}')">Administrer</button>`
+    : "";
+
 
       item.innerHTML = `
         <div><strong>${d.product}</strong></div>
