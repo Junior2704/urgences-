@@ -2167,6 +2167,9 @@ async function chargerPatient(patientId) {
 document.getElementById("allergies").value = data.allergies || "aucun";
 document.getElementById("importanceAllergies").checked = data.importanceAllergies === true;
 
+document.getElementById("patientName").textContent =
+    `Fiche Patient - ${data.prenom || ""} ${data.nom || ""}`;
+
 
 
 
