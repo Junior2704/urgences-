@@ -526,40 +526,68 @@
     opacity: 1;
   }
 }
-#loadingScreen {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.6);
-  display: none;
-  align-items: center;
-  justify-content: center;
+#loadingModal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      justify-content: center;
+      align-items: center;
+      z-index: 200;
+    }
+
+   .modal-content {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  width: 400px;
+  max-width: 90%;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+  animation: fadeIn 0.3s ease-out;
+  text-align: center;         
+  display: flex;
   flex-direction: column;
-  z-index: 99999;
-  color: white;
-  font-family: 'Inter', sans-serif;
-  transition: opacity 0.5s ease;
+  align-items: center;        
+  justify-content: center;   
 }
 
-#loadingScreen.hidden {
-  opacity: 0;
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+.loader-wrapper {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  margin: auto;
 }
 
-.loader-content {
-  text-align: center;
+.loader-logo {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  height: 55px;
+  transform: translate(-50%, -50%);
+  z-index: 2;
 }
 
-.spinner {
-  border: 6px solid rgba(255, 255, 255, 0.3);
-  border-top: 6px solid white;
+.loader-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 90px;
+  height: 90px;
+  border: 5px solid #f3f3f3;
+  border-top: 5px solid #2563eb;
   border-radius: 50%;
-  width: 60px;
-  height: 60px;
+  transform: translate(-50%, -50%);
   animation: spin 1s linear infinite;
-  margin-bottom: 20px;
+  z-index: 1;
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  0% { transform: translate(-50%, -50%) rotate(0deg); }
+  100% { transform: translate(-50%, -50%) rotate(360deg); }
 }
 
 
@@ -569,11 +597,14 @@
 	<div class="container">
 <img id="logo-img" src="logo.png" style="display:none" crossorigin="anonymous" alt="Logo médical">
 <!-- 🔷 MODALE DE CHARGEMENT -->
-<div id="loadingModal" class="modal">
+<div id="loadingModal">
   <div class="modal-content">
-    <div class="loader">
-    <img src="https://junior2704.github.io/urgences-/logo.png" alt="Logo hôpital" class="logo">
+
+    <div class="loader-wrapper">
+      <img src="https://junior2704.github.io/urgences-/logo.png" class="loader-logo" alt="Logo">
+      <div class="loader-ring"></div>
     </div>
+
     <p>Envoi de l'ordonnance en cours...</p>
   </div>
 </div>
