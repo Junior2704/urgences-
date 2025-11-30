@@ -48,14 +48,14 @@ window.allerAdmin = async function () {
     const data = snap.data();
 
     // 🔑 Vérification accès fiche-mobile AVANT toute redirection
-    if (!data.pages || data.pages["fiche-mobile"] !== true) {
-      message.textContent = "🚫 Accès refusé : vous n'avez pas les droits pour la fiche mobile.";
+    if (!data.pages || data.pages["fichemobile"] !== true) {
+      message.textContent = "🚫 Accès refusé : vous n'avez pas les droits pour l'app mobile.";
       return;
     }
 
     // 🔄 Vérification changement de mot de passe
     if (data.doitChangerMDP === true) {
-      window.location.href = "changer_mot_passe.html";
+      message.textContent= "Un changement de mot de passe a été demandé pour ce compte, veuillez vous connecter sur un ordinateur afin d'effectuer ce changement."
       return;
     }
 
