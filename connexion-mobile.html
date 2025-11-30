@@ -77,7 +77,7 @@ async function verifierDroitsEtRediriger(user) {
 
   const data = snap.data();
 
-  if (!data.pages || data.pages["fiche-mobile"] !== true) {
+  if (!data.pages || data.pages["fichemobile"] !== true) {
     msg.textContent = "🚫 Vous n'avez pas les droits pour la fiche mobile.";
     return;
   }
