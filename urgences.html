@@ -650,6 +650,7 @@ function remplirFormulaireDepuisPatient(id, data) {
   });
 
   btnSavePatient.addEventListener("click", async () => {
+
   const id = inputId.value;
   const nom = inputNom.value.trim();
   const prenom = inputPrenom.value.trim();
@@ -659,97 +660,108 @@ function remplirFormulaireDepuisPatient(id, data) {
   const gravite = document.getElementById("gravitePatient").value || "P0";
   const moyen = document.getElementById("moyenPatient").value;
 
-
-
   if (!nom || !prenom || !dateNaiss) {
-    afficherBulle("Veuillez Remplir les champs obligatoires", "warning");
+    afficherBulle("Veuillez remplir les champs obligatoires", "warning");
     return;
   }
 
   const now = new Date().toLocaleString();
 
   try {
+    // --- Si patient existe : mise à jour ---
     if (id) {
-      
       const docRef = db.collection("patients").doc(id);
       const docSnap = await docRef.get();
+
       if (!docSnap.exists) {
-    afficherBulle("Patient introuvable !", "error");
+        afficherBulle("Patient introuvable !", "error");
         return;
       }
 
-      const data = docSnap.data();
-      const hospitalisations = data.hospitalisations || [];
+      // --- Création hospitalisation ---
+      const hospDoc = await db.collection("hospitalisations").add({
+        patientId: id,
+        dateDebut: now,
+        gravite,
+        motif,
+        moyen,
+        historique: [],
+        evolutionTexte: {},
+        constantes: {},
+        antecedents: {},
+        traitements: {},
+        histoire: {},
+        auscultation: {},
+        examens: [],
+        actif: true,
+        position: "salle-attente"
+      });
 
-      hospitalisations.push({
-  dateDebut: now,
-  gravite,
-  motif,
-  moyen,
-  historique: [],
-  evolutionTexte:{},
-  constantes: {},
-  antecedents:{},
-  traitements:{},
-  histoire:{},
-  auscultation:{},
-  examens: []
-});
+      const hospId = hospDoc.id;
 
-
+      // --- Mise à jour patient ---
       await docRef.update({
-  nom,
-  prenom,
-  sexe,
-  dateNaissance: dateNaiss,
-  hospitalisationActive: true,
-  hospitalisationIndex: hospitalisations.length - 1,
-  hospitalisations,
-  position: "salle-attente"
-});
+        nom,
+        prenom,
+        sexe,
+        dateNaissance: dateNaiss,
+        hospitalisationActive: true,
+        hospitalisationId: hospId,
+        position: "salle-attente"
+      });
 
-modalAddPatient.classList.remove("active");
-    resetForm();
-          afficherBulle("Nouvelle hospitalisation crée !", "success");
-	        
+      afficherBulle("Nouvelle hospitalisation créée !", "success");
+    }
 
+    // --- Nouveau patient ---
+ // --- Nouveau patient ---
+else {
 
-    } else {
+  // 1️⃣ On crée d’abord un document hospitalisation SANS patientId
+  const hospDoc = await db.collection("hospitalisations").add({
+    patientId: null,          // ✔ Pas encore de patient, mais on le créera juste après
+    dateDebut: now,
+    gravite,
+    motif,
+    moyen,
+    historique: [],
+    evolutionTexte: {},
+    constantes: {},
+    antecedents: {},
+    traitements: {},
+    histoire: {},
+    auscultation: {},
+    examens: [],
+    actif: true,
+    position: "salle-attente"
+  });
+
+  const hospId = hospDoc.id;   // ✔ ID Firestore généré
+
+  // 2️⃣ On crée le patient en y mettant SEULEMENT cet ID
   const newDoc = await db.collection("patients").add({
     nom,
     prenom,
     sexe,
     dateNaissance: dateNaiss,
     hospitalisationActive: true,
-    hospitalisationIndex: 0,
-    hospitalisations: [
-      {
-        dateDebut: now,
-        gravite,
-        motif,
-		moyen,
-    circuit,
-        historique: [],
-  evolutionTexte:{},
-  constantes: {},
-  antecedents:{},
-  traitements:{},
-  histoire:{},
-  auscultation:{},
-  examens: []
-      }
-    ],
+    hospitalisationId: hospId,   // ✔ On enregistre l’ID du document hospitalisation
     position: "salle-attente"
   });
 
-  inputId.value = newDoc.id;
-    modalAddPatient.classList.remove("active");
-setTimeout(() => {
-  afficherBulle("Nouveau patient créé ! ", "success");
-}, 100);
-	    
+  const newPatientId = newDoc.id;
+  inputId.value = newPatientId;
 
+  // 3️⃣ On met à jour le document hospitalisation pour lui ajouter ce patientId
+  await hospDoc.update({
+    patientId: newPatientId      // ✔ Maintenant on relie l’hospitalisation au patient
+  });
+
+  afficherBulle("Nouveau patient créé !", "success");
 }
+
+
+    modalAddPatient.classList.remove("active");
     resetForm();
     rechargerPlan();
 
@@ -757,9 +769,8 @@ setTimeout(() => {
     console.error(err);
     afficherBulle("Erreur", "error");
   }
-  
-
 });
+
 
 
 
