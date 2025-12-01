@@ -650,7 +650,6 @@ function remplirFormulaireDepuisPatient(id, data) {
   });
 
   btnSavePatient.addEventListener("click", async () => {
-
   const id = inputId.value;
   const nom = inputNom.value.trim();
   const prenom = inputPrenom.value.trim();
@@ -678,7 +677,7 @@ function remplirFormulaireDepuisPatient(id, data) {
         return;
       }
 
-      // --- Création hospitalisation ---
+      // 1) Crée le document hospitalisation (patientId renseigné)
       const hospDoc = await db.collection("hospitalisations").add({
         patientId: id,
         dateDebut: now,
@@ -699,7 +698,10 @@ function remplirFormulaireDepuisPatient(id, data) {
 
       const hospId = hospDoc.id;
 
-      // --- Mise à jour patient ---
+      // 2) Met à jour le patient :
+      // - hospitalisationActive true
+      // - hospitalisationId = hospId (hospitalisation en cours)
+      // - ajoute hospId au tableau hospitalisations (arrayUnion évite les doublons)
       await docRef.update({
         nom,
         prenom,
@@ -707,59 +709,58 @@ function remplirFormulaireDepuisPatient(id, data) {
         dateNaissance: dateNaiss,
         hospitalisationActive: true,
         hospitalisationId: hospId,
-        position: "salle-attente"
+        position: "salle-attente",
+        hospitalisations: firebase.firestore.FieldValue.arrayUnion(hospId)
       });
 
-      afficherBulle("Nouvelle hospitalisation créée !", "success");
+      afficherBulle("Nouvelle hospitalisation créée et ajoutée au patient !", "success");
     }
 
     // --- Nouveau patient ---
- // --- Nouveau patient ---
-else {
+    else {
+      // 1) Crée d'abord l'hospitalisation sans patientId
+      const hospDoc = await db.collection("hospitalisations").add({
+        patientId: null,
+        dateDebut: now,
+        gravite,
+        motif,
+        moyen,
+        historique: [],
+        evolutionTexte: {},
+        constantes: {},
+        antecedents: {},
+        traitements: {},
+        histoire: {},
+        auscultation: {},
+        examens: [],
+        actif: true,
+        position: "salle-attente"
+      });
 
-  // 1️⃣ On crée d’abord un document hospitalisation SANS patientId
-  const hospDoc = await db.collection("hospitalisations").add({
-    patientId: null,          // ✔ Pas encore de patient, mais on le créera juste après
-    dateDebut: now,
-    gravite,
-    motif,
-    moyen,
-    historique: [],
-    evolutionTexte: {},
-    constantes: {},
-    antecedents: {},
-    traitements: {},
-    histoire: {},
-    auscultation: {},
-    examens: [],
-    actif: true,
-    position: "salle-attente"
-  });
+      const hospId = hospDoc.id;
 
-  const hospId = hospDoc.id;   // ✔ ID Firestore généré
+      // 2) Crée le patient en y mettant l'ID de l'hospitalisation dans un tableau
+      const newDoc = await db.collection("patients").add({
+        nom,
+        prenom,
+        sexe,
+        dateNaissance: dateNaiss,
+        hospitalisationActive: true,
+        hospitalisationId: hospId,
+        hospitalisations: [hospId], // <-- on crée le tableau contenant l'id
+        position: "salle-attente"
+      });
 
-  // 2️⃣ On crée le patient en y mettant SEULEMENT cet ID
-  const newDoc = await db.collection("patients").add({
-    nom,
-    prenom,
-    sexe,
-    dateNaissance: dateNaiss,
-    hospitalisationActive: true,
-    hospitalisationId: hospId,   // ✔ On enregistre l’ID du document hospitalisation
-    position: "salle-attente"
-  });
+      const newPatientId = newDoc.id;
+      inputId.value = newPatientId;
 
-  const newPatientId = newDoc.id;
-  inputId.value = newPatientId;
+      // 3) Lie l'hospitalisation au patient fraîchement créé
+      await hospDoc.update({
+        patientId: newPatientId
+      });
 
-  // 3️⃣ On met à jour le document hospitalisation pour lui ajouter ce patientId
-  await hospDoc.update({
-    patientId: newPatientId      // ✔ Maintenant on relie l’hospitalisation au patient
-  });
-
-  afficherBulle("Nouveau patient créé !", "success");
-}
-
+      afficherBulle("Nouveau patient créé et hospitalisation liée !", "success");
+    }
 
     modalAddPatient.classList.remove("active");
     resetForm();
@@ -770,6 +771,7 @@ else {
     afficherBulle("Erreur", "error");
   }
 });
+
 
 
 
