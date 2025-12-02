@@ -1534,6 +1534,13 @@ nav:hover .nav-item span {
     <option value="Urgences_Vitales">Urgences Vitales</option>
     <option value="Administratif">Administratif</option>
   </select>
+</select>
+<label for="pdcStatut">🧾 Statut PDC</label>
+<input type="text" id="pdcStatut" class="text2" placeholder="Rechercher un statut PDC..." autocomplete="off" />
+
+<ul id="pdcSuggestions" 
+    style="background:white; border:1px solid #ccc; list-style:none; padding:5px; margin-top:2px; border-radius:6px; display:none; max-height:150px; overflow-y:auto;">
+</ul>
 
   <label for="service" >🏥 Service idéal</label>
   <select id="service" class="text2"><option value="">Chargement...</option></select>
@@ -1546,13 +1553,6 @@ nav:hover .nav-item span {
   <option value="Psychiatrie">Psychiatrie</option>
   <option value="Ophtalmologie">Ophtalomologie</option>
 
-</select>
-<label for="pdcStatut">🧾 Statut PDC</label>
-<input type="text" id="pdcStatut" class="text2" placeholder="Rechercher un statut PDC..." autocomplete="off" />
-
-<ul id="pdcSuggestions" 
-    style="background:white; border:1px solid #ccc; list-style:none; padding:5px; margin-top:2px; border-radius:6px; display:none; max-height:150px; overflow-y:auto;">
-</ul>
 
  
 
@@ -2037,17 +2037,23 @@ function afficherBulle(msg, type = 'info') {
 }
 
 const listePDC = [
-  "Consultation Médicale",
+  "Attente enrigistrement",
   "Déchocage",
-  "Accès Direct Infirmier",
-  "Salle d’attente médicale",
-  "IOA - Retour domicile",
+  "Accès Direct IAO",
+  "UV - Accès direct couchés",
+  "Attente dossier administratif",
   "IOA - Médecin généraliste",
-  "IOA - SSR/USLD",
-  "Pédiatrie",
-  "UV - Unité vitale",
+  "IOA - cricuit court",
+  "Attente examen",
+  "Attente résultats examen",
+  "Attente 1ere consult med",
   "UHCD",
-  "Circuit court",
+  "Attente 1ere consult int",
+  "Attente 1ere consult ext",
+  "Attente soins",
+  "Attente transfert",
+  "Attente consultation externe",
+  "Attente décision externe",
   "Circuit long"
 ];
 // --- Barre recherche Statut PDC ---
