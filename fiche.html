@@ -1520,6 +1520,11 @@ nav:hover .nav-item span {
 <section id="panel-admission" class="panel" style="display:none;">
   
   <h3> 🗂️ Admission et orientation</h3>
+   <label for="motif">🤕 Motif d'entrée</label>
+  <input type="text" id="motif" placeholder="Motif d'entrée" class="text2" />
+
+  <label for="moyen">🚑 Moyen d'entrée</label>
+  <input type="text" id="moyen" placeholder="Moyen d'entrée" class="text2" />
   <label for="gravite" >🚨 Gravité</label>
   <select id="gravite"class="text2" >
     <option value="P0">P0</option>
@@ -1542,12 +1547,14 @@ nav:hover .nav-item span {
   <option value="Ophtalmologie">Ophtalomologie</option>
 
 </select>
+<label for="pdcStatut">🧾 Statut PDC</label>
+<input type="text" id="pdcStatut" class="text2" placeholder="Rechercher un statut PDC..." autocomplete="off" />
 
-  <label for="motif">🤕 Motif d'entrée</label>
-  <input type="text" id="motif" placeholder="Motif d'entrée" class="text2" />
+<ul id="pdcSuggestions" 
+    style="background:white; border:1px solid #ccc; list-style:none; padding:5px; margin-top:2px; border-radius:6px; display:none; max-height:150px; overflow-y:auto;">
+</ul>
 
-  <label for="moyen">🚑 Moyen d'entrée</label>
-  <input type="text" id="moyen" placeholder="Moyen d'entrée" class="text2" />
+ 
 
     </section>
 <section id="panel-dossier" class="panel" style="display:none;">
@@ -2014,6 +2021,7 @@ function afficherBulle(msg, type = 'info') {
 
   notificationContainer.appendChild(el);
 
+
   // Animation d'entrée
   requestAnimationFrame(() => {
     el.style.opacity = '1';
@@ -2027,6 +2035,66 @@ function afficherBulle(msg, type = 'info') {
     el.addEventListener('transitionend', () => el.remove());
   }, 3000);
 }
+
+const listePDC = [
+  "Consultation Médicale",
+  "Déchocage",
+  "Accès Direct Infirmier",
+  "Salle d’attente médicale",
+  "IOA - Retour domicile",
+  "IOA - Médecin généraliste",
+  "IOA - SSR/USLD",
+  "Pédiatrie",
+  "UV - Unité vitale",
+  "UHCD",
+  "Circuit court",
+  "Circuit long"
+];
+// --- Barre recherche Statut PDC ---
+const pdcInput = document.getElementById("pdcStatut");
+const pdcSugg = document.getElementById("pdcSuggestions");
+
+pdcInput.addEventListener("input", () => {
+    const txt = pdcInput.value.toLowerCase();
+    pdcSugg.innerHTML = "";
+
+    if (txt.length === 0) {
+        pdcSugg.style.display = "none";
+        return;
+    }
+
+    const matches = listePDC.filter(s => s.toLowerCase().includes(txt));
+
+    matches.forEach(m => {
+        const li = document.createElement("li");
+        li.textContent = m;
+        li.style.padding = "6px";
+        li.style.cursor = "pointer";
+        li.onclick = () => {
+            pdcInput.value = m;
+            pdcSugg.style.display = "none";
+            sauvegarderAdmissionPDC();  
+        };
+        pdcSugg.appendChild(li);
+    });
+
+    pdcSugg.style.display = matches.length > 0 ? "block" : "none";
+});
+
+document.addEventListener("click", (e) => {
+    if (!pdcSugg.contains(e.target) && e.target !== pdcInput) {
+        pdcSugg.style.display = "none";
+    }
+});
+function sauvegarderAdmissionPDC() {
+    if (!patientId) return;
+
+    db.collection("patients").doc(patientId).update({
+        pdcStatut: document.getElementById("pdcStatut").value || ""
+    });
+}
+document.getElementById("pdcStatut").addEventListener("change", sauvegarderAdmissionPDC);
+
 
 document.querySelector('[data-module="examens"]').addEventListener('click', async () => {
   try {
