@@ -2095,10 +2095,19 @@ document.addEventListener("click", (e) => {
 function sauvegarderAdmissionPDC() {
     if (!patientId) return;
 
-    db.collection("patients").doc(patientId).update({
-        pdcStatut: document.getElementById("pdcStatut").value || ""
-    });
+    const pdcValue = document.getElementById("pdcStatut").value || "";
+
+    db.collection("patients")
+      .doc(patientId)
+      .update({ pdcStatut: pdcValue })
+      .then(() => {
+          console.log("Statut PDC enregistré :", pdcValue);
+      })
+      .catch((err) => {
+          console.error("Erreur enregistrement PDC :", err);
+      });
 }
+
 document.getElementById("pdcStatut").addEventListener("change", sauvegarderAdmissionPDC);
 
 
@@ -2871,6 +2880,16 @@ btnValiderCode.addEventListener("click", async () => {
           hospitalisations[index].historique = hospitalisations[index].historique || [];
           hospitalisations[index].historique.push({ date: now, texte: "Hospitalisation clôturée" });
           hospitalisations[index].rapport = `Rapport d'hospitalisation pour ${data.nom} ${data.prenom} clôturé le ${now}.`;
+// 🔄 Mise à jour automatique du Statut PDC lors de la clôture
+if (patientId) {
+    db.collection("patients").doc(patientId).update({
+        pdcStatut: "Attente enregistrement"
+    }).then(() => {
+        console.log("Statut PDC mis à jour : Attente enregistrement");
+        const pdcField = document.getElementById("pdcStatut");
+        if (pdcField) pdcField.value = "Attente enregistrement"; // mise à jour affichage
+    });
+}
 
           await patientRef.update({
             hospitalisations,
