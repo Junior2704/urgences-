@@ -2116,6 +2116,40 @@ document.getElementById("pdcStatut").addEventListener("change", () => {
     console.log("Changement détecté, lancement sauvegarde");
     sauvegarderAdmissionPDC();
 });
+function ajouterBoutonEffacer(idChamp) {
+    const champ = document.getElementById(idChamp);
+    if (!champ) return;
+
+    // Crée le bouton croix
+    const btn = document.createElement("button");
+    btn.textContent = "❌";
+    btn.style.position = "absolute";
+    btn.style.right = "8px";
+    btn.style.top = "50%";
+    btn.style.transform = "translateY(-50%)";
+    btn.style.border = "none";
+    btn.style.background = "transparent";
+    btn.style.cursor = "pointer";
+    btn.style.fontSize = "14px";
+    btn.style.opacity = "0.6";
+
+    // Efface le champ au clic
+    btn.addEventListener("click", () => {
+        champ.value = "";
+        champ.dispatchEvent(new Event("change")); // déclenche la sauvegarde si tu l’utilises
+    });
+
+    // Conteneur (nécessaire pour que la croix se positionne correctement)
+    const wrapper = document.createElement("div");
+    wrapper.style.position = "relative";
+    wrapper.style.display = "inline-block";
+    wrapper.style.width = "100%";
+
+    // On place le champ et le bouton dedans
+    champ.parentNode.insertBefore(wrapper, champ);
+    wrapper.appendChild(champ);
+    wrapper.appendChild(btn);
+}
 
 document.querySelector('[data-module="examens"]').addEventListener('click', async () => {
   try {
@@ -2256,6 +2290,7 @@ async function chargerPatient(patientId) {
     document.getElementById("poids").value = data.poids || "";
     document.getElementById("taille").value = data.taille || "";
        document.getElementById("pdcStatut").value = data.pdcStatut || "";
+       ajouterBoutonEffacer("pdcStatut");
     // Allergies
 document.getElementById("allergies").value = data.allergies || "aucun";
 document.getElementById("importanceAllergies").checked = data.importanceAllergies === true;
