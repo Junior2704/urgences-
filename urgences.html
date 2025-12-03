@@ -837,7 +837,7 @@ if (patients[id].importanceAllergies === true) {
       Naissance : ${patients[id].dateNaissance || 'N/A'}<br/>
       Motif : ${hosp.motif || 'N/A'}<br/>
       Gravité : ${gravite || 'N/A'}<br/>
-	    Statut : ${hosp.pdcStatut || 'Aucun'}<br/>
+	    Statut : ${patients[id].pdcStatut || 'Aucun'}<br/>
       Circuit : ${hosp.circuit || 'Aucun'}<br/>
     `;
     pop = createPopover(content, e.clientX + 10, e.clientY + 10);
