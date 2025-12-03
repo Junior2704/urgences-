@@ -1535,8 +1535,8 @@ nav:hover .nav-item span {
     <option value="Administratif">Administratif</option>
   </select>
 </select>
-<label for="pdcStatut">🧾 Statut PDC</label>
-<input type="text" id="pdcStatut" class="text2" placeholder="Rechercher un statut PDC..." autocomplete="off" />
+<label for="pdcStatut">🧾 Statut PEC</label>
+<input type="text" id="pdcStatut" class="text2" placeholder="Rechercher un statut PEC..." autocomplete="off" />
 
 <ul id="pdcSuggestions" 
     style="background:white; border:1px solid #ccc; list-style:none; padding:5px; margin-top:2px; border-radius:6px; display:none; max-height:150px; overflow-y:auto;">
@@ -2255,6 +2255,7 @@ async function chargerPatient(patientId) {
     document.getElementById("sexe").textContent = data.sexe || "";
     document.getElementById("poids").value = data.poids || "";
     document.getElementById("taille").value = data.taille || "";
+       document.getElementById("pdcStatut").value = data.pdcStatut || "";
     // Allergies
 document.getElementById("allergies").value = data.allergies || "aucun";
 document.getElementById("importanceAllergies").checked = data.importanceAllergies === true;
