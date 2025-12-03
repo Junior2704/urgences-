@@ -85,6 +85,12 @@ window.onload = function () {
     <img id="logo" src="logo.png" alt="Logo">
     <div class="spinner-ring"></div>
   </div>
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./service-worker.js')
+    .then(() => console.log("Service Worker enregistré !"));
+}
+</script>
 
 </body>
 </html>
