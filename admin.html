@@ -349,29 +349,36 @@ import {
 
 document.getElementById("createUserBtn").addEventListener("click", async () => {
   const email = newEmail.value.trim();
-  const password = newPassword.value.trim(); // Vous pouvez mettre un mot de passe temporaire (ex: "Init123!")
+  const password = newPassword.value.trim();
   const nom = newNom.value.trim();
   const specialite = newSpecialite.value.trim();
   const lieu = newLieu.value.trim();
   const type = newType.value;
 
+  console.log("🔹 Bouton cliqué");
+  console.log("Email :", email, "Password :", password, "Nom :", nom);
+
   if (!email || !password || !nom) {
+    console.log("❌ Champs obligatoires manquants");
     afficherBulle("Veuillez remplir les champs obligatoires", "alerte");
     return;
   }
 
   try {
-    // ➕ 1. Création du compte Auth
+    console.log("➕ Création de l'utilisateur Auth en cours...");
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const newUser = userCredential.user;
+    console.log("✅ Utilisateur créé dans Auth :", newUser.uid);
 
-    // ✉ 2. Envoi email de vérification
+    console.log("✉ Envoi email de vérification...");
     await sendEmailVerification(newUser);
+    console.log("✅ Email de vérification envoyé");
 
-    // 🔑 3. Envoi d’un mail pour définir un mot de passe sécurisé
+    console.log("🔑 Envoi email pour définir mot de passe sécurisé...");
     await sendPasswordResetEmail(auth, email);
+    console.log("✅ Email de reset envoyé");
 
-    // 🗄 4. Enregistrement Firestore
+    console.log("🗄 Enregistrement Firestore...");
     await setDoc(doc(db, "medecins", newUser.uid), {
       nom,
       email,
@@ -380,14 +387,16 @@ document.getElementById("createUserBtn").addEventListener("click", async () => {
       type,
       pages: {}
     });
+    console.log("✅ Utilisateur enregistré dans Firestore");
 
     afficherBulle("Utilisateur créé ✔️ — email de validation envoyé", "administratif");
 
   } catch (err) {
-    console.error(err);
+    console.error("❌ ERREUR:", err);
     afficherBulle("Erreur : " + err.message, "alerte");
   }
 });
+
 
 // 🔁 Forcer un utilisateur à changer son mot de passe
 window.demanderChangement = async (uid) => {
