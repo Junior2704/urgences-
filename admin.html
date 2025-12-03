@@ -292,15 +292,37 @@ tbody.appendChild(tr);
     }
 
     // 🔁 Met à jour l'accès à une page pour un utilisateur
-    window.toggleAccess = async (uid, page, hasAccess) => {
-      const userRef = doc(db, "medecins", uid);
-      const userSnap = await getDocs(collection(db, "medecins"));
-      const currentUser = (await getDocs(collection(db, "medecins"))).docs.find(d => d.id === uid);
-      const data = currentUser.data();
-      const pages = data.pages || {};
-      pages[page] = hasAccess;
-      await updateDoc(userRef, { pages });
+   import { getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+window.toggleAccess = async (uid, page, hasAccess) => {
+  try {
+    const ref = doc(db, "medecins", uid);
+
+    // Récupération du document actuel
+    const snapshot = await getDoc(ref);
+    if (!snapshot.exists()) {
+      afficherBulle("❌ Utilisateur introuvable", "error");
+      return;
+    }
+
+    // Récupération des pages existantes
+    const currentPages = snapshot.data().pages || {};
+
+    // Mise à jour de LA clé
+    const updatedPages = {
+      ...currentPages,
+      [page]: hasAccess
     };
+
+    // Envoi dans Firestore
+    await updateDoc(ref, { pages: updatedPages });
+
+    afficherBulle("🔄 Accès mis à jour", "success");
+  } catch (err) {
+    console.error(err);
+    afficherBulle("❌ Erreur lors de la mise à jour", "error");
+  }
+};
 
     // ❌ Supprime un utilisateur (Firestore uniquement ici)
     window.supprimerUtilisateur = async (uid, email) => {
@@ -320,72 +342,54 @@ tbody.appendChild(tr);
 	import { createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+import {
+  createUserWithEmailAndPassword,
+  sendEmailVerification,
+  sendPasswordResetEmail,
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
 document.getElementById("createUserBtn").addEventListener("click", async () => {
-  const email = document.getElementById("newEmail").value.trim();
-  const password = document.getElementById("newPassword").value;
-  const nom = document.getElementById("newNom").value.trim();
-  const specialite = document.getElementById("newSpecialite").value.trim();
-  const lieu = document.getElementById("newLieu").value.trim();
-  const type = document.getElementById("newType").value;
-  const msg = document.getElementById("createMsg");
-  msg.style.color = "red";
-  msg.textContent = "";
+  const email = newEmail.value.trim();
+  const password = newPassword.value.trim(); // Vous pouvez mettre un mot de passe temporaire (ex: "Init123!")
+  const nom = newNom.value.trim();
+  const specialite = newSpecialite.value.trim();
+  const lieu = newLieu.value.trim();
+  const type = newType.value;
 
-  if (!email || !password || !nom || !type) {
-    msg.textContent = "⚠️ Champs obligatoires manquants.";
-    return;
-  }
-
-  if (password.length < 6) {
-    msg.textContent = "Le mot de passe doit faire au moins 6 caractères.";
+  if (!email || !password || !nom) {
+    afficherBulle("Veuillez remplir les champs obligatoires", "alerte");
     return;
   }
 
   try {
-    // Création Auth
+    // ➕ 1. Création du compte Auth
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    const user = userCredential.user;
+    const newUser = userCredential.user;
 
-    // Création du doc Firestore
-    // Création du doc Firestore
-await setDoc(doc(db, "medecins", user.uid), {
-  nom,
-  specialite,
-  lieu,
-  type,
-  email,
-  createdAt: new Date(),
-  doitChangerMDP: true, // ✅ nouvel utilisateur devra changer son mot de passe
-  pages: {
-    urgences: true,
-    accueil: true,
-    certificat_medical: false,
-    facturation: false,
-    fiche: false,
-    fiche_conseil: false,
-    gestionnaire_radiologie: false,
-    ordonnancier: false,
-    docs: false,
-    suprdocs: false,
-    parametres: false,
-    prescriptions_examens: false,
-    rapport_hospitalisation: false,
-    medsurgences: false,
-    
-    admin: false
+    // ✉ 2. Envoi email de vérification
+    await sendEmailVerification(newUser);
+
+    // 🔑 3. Envoi d’un mail pour définir un mot de passe sécurisé
+    await sendPasswordResetEmail(auth, email);
+
+    // 🗄 4. Enregistrement Firestore
+    await setDoc(doc(db, "medecins", newUser.uid), {
+      nom,
+      email,
+      specialite,
+      lieu,
+      type,
+      pages: {}
+    });
+
+    afficherBulle("Utilisateur créé ✔️ — email de validation envoyé", "administratif");
+
+  } catch (err) {
+    console.error(err);
+    afficherBulle("Erreur : " + err.message, "alerte");
   }
 });
 
-
-    msg.style.color = "green";
-    msg.textContent = "✅ Compte créé avec succès !";
-    document.querySelectorAll("#creationBox input").forEach(el => el.value = "");
-    document.getElementById("newType").value = "";
-    chargerUtilisateurs(); // rafraîchit le tableau
-  } catch (error) {
-    msg.textContent = "Erreur création compte : " + error.message;
-  }
-});
 // 🔁 Forcer un utilisateur à changer son mot de passe
 window.demanderChangement = async (uid) => {
   const confirmation = confirm("Voulez-vous forcer cet utilisateur à changer son mot de passe ?");
