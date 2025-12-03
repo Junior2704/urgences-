@@ -272,6 +272,8 @@
         <div class="field"><label>Motif</label><div class="val" id="m-motif">—</div></div>
         <div class="field"><label>Moyen</label><div class="val" id="m-moyen">—</div></div>
         <div class="field"><label>Position</label><div class="val" id="m-pos">—</div></div>
+                <div class="field"><label>Statut PEC</label><div class="val" id="m-statut">—</div></div>
+
 
         <div class="section-title">Dossier médical</div>
         <div class="field"><label>Questionnaire</label><div class="val" id="m-questionnaire">—</div></div>
@@ -415,6 +417,7 @@ const m_grav = document.getElementById('m-grav');
 const m_motif = document.getElementById('m-motif');
 const m_moyen = document.getElementById('m-moyen');
 const m_pos = document.getElementById('m-pos');
+const m_statut = document.getElementById('m-statut');
 const m_questionnaire = document.getElementById('m-questionnaire');
 const m_antecedents = document.getElementById('m-antecedents');
 const m_traitements = document.getElementById('m-traitements');
@@ -618,6 +621,7 @@ async function openModalFor(id){
     m_motif.textContent = hospi.motif || '—';
     m_moyen.textContent = hospi.moyen || '—';
     m_pos.textContent = data.position || '—';
+    m_statut.textContent = data.pdcStatut || '—';
 
     // dossier médical
     const dm = hospi.dossierMedical || {};
