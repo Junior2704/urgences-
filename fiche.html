@@ -1536,11 +1536,34 @@ nav:hover .nav-item span {
   </select>
 
 <label for="pdcStatut">🧾 Statut PEC</label>
-<input type="text" id="pdcStatut" class="text2" placeholder="Rechercher un statut PEC..."/>
 
-<ul id="pdcSuggestions" 
-    style="background:white; border:1px solid #ccc; list-style:none; padding:5px; margin-top:2px; border-radius:6px; display:none; max-height:150px; overflow-y:auto;">
-</ul>
+<div style="width:100%; position:relative;">
+  <input 
+      type="text" 
+      id="pdcStatut" 
+      class="text2" 
+      placeholder="Rechercher un statut PEC..."
+      style="width:100%;"
+  />
+
+  <ul id="pdcSuggestions"
+      style="
+          position:absolute;
+          width:100%;
+          background:white;
+          border:1px solid #ccc;
+          list-style:none;
+          padding:5px;
+          margin-top:2px;
+          border-radius:6px;
+          display:none;
+          max-height:150px;
+          overflow-y:auto;
+          z-index:999;
+      ">
+  </ul>
+</div>
+
 
   <label for="service" >🏥 Service idéal</label>
   <select id="service" class="text2"><option value="">Chargement...</option></select>
