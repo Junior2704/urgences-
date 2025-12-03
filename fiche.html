@@ -2094,7 +2094,9 @@ document.addEventListener("click", (e) => {
 });
 function sauvegarderAdmissionPDC() {
     if (!patientId) return;
-
+ console.log("Fonction sauvegarde PDC exécutée");
+    console.log("Patient ID :", patientId);
+    console.log("Valeur PDC :", document.getElementById("pdcStatut").value);
     const pdcValue = document.getElementById("pdcStatut").value || "";
 
     db.collection("patients")
@@ -2110,6 +2112,10 @@ function sauvegarderAdmissionPDC() {
 
 document.getElementById("pdcStatut").addEventListener("change", sauvegarderAdmissionPDC);
 
+document.getElementById("pdcStatut").addEventListener("change", () => {
+    console.log("Changement détecté, lancement sauvegarde");
+    sauvegarderAdmissionPDC();
+});
 
 document.querySelector('[data-module="examens"]').addEventListener('click', async () => {
   try {
