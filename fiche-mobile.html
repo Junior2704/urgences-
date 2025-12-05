@@ -1068,10 +1068,20 @@ if (window.medecinNom){
 
 // --- LOGOUT ---
 function logout(){
-  if(confirm("Voulez-vous vous déconnecter ?")){
-    firebase.auth().signOut().then(()=> window.location.href="accueil.html");
+  if (confirm("Voulez-vous vous déconnecter ?")) {
+    import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js").then(module => {
+      const { getAuth, signOut } = module;
+      const auth = getAuth();
+
+      signOut(auth).then(() => {
+        window.location.href = "index.html";
+      }).catch(err => {
+        alert("Erreur lors de la déconnexion : " + err.message);
+      });
+    });
   }
 }
+
 </script>
 
 </body>
