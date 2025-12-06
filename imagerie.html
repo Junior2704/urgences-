@@ -1,26 +1,48 @@
-<script>
-async function generateMedicalImage(type, membre, lesion){
-    const prompt = `${type} ${membre}, ${lesion ? "avec lésion" : "sans lésion"}, imagerie médicale réaliste`;
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Imagerie Médicale</title>
+</head>
+<body>
 
-    const response = await fetch(
-        "https://api-inference.huggingface.co/models/Shakker-Labs/MedFusion",
-        {
-            method: "POST",
-            headers: {
-                "Authorization": "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",
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ inputs: prompt })
-        }
-    );
+<h1>Générateur d'images médicales</h1>
 
-    const blob = await response.blob();
-    const url = URL.createObjectURL(blob);
-
-    document.getElementById("result").src = url;
-}
-
-generateMedicalImage("rdaio", "bras", "fracture");
-</script>
+<label>Type : <input id="type" value="radiographie"></label><br>
+<label>Membre : <input id="membre" value="membre supérieur droit"></label><br>
+<label>Lésion : 
+    <select id="lesion">
+        <option value="true">Oui</option>
+        <option value="false" selected>Non</option>
+    </select>
+</label><br>
+<button onclick="generate()">Générer</button>
 
 <img id="result" width="400">
+
+<script>
+async function generate() {
+    const type = document.getElementById("type").value;
+    const membre = document.getElementById("membre").value;
+    const lesion = document.getElementById("lesion").value === "true";
+    const prompt = `${type} ${membre}, ${lesion ? "avec lésion" : "sans lésion"}, imagerie médicale réaliste`;
+
+    const response = await fetch("https://api.replicate.com/v1/predictions", {
+        method: "POST",
+        headers: {
+            "Authorization": "r8_QTpWuolMjv1gIWqSHQmrNEHJeHegthg0tOtQD",
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            version: "7de7d50f6a434b8c7c3b9b3a9c5f2b1f7d1d2a5e9c4b3f7a8c7d1f0e", // exemple Stable Diffusion
+            input: { prompt }
+        })
+    });
+
+    const data = await response.json();
+    document.getElementById("result").src = data.output[0];
+}
+</script>
+
+</body>
+</html>
