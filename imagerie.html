@@ -27,17 +27,12 @@ async function generate() {
     const lesion = document.getElementById("lesion").value === "true";
     const prompt = `${type} ${membre}, ${lesion ? "avec lésion" : "sans lésion"}, imagerie médicale réaliste`;
 
-    const response = await fetch("https://api.replicate.com/v1/predictions", {
-        method: "POST",
-        headers: {
-            "Authorization": "r8_QTpWuolMjv1gIWqSHQmrNEHJeHegthg0tOtQD",
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            version: "7de7d50f6a434b8c7c3b9b3a9c5f2b1f7d1d2a5e9c4b3f7a8c7d1f0e", // exemple Stable Diffusion
-            input: { prompt }
-        })
-    });
+  const response = await fetch("https://delicate-feather-a7bd.louisdabadie9.workers.dev/", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ prompt })
+});
+
 
     const data = await response.json();
     document.getElementById("result").src = data.output[0];
