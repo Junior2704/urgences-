@@ -27,16 +27,21 @@ async function generate() {
     const lesion = document.getElementById("lesion").value === "true";
     const prompt = `${type} ${membre}, ${lesion ? "avec lésion" : "sans lésion"}, imagerie médicale réaliste`;
 
-  const response = await fetch("https://delicate-feather-a7bd.louisdabadie9.workers.dev/", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ prompt })
-});
-
+    const response = await fetch("https://delicate-feather-a7bd.louisdabadie9.workers.dev/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt })
+    });
 
     const data = await response.json();
-document.getElementById("result").src = data.image;
+
+    console.log("Réponse worker :", data);
+
+    if (data.image) {
+        document.getElementById("result").src = data.image;
+    }
 }
+
 </script>
 
 </body>
