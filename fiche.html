@@ -1615,27 +1615,28 @@ nav:hover .nav-item span {
   <label>👨‍⚕️ Médecin référent</label>
   <input type="text" id="medecinReferent" placeholder="Rechercher un médecin..." autocomplete="off">
   <ul id="medecinSuggestions" class="suggestions"></ul>
-  <div id="alerteMedecin" class="alerte-orange" style="display:none;">
-    ⚠️ La personne sélectionnée n’est pas médecin
-  </div>
+  <div id="alerteMedecin" style="color: orange; display: none;"></div>
 </div>
 
 <div class="field-group">
   <label>👩‍⚕️ Infirmier référent</label>
   <input type="text" id="infirmierReferent" placeholder="Rechercher un infirmier..." autocomplete="off">
   <ul id="infirmierSuggestions" class="suggestions"></ul>
+  <div id="alerteInfirmier" style="color: orange; display: none;"></div>
 </div>
 
 <div class="field-group">
   <label>🧑‍⚕️ Interne</label>
   <input type="text" id="interneReferent" placeholder="Rechercher un interne..." autocomplete="off">
   <ul id="interneSuggestions" class="suggestions"></ul>
+  <div id="alerteInterne" style="color: orange; display: none;"></div>
 </div>
 
 <div class="field-group">
   <label>🎓 Externe</label>
   <input type="text" id="externeReferent" placeholder="Rechercher un externe..." autocomplete="off">
   <ul id="externeSuggestions" class="suggestions"></ul>
+  <div id="alerteExterne" style="color: orange; display: none;"></div>
 </div>
 
     </section>
@@ -3983,6 +3984,11 @@ async function chargerEquipeReferente() {
 
   if (equipe.externeReferent)
     document.getElementById("externeReferent").value = equipe.externeReferent.nom;
+checkType("medecinReferent", "doc", "medecinReferent", "alerteMedecin", equipe);
+checkType("infirmierReferent", "infirmier", "infirmierReferent", "alerteInfirmier", equipe);
+checkType("interneReferent", "Int", "interneReferent", "alerteInterne", equipe);
+checkType("externeReferent", "Ext", "externeReferent", "alerteExterne", equipe);
+
 }
 
 // ===============================
@@ -4077,6 +4083,25 @@ setupUserSearchEquipe("externeReferent", "externeSuggestions", "Ext", null, "ext
 // Charger l'équipe au chargement de la page
 // ===============================
 chargerEquipeReferente();
+function checkType(roleKey, expectedType, inputId, alertId, equipe) {
+  const alertBox = document.getElementById(alertId);
+  const input = document.getElementById(inputId);
+
+  if (equipe[roleKey]) {
+    input.value = equipe[roleKey].nom || "";
+    if (expectedType && equipe[roleKey].type !== expectedType) {
+      alertBox.textContent = `⚠️ Un "${equipe[roleKey].type}" a été enregistré à la place d'un "${expectedType}" `;
+      alertBox.style.display = "block";
+    } else {
+      alertBox.style.display = "none";
+    }
+  } else {
+    input.value = "";
+    alertBox.style.display = "none";
+  }
+}
+
+
 
 
 async function getHospitalisationEnCours() {
