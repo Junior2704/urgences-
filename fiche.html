@@ -1324,6 +1324,37 @@ nav:hover {
 nav:hover .nav-item span {
   opacity: 1;
 }
+
+.suggestions {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border: 1px solid #ccc;
+  background: white;
+  max-height: 150px;
+  overflow-y: auto;
+  border-radius: 6px;
+  display: none;
+  position: absolute;
+  z-index: 1000;
+  width: 100%;
+}
+
+.suggestions li {
+  padding: 8px;
+  cursor: pointer;
+}
+
+.suggestions li:hover {
+  background: #eef6ff;
+}
+
+.alerte-orange {
+  margin-top: 5px;
+  color: #e65100;
+  font-size: 0.9em;
+}
+
   </style>
 
 
@@ -1578,6 +1609,34 @@ nav:hover .nav-item span {
 
 </select>
  
+<h4>👥 Équipe référente</h4>
+
+<div class="field-group">
+  <label>👨‍⚕️ Médecin référent</label>
+  <input type="text" id="medecinReferent" placeholder="Rechercher un médecin..." autocomplete="off">
+  <ul id="medecinSuggestions" class="suggestions"></ul>
+  <div id="alerteMedecin" class="alerte-orange" style="display:none;">
+    ⚠️ La personne sélectionnée n’est pas médecin
+  </div>
+</div>
+
+<div class="field-group">
+  <label>👩‍⚕️ Infirmier référent</label>
+  <input type="text" id="infirmierReferent" placeholder="Rechercher un infirmier..." autocomplete="off">
+  <ul id="infirmierSuggestions" class="suggestions"></ul>
+</div>
+
+<div class="field-group">
+  <label>🧑‍⚕️ Interne</label>
+  <input type="text" id="interneReferent" placeholder="Rechercher un interne..." autocomplete="off">
+  <ul id="interneSuggestions" class="suggestions"></ul>
+</div>
+
+<div class="field-group">
+  <label>🎓 Externe</label>
+  <input type="text" id="externeReferent" placeholder="Rechercher un externe..." autocomplete="off">
+  <ul id="externeSuggestions" class="suggestions"></ul>
+</div>
 
     </section>
 <section id="panel-dossier" class="panel" style="display:none;">
@@ -3878,6 +3937,102 @@ window.openDocumentFromMenu = function(tabId, file) {
     document.getElementById("docsFrame").src = url;
 };
 
+// ===============================
+// 👥 ÉQUIPE D'HOSPITALISATION
+// ===============================
+const equipeHospitalisation = {};
+setupUserSearch(
+  "medecinReferent",
+  "medecinSuggestions",
+  "doc",
+  "alerteMedecin",
+  "medecinReferent"
+);
+
+setupUserSearch(
+  "infirmierReferent",
+  "infirmierSuggestions",
+  "infirmier",
+  null,
+  "infirmierReferent"
+);
+
+setupUserSearch(
+  "interneReferent",
+  "interneSuggestions",
+  "Int",
+  null,
+  "interneReferent"
+);
+
+setupUserSearch(
+  "externeReferent",
+  "externeSuggestions",
+  "Ext",
+  null,
+  "externeReferent"
+);
+async function setupUserSearch(inputId, listId, expectedType, alertId, roleKey) {
+  const input = document.getElementById(inputId);
+  const list = document.getElementById(listId);
+  const alertBox = alertId ? document.getElementById(alertId) : null;
+
+  input.addEventListener("input", async () => {
+    const val = input.value.toLowerCase();
+    list.innerHTML = "";
+    list.style.display = "none";
+    if (alertBox) alertBox.style.display = "none";
+
+    if (val.length < 2) return;
+
+    const snap = await db.collection("medecins").get();
+
+    snap.forEach(doc => {
+      const u = doc.data();
+      const fullName = `${u.prenom} ${u.nom}`.toLowerCase();
+
+      if (fullName.includes(val)) {
+        const li = document.createElement("li");
+        li.textContent = `${u.prenom} ${u.nom} (${u.type})`;
+
+        li.onclick = async () => {
+          input.value = `${u.prenom} ${u.nom}`;
+          list.style.display = "none";
+
+          // ⚠️ Alerte type
+          if (expectedType && u.type !== expectedType && alertBox) {
+            alertBox.style.display = "block";
+          }
+
+          // 📦 Objet enregistré
+          const dataToSave = {
+            id: doc.id,
+            nom: u.nom,
+            prenom: u.prenom,
+            type: u.type,
+            date: firebase.firestore.FieldValue.serverTimestamp()
+          };
+
+          // 🔥 ENREGISTREMENT AUTOMATIQUE
+          await db
+            .collection("patients")
+            .doc(idPatient)
+            .collection("hospitalisations")
+            .doc(idHospitalisation)
+            .set({
+              equipe: {
+                [roleKey]: dataToSave
+              }
+            }, { merge: true });
+
+        };
+
+        list.appendChild(li);
+        list.style.display = "block";
+      }
+    });
+  });
+}
 
 // Ligne de test de fin
 console.log("Script terminé correctement ✅");
