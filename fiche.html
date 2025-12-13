@@ -3942,8 +3942,22 @@ window.openDocumentFromMenu = function(tabId, file) {
 // ===============================
 // 👥 ÉQUIPE D'HOSPITALISATION
 // ===============================
-const equipeHospitalisation = {};
-setupUserSearch(
+// 🟦 ID patient UNIQUEMENT POUR L'ÉQUIPE
+const patientIdEquipe = new URLSearchParams(window.location.search).get("id");
+async function getHospitalisationEnCoursEquipe() {
+  const snap = await db
+    .collection("patients")
+    .doc(patientIdEquipe)
+    .collection("hospitalisations")
+    .where("cloturee", "==", false)
+    .limit(1)
+    .get();
+
+  if (snap.empty) return null;
+  return snap.docs[0].id;
+}
+
+setupUserSearchEquipe(
   "medecinReferent",
   "medecinSuggestions",
   "doc",
@@ -3951,7 +3965,7 @@ setupUserSearch(
   "medecinReferent"
 );
 
-setupUserSearch(
+setupUserSearchEquipe(
   "infirmierReferent",
   "infirmierSuggestions",
   "infirmier",
@@ -3959,7 +3973,7 @@ setupUserSearch(
   "infirmierReferent"
 );
 
-setupUserSearch(
+setupUserSearchEquipe(
   "interneReferent",
   "interneSuggestions",
   "Int",
@@ -3967,25 +3981,21 @@ setupUserSearch(
   "interneReferent"
 );
 
-setupUserSearch(
+setupUserSearchEquipe(
   "externeReferent",
   "externeSuggestions",
   "Ext",
   null,
   "externeReferent"
 );
-async function setupUserSearch(inputId, listId, expectedType, alertId, roleKey) {
+
+function setupUserSearchEquipe(inputId, listId, expectedType, alertId, roleKey) {
   const input = document.getElementById(inputId);
   const list = document.getElementById(listId);
   const alertBox = alertId ? document.getElementById(alertId) : null;
 
-  // 🔒 sécurité : forcer string
-  function safeString(val) {
-    return typeof val === "string" ? val : "";
-  }
-
   input.addEventListener("input", async () => {
-    const val = safeString(input.value).toLowerCase();
+    const val = String(input.value || "").toLowerCase();
 
     list.innerHTML = "";
     list.style.display = "none";
@@ -3995,49 +4005,76 @@ async function setupUserSearch(inputId, listId, expectedType, alertId, roleKey) 
 
     const snap = await db.collection("medecins").get();
 
-    snap.forEach(doc => {
-      const u = doc.data();
+    snap.forEach(userDoc => {
+      const u = userDoc.data();
       const fullName = `${u.nom}`.toLowerCase();
 
-      if (fullName.includes(val)) {
-        const li = document.createElement("li");
-        li.textContent = `${u.nom} (${u.type})`;
+      if (!fullName.includes(val)) return;
 
-        li.onclick = async () => {
-          // ✅ TOUJOURS UNE STRING
-          input.value = `${u.nom}`;
-          list.style.display = "none";
+      const li = document.createElement("li");
+      li.textContent = `${u.nom} (${u.type})`;
 
-          if (expectedType && u.type !== expectedType && alertBox) {
-            alertBox.style.display = "block";
-          }
+      li.onclick = async () => {
+        input.value = `${u.nom}`;
+        list.style.display = "none";
 
-          const hospiId = await getHospitalisationEnCours();
-          if (!hospiId) return;
+        if (expectedType && u.type !== expectedType && alertBox) {
+          alertBox.style.display = "block";
+        }
 
-          await db
-            .collection("patients")
-            .doc(idPatient)
-            .collection("hospitalisations")
-            .doc(hospiId)
-            .set({
-              equipe: {
-                [roleKey]: {
-                  id: doc.id,
-                  nom: u.nom,
-                  prenom: u.prenom,
-                  type: u.type,
-                  date: firebase.firestore.FieldValue.serverTimestamp()
-                }
+        const hospiId = await getHospitalisationEnCoursEquipe();
+        if (!hospiId) return;
+
+        await db
+          .collection("patients")
+          .doc(patientIdEquipe)
+          .collection("hospitalisations")
+          .doc(hospiId)
+          .set({
+            equipe: {
+              [roleKey]: {
+                id: userDoc.id,
+                nom: u.nom,
+                type: u.type,
+                date: firebase.firestore.FieldValue.serverTimestamp()
               }
-            }, { merge: true });
-        };
+            }
+          }, { merge: true });
+      };
 
-        list.appendChild(li);
-        list.style.display = "block";
-      }
+      list.appendChild(li);
+      list.style.display = "block";
     });
   });
+}
+
+
+async function chargerEquipeReferente() {
+  const hospiId = await getHospitalisationEnCoursEquipe();
+  if (!hospiId) return;
+
+  const snap = await db
+    .collection("patients")
+    .doc(patientIdEquipe)
+    .collection("hospitalisations")
+    .doc(hospiId)
+    .get();
+
+  if (!snap.exists) return;
+
+  const equipe = snap.data().equipe || {};
+
+  if (equipe.medecinReferent)
+    medecinReferent.value = `${equipe.medecinReferent.nom}`;
+
+  if (equipe.infirmierReferent)
+    infirmierReferent.value = `${equipe.infirmierReferent.nom}`;
+
+  if (equipe.interneReferent)
+    interneReferent.value = `${equipe.interneReferent.nom}`;
+
+  if (equipe.externeReferent)
+    externeReferent.value = `${equipe.externeReferent.nom}`;
 }
 
 async function getHospitalisationEnCours() {
