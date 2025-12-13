@@ -3942,57 +3942,27 @@ window.openDocumentFromMenu = function(tabId, file) {
 // ===============================
 // 👥 ÉQUIPE D'HOSPITALISATION
 // ===============================
-// 🟦 ID patient UNIQUEMENT POUR L'ÉQUIPE
-const patientIdEquipe = new URLSearchParams(window.location.search).get("id");
+
+// ⚡ Référence au patient courant
+const patientRef = db.collection("patients").doc(patientIdEquipe);
+
+// ===============================
+// Fonction pour récupérer l'hospitalisation en cours
+// ===============================
 async function getHospitalisationEnCoursEquipe() {
-  const ref = db
-    .collection("patients")
-    .doc(patientIdEquipe)
-    .collection("hospitalisations");
+  const snap = await patientRef.get();
+  if (!snap.exists) return null;
 
-  const snap = await ref
-    .orderBy("dateAdmission", "desc")
-    .limit(1)
-    .get();
+  const data = snap.data();
+  const hosp = data.hospitalisations?.[data.hospitalisationIndex];
+  if (!hosp) return null;
 
-  if (snap.empty) return null;
-
-  return snap.docs[0].id;
+  return hosp.id || hosp.key || null; // selon ton modèle, id ou key
 }
 
-
-setupUserSearchEquipe(
-  "medecinReferent",
-  "medecinSuggestions",
-  "doc",
-  "alerteMedecin",
-  "medecinReferent"
-);
-
-setupUserSearchEquipe(
-  "infirmierReferent",
-  "infirmierSuggestions",
-  "infirmier",
-  null,
-  "infirmierReferent"
-);
-
-setupUserSearchEquipe(
-  "interneReferent",
-  "interneSuggestions",
-  "Int",
-  null,
-  "interneReferent"
-);
-
-setupUserSearchEquipe(
-  "externeReferent",
-  "externeSuggestions",
-  "Ext",
-  null,
-  "externeReferent"
-);
-
+// ===============================
+// Fonction pour configurer la recherche et sélection d'utilisateur
+// ===============================
 function setupUserSearchEquipe(inputId, listId, expectedType, alertId, roleKey) {
   const input = document.getElementById(inputId);
   const list = document.getElementById(listId);
@@ -4034,20 +4004,28 @@ function setupUserSearchEquipe(inputId, listId, expectedType, alertId, roleKey) 
         console.log("🏥 hospitalisation utilisée :", hospiId);
         console.log("💾 enregistrement équipe :", roleKey);
 
-        await db
-          .collection("patients")
-          .doc(patientIdEquipe)
-          .collection("hospitalisations")
-          .doc(hospiId)
-          .update({
-            [`equipe.${roleKey}`]: {
-              id: userDoc.id,
-              nom: u.nom,
-              prenom: u.prenom,
-              type: u.type,
-              date: firebase.firestore.FieldValue.serverTimestamp()
-            }
-          });
+        try {
+          await patientRef
+            .collection("hospitalisations")
+            .doc(hospiId)
+            .set({
+              equipe: {
+                [roleKey]: {
+                  id: userDoc.id,
+                  nom: u.nom,
+                  prenom: u.prenom,
+                  type: u.type,
+                  date: firebase.firestore.FieldValue.serverTimestamp()
+                }
+              }
+            }, { merge: true });
+          console.log("✅ Enregistrement équipe réussi !");
+        } catch (e) {
+          console.error("❌ Erreur lors de l'enregistrement :", e);
+        }
+
+        // Recharge immédiatement les inputs pour afficher l'équipe
+        await chargerEquipeReferente();
       };
 
       list.appendChild(li);
@@ -4056,35 +4034,42 @@ function setupUserSearchEquipe(inputId, listId, expectedType, alertId, roleKey) 
   });
 }
 
-
-
+// ===============================
+// Fonction pour charger l'équipe depuis Firestore
+// ===============================
 async function chargerEquipeReferente() {
   console.log("📥 lecture équipe référente");
-  const hospiId = await getHospitalisationEnCoursEquipe();
-  if (!hospiId) return;
-  const snap = await db
-    .collection("patients")
-    .doc(patientIdEquipe)
-    .collection("hospitalisations")
-    .doc(hospiId)
-    .get();
 
+  const snap = await patientRef.get();
   if (!snap.exists) return;
 
-  const equipe = snap.data().equipe || {};
-console.log("👥 équipe trouvée :", equipe);
+  const data = snap.data();
+  const hosp = data.hospitalisations?.[data.hospitalisationIndex];
+  if (!hosp) return;
+
+  const equipe = hosp.equipe || {};
+  console.log("👥 équipe trouvée :", equipe);
+
   if (equipe.medecinReferent)
-    medecinReferent.value = `${equipe.medecinReferent.nom}`;
+    document.getElementById("medecinReferent").value = `${equipe.medecinReferent.nom}`;
 
   if (equipe.infirmierReferent)
-    infirmierReferent.value = `${equipe.infirmierReferent.nom}`;
+    document.getElementById("infirmierReferent").value = `${equipe.infirmierReferent.nom}`;
 
   if (equipe.interneReferent)
-    interneReferent.value = `${equipe.interneReferent.nom}`;
+    document.getElementById("interneReferent").value = `${equipe.interneReferent.nom}`;
 
   if (equipe.externeReferent)
-    externeReferent.value = `${equipe.externeReferent.nom}`;
+    document.getElementById("externeReferent").value = `${equipe.externeReferent.nom}`;
 }
+
+// ===============================
+// Initialisation des recherches pour chaque rôle
+// ===============================
+setupUserSearchEquipe("medecinReferent", "medecinSuggestions", "doc", "alerteMedecin", "medecinReferent");
+setupUserSearchEquipe("infirmierReferent", "infirmierSuggestions", "infirmier", null, "infirmierReferent");
+setupUserSearchEquipe("interneReferent", "interneSuggestions", "Int", null, "interneReferent");
+setupUserSearchEquipe("externeReferent", "externeSuggestions", "Ext", null, "externeReferent");
 
 async function getHospitalisationEnCours() {
   const snap = await db
@@ -4100,41 +4085,7 @@ console.log("snap empty ?", snap.empty);
 if (!snap.empty) console.log("Hospitalisation trouvée :", snap.docs[0].id);
   return snap.docs[0].id;
 }
-async function chargerEquipeHospitalisation() {
-  const hospiId = await getHospitalisationEnCours();
-  if (!hospiId) return;
 
-  const docHospi = await db
-    .collection("patients")
-    .doc(idPatient)
-    .collection("hospitalisations")
-    .doc(hospiId)
-    .get();
-
-  if (!docHospi.exists) return;
-
-  const equipe = docHospi.data().equipe || {};
-
-  if (equipe.medecinReferent) {
-    document.getElementById("medecinReferent").value =
-      `${equipe.medecinReferent.nom}`;
-  }
-
-  if (equipe.infirmierReferent) {
-    document.getElementById("infirmierReferent").value =
-      `${equipe.infirmierReferent.nom}`;
-  }
-
-  if (equipe.interneReferent) {
-    document.getElementById("interneReferent").value =
-      `${equipe.interneReferent.nom}`;
-  }
-
-  if (equipe.externeReferent) {
-    document.getElementById("externeReferent").value =
-      `${equipe.externeReferent.nom}`;
-  }
-}
 
 
 // Ligne de test de fin
