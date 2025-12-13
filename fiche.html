@@ -3989,49 +3989,62 @@ async function setupUserSearch(inputId, listId, expectedType, alertId, roleKey) 
 
     snap.forEach(doc => {
       const u = doc.data();
-      const fullName = `${u.prenom} ${u.nom}`.toLowerCase();
+      const fullName = `${u.nom}`.toLowerCase();
 
       if (fullName.includes(val)) {
         const li = document.createElement("li");
-        li.textContent = `${u.prenom} ${u.nom} (${u.type})`;
+        li.textContent = `${u.nom} (${u.type})`;
 
-        li.onclick = async () => {
-          input.value = `${u.prenom} ${u.nom}`;
-          list.style.display = "none";
+       li.onclick = async () => {
+  input.value = `${u.prenom} ${u.nom}`;
+  list.style.display = "none";
 
-          // ⚠️ Alerte type
-          if (expectedType && u.type !== expectedType && alertBox) {
-            alertBox.style.display = "block";
-          }
+  if (expectedType && u.type !== expectedType && alertBox) {
+    alertBox.style.display = "block";
+  }
 
-          // 📦 Objet enregistré
-          const dataToSave = {
-            id: doc.id,
-            nom: u.nom,
-            prenom: u.prenom,
-            type: u.type,
-            date: firebase.firestore.FieldValue.serverTimestamp()
-          };
+  const hospiId = await getHospitalisationEnCours();
+  if (!hospiId) {
+    alert("Aucune hospitalisation active");
+    return;
+  }
 
-          // 🔥 ENREGISTREMENT AUTOMATIQUE
-          await db
-            .collection("patients")
-            .doc(idPatient)
-            .collection("hospitalisations")
-            .doc(idHospitalisation)
-            .set({
-              equipe: {
-                [roleKey]: dataToSave
-              }
-            }, { merge: true });
-
-        };
+  await db
+    .collection("patients")
+    .doc(idPatient)
+    .collection("hospitalisations")
+    .doc(hospiId)
+    .set({
+      equipe: {
+        [roleKey]: {
+          id: doc.id,
+          nom: u.nom,
+          prenom: u.prenom,
+          type: u.type,
+          date: firebase.firestore.FieldValue.serverTimestamp()
+        }
+      }
+    }, { merge: true });
+};
 
         list.appendChild(li);
         list.style.display = "block";
       }
     });
   });
+}
+async function getHospitalisationEnCours() {
+  const snap = await db
+    .collection("patients")
+    .doc(idPatient)
+    .collection("hospitalisations")
+    .where("cloturee", "==", false)
+    .limit(1)
+    .get();
+
+  if (snap.empty) return null;
+
+  return snap.docs[0].id;
 }
 
 // Ligne de test de fin
