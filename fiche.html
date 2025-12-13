@@ -3944,13 +3944,13 @@ window.openDocumentFromMenu = function(tabId, file) {
 // ===============================
 
 // ⚡ Référence au patient courant
-const patientRef = db.collection("patients").doc(patientIdEquipe);
+const patientRefEquipe = db.collection("patients").doc(patientIdEquipe);
 
 // ===============================
 // Fonction pour récupérer l'hospitalisation en cours
 // ===============================
 async function getHospitalisationEnCoursEquipe() {
-  const snap = await patientRef.get();
+  const snap = await patientRefEquipe.get();
   if (!snap.exists) return null;
 
   const data = snap.data();
@@ -4005,7 +4005,7 @@ function setupUserSearchEquipe(inputId, listId, expectedType, alertId, roleKey) 
         console.log("💾 enregistrement équipe :", roleKey);
 
         try {
-          await patientRef
+          await patientRefEquipe
             .collection("hospitalisations")
             .doc(hospiId)
             .set({
@@ -4040,7 +4040,7 @@ function setupUserSearchEquipe(inputId, listId, expectedType, alertId, roleKey) 
 async function chargerEquipeReferente() {
   console.log("📥 lecture équipe référente");
 
-  const snap = await patientRef.get();
+  const snap = await patientRefEquipe.get();
   if (!snap.exists) return;
 
   const data = snap.data();
