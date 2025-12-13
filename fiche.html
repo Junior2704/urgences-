@@ -2442,8 +2442,6 @@ document.getElementById("patientName").textContent =
     if (!hospiSnap.empty) {
       const hospiDoc = hospiSnap.docs[0];   // dernier séjour
       // --- Charger actes & examens depuis les sous-collections ---
-      await chargerEquipeReferente();
-
       await chargerActes();
       await chargerExamens(patientId, hospiDoc.id);
     }
@@ -2451,6 +2449,8 @@ document.getElementById("patientName").textContent =
     // Services et Réalisateurs
     chargerServices();
     chargerRealisateurs();
+      await chargerEquipeReferente();
+    
 	 
 
   } catch (err) {
