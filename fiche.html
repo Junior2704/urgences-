@@ -2442,6 +2442,8 @@ document.getElementById("patientName").textContent =
     if (!hospiSnap.empty) {
       const hospiDoc = hospiSnap.docs[0];   // dernier séjour
       // --- Charger actes & examens depuis les sous-collections ---
+      await chargerEquipeHospitalisation();
+
       await chargerActes();
       await chargerExamens(patientId, hospiDoc.id);
     }
@@ -4046,6 +4048,42 @@ async function getHospitalisationEnCours() {
 
   return snap.docs[0].id;
 }
+async function chargerEquipeHospitalisation() {
+  const hospiId = await getHospitalisationEnCours();
+  if (!hospiId) return;
+
+  const docHospi = await db
+    .collection("patients")
+    .doc(idPatient)
+    .collection("hospitalisations")
+    .doc(hospiId)
+    .get();
+
+  if (!docHospi.exists) return;
+
+  const equipe = docHospi.data().equipe || {};
+
+  if (equipe.medecinReferent) {
+    document.getElementById("medecinReferent").value =
+      `${equipe.medecinReferent.prenom} ${equipe.medecinReferent.nom}`;
+  }
+
+  if (equipe.infirmierReferent) {
+    document.getElementById("infirmierReferent").value =
+      `${equipe.infirmierReferent.prenom} ${equipe.infirmierReferent.nom}`;
+  }
+
+  if (equipe.interneReferent) {
+    document.getElementById("interneReferent").value =
+      `${equipe.interneReferent.prenom} ${equipe.interneReferent.nom}`;
+  }
+
+  if (equipe.externeReferent) {
+    document.getElementById("externeReferent").value =
+      `${equipe.externeReferent.prenom} ${equipe.externeReferent.nom}`;
+  }
+}
+
 
 // Ligne de test de fin
 console.log("Script terminé correctement ✅");
