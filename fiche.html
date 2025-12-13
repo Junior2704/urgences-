@@ -1614,6 +1614,7 @@ nav:hover .nav-item span {
 <div class="field-group">
   <label>👨‍⚕️ Médecin référent</label>
   <input type="text" id="medecinReferent" placeholder="Rechercher un médecin..." autocomplete="off">
+    <button type="button" class="clear-btn" id="clearMedecin">✖</button>
   <ul id="medecinSuggestions" class="suggestions"></ul>
   <div id="alerteMedecin" style="color: orange; display: none;"></div>
 </div>
@@ -1621,6 +1622,7 @@ nav:hover .nav-item span {
 <div class="field-group">
   <label>👩‍⚕️ Infirmier référent</label>
   <input type="text" id="infirmierReferent" placeholder="Rechercher un infirmier..." autocomplete="off">
+    <button type="button" class="clear-btn" id="clearInfirmier">✖</button>
   <ul id="infirmierSuggestions" class="suggestions"></ul>
   <div id="alerteInfirmier" style="color: orange; display: none;"></div>
 </div>
@@ -1628,13 +1630,16 @@ nav:hover .nav-item span {
 <div class="field-group">
   <label>🧑‍⚕️ Interne</label>
   <input type="text" id="interneReferent" placeholder="Rechercher un interne..." autocomplete="off">
+     <button type="button" class="clear-btn" id="clearInterne">✖</button>
   <ul id="interneSuggestions" class="suggestions"></ul>
+
   <div id="alerteInterne" style="color: orange; display: none;"></div>
 </div>
 
 <div class="field-group">
   <label>🎓 Externe</label>
   <input type="text" id="externeReferent" placeholder="Rechercher un externe..." autocomplete="off">
+     <button type="button" class="clear-btn" id="clearInterne">✖</button>
   <ul id="externeSuggestions" class="suggestions"></ul>
   <div id="alerteExterne" style="color: orange; display: none;"></div>
 </div>
@@ -4100,6 +4105,39 @@ function checkType(roleKey, expectedType, inputId, alertId, equipe) {
     alertBox.style.display = "none";
   }
 }
+function setupClearButton(inputId, clearBtnId, roleKey) {
+  const input = document.getElementById(inputId);
+  const btn = document.getElementById(clearBtnId);
+
+  btn.addEventListener("click", async () => {
+    input.value = ""; // vide le champ
+    const snapPatient = await patientRefEquipe.get();
+    const data = snapPatient.data();
+    if (!data || !data.hospitalisations?.[data.hospitalisationIndex]) return;
+    const hospIndex = data.hospitalisationIndex;
+
+    // Supprime le rôle dans Firestore
+    const updateObj = {};
+    updateObj[`hospitalisations.${hospIndex}.equipe.${roleKey}`] = null;
+
+    try {
+      await patientRefEquipe.update(updateObj);
+      console.log(`✅ ${roleKey} supprimé de Firestore`);
+    } catch (e) {
+      console.error(`❌ Erreur suppression ${roleKey} :`, e);
+    }
+
+    // Cache le message d'alerte
+    const alertBox = document.getElementById(`alerte${roleKey.charAt(0).toUpperCase() + roleKey.slice(1)}`);
+    if (alertBox) alertBox.style.display = "none";
+  });
+}
+
+// Initialisation des boutons croix
+setupClearButton("medecinReferent", "clearMedecin", "medecinReferent");
+setupClearButton("infirmierReferent", "clearInfirmier", "infirmierReferent");
+setupClearButton("interneReferent", "clearInterne", "interneReferent");
+setupClearButton("externeReferent", "clearExterne", "externeReferent");
 
 
 
