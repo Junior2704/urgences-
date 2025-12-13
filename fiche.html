@@ -3979,8 +3979,14 @@ async function setupUserSearch(inputId, listId, expectedType, alertId, roleKey) 
   const list = document.getElementById(listId);
   const alertBox = alertId ? document.getElementById(alertId) : null;
 
+  // 🔒 sécurité : forcer string
+  function safeString(val) {
+    return typeof val === "string" ? val : "";
+  }
+
   input.addEventListener("input", async () => {
-    const val = input.value.toLowerCase();
+    const val = safeString(input.value).toLowerCase();
+
     list.innerHTML = "";
     list.style.display = "none";
     if (alertBox) alertBox.style.display = "none";
@@ -3997,37 +4003,35 @@ async function setupUserSearch(inputId, listId, expectedType, alertId, roleKey) 
         const li = document.createElement("li");
         li.textContent = `${u.nom} (${u.type})`;
 
-       li.onclick = async () => {
-  input.value = `${u.nom}`;
-  list.style.display = "none";
+        li.onclick = async () => {
+          // ✅ TOUJOURS UNE STRING
+          input.value = `${u.nom}`;
+          list.style.display = "none";
 
-  if (expectedType && u.type !== expectedType && alertBox) {
-    alertBox.style.display = "block";
-  }
+          if (expectedType && u.type !== expectedType && alertBox) {
+            alertBox.style.display = "block";
+          }
 
-  const hospiId = await getHospitalisationEnCours();
-  if (!hospiId) {
-    alert("Aucune hospitalisation active");
-    return;
-  }
+          const hospiId = await getHospitalisationEnCours();
+          if (!hospiId) return;
 
-  await db
-    .collection("patients")
-    .doc(idPatient)
-    .collection("hospitalisations")
-    .doc(hospiId)
-    .set({
-      equipe: {
-        [roleKey]: {
-          id: doc.id,
-          nom: u.nom,
-          prenom: u.prenom,
-          type: u.type,
-          date: firebase.firestore.FieldValue.serverTimestamp()
-        }
-      }
-    }, { merge: true });
-};
+          await db
+            .collection("patients")
+            .doc(idPatient)
+            .collection("hospitalisations")
+            .doc(hospiId)
+            .set({
+              equipe: {
+                [roleKey]: {
+                  id: doc.id,
+                  nom: u.nom,
+                  prenom: u.prenom,
+                  type: u.type,
+                  date: firebase.firestore.FieldValue.serverTimestamp()
+                }
+              }
+            }, { merge: true });
+        };
 
         list.appendChild(li);
         list.style.display = "block";
@@ -4035,6 +4039,7 @@ async function setupUserSearch(inputId, listId, expectedType, alertId, roleKey) 
     });
   });
 }
+
 async function getHospitalisationEnCours() {
   const snap = await db
     .collection("patients")
