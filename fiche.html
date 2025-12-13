@@ -4149,7 +4149,6 @@ function setupClearButton(inputId, clearBtnId, roleKey) {
     return;
   }
 
-  const data = snap.data();
   const hosp = data.hospitalisations?.[data.hospitalisationIndex];
   if (!hosp) {
     console.warn("❌ Aucune hospitalisation sélectionnée !");
