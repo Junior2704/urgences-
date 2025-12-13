@@ -3998,7 +3998,7 @@ async function setupUserSearch(inputId, listId, expectedType, alertId, roleKey) 
         li.textContent = `${u.nom} (${u.type})`;
 
        li.onclick = async () => {
-  input.value = `${u.prenom} ${u.nom}`;
+  input.value = `${u.nom}`;
   list.style.display = "none";
 
   if (expectedType && u.type !== expectedType && alertBox) {
@@ -4065,22 +4065,22 @@ async function chargerEquipeHospitalisation() {
 
   if (equipe.medecinReferent) {
     document.getElementById("medecinReferent").value =
-      `${equipe.medecinReferent.prenom} ${equipe.medecinReferent.nom}`;
+      `${equipe.medecinReferent.nom}`;
   }
 
   if (equipe.infirmierReferent) {
     document.getElementById("infirmierReferent").value =
-      `${equipe.infirmierReferent.prenom} ${equipe.infirmierReferent.nom}`;
+      `${equipe.infirmierReferent.nom}`;
   }
 
   if (equipe.interneReferent) {
     document.getElementById("interneReferent").value =
-      `${equipe.interneReferent.prenom} ${equipe.interneReferent.nom}`;
+      `${equipe.interneReferent.nom}`;
   }
 
   if (equipe.externeReferent) {
     document.getElementById("externeReferent").value =
-      `${equipe.externeReferent.prenom} ${equipe.externeReferent.nom}`;
+      `${equipe.externeReferent.nom}`;
   }
 }
 
