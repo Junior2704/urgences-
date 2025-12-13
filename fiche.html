@@ -1627,9 +1627,11 @@ nav:hover .nav-item span {
 <h4>👥 Équipe référente</h4>
 
 <div class="field-group">
-  <label>👨‍⚕️ Médecin référent
+  <label>👨‍⚕️ Médecin référent</label>
   <input type="text" id="medecinReferent" placeholder="Rechercher un médecin..." autocomplete="off">
-    <button type="button" class="clear-btn" id="clearMedecin">✖</button></label>
+   <button type="button" class="clear-btn" id="clearMedecin">✖</button>
+   
+    
   <ul id="medecinSuggestions" class="suggestions"></ul>
   <div id="alerteMedecin" style="color: orange; display: none;"></div>
 </div>
@@ -4141,8 +4143,22 @@ function setupClearButton(inputId, clearBtnId, roleKey) {
     } catch (e) {
       console.error(`❌ Erreur suppression ${roleKey} :`, e);
     }
+    const snap = await patientRefEquipe.get();
+  if (!snap.exists) {
+    console.warn("❌ Patient introuvable !");
+    return;
+  }
 
-    checkType("medecinReferent", "doc", "medecinReferent", "alerteMedecin", equipe);
+  const data = snap.data();
+  const hosp = data.hospitalisations?.[data.hospitalisationIndex];
+  if (!hosp) {
+    console.warn("❌ Aucune hospitalisation sélectionnée !");
+    return;
+  }
+
+  const equipe = hosp.equipe || {};
+
+checkType("medecinReferent", "doc", "medecinReferent", "alerteMedecin", equipe);
 checkType("infirmierReferent", "infirmier", "infirmierReferent", "alerteInfirmier", equipe);
 checkType("interneReferent", "Int", "interneReferent", "alerteInterne", equipe);
 checkType("externeReferent", "Ext", "externeReferent", "alerteExterne", equipe);
