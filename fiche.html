@@ -1627,9 +1627,9 @@ nav:hover .nav-item span {
 <h4>👥 Équipe référente</h4>
 
 <div class="field-group">
-  <label>👨‍⚕️ Médecin référent</label>
+  <label>👨‍⚕️ Médecin référent
   <input type="text" id="medecinReferent" placeholder="Rechercher un médecin..." autocomplete="off">
-    <button type="button" class="clear-btn" id="clearMedecin">✖</button>
+    <button type="button" class="clear-btn" id="clearMedecin">✖</button></label>
   <ul id="medecinSuggestions" class="suggestions"></ul>
   <div id="alerteMedecin" style="color: orange; display: none;"></div>
 </div>
@@ -4142,9 +4142,10 @@ function setupClearButton(inputId, clearBtnId, roleKey) {
       console.error(`❌ Erreur suppression ${roleKey} :`, e);
     }
 
-    // Cache le message d'alerte
-    const alertBox = document.getElementById(`alerte${roleKey.charAt(0).toUpperCase() + roleKey.slice(1)}`);
-    if (alertBox) alertBox.style.display = "none";
+    checkType("medecinReferent", "doc", "medecinReferent", "alerteMedecin", equipe);
+checkType("infirmierReferent", "infirmier", "infirmierReferent", "alerteInfirmier", equipe);
+checkType("interneReferent", "Int", "interneReferent", "alerteInterne", equipe);
+checkType("externeReferent", "Ext", "externeReferent", "alerteExterne", equipe);
   });
 }
 
