@@ -4060,12 +4060,8 @@ function setupUserSearchEquipe(inputId, listId, expectedType, alertId, roleKey) 
 
 async function chargerEquipeReferente() {
   console.log("📥 lecture équipe référente");
-
-
   const hospiId = await getHospitalisationEnCoursEquipe();
   if (!hospiId) return;
-
-
   const snap = await db
     .collection("patients")
     .doc(patientIdEquipe)
@@ -4100,7 +4096,8 @@ async function getHospitalisationEnCours() {
     .get();
 
   if (snap.empty) return null;
-
+console.log("snap empty ?", snap.empty);
+if (!snap.empty) console.log("Hospitalisation trouvée :", snap.docs[0].id);
   return snap.docs[0].id;
 }
 async function chargerEquipeHospitalisation() {
