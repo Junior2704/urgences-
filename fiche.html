@@ -4025,34 +4025,37 @@ function setupUserSearchEquipe(inputId, listId, expectedType, alertId, roleKey) 
         if (expectedType && u.type !== expectedType && alertBox) {
           alertBox.style.display = "block";
         }
-console.log("👤 utilisateur sélectionné :", u);
+
+        console.log("👤 utilisateur sélectionné :", u);
 
         const hospiId = await getHospitalisationEnCoursEquipe();
         if (!hospiId) return;
-console.log("🏥 hospitalisation utilisée :", hospiId);
-          console.log("💾 enregistrement équipe :", roleKey);
 
-      await db
-  .collection("patients")
-  .doc(patientIdEquipe)
-  .collection("hospitalisations")
-  .doc(hospiId)
-  .update({
-    [`equipe.${roleKey}`]: {
-      id: userDoc.id,
-      nom: u.nom,
-      prenom: u.prenom,
-      type: u.type,
-      date: firebase.firestore.FieldValue.serverTimestamp()
-    }
-  });
+        console.log("🏥 hospitalisation utilisée :", hospiId);
+        console.log("💾 enregistrement équipe :", roleKey);
 
+        await db
+          .collection("patients")
+          .doc(patientIdEquipe)
+          .collection("hospitalisations")
+          .doc(hospiId)
+          .update({
+            [`equipe.${roleKey}`]: {
+              id: userDoc.id,
+              nom: u.nom,
+              prenom: u.prenom,
+              type: u.type,
+              date: firebase.firestore.FieldValue.serverTimestamp()
+            }
+          });
+      };
 
       list.appendChild(li);
       list.style.display = "block";
-    
- 
+    });
+  });
 }
+
 
 
 async function chargerEquipeReferente() {
