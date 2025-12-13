@@ -3943,32 +3943,47 @@ window.openDocumentFromMenu = function(tabId, file) {
 // 👥 ÉQUIPE D'HOSPITALISATION
 // ===============================
 
-// ⚡ ID et référence du patient
+// ⚡ Récupération de l'ID patient depuis l'URL
 const patientIdEquipe = new URLSearchParams(window.location.search).get("id");
 console.log("🔹 patientIdEquipe =", patientIdEquipe);
+
+// ⚡ Référence Firestore du patient
 const patientRefEquipe = db.collection("patients").doc(patientIdEquipe);
 
 // ===============================
-// Fonction pour récupérer l'hospitalisation en cours
+// Fonction pour charger l'équipe depuis Firestore
 // ===============================
-async function getHospitalisationEnCoursEquipe() {
-  const snap = await patientRefEquipe.get();
-  console.log("📥 lecture patient pour hospitalisation :", snap.data());
+async function chargerEquipeReferente() {
+  console.log("📥 lecture équipe référente");
 
-  if (!snap.exists) return null;
+  const snap = await patientRefEquipe.get();
+  if (!snap.exists) {
+    console.warn("❌ Patient introuvable !");
+    return;
+  }
 
   const data = snap.data();
   const hosp = data.hospitalisations?.[data.hospitalisationIndex];
-  console.log("🏥 hospitalisation sélectionnée :", hosp);
+  if (!hosp) {
+    console.warn("❌ Aucune hospitalisation sélectionnée !");
+    return;
+  }
 
-  if (!hosp) return null;
+  const equipe = hosp.equipe || {};
+  console.log("👥 Équipe actuelle :", equipe);
 
-  // 🔹 Utiliser le bon champ
-  const hospiId = hosp.hospitalisationId || null;
-  console.log("🏥 hospiId utilisé :", hospiId);
-  return hospiId;
+  if (equipe.medecinReferent)
+    document.getElementById("medecinReferent").value = equipe.medecinReferent.nom;
+
+  if (equipe.infirmierReferent)
+    document.getElementById("infirmierReferent").value = equipe.infirmierReferent.nom;
+
+  if (equipe.interneReferent)
+    document.getElementById("interneReferent").value = equipe.interneReferent.nom;
+
+  if (equipe.externeReferent)
+    document.getElementById("externeReferent").value = equipe.externeReferent.nom;
 }
-
 
 // ===============================
 // Fonction pour configurer la recherche et sélection d'utilisateur
@@ -4010,15 +4025,18 @@ function setupUserSearchEquipe(inputId, listId, expectedType, alertId, roleKey) 
 
         console.log("👤 Utilisateur sélectionné :", u);
 
-        const hospiId = await getHospitalisationEnCoursEquipe();
-        if (!hospiId) {
+        // 🔹 Récupération de l'hospitalisation courante
+        const snapPatient = await patientRefEquipe.get();
+        const data = snapPatient.data();
+        if (!data || !data.hospitalisations?.[data.hospitalisationIndex]) {
           console.warn("❌ Aucune hospitalisation trouvée, enregistrement impossible !");
           return;
         }
 
-        console.log("🏥 Hospitalisation utilisée pour update :", hospiId);
-        console.log("💾 Rôle à enregistrer :", roleKey);
+        const hospIndex = data.hospitalisationIndex;
+        console.log("🏥 hospitalisationIndex utilisé :", hospIndex);
 
+        // 🔹 Données à enregistrer
         const equipeData = {
           id: userDoc.id,
           nom: u.nom,
@@ -4028,17 +4046,17 @@ function setupUserSearchEquipe(inputId, listId, expectedType, alertId, roleKey) 
         };
         console.log("💾 Données envoyées à Firestore :", equipeData);
 
+        // 🔹 Mise à jour directe dans le tableau hospitalisations
         try {
-          await patientRefEquipe
-            .collection("hospitalisations")
-            .doc(hospiId)
-            .set({ equipe: { [roleKey]: equipeData } }, { merge: true });
+          await patientRefEquipe.update({
+            [`hospitalisations.${hospIndex}.equipe.${roleKey}`]: equipeData
+          });
           console.log("✅ Enregistrement équipe réussi !");
         } catch (e) {
           console.error("❌ Erreur lors de l'enregistrement :", e);
         }
 
-        // Recharge immédiatement les inputs
+        // Recharge immédiatement les inputs pour afficher l'équipe
         await chargerEquipeReferente();
       };
 
@@ -4049,47 +4067,18 @@ function setupUserSearchEquipe(inputId, listId, expectedType, alertId, roleKey) 
 }
 
 // ===============================
-// Fonction pour charger l'équipe depuis Firestore
-// ===============================
-async function chargerEquipeReferente() {
-  console.log("📥 lecture équipe référente");
-
-  const snap = await patientRefEquipe.get();
-  if (!snap.exists) {
-    console.warn("❌ Patient introuvable !");
-    return;
-  }
-
-  const data = snap.data();
-  const hosp = data.hospitalisations?.[data.hospitalisationIndex];
-  if (!hosp) {
-    console.warn("❌ Aucune hospitalisation sélectionnée !");
-    return;
-  }
-
-  const equipe = hosp.equipe || {};
-  console.log("👥 Équipe actuelle :", equipe);
-
-  if (equipe.medecinReferent)
-    document.getElementById("medecinReferent").value = equipe.medecinReferent.nom;
-
-  if (equipe.infirmierReferent)
-    document.getElementById("infirmierReferent").value = equipe.infirmierReferent.nom;
-
-  if (equipe.interneReferent)
-    document.getElementById("interneReferent").value = equipe.interneReferent.nom;
-
-  if (equipe.externeReferent)
-    document.getElementById("externeReferent").value = equipe.externeReferent.nom;
-}
-
-// ===============================
 // Initialisation des recherches pour chaque rôle
 // ===============================
 setupUserSearchEquipe("medecinReferent", "medecinSuggestions", "doc", "alerteMedecin", "medecinReferent");
 setupUserSearchEquipe("infirmierReferent", "infirmierSuggestions", "infirmier", null, "infirmierReferent");
 setupUserSearchEquipe("interneReferent", "interneSuggestions", "Int", null, "interneReferent");
 setupUserSearchEquipe("externeReferent", "externeSuggestions", "Ext", null, "externeReferent");
+
+// ===============================
+// Charger l'équipe au chargement de la page
+// ===============================
+chargerEquipeReferente();
+
 
 async function getHospitalisationEnCours() {
   const snap = await db
