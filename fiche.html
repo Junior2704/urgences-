@@ -3943,21 +3943,25 @@ window.openDocumentFromMenu = function(tabId, file) {
 // 👥 ÉQUIPE D'HOSPITALISATION
 // ===============================
 
-// ⚡ Référence au patient courant
+// ⚡ Récupération de l'ID patient depuis l'URL
+const patientIdEquipe = new URLSearchParams(window.location.search).get("id");
+
+// ⚡ Référence Firestore du patient
 const patientRefEquipe = db.collection("patients").doc(patientIdEquipe);
-  const snap = await patientRefEquipe.get();
+
 // ===============================
 // Fonction pour récupérer l'hospitalisation en cours
 // ===============================
 async function getHospitalisationEnCoursEquipe() {
-
+  const snap = await patientRefEquipe.get();
   if (!snap.exists) return null;
 
   const data = snap.data();
   const hosp = data.hospitalisations?.[data.hospitalisationIndex];
   if (!hosp) return null;
 
-  return hosp.id || hosp.key || null; // selon ton modèle, id ou key
+  return hosp.id || hosp.key || null;
+
 }
 
 // ===============================
