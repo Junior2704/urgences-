@@ -4032,22 +4032,21 @@ console.log("👤 utilisateur sélectionné :", u);
 console.log("🏥 hospitalisation utilisée :", hospiId);
           console.log("💾 enregistrement équipe :", roleKey);
 
-        await db
-          .collection("patients")
-          .doc(patientIdEquipe)
-          .collection("hospitalisations")
-          .doc(hospiId)
-          .set({
-            equipe: {
-              [roleKey]: {
-                id: userDoc.id,
-                nom: u.nom,
-                type: u.type,
-                date: firebase.firestore.FieldValue.serverTimestamp()
-              }
-            }
-          }, { merge: true });
-      };
+      await db
+  .collection("patients")
+  .doc(patientIdEquipe)
+  .collection("hospitalisations")
+  .doc(hospiId)
+  .update({
+    [`equipe.${roleKey}`]: {
+      id: userDoc.id,
+      nom: u.nom,
+      prenom: u.prenom,
+      type: u.type,
+      date: firebase.firestore.FieldValue.serverTimestamp()
+    }
+  });
+
 
       list.appendChild(li);
       list.style.display = "block";
@@ -4057,8 +4056,12 @@ console.log("🏥 hospitalisation utilisée :", hospiId);
 
 
 async function chargerEquipeReferente() {
+  console.log("📥 lecture équipe référente");
+
+
   const hospiId = await getHospitalisationEnCoursEquipe();
   if (!hospiId) return;
+
 
   const snap = await db
     .collection("patients")
@@ -4070,7 +4073,7 @@ async function chargerEquipeReferente() {
   if (!snap.exists) return;
 
   const equipe = snap.data().equipe || {};
-
+console.log("👥 équipe trouvée :", equipe);
   if (equipe.medecinReferent)
     medecinReferent.value = `${equipe.medecinReferent.nom}`;
 
