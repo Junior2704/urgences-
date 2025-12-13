@@ -3945,17 +3945,21 @@ window.openDocumentFromMenu = function(tabId, file) {
 // 🟦 ID patient UNIQUEMENT POUR L'ÉQUIPE
 const patientIdEquipe = new URLSearchParams(window.location.search).get("id");
 async function getHospitalisationEnCoursEquipe() {
-  const snap = await db
+  const ref = db
     .collection("patients")
     .doc(patientIdEquipe)
-    .collection("hospitalisations")
-    .where("cloturee", "==", false)
+    .collection("hospitalisations");
+
+  const snap = await ref
+    .orderBy("dateAdmission", "desc")
     .limit(1)
     .get();
 
   if (snap.empty) return null;
+
   return snap.docs[0].id;
 }
+
 
 setupUserSearchEquipe(
   "medecinReferent",
@@ -4021,9 +4025,12 @@ function setupUserSearchEquipe(inputId, listId, expectedType, alertId, roleKey) 
         if (expectedType && u.type !== expectedType && alertBox) {
           alertBox.style.display = "block";
         }
+console.log("👤 utilisateur sélectionné :", u);
 
         const hospiId = await getHospitalisationEnCoursEquipe();
         if (!hospiId) return;
+console.log("🏥 hospitalisation utilisée :", hospiId);
+          console.log("💾 enregistrement équipe :", roleKey);
 
         await db
           .collection("patients")
