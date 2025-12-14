@@ -4017,7 +4017,7 @@ window.openDocumentFromMenu = function(tabId, file) {
 };
 
 // ===============================
-// 👥 ÉQUIPE RÉFÉRENTE — LOGIQUE SAFE FIRESTORE
+// 👥 ÉQUIPE RÉFÉRENTE — VERSION 100% SAFE (hospitalisations = ARRAY)
 // ===============================
 
 // 🔹 ID patient
@@ -4025,22 +4025,25 @@ const patientIdEquipe = new URLSearchParams(window.location.search).get("id");
 const patientRefEquipe = db.collection("patients").doc(patientIdEquipe);
 
 // ===============================
-// 🔧 Hospitalisation courante (SAFE)
+// 🔧 Utilitaire : lire hospitalisation courante
 // ===============================
 async function getHospitalisationCouranteEquipe() {
   const snap = await patientRefEquipe.get();
   if (!snap.exists) return null;
 
   const data = snap.data();
-  const hospId = data.hospitalisationIndex;
+  const idx = data.hospitalisationIndex;
 
-  if (!data.hospitalisations || !data.hospitalisations[hospId]) return null;
+  if (!Array.isArray(data.hospitalisations) || !data.hospitalisations[idx]) {
+    console.warn("❌ Hospitalisation invalide");
+    return null;
+  }
 
-  return { hospId, hosp: data.hospitalisations[hospId] };
+  return { idx, hosp: data.hospitalisations[idx], data };
 }
 
 // ===============================
-// 👥 Charger l'équipe depuis Firestore
+// 👥 Charger l'équipe
 // ===============================
 async function chargerEquipeReferente() {
   const res = await getHospitalisationCouranteEquipe();
@@ -4052,6 +4055,42 @@ async function chargerEquipeReferente() {
   setEquipeInput("infirmierReferent", equipe.infirmierReferent, "infirmier", "alerteInfirmier");
   setEquipeInput("interneReferent", equipe.interneReferent, "Int", "alerteInterne");
   setEquipeInput("externeReferent", equipe.externeReferent, "Ext", "alerteExterne");
+}
+
+// ===============================
+// 💾 Mise à jour SAFE de l'équipe
+// ===============================
+async function updateEquipe(roleKey, equipeData) {
+  const res = await getHospitalisationCouranteEquipe();
+  if (!res) return;
+
+  const hospitalisations = [...res.data.hospitalisations];
+
+  hospitalisations[res.idx] = {
+    ...hospitalisations[res.idx],
+    equipe: {
+      ...(hospitalisations[res.idx].equipe || {}),
+      [roleKey]: equipeData
+    }
+  };
+
+  await patientRefEquipe.update({ hospitalisations });
+}
+
+// ===============================
+// ❌ Suppression SAFE d'un rôle
+// ===============================
+async function removeEquipe(roleKey) {
+  const res = await getHospitalisationCouranteEquipe();
+  if (!res) return;
+
+  const hospitalisations = [...res.data.hospitalisations];
+
+  if (hospitalisations[res.idx].equipe) {
+    delete hospitalisations[res.idx].equipe[roleKey];
+  }
+
+  await patientRefEquipe.update({ hospitalisations });
 }
 
 // ===============================
@@ -4079,9 +4118,6 @@ function setupUserSearchEquipe(inputId, listId, expectedType, alertId, roleKey) 
       li.textContent = `${u.nom} (${u.type})`;
 
       li.onclick = async () => {
-        const res = await getHospitalisationCouranteEquipe();
-        if (!res) return;
-
         const equipeData = {
           id: docSnap.id,
           nom: u.nom,
@@ -4089,9 +4125,7 @@ function setupUserSearchEquipe(inputId, listId, expectedType, alertId, roleKey) 
           date: firebase.firestore.FieldValue.serverTimestamp()
         };
 
-        await patientRefEquipe.update({
-          [`hospitalisations.${res.hospId}.equipe.${roleKey}`]: equipeData
-        });
+        await updateEquipe(roleKey, equipeData);
 
         input.value = u.nom;
         list.style.display = "none";
@@ -4112,21 +4146,14 @@ function setupUserSearchEquipe(inputId, listId, expectedType, alertId, roleKey) 
 }
 
 // ===============================
-// ❌ Boutons croix (suppression SAFE)
+// ❌ Boutons croix
 // ===============================
 function setupClearButton(inputId, clearBtnId, roleKey) {
   const input = document.getElementById(inputId);
   const btn = document.getElementById(clearBtnId);
 
   btn.onclick = async () => {
-    const res = await getHospitalisationCouranteEquipe();
-    if (!res) return;
-
-    await patientRefEquipe.update({
-      [`hospitalisations.${res.hospId}.equipe.${roleKey}`]:
-        firebase.firestore.FieldValue.delete()
-    });
-
+    await removeEquipe(roleKey);
     input.value = "";
     afficherBulle("✅ Membre supprimé", "success");
     chargerEquipeReferente();
