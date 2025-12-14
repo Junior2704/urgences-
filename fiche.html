@@ -4196,10 +4196,10 @@ function setupClearButton(inputId, clearBtnId, roleKey) {
     try {
       await patientRefEquipe.update(updateObj);
       console.log(`✅ ${roleKey} supprimé de Firestore`);
-      afficherBulle("✅ ${roleKey} supprimé", "success");
+      afficherBulle("✅ Equipe supprimée", "success");
     } catch (e) {
       console.error(`❌ Erreur suppression ${roleKey} :`, e);
-      afficherBulle("❌ Erreur suppression ${roleKey}", "error");
+      afficherBulle("❌ Erreur suppression équipe", "error");
 
     }
     const snap = await patientRefEquipe.get();
