@@ -4132,8 +4132,11 @@ function setupUserSearchEquipe(inputId, listId, expectedType, alertId, roleKey) 
             [`hospitalisations.${hospIndex}.equipe.${roleKey}`]: equipeData
           });
           console.log("✅ Enregistrement équipe réussi !");
+          afficherBulle("✅ Equipe enregsitrée !", "success")
         } catch (e) {
           console.error("❌ Erreur lors de l'enregistrement :", e);
+          afficherBulle("❌ Erreur enregistrement équipe", "error")
+
         }
 
         // Recharge immédiatement les inputs pour afficher l'équipe
@@ -4193,8 +4196,11 @@ function setupClearButton(inputId, clearBtnId, roleKey) {
     try {
       await patientRefEquipe.update(updateObj);
       console.log(`✅ ${roleKey} supprimé de Firestore`);
+      afficherBulle("✅ ${roleKey} supprimé", "success");
     } catch (e) {
       console.error(`❌ Erreur suppression ${roleKey} :`, e);
+      afficherBulle("❌ Erreur suppression ${roleKey}", "error");
+
     }
     const snap = await patientRefEquipe.get();
   if (!snap.exists) {
