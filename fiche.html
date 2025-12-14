@@ -4080,6 +4080,69 @@ async function removeEquipe(roleKey) {
 }
 
 // ===============================
+// 👥 ÉQUIPE RÉFÉRENTE — VERSION DÉFINITIVE (SANS DATE)
+// ===============================
+
+const patientIdEquipe = new URLSearchParams(window.location.search).get("id");
+const patientRefEquipe = db.collection("patients").doc(patientIdEquipe);
+
+// ===============================
+// 🔎 Utilitaire hospitalisation courante
+// ===============================
+function getHospFromData(data) {
+  const idx = data.hospitalisationIndex;
+  if (!Array.isArray(data.hospitalisations) || !data.hospitalisations[idx]) {
+    throw "Hospitalisation invalide";
+  }
+  return { idx, hosp: data.hospitalisations[idx] };
+}
+
+// ===============================
+// 💾 SAUVEGARDE ÉQUIPE (TRANSACTION SAFE)
+// ===============================
+async function saveEquipe(roleKey, equipeData) {
+  await db.runTransaction(async (tx) => {
+    const snap = await tx.get(patientRefEquipe);
+    if (!snap.exists) throw "Patient introuvable";
+
+    const data = snap.data();
+    const { idx } = getHospFromData(data);
+
+    const hospitalisations = [...data.hospitalisations];
+
+    hospitalisations[idx] = {
+      ...hospitalisations[idx],
+      equipe: {
+        ...(hospitalisations[idx].equipe || {}),
+        [roleKey]: equipeData
+      }
+    };
+
+    tx.update(patientRefEquipe, { hospitalisations });
+  });
+}
+
+// ===============================
+// ❌ SUPPRESSION ÉQUIPE
+// ===============================
+async function removeEquipe(roleKey) {
+  await db.runTransaction(async (tx) => {
+    const snap = await tx.get(patientRefEquipe);
+    if (!snap.exists) return;
+
+    const data = snap.data();
+    const { idx } = getHospFromData(data);
+
+    const hospitalisations = [...data.hospitalisations];
+    if (hospitalisations[idx].equipe) {
+      delete hospitalisations[idx].equipe[roleKey];
+    }
+
+    tx.update(patientRefEquipe, { hospitalisations });
+  });
+}
+
+// ===============================
 // 👥 CHARGEMENT ÉQUIPE
 // ===============================
 async function chargerEquipeReferente() {
@@ -4124,8 +4187,7 @@ function setupUserSearchEquipe(inputId, listId, expectedType, alertId, roleKey) 
         const equipeData = {
           id: d.id,
           nom: u.nom,
-          type: u.type,
-          date: firebase.firestore.FieldValue.serverTimestamp()
+          type: u.type
         };
 
         await saveEquipe(roleKey, equipeData);
