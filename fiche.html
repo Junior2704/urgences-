@@ -4017,39 +4017,78 @@ window.openDocumentFromMenu = function(tabId, file) {
 };
 
 // ===============================
-// 👥 ÉQUIPE RÉFÉRENTE — VERSION 100% SAFE (hospitalisations = ARRAY)
+// 👥 ÉQUIPE RÉFÉRENTE — VERSION DÉFINITIVE (TRANSACTION)
 // ===============================
 
-// 🔹 ID patient
 const patientIdEquipe = new URLSearchParams(window.location.search).get("id");
 const patientRefEquipe = db.collection("patients").doc(patientIdEquipe);
 
 // ===============================
-// 🔧 Utilitaire : lire hospitalisation courante
+// 🔎 Lire hospitalisation courante
 // ===============================
-async function getHospitalisationCouranteEquipe() {
-  const snap = await patientRefEquipe.get();
-  if (!snap.exists) return null;
-
-  const data = snap.data();
+function getHospFromData(data) {
   const idx = data.hospitalisationIndex;
-
   if (!Array.isArray(data.hospitalisations) || !data.hospitalisations[idx]) {
-    console.warn("❌ Hospitalisation invalide");
-    return null;
+    throw "Hospitalisation invalide";
   }
-
-  return { idx, hosp: data.hospitalisations[idx], data };
+  return { idx, hosp: data.hospitalisations[idx] };
 }
 
 // ===============================
-// 👥 Charger l'équipe
+// 💾 UPDATE ÉQUIPE — TRANSACTION (ANTI-ÉCRASEMENT)
+// ===============================
+async function saveEquipe(roleKey, equipeData) {
+  await db.runTransaction(async (tx) => {
+    const snap = await tx.get(patientRefEquipe);
+    if (!snap.exists) throw "Patient introuvable";
+
+    const data = snap.data();
+    const { idx } = getHospFromData(data);
+
+    const hospitalisations = [...data.hospitalisations];
+
+    hospitalisations[idx] = {
+      ...hospitalisations[idx],
+      equipe: {
+        ...(hospitalisations[idx].equipe || {}),
+        [roleKey]: equipeData
+      }
+    };
+
+    tx.update(patientRefEquipe, { hospitalisations });
+  });
+}
+
+// ===============================
+// ❌ SUPPRESSION — TRANSACTION
+// ===============================
+async function removeEquipe(roleKey) {
+  await db.runTransaction(async (tx) => {
+    const snap = await tx.get(patientRefEquipe);
+    if (!snap.exists) return;
+
+    const data = snap.data();
+    const { idx } = getHospFromData(data);
+
+    const hospitalisations = [...data.hospitalisations];
+    if (hospitalisations[idx].equipe) {
+      delete hospitalisations[idx].equipe[roleKey];
+    }
+
+    tx.update(patientRefEquipe, { hospitalisations });
+  });
+}
+
+// ===============================
+// 👥 CHARGEMENT ÉQUIPE
 // ===============================
 async function chargerEquipeReferente() {
-  const res = await getHospitalisationCouranteEquipe();
-  if (!res) return;
+  const snap = await patientRefEquipe.get();
+  if (!snap.exists) return;
 
-  const equipe = res.hosp.equipe || {};
+  const data = snap.data();
+  const { hosp } = getHospFromData(data);
+  const equipe = hosp.equipe || {};
 
   setEquipeInput("medecinReferent", equipe.medecinReferent, "doc", "alerteMedecin");
   setEquipeInput("infirmierReferent", equipe.infirmierReferent, "infirmier", "alerteInfirmier");
@@ -4058,51 +4097,15 @@ async function chargerEquipeReferente() {
 }
 
 // ===============================
-// 💾 Mise à jour SAFE de l'équipe
-// ===============================
-async function updateEquipe(roleKey, equipeData) {
-  const res = await getHospitalisationCouranteEquipe();
-  if (!res) return;
-
-  const hospitalisations = [...res.data.hospitalisations];
-
-  hospitalisations[res.idx] = {
-    ...hospitalisations[res.idx],
-    equipe: {
-      ...(hospitalisations[res.idx].equipe || {}),
-      [roleKey]: equipeData
-    }
-  };
-
-  await patientRefEquipe.update({ hospitalisations });
-}
-
-// ===============================
-// ❌ Suppression SAFE d'un rôle
-// ===============================
-async function removeEquipe(roleKey) {
-  const res = await getHospitalisationCouranteEquipe();
-  if (!res) return;
-
-  const hospitalisations = [...res.data.hospitalisations];
-
-  if (hospitalisations[res.idx].equipe) {
-    delete hospitalisations[res.idx].equipe[roleKey];
-  }
-
-  await patientRefEquipe.update({ hospitalisations });
-}
-
-// ===============================
-// 🔎 Recherche + sélection utilisateur
+// 🔎 Recherche utilisateur
 // ===============================
 function setupUserSearchEquipe(inputId, listId, expectedType, alertId, roleKey) {
   const input = document.getElementById(inputId);
   const list = document.getElementById(listId);
-  const alertBox = alertId ? document.getElementById(alertId) : null;
+  const alertBox = document.getElementById(alertId);
 
   input.addEventListener("input", async () => {
-    const q = input.value.trim().toLowerCase();
+    const q = input.value.toLowerCase();
     list.innerHTML = "";
     list.style.display = "none";
     if (alertBox) alertBox.style.display = "none";
@@ -4110,22 +4113,22 @@ function setupUserSearchEquipe(inputId, listId, expectedType, alertId, roleKey) 
 
     const snap = await db.collection("medecins").get();
 
-    snap.forEach(docSnap => {
-      const u = docSnap.data();
-      if (!u.nom?.toLowerCase().includes(q)) return;
+    snap.forEach(d => {
+      const u = d.data();
+      if (!u.nom.toLowerCase().includes(q)) return;
 
       const li = document.createElement("li");
       li.textContent = `${u.nom} (${u.type})`;
 
       li.onclick = async () => {
         const equipeData = {
-          id: docSnap.id,
+          id: d.id,
           nom: u.nom,
           type: u.type,
           date: firebase.firestore.FieldValue.serverTimestamp()
         };
 
-        await updateEquipe(roleKey, equipeData);
+        await saveEquipe(roleKey, equipeData);
 
         input.value = u.nom;
         list.style.display = "none";
@@ -4149,19 +4152,16 @@ function setupUserSearchEquipe(inputId, listId, expectedType, alertId, roleKey) 
 // ❌ Boutons croix
 // ===============================
 function setupClearButton(inputId, clearBtnId, roleKey) {
-  const input = document.getElementById(inputId);
-  const btn = document.getElementById(clearBtnId);
-
-  btn.onclick = async () => {
+  document.getElementById(clearBtnId).onclick = async () => {
     await removeEquipe(roleKey);
-    input.value = "";
+    document.getElementById(inputId).value = "";
     afficherBulle("✅ Membre supprimé", "success");
     chargerEquipeReferente();
   };
 }
 
 // ===============================
-// 🔔 Affichage + alertes type
+// 🔔 UI
 // ===============================
 function setEquipeInput(inputId, data, expectedType, alertId) {
   const input = document.getElementById(inputId);
@@ -4173,8 +4173,7 @@ function setEquipeInput(inputId, data, expectedType, alertId) {
     return;
   }
 
-  input.value = data.nom || "";
-
+  input.value = data.nom;
   if (expectedType && data.type !== expectedType && alertBox) {
     alertBox.textContent = `⚠️ ${data.type} au lieu de ${expectedType}`;
     alertBox.style.display = "block";
@@ -4184,7 +4183,7 @@ function setEquipeInput(inputId, data, expectedType, alertId) {
 }
 
 // ===============================
-// 🚀 Initialisation
+// 🚀 INIT
 // ===============================
 setupUserSearchEquipe("medecinReferent", "medecinSuggestions", "doc", "alerteMedecin", "medecinReferent");
 setupUserSearchEquipe("infirmierReferent", "infirmierSuggestions", "infirmier", "alerteInfirmier", "infirmierReferent");
@@ -4197,7 +4196,6 @@ setupClearButton("interneReferent", "clearInterne", "interneReferent");
 setupClearButton("externeReferent", "clearExterne", "externeReferent");
 
 chargerEquipeReferente();
-
 
 
 async function getHospitalisationEnCours() {
