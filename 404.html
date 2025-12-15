@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <title>Erreur 404 – GestUrg2</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="icon" type="image/jpeg" href="logo.png">
 
-    <!-- Police pro -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 
     <style>
@@ -16,10 +14,6 @@
             --blue-soft: #eaf3fb;
             --text-dark: #1f2937;
             --text-muted: #6b7280;
-        }
-
-        * {
-            box-sizing: border-box;
         }
 
         body {
@@ -53,21 +47,22 @@
             margin-bottom: 18px;
         }
 
-        .icon {
-            width: 78px;
-            height: 78px;
+        /* Conteneur logo */
+        .logo {
+            width: 90px;
+            height: 90px;
+            margin: 0 auto 20px;
             background: var(--blue-soft);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 18px;
         }
 
-        .icon svg {
-            width: 40px;
-            height: 40px;
-            fill: var(--blue-main);
+        .logo img {
+            max-width: 70%;
+            max-height: 70%;
+            object-fit: contain;
         }
 
         h1 {
@@ -123,27 +118,23 @@
     <div class="card">
         <div class="badge">GestUrg2 · Gestion des urgences</div>
 
-        <div class="icon">
-            <!-- Icône ECG / urgence -->
-            <svg viewBox="0 0 24 24">
-                <path d="M3 13h4l2-6 4 12 2-6h4"/>
-            </svg>
+        <div class="logo">
+            <img src="logo.png" alt="Logo GestUrg2">
         </div>
 
         <h1>404</h1>
-        <h2>Arrivée aux urgences… mais pas la bonne porte</h2>
+        <h2>Arrivée aux urgences… mais pas la bonne porte !</h2>
 
         <p>
-            Le patient (l’URL) est arrivé sans identité valide.
+            Le contenu demandé semble ne plus exister dans GestUrg2.
             <br>
-            Aucun dossier correspondant n’a été retrouvé dans GestUrg2.
             <span class="smile">🙂</span>
         </p>
 
         <a href="./" class="btn">Retour au poste de régulation</a>
 
         <div class="footer">
-            GestUrg2 · Logiciel médical — Accès sécurisé
+            GestUrg2 
         </div>
     </div>
 
