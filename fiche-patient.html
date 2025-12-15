@@ -1819,9 +1819,7 @@ async function chargerPatient(patientId) {
     document.getElementById("nom").textContent = data.nom || "";
     document.getElementById("prenom").textContent = data.prenom || "";
     document.getElementById("sexe").textContent = data.sexe || "";
-    document.getElementById("poids").value = data.poids || "";
-    document.getElementById("taille").value = data.taille || "";
-       document.getElementById("pdcStatut").value = data.pdcStatut || "";
+
 
     // Allergies
 document.getElementById("allergies").value = data.allergies || "aucun";
@@ -1902,7 +1900,6 @@ function formaterDate(dateStr) {
 document.addEventListener("DOMContentLoaded", async () => {
   if (patientId) {
     await chargerPatient(patientId);
-    await initialiserScope(patientId);
   }
 });
 
