@@ -1159,27 +1159,33 @@ window.masquerLoader = function() {
     }, 500); // délai pour l’animation
   }
 };
-document.querySelectorAll(".menu-toggle").forEach(btn => {
-  btn.addEventListener("click", (e) => {
-    e.stopPropagation();
+document.addEventListener("DOMContentLoaded", () => {
 
-    const wrapper = btn.closest(".menu-wrapper");
+  document.querySelectorAll(".menu-toggle").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
 
-    // Ferme les autres menus
-    document.querySelectorAll(".menu-wrapper.open").forEach(w => {
-      if (w !== wrapper) w.classList.remove("open");
+      const wrapper = btn.closest(".menu-wrapper");
+      if (!wrapper) return;
+
+      // Ferme les autres menus
+      document.querySelectorAll(".menu-wrapper.open").forEach(w => {
+        if (w !== wrapper) w.classList.remove("open");
+      });
+
+      // Toggle celui-ci
+      wrapper.classList.toggle("open");
     });
-
-    // Toggle celui-ci
-    wrapper.classList.toggle("open");
   });
+
+  // clic ailleurs → fermeture
+  document.addEventListener("click", () => {
+    document.querySelectorAll(".menu-wrapper.open")
+      .forEach(w => w.classList.remove("open"));
+  });
+
 });
 
-// Clic ailleurs → tout fermer
-document.addEventListener("click", () => {
-  document.querySelectorAll(".menu-wrapper.open")
-    .forEach(w => w.classList.remove("open"));
-});
 
 function rechargerPlan() {
    document.querySelectorAll(".patient").forEach(p => p.remove());
