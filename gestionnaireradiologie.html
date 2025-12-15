@@ -245,11 +245,237 @@
     @keyframes fadeout {
       to { opacity: 0; transform: translateX(-20px); }
     }
+    .topbar {
+  position: sticky;
+  top: 0;
+  z-index: 9999;
+  background: #ffffff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  border-radius: 14px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  margin-bottom: 15px;
+}
+
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.logo {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #005ea2;
+}
+
+.tabs {
+  display: flex;
+  gap: 8px;
+}
+
+.tab {
+  background: transparent;
+  color: #005ea2;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tab.active,
+.tab:hover {
+  background: #e6f0fc;
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.icon-btn {
+  background: #f0f4f8;
+  color: #333;
+  border: none;
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+.icon-btn:hover {
+  background: #dbe9ff;
+}
+
+/* 🔽 Menu hover */
+.hover-menu {
+  position: relative;
+}
+
+.hover-panel {
+  position: absolute;
+  top: 120%;
+  right: 0;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.2);
+  display: none;
+  flex-direction: column;
+  min-width: 180px;
+  overflow: hidden;
+}
+
+.hover-panel button {
+  background: none;
+  border: none;
+  padding: 10px 14px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.hover-panel button:hover {
+  background: #f0f8ff;
+}
+
+.hover-menu:hover .hover-panel {
+  display: flex;
+}
+/* 🔧 Correctif lisibilité topbar */
+.topbar button,
+.topbar .tab,
+.topbar .icon-btn {
+  color: #1f2937; /* gris foncé lisible */
+}
+.hover-panel button {
+  color: #1f2937;
+  background: white;
+}
+
+.hover-panel button:hover {
+  background: #e6f0fc;
+  color: #005ea2;
+}
+.tab.active {
+  background: #0078d4;
+  color: white;
+}
+.menu-wrapper {
+  position: relative;
+}
+
+.menu-panel {
+  position: absolute;
+  top: 120%;
+  right: 0;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.2);
+  display: none;
+  flex-direction: column;
+  min-width: 180px;
+  z-index: 9999;
+  overflow: hidden;
+}
+
+.menu-panel button {
+  background: none;
+  border: none;
+  padding: 10px 14px;
+  text-align: left;
+  cursor: pointer;
+  color: #1f2937;
+}
+
+.menu-panel button:hover {
+  background: #e6f0fc;
+  color: #005ea2;
+}
+
+/* état ouvert */
+.menu-wrapper.open .menu-panel {
+  display: flex;
+}
+.search-wrapper {
+  position: relative;
+}
+
+.search-results {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  width: 100%;
+  max-height: 320px;
+  overflow-y: auto;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+  z-index: 10000;
+}
+
+.search-results.hidden {
+  display: none;
+}
+
+.resultat-item {
+  padding: 10px 14px;
+  cursor: pointer;
+  border-bottom: 1px solid #eee;
+}
+
+.resultat-item:hover {
+  background: #e6f0fc;
+}
+
+.topbar,
+.search-container {
+  position: relative;
+}
+#recherchePatient {
+  display: none;
+}
+
   </style>
 </head>
 <body>
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="logo">☢️ Gestionnaire des examens</div>
 
-<h1>☢️ Gestionnaire des examens</h1>
+    <div class="tabs">
+      <button class="tab" onclick="location.href='urgences.html'">Urgences</button>
+      <button class="tab" onclick="location.href='agenda.html'">Agenda</button>
+      <button class="tab" onclick="location.href='regulation.html'">Régulation</button>
+      <button class="tab active">Imagerie</button>
+
+    </div>
+  </div>
+
+  <div class="topbar-right">
+
+    <div class="menu-wrapper">
+  <button class="icon-btn menu-toggle">🧰</button>
+  <div class="menu-panel">
+    <button onclick="location.href='MesOutils.html'">🧾 Outils médicaux</button>
+        <button onclick="location.href='patients.html'"> Recherche patients</button>
+
+  </div>
+</div>
+
+<div class="menu-wrapper">
+  <button class="icon-btn menu-toggle">👤</button>
+  <div class="menu-panel">
+    <button onclick="location.href='viewacount.html'">👤Mon compte</button>
+    <button id="btnLogout">🔓 Déconnexion</button>
+  </div>
+</div>
+
+
+  </div>
+</div>
 
 <table>
   <thead>
@@ -660,7 +886,15 @@ function formatDate(isoString) {
   const secondes = String(date.getSeconds()).padStart(2, '0');
   return `${jour}/${mois}/${annee} ${heures}:${minutes}:${secondes}`;
 }
-
+document.getElementById("btnLogout").addEventListener("click", () => {
+    signOut(auth)
+      .then(() => {
+        window.location.href = "index.html";
+      })
+      .catch((error) => {
+        afficherBulle("Erreur de déconnexion" ,"error");
+      });
+  });
 </script>
 
 <div id="bubble-container"></div>
