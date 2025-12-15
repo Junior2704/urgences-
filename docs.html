@@ -528,10 +528,10 @@ else if (data.contenu && typeof data.contenu.text === "string") {
 
               documentList.appendChild(li);
           });
-		      masquerLoader();
+		   masquerLoader();
       })
 
- 
+    
       .catch(err => {
           console.error(err);
           documentList.innerHTML = "<li>Erreur lors du chargement.</li>";
