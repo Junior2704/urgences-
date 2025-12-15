@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Afficheur Médecins – Urgences</title>
+
+  <!-- Firebase compat -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+
+  <style>
+    html, body {
+      margin: 0;
+      height: 100%;
+      font-family: "Inter", "Segoe UI", sans-serif;
+      background: #f4f7fb;
+      color: #0b2240;
+    }
+
+    header {
+      background: linear-gradient(90deg, #0b2240, #004b8d);
+      color: white;
+      padding: 14px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 1.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    #datetime { font-size: 1rem; opacity: 0.9; }
+
+    main { padding: 20px 30px; }
+
+    .section-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #004b8d;
+      margin-bottom: 14px;
+      text-transform: uppercase;
+    }
+
+    /* === TABLEAU MÉDICAL === */
+    .medical-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #ffffff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+      font-size: 0.95rem;
+    }
+
+    .medical-table thead {
+      background: #0b2240;
+      color: #ffffff;
+    }
+
+    .medical-table th {
+      padding: 12px 10px;
+      text-align: left;
+      font-weight: 700;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+      font-size: 0.75rem;
+    }
+
+    .medical-table td {
+      padding: 10px;
+      border-bottom: 1px solid #e5e7eb;
+      vertical-align: middle;
+    }
+
+    .medical-table tbody tr:hover {
+      background: #f1f5f9;
+    }
+
+    /* === CODES COULEURS GRAVITÉ === */
+    .grav-p3 { background: rgba(183, 28, 28, 0.08); }
+    .grav-p3 td:nth-child(3) { color: #b71c1c; font-weight: 700; }
+
+    .grav-p2 { background: rgba(255, 152, 0, 0.08); }
+    .grav-p2 td:nth-child(3) { color: #ef6c00; font-weight: 700; }
+
+    .grav-p1 { background: rgba(255, 193, 7, 0.10); }
+    .grav-p1 td:nth-child(3) { color: #f9a825; font-weight: 700; }
+
+    .grav-p0 { background: rgba(76, 175, 80, 0.10); }
+    .grav-p0 td:nth-child(3) { color: #2e7d32; font-weight: 700; }
+
+    /* === PDC === */
+    .pdc-oui td:nth-child(6) { color: #2e7d32; font-weight: 600; }
+    .pdc-non td:nth-child(6) { color: #c62828; font-weight: 600; }
+
+    footer {
+      margin-top: 30px;
+      text-align: center;
+      font-size: 0.85rem;
+      color: #64748b;
+    }
+    html, body {
+      margin: 0;
+      height: 100%;
+      font-family: "Inter", "Segoe UI", sans-serif;
+      background: #f4f7fb;
+      color: #0b2240;
+    }
+
+    header {
+      background: linear-gradient(90deg, #0b2240, #004b8d);
+      color: white;
+      padding: 14px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 1.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    #datetime {
+      font-size: 1rem;
+      opacity: 0.9;
+    }
+
+    main {
+      padding: 20px 30px;
+    }
+
+    .section-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #004b8d;
+      margin-bottom: 14px;
+      text-transform: uppercase;
+    }
+
+    /* === CARTES SYNTHÈSE MÉDICALE === */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 14px;
+      padding: 18px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .card h2 {
+      margin: 0;
+      font-size: 2.4rem;
+      color: #0b2240;
+    }
+
+    .card p {
+      margin-top: 6px;
+      font-size: 1rem;
+      color: #475569;
+      font-weight: 500;
+    }
+
+    .total   { border-left: 6px solid #1976d2; }
+    .attente { border-left: 6px solid #4caf50; }
+    .pec     { border-left: 6px solid #ff9800; }
+    .vital   { border-left: 6px solid #b71c1c; }
+    .relatif { border-left: 6px solid #6f42c1; }
+    .admin   { border-left: 6px solid #009688; }
+
+    /* === CIRCUITS === */
+    .circuit-grid {
+      margin-top: 25px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 14px;
+    }
+
+    .circuit {
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 14px;
+      text-align: center;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+    }
+
+    .circuit h3 {
+      margin: 0;
+      font-size: 2rem;
+      color: #004b8d;
+    }
+
+    .circuit span {
+      display: block;
+      margin-top: 4px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #1e3a8a;
+    }
+
+    footer {
+      margin-top: 30px;
+      text-align: center;
+      font-size: 0.85rem;
+      color: #64748b;
+    }
+
+
+.alert-equipe td:first-child {
+  border-left: 4px solid #b71c1c;
+}
+.tooltip {
+  position: relative;
+  display: inline-block;
+  cursor: help;
+}
+
+.tooltip .tooltiptext {
+  visibility: hidden;
+  width: max-content;
+  max-width: 200px;
+  background-color: #b71c1c;
+  color: #fff;
+  text-align: left;
+  padding: 5px 8px;
+  border-radius: 4px;
+  position: absolute;
+  z-index: 1;
+  top: -5px;
+  left: 105%;
+  white-space: pre-wrap;
+}
+
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+}
+
+.vigilance-alert {
+  color: #b71c1c !important;
+  font-weight: 700 !important;
+  animation: blink-slow 4s infinite; /* 4 secondes pour un cycle complet */
+}
+
+@keyframes blink-slow {
+  0%, 50%, 100% { opacity: 1; }   /* visible la moitié du temps */
+  25%, 75%       { opacity: 0; }   /* invisible la moitié du temps */
+}
+
+
+
+/* Vigilances vides ou "aucune" : style normal */
+.vigilance-none {
+  color: inherit !important;   /* reprend la couleur normale de la ligne */
+  font-weight: normal !important; /* normal, pas gras */
+  animation: none !important;  /* pas d'animation */
+}
+
+
+
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Tableau médical – Urgences</h1>
+  <div id="datetime"></div>
+</header>
+
+<main>
+
+  <!-- === SYNTHÈSE GLOBALE === -->
+  <section>
+    <div class="section-title">Synthèse d'activité</div>
+    <div class="grid">
+      <div class="card total"><h2 id="total">--</h2><p>Patients présents</p></div>
+      <div class="card attente"><h2 id="attente">--</h2><p>Salle d'attente</p></div>
+      <div class="card pec"><h2 id="pec">--</h2><p>Patients pris en charge</p></div>
+      <div class="card vital"><h2 id="critique">--</h2><p>Urgences vitales (P3)</p></div>
+      <div class="card relatif"><h2 id="couche">--</h2><p>Urgences relatives (P0–P2)</p></div>
+      <div class="card admin"><h2 id="admin">--</h2><p>Motif administratif</p></div>
+    </div>
+  </section>
+
+  <!-- === CIRCUITS MÉDICAUX === -->
+  <section>
+    <div class="section-title" style="margin-top:30px">Répartition par circuit</div>
+    <div class="circuit-grid">
+      <div class="circuit"><h3 id="circuit-general">--</h3><span>Général</span></div>
+      <div class="circuit"><h3 id="circuit-pediatrie">--</h3><span>Pédiatrie</span></div>
+      <div class="circuit"><h3 id="circuit-traumato">--</h3><span>Traumatologie</span></div>
+      <div class="circuit"><h3 id="circuit-ophtalmo">--</h3><span>Ophtalmologie</span></div>
+      <div class="circuit"><h3 id="circuit-gyn">--</h3><span>Gynécologie</span></div>
+      <div class="circuit"><h3 id="circuit-psy">--</h3><span>Psychiatrie</span></div>
+    </div>
+  </section>
+
+    <!-- === LISTE PATIENTS === -->
+  <section style="margin-top:40px">
+    <div class="section-title">Patients présents</div>
+    <div style="overflow-x:auto">
+      <table class="medical-table">
+        <thead>
+          <tr>
+            <th>Nom</th>
+            <th>Prénom</th>
+			<th>Vigilances</th>
+
+            <th>Gravité</th>
+            <th>Motif</th>
+            <th>Circuit</th>
+            <th>PDC</th>
+            <th>Position</th>
+			<th>Temps écoulé</th>
+
+			<th>Équipe référente</th>
+		
+
+          </tr>
+        </thead>
+        <tbody id="patient-list"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>
+🚑 GestUrg2 - données du service  </footer>
+
+</main>
+
+<script>
+  // === FIREBASE ===
+  const firebaseConfig = {
+    apiKey: "AIzaSyBKp5-7NNy0Gyl0tNbDgD-BxucYdg8ArWo",
+    authDomain: "urgences-a8ed4.firebaseapp.com",
+    projectId: "urgences-a8ed4"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+const STATUTS_ATTENTE = [
+  "Attente enregistrement",
+  "Attente dossier administratif",
+  "IAO - cricuit court",
+  "Attente 1ere consult med",
+  "Attente 1ere consult int",
+  "Attente 1ere consult ext"
+];
+  // === HORLOGE ===
+  function updateClock() {
+    const now = new Date();
+    document.getElementById('datetime').textContent =
+      now.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+      + ' – ' + now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  }
+  updateClock();
+  setInterval(updateClock, 15000);
+
+  function setVal(id, val) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = val;
+  }
+
+  async function updateMedicalDashboard() {
+    const snapshot = await db.collection('patients')
+      .where('hospitalisationActive', '==', true)
+      .get();
+
+    const counts = { total: 0, attente: 0, couche: 0, critique: 0, admin: 0 };
+    const circuits = { general: 0, pediatrie: 0, traumato: 0, ophtalmo: 0, gyn: 0, psy: 0 };
+
+    const tbody = document.getElementById('patient-list');
+    tbody.innerHTML = '';
+
+    snapshot.forEach(doc => {
+      const data = doc.data() || {};
+      counts.total++;
+
+      const nom = data.nom || '';
+      const prenom = data.prenom || '';
+      const position = data.position || '';
+      const pdcStatut = data.pdcStatut || '';
+
+      const index = data.hospitalisationIndex ?? (data.hospitalisations?.length - 1);
+      const hosp = data.hospitalisations?.[index] || {};
+const equipe = hosp.equipe || {};
+const medecinAbsent = !equipe.medecinReferent?.nom;
+
+const phaseAttente = isPhaseAttente(pdcStatut);
+
+
+const med = equipe.medecinReferent;
+const ide = equipe.infirmierReferent;
+const interne = equipe.interneReferent;
+const externe = equipe.externeReferent;
+
+      const gravite = hosp.gravite || '';
+      const motif = hosp.motif || '';
+      const circuit = hosp.circuit || '';
+
+      const posLower = position.toLowerCase();
+      const gravLower = gravite.toLowerCase();
+      const circuitLower = circuit.toLowerCase();
+
+
+      if (posLower.includes('attente') || posLower.includes('sortie')) counts.attente++;
+      if (gravLower.includes('admin')) counts.admin++;
+      if (gravLower.match(/p0|p1|p2/)) counts.couche++;
+      if (gravLower.includes('p3') || gravLower.includes('vital')) counts.critique++;
+
+      if (circuitLower.includes('ped')) circuits.pediatrie++;
+      else if (circuitLower.includes('trauma')) circuits.traumato++;
+      else if (circuitLower.includes('opht')) circuits.ophtalmo++;
+      else if (circuitLower.includes('gyn')) circuits.gyn++;
+      else if (circuitLower.includes('psy')) circuits.psy++;
+      else circuits.general++;
+const dateDebutStr = hosp.dateDebut || '';
+let tempsEcoule = '—';
+
+if (dateDebutStr) {
+  // Firestore stocke le format "28/10/2025 19:07:04"
+  const [jour, mois, annee, heure, minute, seconde] = dateDebutStr.match(/\d+/g).map(Number);
+  const dateDebut = new Date(annee, mois-1, jour, heure, minute, seconde);
+  const now = new Date();
+  const diffMs = now - dateDebut;
+
+  const diffHeures = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+
+  tempsEcoule = `${diffHeures}h ${diffMinutes}m`;
+}
+// Récupération sécurisée du champ vigilances
+let vigilances = 'aucune';
+if (data.vigilances && typeof data.vigilances === 'string' && data.vigilances.trim() !== '') {
+  vigilances = data.vigilances.trim();
+}
+
+// Classe pour alerte visuelle si vigilance présente
+const vigilanceClass = (vigilances !== 'aucune') ? 'vigilance-alert' : 'vigilance-none';
+
+
+            const tr = document.createElement('tr');
+
+      if (gravLower.includes('p3') || gravLower.includes('vital')) tr.classList.add('grav-p3');
+      else if (gravLower.includes('p2')) tr.classList.add('grav-p2');
+      else if (gravLower.includes('p1')) tr.classList.add('grav-p1');
+      else if (gravLower.includes('p0')) tr.classList.add('grav-p0');
+
+      if (pdcStatut.toLowerCase().includes('oui')) tr.classList.add('pdc-oui');
+      if (pdcStatut.toLowerCase().includes('non')) tr.classList.add('pdc-non');
+if (!phaseAttente && medecinAbsent) {
+  tr.classList.add('alert-equipe');
+}
+// Icones pour alertes
+const allergiesImportant = data.importanceAllergies && data.allergies;
+const iconAllergies = allergiesImportant 
+    ? `<span class="tooltip">⭐<span class="tooltiptext">${data.allergies}</span></span>` 
+    : '';
+const iconCritique = gravLower.includes('p3') || gravLower.includes('vital') ? '🔥' : '';
+const iconPDC = pdcStatut.toLowerCase().includes('non') ? '❌' : '';
+
+tr.innerHTML = `
+  <td>${iconCritique} ${nom} ${iconAllergies}</td>
+  <td>${prenom}</td>
+<td class="${vigilanceClass}">${vigilances}</td>
+  <td>${gravite}</td>
+  <td>${motif}</td>
+  <td>${circuit}</td>
+  <td>${iconPDC} ${pdcStatut}</td>
+  <td>${position}</td>
+  <td>${tempsEcoule}</td>
+  <td>${formatEquipe(equipe)}</td>
+`;
+
+
+      tbody.appendChild(tr);
+    });
+
+    const pec = Math.max(counts.total - counts.attente, 0);
+
+    setVal('total', counts.total);
+    setVal('attente', counts.attente);
+    setVal('pec', pec);
+    setVal('critique', counts.critique);
+    setVal('couche', counts.couche);
+    setVal('admin', counts.admin);
+
+    Object.keys(circuits).forEach(c => setVal(`circuit-${c}`, circuits[c]));
+ }
+ function isPhaseAttente(pdcStatut) {
+  if (!pdcStatut) return true;
+
+  const statut = pdcStatut.toLowerCase();
+
+  return STATUTS_ATTENTE.some(s =>
+    statut.includes(s.toLowerCase())
+  );
+}
+
+
+function formatEquipe(equipe) {
+  if (!equipe) return '—';
+
+  const lignes = [];
+
+  if (equipe.medecinReferent?.nom) {
+    lignes.push(`👨‍⚕️ ${equipe.medecinReferent.nom}`);
+  }
+
+  if (equipe.infirmierReferent?.nom) {
+    lignes.push(`👩‍⚕️ ${equipe.infirmierReferent.nom}`);
+  }
+
+  if (equipe.interneReferent?.nom) {
+    lignes.push(`🎓 ${equipe.interneReferent.nom}`);
+  }
+
+  if (equipe.externeReferent?.nom) {
+    lignes.push(`📘 ${equipe.externeReferent.nom}`);
+  }
+
+  return lignes.join('<br>');
+}
+
+  updateMedicalDashboard();
+  setInterval(updateMedicalDashboard, 500);
+</script>
+
+</body>
+</html>
