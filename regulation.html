@@ -582,7 +582,7 @@ const STATUTS_ATTENTE = [
     snapshot.forEach(doc => {
       const data = doc.data() || {};
       counts.total++;
-
+const id = doc.id;
       const nom = data.nom || '';
       const prenom = data.prenom || '';
       const position = data.position || '';
