@@ -2353,8 +2353,7 @@ onAuthStateChanged(auth, async (user) => {
         // --- Vérification d'accès à la page ---
         const pages = data.pages || {};
         const currentPath = window.location.pathname;
-        const currentPage = currentPath.substring(currentPath.lastIndexOf("/") + 1).replace(".html", "");
-
+        const currentPage = "fiche";
         if (!pages[currentPage]) {
           alert("⛔️ Vous n’avez pas accès à cette page.");
           window.location.href = "index.html";
