@@ -1516,7 +1516,7 @@ nav:hover .nav-item span {
   </div>
   <div>
     <label>Vigilance(s)</label>
-  <input type="text" id="vigilances"  class="text2" />
+  <input type="text" id="vigilances" class="text2" />
   </div>
 <div>
   <label>Allergies</label>
@@ -1828,7 +1828,7 @@ async function chargerPatient(patientId) {
 
     // Allergies
 document.getElementById("allergies").value = data.allergies || "aucun";
-document.getElementById("vigilances").value = data.allergies || "aucune";
+document.getElementById("vigilances").value = data.vigilances || "aucune";
 
 document.getElementById("importanceAllergies").checked = data.importanceAllergies === true;
 

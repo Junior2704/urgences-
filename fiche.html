@@ -1489,6 +1489,10 @@ nav:hover .nav-item span {
     <label>Âge</label>
     <span id="age"></span>
   </div>
+   <div>
+    <label>Vigilance(s)</label>
+  <input type="text" id="vigilances" class="text2" />
+  </div>
 <div>
   <label>Allergies</label>
   <input type="text" id="allergies" placeholder="Ex : Pénicilline, arachides..." class="text2" />
@@ -2454,6 +2458,8 @@ window.location.href="aucun-patients.html";
 
     // Allergies
 document.getElementById("allergies").value = data.allergies || "aucun";
+document.getElementById("vigilances").value = data.vigilances || "aucune";
+
 document.getElementById("importanceAllergies").checked = data.importanceAllergies === true;
 
 document.getElementById("patientName").textContent =
@@ -2542,6 +2548,11 @@ document.getElementById("allergies").addEventListener("change", async () => {
   const value = document.getElementById("allergies").value.trim() || "aucun";
   await patientRef.update({ allergies: value });
   afficherBulle("💾 Allergies enregistrées", "success");
+});
+document.getElementById("vigilances").addEventListener("change", async () => {
+  const value = document.getElementById("vigilances").value.trim() || "aucun";
+  await patientRef.update({ vigilances: value });
+  afficherBulle("💾 Vigilances enregistrées", "success");
 });
 
 // Switch allergie(s) importantes
