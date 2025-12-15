@@ -245,6 +245,7 @@
     @keyframes fadeout {
       to { opacity: 0; transform: translateX(-20px); }
     }
+
 .topbar {
   position: sticky;
   top: 0;
@@ -399,50 +400,41 @@
 .menu-wrapper.open .menu-panel {
   display: flex;
 }
-.search-wrapper {
-  position: relative;
-}
-
-.search-results {
-  position: absolute;
-  top: calc(100% + 6px);
-  left: 0;
-  width: 100%;
-  max-height: 320px;
-  overflow-y: auto;
-  background: white;
-  border-radius: 10px;
-  box-shadow: 0 12px 30px rgba(0,0,0,0.25);
-  z-index: 10000;
-}
-
-.search-results.hidden {
-  display: none;
-}
-
-.resultat-item {
-  padding: 10px 14px;
-  cursor: pointer;
-  border-bottom: 1px solid #eee;
-}
-
-.resultat-item:hover {
-  background: #e6f0fc;
-}
 
 .topbar,
 .search-container {
   position: relative;
 }
-#recherchePatient {
-  display: none;
-}
+
 body {
       font-family: 'Inter', sans-serif;
       margin: 0; padding: 20px;
       background: #f0f4f8;
       color: #222;
     }
+    h2 {
+      margin-bottom: 20px;
+    }
+
+    /* Boutons */
+    button {
+      background-color: #0078d4;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      font-size: 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+      flex-shrink: 0;
+    }
+
+    button:hover {
+      background-color: #005ea2;
+      box-shadow: 0 8px 20px rgba(0, 120, 212, 0.4);
+      transform: scale(1.05);
+    }
+
 
   </style>
 </head>
