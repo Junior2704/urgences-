@@ -481,12 +481,16 @@ footer {
 .menu-wrapper.open .menu-panel {
   display: flex;
 }
+.search-wrapper {
+  position: relative;
+}
+
 .search-results {
   position: absolute;
   top: calc(100% + 6px);
   left: 0;
   width: 100%;
-  max-height: 300px;
+  max-height: 320px;
   overflow-y: auto;
   background: white;
   border-radius: 10px;
@@ -498,15 +502,16 @@ footer {
   display: none;
 }
 
-.search-item {
+.resultat-item {
   padding: 10px 14px;
   cursor: pointer;
   border-bottom: 1px solid #eee;
 }
 
-.search-item:hover {
+.resultat-item:hover {
   background: #e6f0fc;
 }
+
 .topbar,
 .search-container {
   position: relative;
@@ -533,8 +538,10 @@ footer {
 
     <!-- 🔍 Bouton recherche -->
     <button class="icon-btn" id="toggleSearch" title="Recherche patient">🔍</button>
-<input type="text" id="recherchePatient" style="display:none" ...>
-<div id="resultatsRecherchePrincipale" class="search-results hidden"></div>
+<div class="search-wrapper">
+  <input type="text" id="recherchePatient" placeholder="Recherche patient…">
+  <div id="resultatsRecherchePrincipale" class="search-results hidden"></div>
+</div>
 
     <div class="menu-wrapper">
   <button class="icon-btn menu-toggle">🧰</button>
@@ -1059,12 +1066,19 @@ if (patients[id].importanceAllergies === true) {
 const resultatsRecherchePrincipale = document.getElementById("resultatsRecherchePrincipale");
 
 recherchePatient.addEventListener("input", async (e) => {
-const val = sansAccents(e.target.value.trim());
+  const val = sansAccents(e.target.value.trim());
   resultatsRecherchePrincipale.innerHTML = "";
 
-  if (val.length < 2) return;
+  if (val.length < 2) {
+    resultatsRecherchePrincipale.classList.add("hidden");
+    return;
+  }
 
-  const snapshot = await db.collection("patients").where("hospitalisationActive", "==", true).get();
+  const snapshot = await db
+    .collection("patients")
+    .where("hospitalisationActive", "==", true)
+    .get();
+
   let results = [];
 
   snapshot.forEach(doc => {
@@ -1082,6 +1096,7 @@ const val = sansAccents(e.target.value.trim());
     div.className = "resultat-item";
     div.textContent = "Aucun patient hospitalisé trouvé.";
     resultatsRecherchePrincipale.appendChild(div);
+    resultatsRecherchePrincipale.classList.remove("hidden");
     return;
   }
 
@@ -1096,7 +1111,22 @@ const val = sansAccents(e.target.value.trim());
 
     resultatsRecherchePrincipale.appendChild(div);
   });
+
+  resultatsRecherchePrincipale.classList.remove("hidden");
 });
+document.addEventListener("click", (e) => {
+  if (
+    !resultatsRecherchePrincipale.contains(e.target) &&
+    e.target !== recherchePatient
+  ) {
+    resultatsRecherchePrincipale.classList.add("hidden");
+  }
+});
+
+recherchePatient.addEventListener("click", (e) => {
+  e.stopPropagation();
+});
+
 
 
 function createPopover(content, x, y) {
