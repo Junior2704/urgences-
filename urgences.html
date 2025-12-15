@@ -327,10 +327,148 @@ footer {
   font-size: 0.9rem;
   width: 100%; /* assure que le footer prend toute la largeur */
 }
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 9999;
+  background: #ffffff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  border-radius: 14px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  margin-bottom: 15px;
+}
+
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.logo {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #005ea2;
+}
+
+.tabs {
+  display: flex;
+  gap: 8px;
+}
+
+.tab {
+  background: transparent;
+  color: #005ea2;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tab.active,
+.tab:hover {
+  background: #e6f0fc;
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.icon-btn {
+  background: #f0f4f8;
+  color: #333;
+  border: none;
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+.icon-btn:hover {
+  background: #dbe9ff;
+}
+
+/* 🔽 Menu hover */
+.hover-menu {
+  position: relative;
+}
+
+.hover-panel {
+  position: absolute;
+  top: 120%;
+  right: 0;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.2);
+  display: none;
+  flex-direction: column;
+  min-width: 180px;
+  overflow: hidden;
+}
+
+.hover-panel button {
+  background: none;
+  border: none;
+  padding: 10px 14px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.hover-panel button:hover {
+  background: #f0f8ff;
+}
+
+.hover-menu:hover .hover-panel {
+  display: flex;
+}
+
   </style>
 </head>
 <body>
 <div id="mainContent">
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="logo">🚑 GestUrg2</div>
+
+    <div class="tabs">
+      <button class="tab active">Urgences</button>
+      <button class="tab" onclick="location.href='agenda.html'">Agenda</button>
+      <button class="tab" onclick="location.href='regulation.html'">Régulation</button>
+      <button class="tab" onclick="location.href='gestionnaireradiologie.html'">Imagerie</button>
+    </div>
+  </div>
+
+  <div class="topbar-right">
+
+    <!-- 🔍 Bouton recherche -->
+    <button class="icon-btn" id="toggleSearch" title="Recherche patient">🔍</button>
+
+    <!-- 🧰 Menu outils -->
+    <div class="hover-menu">
+      <button class="icon-btn">🧰</button>
+      <div class="hover-panel">
+        <button onclick="location.href='MesOutils.html'">🧾 Outils médicaux</button>
+        <button onclick="location.href='statistiques.html'">📊 Statistiques</button>
+        <button onclick="location.href='export.html'">📤 Exports</button>
+      </div>
+    </div>
+
+    <!-- 👤 Compte -->
+    <div class="hover-menu">
+      <button class="icon-btn">👤</button>
+      <div class="hover-panel">
+        <button onclick="location.href='viewacount.html'">Mon compte</button>
+        <button id="btnLogout">🔓 Déconnexion</button>
+      </div>
+    </div>
+
+  </div>
+</div>
 
 <h2>Gestion des Urgences	  
 </h2>
