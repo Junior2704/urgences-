@@ -679,7 +679,9 @@ tr.innerHTML = `
   <td>${formatEquipe(equipe)}</td>
 `;
 
-
+tr.ondblclick = () => {
+      window.location.href = `fiche.html?id=${id}&from=regulation`;
+  };
       tbody.appendChild(tr);
     });
 
