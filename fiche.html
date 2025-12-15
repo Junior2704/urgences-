@@ -1436,7 +1436,7 @@ nav:hover .nav-item span {
   </div>
   <div class="right-header">
     Connecté en tant que <b><span id="nom-medecin"></span></b> (<span id="specialite"></span>)
-	  <button class="close-tab" onclick="window.location.href='urgences.html'">❌</button>
+<button class="close-tab" id="closeBtn">❌</button>
   </div>
 </header>
 <div class="app">
@@ -2642,6 +2642,17 @@ function rafraichirChampsSortie() {
   // Affichage du champ "autre option"
   champAutreOption.style.display = optionsSortie.includes("autreOption") ? "block" : "none";
 }
+const params = new URLSearchParams(window.location.search);
+const from = params.get('from'); // récupère "urgences" ou autre
+
+const closeBtn = document.getElementById('closeBtn');
+closeBtn.onclick = () => {
+    if (from) {
+        window.location.href = `${from}.html`; // redirection dynamique
+    } else {
+        window.location.href = 'index.html'; // redirection par défaut
+    }
+};
 
 // --- Gestion champ "autre sortie" ---
 document.querySelectorAll('input[name="typeSortie"]').forEach(radio => {
@@ -3113,7 +3124,17 @@ if (patientId) {
           });
 
           afficherBulle("✅ Hospitalisation clôturée", "success");
-          window.location.href = `urgences.html`;
+// Récupération des paramètres de l'URL
+const params = new URLSearchParams(window.location.search);
+const from = params.get('from'); // récupère "urgences" ou autre
+
+// Redirection dynamique selon le paramètre
+if (from) {
+    window.location.href = `${from}.html`;
+} else {
+    // Redirection par défaut si aucun paramètre
+    window.location.href = 'index.html';
+}
         }
       } catch (error) {
         console.error("Erreur clôture hospitalisation :", error);

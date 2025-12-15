@@ -997,7 +997,7 @@ document.getElementById("toggleSearch").addEventListener("click", () => {
   div.className = "patient";
   div.dataset.id = id;
   div.draggable = true;
-  div.ondblclick = () => window.location.href = `fiche.html?id=${id}`;
+  div.ondblclick = () => window.location.href = `fiche.html?id=${id}&from=urgences`;
   div.textContent = nom[0].toUpperCase() + prenom[0].toUpperCase();
 
 
