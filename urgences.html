@@ -426,6 +426,25 @@ footer {
 .hover-menu:hover .hover-panel {
   display: flex;
 }
+/* 🔧 Correctif lisibilité topbar */
+.topbar button,
+.topbar .tab,
+.topbar .icon-btn {
+  color: #1f2937; /* gris foncé lisible */
+}
+.hover-panel button {
+  color: #1f2937;
+  background: white;
+}
+
+.hover-panel button:hover {
+  background: #e6f0fc;
+  color: #005ea2;
+}
+.tab.active {
+  background: #0078d4;
+  color: white;
+}
 
   </style>
 </head>
@@ -447,6 +466,7 @@ footer {
 
     <!-- 🔍 Bouton recherche -->
     <button class="icon-btn" id="toggleSearch" title="Recherche patient">🔍</button>
+<input type="text" id="recherchePatient" style="display:none" ...>
 
     <!-- 🧰 Menu outils -->
     <div class="hover-menu">
@@ -901,6 +921,11 @@ setTimeout(() => {
 
 });
 
+document.getElementById("toggleSearch").addEventListener("click", () => {
+  const input = document.getElementById("recherchePatient");
+  input.style.display = (input.style.display === "none") ? "inline-block" : "none";
+  input.focus();
+});
 
 
   // Reset formulaire
