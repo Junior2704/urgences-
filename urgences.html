@@ -1220,7 +1220,7 @@ setInterval(() => {
 
   // Auth state + récupération du médecin
   onAuthStateChanged(auth, async (user) => {
-    afficherLoader()
+    afficherLoader();
   if (!user) {
     window.location.href = "index.html";
   } else {
