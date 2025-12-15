@@ -424,44 +424,12 @@
 .menu-wrapper.open .menu-panel {
   display: flex;
 }
-.search-wrapper {
-  position: relative;
-}
-
-.search-results {
-  position: absolute;
-  top: calc(100% + 6px);
-  left: 0;
-  width: 100%;
-  max-height: 320px;
-  overflow-y: auto;
-  background: white;
-  border-radius: 10px;
-  box-shadow: 0 12px 30px rgba(0,0,0,0.25);
-  z-index: 10000;
-}
-
-.search-results.hidden {
-  display: none;
-}
-
-.resultat-item {
-  padding: 10px 14px;
-  cursor: pointer;
-  border-bottom: 1px solid #eee;
-}
-
-.resultat-item:hover {
-  background: #e6f0fc;
-}
 
 .topbar,
 .search-container {
   position: relative;
 }
-#recherchePatient {
-  display: none;
-}
+
 
 
   </style>
@@ -490,7 +458,7 @@
   <div id="datetime"></div>
 </header>
 
-<main>
+
 
   <!-- === SYNTHÈSE GLOBALE === -->
   <section>
@@ -549,7 +517,6 @@
   <footer>
 🚑 GestUrg2 - données du service  </footer>
 
-</main>
 
 <script>
   // === FIREBASE ===
