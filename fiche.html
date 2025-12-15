@@ -2316,6 +2316,7 @@ document.querySelector('[data-module="examens"]').addEventListener('click', asyn
     const patientDoc = await db.collection("patients").doc(patientId).get();
 
     if (!patientDoc.exists) {
+      window.location.href="aucun-patients.html";
       console.warn("Patient introuvable");
       return;
     }
@@ -2434,7 +2435,7 @@ async function chargerPatient(patientId) {
   try {
     const doc = await db.collection("patients").doc(patientId).get();
     if (!doc.exists) {
-      afficherBulle("❌ Patient introuvable", "error");
+window.location.href="aucun-patients.html";
       return;
     }
 
@@ -3624,6 +3625,8 @@ async function chargerHistoriqueComplet() {
     const patientDoc = await db.collection("patients").doc(patientId).get();
     if (!patientDoc.exists) {
       contenu.innerHTML = "<p>❌ Patient introuvable</p>";
+      window.location.href="aucun-patients.html";
+
       return;
     }
 
@@ -3806,6 +3809,8 @@ async function supprimerActe(indexActe) {
     // Charger le document patient
     const snap = await patientRef.get();
     if (!snap.exists) {
+      window.location.href="aucun-patients.html";
+
       afficherBulle("❌ Patient introuvable", "error");
       return;
     }
