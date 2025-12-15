@@ -1,0 +1,2600 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+
+<link rel="icon" type="image/jpeg" href="logo.png">
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Fiche Patient </title>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
+   <style>
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;      /* 🔥 scroll global possible par défaut */
+  overflow-x: hidden;    /* pas de scroll horizontal */
+}
+
+.bouton-ancienne {
+  all: unset;
+  cursor: pointer;
+  font-size: 1em;
+  margin-left: 5px;
+  color: #2c7be5;   /* bleu */
+  background: transparent !important; /* 👈 reste transparent */
+}
+
+.bouton-ancienne:hover,
+.bouton-ancienne:focus,
+.bouton-ancienne:active {
+  color: #1b4f9c;   /* un bleu plus foncé pour l'effet visuel */
+  background: transparent !important; /* 👈 pas de fond */
+  text-decoration: none; /* pas de soulignement */
+  outline: none;  /* pas de bordure focus */
+  box-shadow: none; /* pas d’ombre */
+}
+
+
+	  hr {
+  border: none;
+  height: 4px;
+  background-color: #0078d4; 
+  border-radius: 2px;
+  margin: 20px 0;
+}
+
+	 .tabs {
+  display: flex;          /* aligne les boutons sur une ligne */
+  width: 100%;            /* prend toute la largeur */
+}
+
+.tabs {
+  display: flex;
+  width: 100%;
+}
+
+.tablink {
+  flex: 1;
+  text-align: center;
+  padding: 12px;
+  border: none;
+  cursor: pointer;
+  background: #2196f3;      /* bleu normal */
+  color: white;             /* texte blanc */
+  font-size: 16px;
+  transition: transform 0.2s, background 0.2s;
+}
+
+.tablink:hover {
+  background: #1976d2;      /* bleu plus foncé */
+  transform: scale(1.05);   /* zoom léger */
+}
+
+.tablink.active {
+  background: #2196f3;      /* même bleu */
+  color: black;             /* texte noir pour l’actif */
+  font-weight: bold;
+  transform: scale(1.08);   /* zoom un peu plus marqué */
+}
+
+
+
+.tab-content {
+  display: none;
+  width: 100%;       /* occupe toute la largeur */
+  max-width: none;   /* enlève la limite de largeur */
+  box-sizing: border-box;
+}
+.close-tab {
+  all: unset;
+  cursor: pointer;
+  color: #c62828;     /* rouge vif */
+  font-size: 20px;
+  font-weight: bold;
+  line-height: 1;
+  background: transparent !important;  /* 👈 force pas de fond */
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.close-tab:hover,
+.close-tab:focus,
+.close-tab:active {
+  transform: scale(1.3);
+  color: #e53935;            /* rouge plus clair */
+  background: transparent !important; /* 👈 bloque le bleu moche */
+  outline: none;             /* pas de contour par défaut */
+  box-shadow: none;          /* supprime glow éventuel */
+}
+
+#hospitalisationsContent .card {
+  margin-bottom: 20px;
+  padding: 15px;
+  border-left: 6px solid #0078d4;
+}
+#hospitalisationsContent h3 {
+  margin-top: 0;
+  color: #0078d4;
+}
+#hospitalisationsContent .entry {
+  background: #f9f9f9;
+  padding: 8px;
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+
+
+#examensListe,
+#actesListe {
+  max-width: none !important;  /* supprime la limite de largeur */
+  width: 100% !important;      /* étire les blocs */
+}
+
+
+
+textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px;
+  font-family: inherit;
+  font-size: 14px;
+  resize: vertical;       /* permet de redimensionner verticalement */
+  border: 1px solid #ccc; /* bord fin et gris */
+  border-radius: 6px;     /* coins arrondis */
+  background-color: #fff; /* fond blanc */
+}
+
+/* Hauteur spécifique par champ */
+#questionnaire {
+  height: 150px;
+  resize: vertical;
+}
+
+#antecedents {
+ height: 150px;
+  resize: vertical;
+}
+
+#traitements {
+ height: 150px;
+  resize: vertical;
+}
+
+#histoire {
+   height: 300px;
+  resize: vertical;
+}
+#auscultation {
+  height: 300px;
+  resize: vertical;
+}
+
+
+#evolutionTexte {
+   height: 500px;
+  resize: vertical;
+}
+
+
+#tab-dossier .card {
+  max-width: none !important;
+  width: 100% !important;
+}
+
+    body {
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: #f4f6f8;
+      margin: 0;
+      padding: 20px;
+      color: #333;
+    }
+	  #dossierMedical input[type="text"],
+#dossierMedical input[type="number"] {
+  width: 100%;
+}
+	
+	.bouton-horloge {
+  all: unset;
+  cursor: pointer;
+  font-size: 1.1em;
+  line-height: 1;
+  margin-left: 5px;
+  color: #555;
+}
+.bouton-horloge:hover,
+.bouton-horloge:focus {
+  outline: none;
+  box-shadow: none;
+  background-color: transparent; 
+}
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    header h2 {
+      margin: 0;
+      color: #0078d4;
+    }
+    button, select, input[type="text"], input[type="number"] {
+      font-size: 1rem;
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      outline: none;
+      transition: border-color 0.3s ease;
+    }
+    button {
+      background-color: #0078d4;
+      color: white;
+      cursor: pointer;
+      border: none;
+      margin-right: 10px;
+    }
+    button:hover {
+      background-color: #005ea2;
+    }
+    .card {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+      padding: 20px;
+      margin-bottom: 25px;
+      max-width: 600px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 600;
+      color: #555;
+    }
+    .field-group {
+      margin-bottom: 15px;
+    }
+    .inline-fields {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .inline-fields > div {
+      flex: 1;
+      min-width: 150px;
+    }
+  section.panel {
+  display: none;
+  position: relative;
+  width: 100%;
+  height: auto;
+  z-index: 0;
+  overflow: visible; /* ✅ important pour éviter l’apparition d’un scroll interne */
+}
+
+section.panel.active {
+  display: block;
+  z-index: 1;
+}
+  
+/* --- Correction complète pour les cartes de l'historique --- */
+
+/* === Correction finale : cartes d'historique adaptatives === */
+
+#panel-historique,
+#hospitalisationsContent {
+  position: relative;
+  width: 100%;
+  overflow: visible;
+}
+
+
+#hospitalisationsContent .card {
+  display: block !important;     /* empêche flex ou grid de les forcer */
+  height: auto !important;       /* s’adapte au contenu */
+  min-height: unset !important;  /* supprime toute hauteur minimale forcée */
+  flex: none !important;         /* évite flex-grow/shrink */
+  align-self: auto !important;   /* empêche le stretch */
+  width: 100% !important;
+  max-width: none !important;
+  box-sizing: border-box;
+  background: #f9f9f9;
+  border-left: 6px solid #0078d4;
+  border-radius: 8px;
+  padding: 15px 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  overflow: visible !important;  /* grandit selon le contenu */
+  word-wrap: break-word;
+  white-space: normal;
+}
+
+
+/* Chaque hospitalisation (carte) */
+#hospitalisationsContent .card {
+  width: 100% !important;         /* prend toute la largeur */
+  max-width: none !important;     /* désactive les limites globales */
+  box-sizing: border-box;
+  background: #f9f9f9;
+  border-left: 6px solid #0078d4;
+  border-radius: 8px;
+  padding: 15px 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  overflow: visible !important;   /* s’adapte au contenu long */
+  word-wrap: break-word;          /* évite les dépassements horizontaux */
+  white-space: normal;            /* le texte revient bien à la ligne */
+}
+
+/* Titre à l’intérieur des cartes */
+#hospitalisationsContent .card h2 {
+  margin-top: 0;
+  color: #0078d4;
+  border-bottom: 3px solid #0078d4;
+  padding-bottom: 5px;
+  margin-bottom: 15px;
+}
+
+/* Paragraphes et sections internes */
+#hospitalisationsContent .card p,
+#hospitalisationsContent .card div,
+#hospitalisationsContent .card h3 {
+  max-width: 100%;
+  overflow: visible;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+
+    .modal-overlay {
+      position: fixed;
+      top:0; left:0; right:0; bottom:0;
+      background: rgba(0,0,0,0.35);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    .modal {
+  background: white;
+  border-radius: 12px;
+  padding: 25px;
+  width: 90%;
+  max-width: 400px;
+  max-height: 90vh;         /* Limite la hauteur à 90% de la fenêtre */
+  overflow-y: auto;         /* Affiche un ascenseur vertical si besoin */
+  box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+}
+
+    .modal h3 {
+      margin-top: 0;
+      margin-bottom: 15px;
+      color: #0078d4;
+    }
+    .modal label {
+      font-weight: 600;
+      margin-bottom: 6px;
+      display: block;
+    }
+    .modal input[type="text"], .modal select, .modal textarea {
+      width: 100%;
+      box-sizing: border-box;
+      margin-bottom: 15px;
+      padding: 8px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+      resize: vertical;
+    }
+    .modal textarea {
+      min-height: 80px;
+    }
+    .modal-buttons {
+      text-align: right;
+    }
+    .modal-buttons button {
+      margin-left: 10px;
+      min-width: 90px;
+    }
+button {
+  all: unset;
+  display: inline-block;
+  padding: 10px 16px;
+  font-size: 1rem;
+  border-radius: 8px;
+  min-width: 120px;
+  text-align: center;
+  font-weight: 500;
+  background-color: #0078d4;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+button:hover {
+  background-color: #005ea2;
+  transform: translateY(-1px);
+}
+
+/* Boutons secondaires */
+button.secondary {
+  background-color: #6c757d;
+}
+
+button.secondary:hover {
+  background-color: #5a6268;
+}
+
+/* Boutons de validation */
+button.success {
+  background-color: #28a745;
+}
+
+button.success:hover {
+  background-color: #218838;
+}
+
+/* Boutons d’alerte / suppression */
+button.danger {
+  background-color: #dc3545;
+}
+
+button.danger:hover {
+  background-color: #c82333;
+}
+	  
+
+/* Cartes d’hospitalisation */
+#hospitalisationsContent {
+  margin-top: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+#hospitalisationsContent .card {
+  background: #f9f9f9;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+  border-left: 8px solid #0078d4;
+}
+
+#hospitalisationsContent h3 {
+  color: #0078d4;
+  margin-top: 10px;
+  margin-bottom: 8px;
+}
+
+#hospitalisationsContent p {
+  margin: 5px 0;
+  line-height: 1.5;
+  white-space: pre-wrap; /* conserve les sauts de ligne */
+  color: #333;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+
+
+/* Pour groupes de boutons côte à côte */
+.button-group {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.inline-fields {
+  display: flex;
+  gap: 20px; /* espace entre les champs */
+  flex-wrap: wrap; /* pour que ça passe à la ligne si trop étroit */
+}
+
+.field-group {
+  display: flex;
+  flex-direction: column;
+  min-width: 150px; /* largeur mini des champs */
+}
+.bouton-supprimer {
+  background-color: #e0e0e0;
+  color: #555;
+  border: none;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  margin-left: 4px;
+}
+.bouton-supprimer:hover {
+  background-color: #ccc;
+}
+
+/* === COMPORTEMENT DÉFINITIF DES ASCENSEURS === */
+
+
+
+/* Conteneur principal */
+.app {
+  display: flex;
+  height: calc(100vh - 80px); /* occupe tout sauf le header */
+  overflow: hidden; /* 🚫 aucun scroll global dans le layout */
+}
+
+/* Menu fixe à gauche */
+nav {
+  width: 260px;
+  background: #fff;
+  border-right: 1px solid #e0e0e0;
+  padding: 15px;
+  flex-shrink: 0;
+  overflow: hidden; /* 🚫 aucun ascenseur ici */
+}
+
+/* Zone de contenu à droite */
+.content {
+  flex: 1;
+  overflow-y: auto;  /* ✅ seul ascenseur vertical ici */
+  overflow-x: hidden; /* 🚫 pas de scroll horizontal */
+  padding: 20px;
+  box-sizing: border-box;
+  background: #f4f6f8;
+}
+
+/* === Comportement responsive (mobile) === */
+@media (max-width: 900px) {
+ 
+
+  nav {
+    position: fixed;
+    top: 0;
+    left: -260px;
+    bottom: 0;
+    width: 260px;
+    background: #fff;
+    box-shadow: 3px 0 10px rgba(0,0,0,0.2);
+    z-index: 2000;
+    transition: left 0.3s ease;
+    overflow-y: auto; /* ✅ ici, le menu mobile peut défiler si besoin */
+  }
+
+  nav.open {
+    left: 0;
+  }
+
+  .content {
+    overflow-y: auto;
+    padding: 15px;
+  }
+}
+
+
+
+main {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 10px;
+  overflow: auto;
+  flex: 1;
+  justify-content: flex-start;
+  align-content: flex-start;
+}
+
+.card {
+  flex: 1 1 300px;
+  max-height: 300px;
+  overflow: auto;
+  box-sizing: border-box;
+  padding: 10px;
+  margin: 0;
+}
+#bubble-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 9999;
+  align-items: flex-end;
+}
+
+
+.exam-button {
+  background-color: #007BFF;
+  color: white;
+  padding: 12px;
+  width: 100%;
+  border: none;
+  border-radius: 6px;
+  margin-top: 10px;
+  cursor: pointer;
+  font-size: 16px;
+}
+.exam-button:hover {
+  background-color: #0056b3;
+}
+.sub-list {
+  display: none;
+  margin-top: 10px;
+  padding-left: 10px;
+}
+.sub-list label {
+  display: block;
+  margin: 5px 0;
+  cursor: pointer;
+}
+.prescription-item {
+  background: #eef;
+  padding: 10px;
+  margin: 5px 0;
+  border-radius: 6px;
+  display: flex;
+  justify-content: space-between;
+}
+.btn-delete {
+  background-color: red;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+/* Overlay de la modale */
+#modalAdmin.modal-overlay {
+  position: fixed;
+  inset: 0; /* top:0; right:0; bottom:0; left:0; */
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex; /* garder le flex pour le centrage */
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease;
+  z-index: 2000;
+}
+
+/* Overlay visible */
+#modalAdmin.modal-overlay.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Modale elle-même */
+#modalAdmin .modal {
+  width: 90%;
+  max-width: 800px;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: #fff;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+
+  /* Animation d'apparition fluide */
+  transform: scale(0.95);
+  opacity: 0;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+/* Modale visible */
+#modalAdmin.modal-overlay.show .modal {
+  transform: scale(1);
+  opacity: 1;
+}
+
+#modalCloture.modal-overlay {
+  z-index: 3000; /* plus haut que #modalAdmin */
+}
+#modalActe.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 3000;
+  display: none;
+  justify-content: center;
+  align-items: center;
+}
+
+#modalActe .modal {
+  width: 95%;
+  max-width: none;
+  max-height: 95vh;
+  height: 95vh;
+  overflow-y: auto;
+  border-radius: 12px;
+  background: white;
+  padding: 25px;
+}
+
+
+input[type="text"],
+input[type="date"],
+select {
+  width: 100%;
+  padding: 8px 12px;
+  margin: 6px 0;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-sizing: border-box;
+  font-size: 16px;
+  font-family: inherit;
+  appearance: none; /* pour uniformiser certains navigateurs */
+  background-color: #fff;
+}
+input.text1 {
+  width: 120px;   /* largeur fixe, tu peux changer */
+  display: inline-block;
+}
+	  input.text2 {
+  width: 200px;   /* largeur fixe, tu peux changer */
+  display: inline-block;
+}
+input[type="date"]::-webkit-inner-spin-button,
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.5); /* optionnel : améliore l'intégration dans les thèmes clairs/foncés */
+}
+
+label {
+  display: block;
+  margin-top: 10px;
+  font-weight: bold;
+}
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  background-color: #f5f5f5; /* optionnel, pour une meilleure lisibilité */
+  border-bottom: 1px solid #ccc;
+}
+
+.left-header h2 {
+  margin: 0;
+}
+
+.right-header {
+  font-size: 0.9em;
+  color: #333;
+}
+
+  .vidal-search {
+    display: flex;
+   
+    align-items: center;
+    margin: 20px 0;
+    font-family: Arial, sans-serif;
+  }
+
+  /* Input de recherche */
+  .vidal-search input[type="text"] {
+    padding: 10px;
+    font-size: 16px;
+    border: 2px solid #d32f2f; /* rouge Vidal */
+    border-right: none; /* pour que le bouton soit collé */
+    border-radius: 4px 0 0 4px; /* coins arrondis côté gauche */
+    outline: none;
+    width: 300px;
+  }
+
+  /* Bouton de recherche */
+  .vidal-search button {
+    padding: 10px 20px;
+    background-color: #d32f2f; /* rouge Vidal */
+    color: white;
+    font-size: 16px;
+    border: 2px solid #d32f2f;
+    border-radius: 0 4px 4px 0; /* coins arrondis côté droit */
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+
+  /* Effet au survol */
+  .vidal-search button:hover {
+    background-color: #b71c1c; /* rouge plus foncé au survol */
+    border-color: #b71c1c;
+  }
+	  /* 🏥 Modale de saisie du code de clôture */
+#modalCodeCloture.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.55); /* voile sombre mais doux */
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 99999; /* 👑 au-dessus de tout */
+  animation: fadeInOverlay 0.25s ease;
+}
+
+/* Fenêtre centrale */
+#modalCodeCloture .modal {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 30px 25px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.25);
+  text-align: center;
+  animation: popIn 0.3s ease;
+  border-top: 6px solid #0078d4; /* bleu médical */
+}
+
+/* Titre */
+#modalCodeCloture .modal h3 {
+  margin-top: 0;
+  color: #0078d4;
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+/* Champ input */
+#modalCodeCloture input[type="password"] {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid #ccd6e0;
+  font-size: 1rem;
+  font-family: "Segoe UI", Tahoma, sans-serif;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+#modalCodeCloture input[type="password"]:focus {
+  border-color: #0078d4;
+  box-shadow: 0 0 0 3px rgba(0, 120, 212, 0.25);
+  outline: none;
+}
+
+/* Boutons */
+#modalCodeCloture .modal-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+/* Bouton Valider */
+#btnValiderCode {
+  background-color: #0078d4;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 18px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.15s ease;
+}
+
+#btnValiderCode:hover {
+  background-color: #005ea2;
+  transform: translateY(-1px);
+}
+
+/* Bouton Annuler */
+#btnAnnulerCode {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 18px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.15s ease;
+}
+
+#btnAnnulerCode:hover {
+  background-color: #5a6268;
+  transform: translateY(-1px);
+}
+
+/* Animation d'apparition douce */
+@keyframes fadeInOverlay {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes popIn {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+#loadingScreen {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  z-index: 99999;
+  color: white;
+  font-family: 'Inter', sans-serif;
+  transition: opacity 0.5s ease;
+}
+
+#loadingScreen.hidden {
+  opacity: 0;
+}
+
+.loader-content {
+  text-align: center;
+}
+
+.spinner {
+  border: 6px solid rgba(255, 255, 255, 0.3);
+  border-top: 6px solid white;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  animation: spin 1s linear infinite;
+  margin-bottom: 20px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+
+/* 🌙 Switch ON/OFF */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 28px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: 0.4s;
+  border-radius: 34px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 22px;
+  width: 22px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.4s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: #2196F3;
+}
+
+input:checked + .slider:before {
+  transform: translateX(22px);
+}
+
+footer {
+  margin-top: auto;
+  padding: 15px;
+  text-align: center;
+  color: #777;
+  font-size: 0.9rem;
+}
+
+
+.nav-title {
+  font-weight: bold;
+  color: #0078d4;
+  margin-bottom: 10px;
+}
+
+.nav-item {
+  padding: 10px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #333;
+  transition: background 0.2s, transform 0.1s;
+  margin-bottom: 6px;
+}
+
+.nav-item:hover {
+  background: #eef6ff;
+  transform: translateX(3px);
+}
+
+.nav-item.active {
+  background: linear-gradient(90deg, #eaf4ff, #fff);
+  border-left: 4px solid #0078d4;
+  color: #0078d4;
+  font-weight: bold;
+}
+
+.panel {
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+  padding: 20px;
+  margin-bottom: 25px;
+}
+/* ✅ Correction finale : cartes de l’historique auto-hauteur sans scroll */
+#hospitalisationsContent .card {
+  flex: none !important;       /* ne s'étire pas avec flexbox */
+  height: auto !important;     /* s’adapte à la taille du texte */
+  max-height: none !important; /* supprime la limite de hauteur */
+  overflow: visible !important;/* pas de scrollbar interne */
+}
+/* === MENU RESPONSIVE CORRIGÉ === */
+.menu-toggle {
+  display: none;
+  background-color: #0078d4;
+  color: white;
+  border: none;
+  padding: 10px 14px;
+  font-size: 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* 📱 Version mobile : menu caché par défaut */
+@media (max-width: 900px) {
+  .menu-toggle {
+    display: inline-block;
+  }
+
+  nav {
+    position: fixed;
+    top: 0;
+    left: -260px;
+    bottom: 0;
+    width: 260px;
+    background: #fff;
+    box-shadow: 3px 0 10px rgba(0, 0, 0, 0.2);
+    z-index: 2000;
+    transition: left 0.3s ease;
+  }
+
+  nav.open {
+    left: 0;
+  }
+
+  .content {
+    padding: 15px;
+  }
+
+  /* Désactive le scroll horizontal global */
+  body {
+    overflow-x: hidden;
+  }
+}
+
+/* 💻 Version bureau : menu toujours visible et fixe */
+@media (min-width: 901px) {
+  nav {
+    position: static;
+    left: 0;
+    width: 260px;
+    box-shadow: none;
+    transition: none;
+  }
+  .content {
+    margin-left: 0;
+  }
+}
+
+
+
+
+
+	   /* === CORRECTION : supprimer la bande blanche à gauche sur mobile === */
+
+
+/* === MENU SUPÉRIEUR AVEC DÉROULANTS === */
+.top-menu {
+  display: flex;
+  gap: 10px;
+  background: #0078d4;
+  padding: 10px 20px;
+  border-radius: 0 0 8px 8px;
+  position: sticky;
+  top: 0;
+  z-index: 1500;
+}
+
+.dropbtn {
+  background: white;
+  color: #0078d4;
+  font-weight: 600;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.dropbtn:hover {
+  background: #eaf4ff;
+  transform: translateY(-2px);
+}
+
+/* Conteneur de menu déroulant */
+.dropdown {
+  position: relative;
+}
+
+/* Sous-menu caché */
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #fff;
+  min-width: 180px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+  border-radius: 8px;
+  margin-top: 8px;
+  z-index: 9999;
+}
+
+/* Liens du sous-menu */
+.dropdown-content a {
+  color: #333;
+  padding: 10px 14px;
+  text-decoration: none;
+  display: block;
+  transition: background 0.2s;
+}
+
+.dropdown-content a:hover {
+  background-color: #eef6ff;
+}
+
+/* Affichage du menu au clic */
+.dropdown.show .dropdown-content {
+  display: block;
+}
+
+
+/* --- Sous-onglets du panneau Documents --- */
+
+.docs-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 15px;
+}
+
+.docs-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 15px;
+}
+
+
+.docs-tab {
+  padding: 10px 16px;
+  background: #e5e5e5;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+
+.docs-tab.active {
+  background: #0078d4;
+  color: white;
+}
+
+/************************************
+   🔵 RÈGLES GLOBALES (NE PAS TOUCHER)
+*************************************/
+
+/* Le site entier NE doit JAMAIS scroller */
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;         /* 🚫 jamais de scroll global */
+}
+
+/* Layout principal */
+.app {
+  height: calc(100vh - 90px);   /* ajuste si ton header a une autre hauteur */
+  display: flex;
+  overflow: hidden;             /* 🚫 pas de scroll ici */
+}
+
+/* Menu latéral fixe */
+nav {
+  flex-shrink: 0;
+  overflow: hidden;             /* 🚫 jamais de scroll ici */
+}
+
+/**********************************************
+   🟩 PANELS PAR DÉFAUT (TOUS LES ONGLET SAUF DOCUMENTS)
+***********************************************/
+
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;        /* gestion fine par panel */
+}
+
+section.panel {
+  flex: 1;
+  overflow-y: auto;        /* ✔️ chaque panel peut scroller */
+  overflow-x: hidden;
+  display: none;           /* masqué par défaut */
+}
+
+section.panel.active {
+  display: block;
+}
+
+
+/* --- Panel Documents caché par défaut comme les autres --- */
+#panel-documents {
+    overflow: hidden !important;
+    display: none;          /* ⛔ très important */
+    flex-direction: column; 
+}
+
+/* --- Quand le panel Documents est actif --- */
+#panel-documents.active {
+    display: flex !important;   /* ✔ remplace display:none */
+    flex-direction: column;
+}
+
+/* --- Onglets en haut --- */
+.docs-tabs {
+    flex-shrink: 0;
+}
+
+/* --- Iframe occupe toute la hauteur restante --- */
+#docsFrame {
+    flex: 1;
+    width: 100%;
+    height: auto;
+    border: none;
+    overflow: auto;   /* le seul ascenseur visible */
+}
+#panel-historique {
+  display: none;
+  flex-direction: column;
+  flex: 1;
+   overflow-y: auto;
+  padding-right: 15px;           /* scroll permanent, plus fluide */
+  scrollbar-width: thin;        /* Firefox */
+  scrollbar-color: #0078d4 #f4f6f8; /* couleur de la scrollbar */
+}
+#panel-historique.active {
+  display: flex
+
+}
+
+/* Menu latéral compact façon École Directe */
+nav {
+  border-top-right-radius: 20px;     /* ⬅ arrondi haut à droite */
+  border-bottom-right-radius: 20px;     /* ⬅ arrondi haut à droite */
+
+  width: 65px;                    /* ⬅ réduit : seulement les emojis visibles */
+  transition: width 0.25s ease;
+  overflow: hidden;
+}
+
+nav:hover {
+  width: 260px;                   /* ⬅ se déploie au survol */
+}
+
+/* Items du menu */
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;                      /* espace emoji / texte */
+  white-space: nowrap;            /* pas de retour ligne */
+  padding: 10px 14px;
+}
+
+/* Texte caché quand le menu est réduit */
+.nav-item span {
+  opacity: 0;
+  transition: opacity 0.20s ease;
+}
+
+/* Texte visible quand menu ouvert */
+nav:hover .nav-item span {
+  opacity: 1;
+}
+
+.suggestions {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border: 1px solid #ccc;
+  background: white;
+  max-height: 150px;
+  overflow-y: auto;
+  border-radius: 6px;
+  display: none;
+  position: absolute;
+  z-index: 1000;
+  width: 100%;
+}
+
+.suggestions li {
+  padding: 8px;
+  cursor: pointer;
+}
+
+.suggestions li:hover {
+  background: #eef6ff;
+}
+
+.alerte-orange {
+  margin-top: 5px;
+  color: #e65100;
+  font-size: 0.9em;
+}
+
+.clear-btn {
+  all: unset;
+  cursor: pointer;
+  font-size: 1.1em;
+  line-height: 1;
+  margin-left: 5px;
+  color: #555;
+}
+.clear-btn:hover,
+.clear-btn:focus {
+  outline: none;
+  box-shadow: none;
+  background-color: transparent; 
+}
+/* 🔲 Grille 2x2 équipe référente */
+.equipe-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+/* 📦 Champ avec bouton intégré */
+.input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.input-wrapper input {
+  width: 100%;
+  padding-right: 34px; /* place pour la croix */
+}
+
+/* ❌ Bouton clear dans le champ */
+.input-wrapper .clear-btn {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 14px;
+  color: #888;
+  cursor: pointer;
+}
+
+.input-wrapper .clear-btn:hover {
+  color: #c62828;
+}
+
+/* 📱 Responsive : une seule colonne sur mobile */
+@media (max-width: 700px) {
+  .equipe-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+  </style>
+
+
+
+</head>
+<body>
+
+
+
+<!-- Écran de chargement -->
+<div id="loadingScreen">
+  <div class="loader-content">
+    <div class="spinner"></div>
+    <h2>Chargement des données...</h2>
+    <p>Merci de patienter quelques instants</p>
+  </div>
+</div>
+
+<header>
+  <div class="left-header">
+	  <button id="menu-toggle" class="menu-toggle">☰</button>
+ <h2 id="patientName">Fiche Patient</h2>
+	   <span id="currentTime"></span>
+		
+  </div>
+  <div class="right-header">
+    Connecté en tant que <b><span id="nom-medecin"></span></b> (<span id="specialite"></span>)
+	  <button class="close-tab" onclick="window.location.href='urgences.html'">❌</button>
+  </div>
+</header>
+<div class="app">
+
+
+<nav>
+    <div class="nav-title">Menu</div>
+    <div id="navItems">
+      <div class="nav-item" data-module="patient">👤 <span>Identité Patient</span></div>
+<div class="nav-item" data-module="documents">📑 <span>Documents</span></div>
+<div class="nav-item" data-module="historique">📜 <span>Historique</span></div>
+<div class="nav-item" data-module="compte">🪪 <span>Mon Compte</span></div>
+
+
+    </div>
+  </nav>
+
+<div class="content">	
+<section id="panel-patient" class="panel" style="display:none;">
+ 
+    <h3>👤 Identité patient</h3>
+    
+ 
+  <div>
+  <label>CIP (Code d'Identification Patient)</label>
+  <span id="idPatient"></span>
+</div>
+
+  <div>
+    <label>Nom</label>
+    <span id="nom"></span>
+  </div>
+  <div>
+    <label>Prénom</label>
+    <span id="prenom"></span>
+  </div>
+  <div>
+    <label>Sexe</label>
+    <span id="sexe"></span>
+  </div>
+  <div>
+    <label>Âge</label>
+    <span id="age"></span>
+  </div>
+<div>
+  <label>Allergies</label>
+  <input type="text" id="allergies" placeholder="Ex : Pénicilline, arachides..." class="text2" />
+
+
+<div style="display:flex; align-items:center; gap:10px; margin-top:10px;">
+  <label style="margin:0;">Allergie(s) importantes</label>
+  <label class="switch" style="margin:0;">
+    <input type="checkbox" id="importanceAllergies">
+    <span class="slider"></span>
+  </label>
+</div>
+
+
+  <br><br>
+  <button id="btnAdmin" class="btn-admin">🛠 Gestion Administrative</button>
+
+	<button id="btnmailto">📧 Mailto - patient</button>
+  <button id="btnVersPdf">📄 Création d'accès PDF patient</button>
+</div>
+</section>
+
+
+
+
+
+
+<section id="panel-historique" class="panel" style="display:none;">
+
+    <h3>📜 Historique</h3>    
+
+  
+
+  <div id="hospitalisationsContent"></div>
+</section>
+
+
+
+
+<section id="panel-documents" class="panel" style="display:none;">
+  <h3>📑 Documents</h3>
+
+  <div class="docs-tabs">
+        <div id="tab-docs" class="docs-tab active" onclick="openDocsTab('tab-docs','docs.html')">Documents du patient</div>
+
+    <div id="tab-ordo" class="docs-tab active" onclick="openDocsTab('tab-ordo','Ordonnancierf.html')">Ordonnancier</div>
+    <div id="tab-cert" class="docs-tab" onclick="openDocsTab('tab-cert','Certificatmedicalf.html')">Certificats</div>
+    <div id="tab-exams" class="docs-tab" onclick="openDocsTab('tab-exams','prescriptionexamensf.html')">Examens</div>
+    <div id="tab-fiches" class="docs-tab" onclick="openDocsTab('tab-fiches','fichesconseilf.html')">Fiches Conseils</div>
+    <div id="tab-pdf" class="docs-tab" onclick="openDocsTab('tab-pdf','uploadpdff.html')">PDF patient</div>
+    <div id="tab-etiq" class="docs-tab" onclick="openDocsTab('tab-etiq','etiquettesf.html')">Étiquettes</div>
+        <div id="tab-mail" class="docs-tab" onclick="openDocsTab('tab-mail','mailtof.html')">Mails</div>
+
+  </div>
+
+<iframe id="docsFrame" scrolling="auto"></iframe>
+
+</section>
+
+<section id="panel-compte" class="panel" style="display:none;">
+    <h3>🪪 Mon compte</h3>
+
+  <iframe
+  id="compteFrame"
+  style="width:100%; height:calc(100vh - 60px); border:none; border-radius:10px; overflow:hidden;">
+</iframe>
+</section>
+
+
+
+
+
+
+<!-- Modal Gestion Administrative -->
+<div class="modal-overlay" id="modalAdmin">
+
+  <div class="modal">
+    <h3>🛠 Gestion Administrative</h3>
+    
+    <label for="adminId">ID Patient</label>
+    <input type="text" id="adminId" disabled />
+	
+	<label for="adminNom">Nom</label>
+    <input type="text" id="adminNom" />
+	<label for="adminPrenom">Prénom</label>
+<input type="text" id="adminPrenom" />
+
+	
+	
+	<label for="adminSexe">Sexe</label>
+	<select id="adminSexe" >
+  <option value="">-- Sélectionnez --</option>
+  <option value="M">M</option>
+  <option value="Mme">Mme</option>
+  <option value="L'enfant">L'enfant</option>
+</select>
+
+	<label for="adminNaissance">Date de naissance</label>
+<input type="date" id="adminNaissance"  />
+
+	
+    <label for="adminAdresse">Adresse</label>
+    <input type="text" id="adminAdresse" />
+
+    <label for="adminTelephone">Téléphone</label>
+    <input type="text" id="adminTelephone" />
+
+    <label for="adminEmail">Email</label>
+    <input type="text" id="adminEmail" />
+
+    <div class="modal-buttons">
+	    <button type="button" id="readVitaleBtn" class="button" style="background-color: #28a745; color: white;">🆔 Lecture Carte Vitale</button>
+      <button id="btnFacturer" class="success">💶 Facturer</button>
+            <br><br>
+			<button id="btnFermerAdmin" class="danger">❌Fermer</button>
+	  <button id="btnEnregistrerAdmin" class="primary">💾Enregistrer</button>
+
+    </div>
+  </div>
+</div>
+ 
+
+
+<div id="vitaleModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:10001; justify-content:center; align-items:center;">
+  <div style="background:white; padding:30px; border-radius:12px; text-align:center; box-shadow:0 5px 15px rgba(0,0,0,0.3);">
+    <div class="spinner" style="margin-bottom:15px;"></div>
+    <div style="font-size:18px; font-weight:600;">⏳Lecture Carte Vitale en cours...</div>
+  </div>
+</div>
+
+<style>
+.spinner {
+  border: 6px solid #f3f3f3;
+  border-top: 6px solid #007bff;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+  margin: auto;
+}
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+</style>
+<div id="facturationModale" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:10001; justify-content:center; align-items:center;">
+  <div style="background:white; padding:30px; border-radius:12px; text-align:center; box-shadow:0 5px 15px rgba(0,0,0,0.3);">
+    <div class="spinner" style="margin-bottom:15px;"></div>
+    <div style="font-size:18px; font-weight:600;">⏳Chargement des informations...</div>
+  </div>
+</div>
+
+<style>
+.spinner {
+  border: 6px solid #f3f3f3;
+  border-top: 6px solid #007bff;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+  margin: auto;
+}
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+</style>
+
+ </div>
+</div>
+<script>
+   const firebaseConfig = {
+    apiKey: "AIzaSyBKp5-7NNy0Gyl0tNbDgD-BxucYdg8ArWo",
+    authDomain: "urgences-a8ed4.firebaseapp.com",
+    projectId: "urgences-a8ed4",
+    storageBucket: "urgences-a8ed4.appspot.com",  
+    messagingSenderId: "392921498200",
+    appId: "1:392921498200:web:7ccce767332c67c697c02d",
+    measurementId: "G-C74MK2KYDL"
+  };
+	 firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+	// Récupérer l'ID du patient depuis l'URL
+const urlParams = new URLSearchParams(window.location.search);
+ const patientId = new URLSearchParams(window.location.search).get("id");
+// Créer la référence au document patient
+const patientRef = db.collection("patients").doc(patientId);
+
+ // Conteneur global pour les bulles
+let notificationContainer = document.getElementById('notification-container');
+if (!notificationContainer) {
+  notificationContainer = document.createElement('div');
+  notificationContainer.id = 'notification-container';
+  notificationContainer.style.position = 'fixed';
+  notificationContainer.style.top = '12px';
+  notificationContainer.style.right = '12px'; // EN HAUT À DROITE
+  notificationContainer.style.display = 'flex';
+  notificationContainer.style.flexDirection = 'column';
+  notificationContainer.style.gap = '8px'; // espace vertical entre bulles
+  notificationContainer.style.zIndex = 9999;
+  document.body.appendChild(notificationContainer);
+}
+
+// Fonction pour afficher une bulle
+function afficherBulle(msg, type = 'info') {
+  const el = document.createElement('div');
+  el.textContent = msg;
+  el.style.padding = '10px 14px';
+  el.style.borderRadius = '8px';
+  el.style.boxShadow = '0 2px 6px rgba(0,0,0,0.2)';
+  el.style.fontSize = '14px';
+  el.style.fontWeight = '500';
+  el.style.opacity = '0';
+  el.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+  el.style.transform = 'translateY(-10px)';
+
+  // --- Code couleur selon type ---
+  switch (type) {
+    case 'success':
+      el.style.background = '#e6ffed'; // vert clair
+      el.style.color = '#064e22';      // texte vert foncé
+      break;
+    case 'error':
+      el.style.background = '#ffdede'; // rouge clair
+      el.style.color = '#a00';         // texte rouge foncé
+      break;
+    case 'warning':
+      el.style.background = '#fff4e5'; // orange clair
+      el.style.color = '#663c00';      // texte orange foncé
+      break;
+    default: // info ou autre
+      el.style.background = '#333';    // gris foncé
+      el.style.color = '#fff';         // texte blanc
+      break;
+  }
+
+  notificationContainer.appendChild(el);
+
+
+  // Animation d'entrée
+  requestAnimationFrame(() => {
+    el.style.opacity = '1';
+    el.style.transform = 'translateY(0)';
+  });
+
+  // Suppression automatique après 3 secondes
+  setTimeout(() => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(-10px)';
+    el.addEventListener('transitionend', () => el.remove());
+  }, 3000);
+}
+
+
+
+function openTab(tabId, event) {
+  document.querySelectorAll(".tab-content").forEach(tab => tab.style.display = "none");
+  document.querySelectorAll(".tablink").forEach(btn => btn.classList.remove("active"));
+  document.getElementById(tabId).style.display = "block";
+  if (event) event.currentTarget.classList.add("active");
+   if (tabId === "tab-historique") {
+    chargerHistoriqueComplet();
+  }
+}
+// Affichage du module Ordonnancier
+
+
+	
+  function calculerAge(dateNaissance) {
+    const birth = new Date(dateNaissance);
+    const now = new Date();
+    let age = now.getFullYear() - birth.getFullYear();
+    if (
+      now.getMonth() < birth.getMonth() ||
+      (now.getMonth() === birth.getMonth() && now.getDate() < birth.getDate())
+    ) {
+      age--;
+    }
+    return age;
+  }
+// --- Références aux éléments ---
+
+
+async function chargerPatient(patientId) {
+  afficherLoader();
+  try {
+    const doc = await db.collection("patients").doc(patientId).get();
+    if (!doc.exists) {
+      afficherBulle("❌ Patient introuvable", "error");
+      return;
+    }
+
+ const data = doc.data();
+    const index = data.hospitalisationIndex ?? 0;
+    const hospi = data.hospitalisations?.[index];
+
+    // --- Infos patient ---
+	 document.getElementById("idPatient").textContent = patientId || "Non défini";
+    document.getElementById("nom").textContent = data.nom || "";
+    document.getElementById("prenom").textContent = data.prenom || "";
+    document.getElementById("sexe").textContent = data.sexe || "";
+    document.getElementById("poids").value = data.poids || "";
+    document.getElementById("taille").value = data.taille || "";
+       document.getElementById("pdcStatut").value = data.pdcStatut || "";
+
+    // Allergies
+document.getElementById("allergies").value = data.allergies || "aucun";
+document.getElementById("importanceAllergies").checked = data.importanceAllergies === true;
+
+document.getElementById("patientName").textContent =
+    `Fiche Patient - ${data.prenom || ""} ${data.nom || ""}`;
+
+    // Âge
+    if (data.dateNaissance) {
+      const age = calculerAge(data.dateNaissance);
+      document.getElementById("age").textContent = !isNaN(age) ? `${age} ans` : "Inconnu";
+    }
+	
+  } catch (err) {
+    console.error("Erreur chargement patient :", err);
+    afficherBulle("❌ Erreur de chargement", "error");
+  } 
+  masquerLoader();
+}
+// Champ allergies
+document.getElementById("allergies").addEventListener("change", async () => {
+  const value = document.getElementById("allergies").value.trim() || "aucun";
+  await patientRef.update({ allergies: value });
+  afficherBulle("💾 Allergies enregistrées", "success");
+});
+
+// Switch allergie(s) importantes
+document.getElementById("importanceAllergies").addEventListener("change", async () => {
+  const isImportant = document.getElementById("importanceAllergies").checked;
+  await patientRef.update({ importanceAllergies: isImportant });
+  afficherBulle(isImportant ? "⚠️ Allergie(s) importantes activée(s)" : "✅ Pas d’allergie majeure", "default");
+});
+
+async function updateHospitalisationField(field, value) {
+  try {
+    const doc = await patientRef.get();
+    if (!doc.exists) return;
+
+    const data = doc.data();
+    const index = data.hospitalisationIndex ?? 0;
+    const hospitalisations = Array.isArray(data.hospitalisations) ? [...data.hospitalisations] : [];
+
+    hospitalisations[index] = { ...hospitalisations[index], [field]: value };
+
+    await patientRef.update({ hospitalisations });
+
+    ajouterEntreeHistorique(`Modification de ${field} : ${value}`);
+    
+  } catch (err) {
+    console.error(`Erreur mise à jour ${field} :`, err);
+    afficherBulle("❌ Erreur d’enregistrement", "error");
+  }
+}
+
+
+	
+
+	
+
+
+
+function formaterDate(dateStr) {
+  if (!dateStr) return "";
+  const match = dateStr.match(/^(\d{2})[-\/](\d{2})[-\/](\d{4})$/);
+  if (match) {
+    const [_, jj, mm, aaaa] = match;
+    return `${aaaa}-${mm}-${jj}`;
+  }
+  if (dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
+    return dateStr;
+  }
+  return "";
+}
+    
+
+// 🧠 Intégration dans le chargement patient
+document.addEventListener("DOMContentLoaded", async () => {
+  if (patientId) {
+    await chargerPatient(patientId);
+    await initialiserScope(patientId);
+  }
+});
+
+  const historiqueContainer = document.getElementById("historique");
+
+// Fonction pour charger tout l'historique de l'hospitalisation en cours
+async function chargerHistorique() {
+  try {
+    const doc = await patientRef.get();
+    const data = doc.data();
+
+    const index = data.hospitalisationIndex ?? 0;
+    const hospi = data.hospitalisations?.[index];
+
+    if (!hospi || !hospi.historique || hospi.historique.length === 0) {
+      historiqueContainer.innerHTML = "<p>Aucune entrée dans l'historique.</p>";
+      return;
+    }
+
+    historiqueContainer.innerHTML = ""; // on vide avant d'afficher
+
+    hospi.historique.forEach(entry => {
+      afficherHistorique(entry);
+    });
+  } catch (error) {
+    console.error("Erreur chargement historique :", error);
+  }
+}
+
+// Fonction d'affichage d'une seule entrée dans le DOM
+function afficherHistorique(entry) {
+  if (!historiqueContainer) return;
+  const div = document.createElement("div");
+  div.className = "entry";
+  div.innerHTML = `<strong>${entry.date}</strong><br>${entry.texte}`;
+  historiqueContainer.appendChild(div);
+}
+
+  function afficherHistoriqueAncienne(hospitalisation, index) {
+    if (!historiqueAncienContainer) return;
+    const titre = document.createElement("div");
+    titre.innerHTML = `<strong style="color:#d9534f">Hospitalisation ${index + 1} (${hospitalisation.dateDebut} - ${hospitalisation.dateFin || "en cours"})</strong>`;
+    historiqueAncienContainer.appendChild(titre);
+    hospitalisation.historique?.forEach(entry => afficherHistorique(entry, "ancien"));
+  }
+  function clearHistoriqueAnciennes() {
+    if(historiqueAncienContainer) historiqueAncienContainer.innerHTML = "";
+  }
+  function clearHistorique() {
+    if(historiqueContainer) historiqueContainer.innerHTML = "";
+  }
+ 
+
+
+
+document.getElementById("btnAdmin").addEventListener("click", () => {
+   modalAdmin.classList.add("show");
+});
+
+
+ 
+document.getElementById("btnVersPdf").addEventListener("click", () => {
+    window.location.href =`uploadpdf.html?id=${patientId}`;
+  });
+
+document.getElementById("btnmailto").addEventListener("click", () => {
+    window.location.href =`mailto.html?id=${patientId}`;
+  });
+;
+
+// Gestion Administrative
+const modalAdmin = document.getElementById("modalAdmin");
+const btnAdmin = document.getElementById("btnAdmin");
+const btnFermerAdmin = document.getElementById("btnFermerAdmin");
+const btnEnregistrerAdmin = document.getElementById("btnEnregistrerAdmin");
+const btnFacturer = document.getElementById("btnFacturer");
+
+btnAdmin.addEventListener("click", async () => {
+  try {
+    const doc = await patientRef.get();
+    const data = doc.data();
+    document.getElementById("adminId").value = patientId;
+	document.getElementById("adminNom").value = data.nom || "";
+    document.getElementById("adminPrenom").value = data.prenom || "";
+    document.getElementById("adminSexe").value = data.sexe || "";
+document.getElementById("adminNaissance").value = data.dateNaissance || "";
+    document.getElementById("adminAdresse").value = data.adresse || "";
+    document.getElementById("adminTelephone").value = data.telephone || "";
+    document.getElementById("adminEmail").value = data.email || "";
+ modalAdmin.classList.add("show");
+  } catch (e) {
+    console.error("Erreur ouverture admin :", e);
+    afficherBulle("❌Erreur chargement gestion dministrative", "error");
+  }
+});
+
+btnFermerAdmin.addEventListener("click", () => {
+  modalAdmin.classList.remove("show");
+});
+
+btnEnregistrerAdmin.addEventListener("click", async () => {
+  const adresse = document.getElementById("adminAdresse").value.trim();
+  const telephone = document.getElementById("adminTelephone").value.trim();
+  const email = document.getElementById("adminEmail").value.trim();
+  const sexe = document.getElementById("adminSexe").value;
+const dateNaissance = document.getElementById("adminNaissance").value.trim();
+
+
+
+
+  try {
+    await patientRef.update({ adresse, telephone, email, sexe, dateNaissance });
+    afficherBulle("✔️ Coordonnées mises à jour", "success");
+    modalAdmin.style.display = "none";
+  } catch (e) {
+    console.error("Erreur maj admin :", e);
+    afficherBulle("❌Erreur enregistrement données administratives", "error");
+  }
+});
+
+btnFacturer.addEventListener("click", () => {
+  window.location.href =`Facturation.html?id=${patientId}`;
+});
+
+
+function formatDateHeure(dateString) {
+  const date = new Date(dateString);
+  const pad = (n) => n.toString().padStart(2, '0');
+  const jour = pad(date.getDate());
+  const mois = pad(date.getMonth() + 1);
+  const annee = date.getFullYear();
+  const heures = pad(date.getHours());
+  const minutes = pad(date.getMinutes());
+  const secondes = pad(date.getSeconds());
+  return `${jour}/${mois}/${annee} ${heures}:${minutes}:${secondes}`;
+}
+
+document.getElementById('readVitaleBtn').addEventListener('click', () => {
+  const modal = document.getElementById('vitaleModal');
+  modal.style.display = 'flex';
+
+  const duration = 3000 + Math.random() * 7000; // entre 3 et 10 secondes
+
+  setTimeout(() => {
+    modal.style.display = 'none';
+
+    const isSuccess = Math.random() < 0.8; // 80% ok-20%erreur
+
+    if (isSuccess) {
+      afficherBulle("✅ Lecture Carte Vitale terminée !", "success");
+    } else {
+      afficherBulle("❌ Erreur lecture Carte Vitale - Veuillez ressayer", "warning");
+    }
+  }, duration);
+});
+
+
+function ajouterHorodatage() {
+  const textarea = document.getElementById("texteRemarque");
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('fr-FR');
+  const timeStr = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  const horodatage = `${dateStr} ${timeStr} - ${medecinNom} : `;
+
+  textarea.value += textarea.value && !textarea.value.endsWith('\n') ? '\n' + horodatage : horodatage;
+  textarea.focus();
+}
+
+function ajouterHorodatageDans(id) {
+  const textarea = document.getElementById(id);
+  if (!textarea) return;
+
+  const horodatage = new Date().toLocaleString("fr-FR");
+const insertion = `${horodatage} - ${window.medecinNom}\n`;
+
+  const start = textarea.selectionStart;
+  const end = textarea.selectionEnd;
+
+  const texteAvant = textarea.value.substring(0, start);
+  const texteApres = textarea.value.substring(end);
+
+  textarea.value = texteAvant + insertion + texteApres;
+
+  const nouvellePosition = start + insertion.length;
+  textarea.selectionStart = textarea.selectionEnd = nouvellePosition;
+  textarea.focus();
+}
+
+
+
+
+async function chargerHistoriqueComplet() {
+  const contenu = document.getElementById("hospitalisationsContent");
+  if (!contenu) {
+    console.error("Element #hospitalisationsContent introuvable");
+    return;
+  }
+  contenu.innerHTML = "<p>⏳ Chargement...</p>";
+
+  try {
+    const patientDoc = await db.collection("patients").doc(patientId).get();
+    if (!patientDoc.exists) {
+      contenu.innerHTML = "<p>❌ Patient introuvable</p>";
+      return;
+    }
+
+    const data = patientDoc.data();
+    let hospitalisations = Array.isArray(data.hospitalisations) ? data.hospitalisations : [];
+
+    // on enlève la dernière hospitalisation (courante)
+    if (hospitalisations.length > 1) {
+      hospitalisations = hospitalisations.slice(0, -1);
+    } else {
+      hospitalisations = [];
+    }
+
+    if (hospitalisations.length === 0) {
+      contenu.innerHTML = "<p>Aucune hospitalisation antérieure.</p>";
+      return;
+    }
+
+    contenu.innerHTML = "";
+
+    // afficher les hospitalisations les plus récentes d'abord
+    hospitalisations
+      .slice()
+      .reverse()
+      .forEach((hospi, idx) => {
+        const card = document.createElement("div");
+        card.className = "card";
+
+        // 🏥 titre avec numéro d’hospitalisation
+    const numero = hospitalisations.length - idx;
+
+
+        const titre = document.createElement("h2");
+        titre.textContent = `🏥 Hospitalisation n°${numero}`;
+        titre.style.color = "#0078d4";
+        titre.style.borderBottom = "3px solid #0078d4";
+        titre.style.paddingBottom = "5px";
+        titre.style.marginTop = "0";
+        titre.style.marginBottom = "15px";
+
+        // --- Données de l'hospitalisation ---
+        const date = hospi.dateDebut || "Date inconnue";
+        const datef = hospi.dateFin || "Date inconnue";
+        const motif = hospi.motif || "—";
+        const gravite = hospi.gravite || "—";
+        const evolution = hospi.evolution || "Aucune évolution enregistrée.";
+        const dossier = hospi.dossierMedical || {};
+        const sortie = hospi.sortie || null;
+        const rapport = hospi.rapport || "Pas de rapport d'hospitalisation validé";
+
+        // --- Construction du contenu HTML ---
+        const parts = [];
+        parts.push(`<div class="entry"><strong>📅 Admission :</strong> ${date}</div>`);
+        parts.push(`<div class="entry"><strong>📅 Sortie :</strong> ${datef}</div>`);
+        parts.push(`<div class="entry"><strong>Motif :</strong> ${motif}</div>`);
+        parts.push(`<div class="entry"><strong>Gravité :</strong> ${gravite}</div>`);
+        parts.push(`<hr>`);
+        parts.push(`<h3>📋 Dossier médical</h3>`);
+        parts.push(`<p><strong>Questionnaire IAO :</strong><br>${dossier.questionnaire || "—"}</p>`);
+        parts.push(`<p><strong>Antécédents :</strong><br>${dossier.antecedents || "—"}</p>`);
+        parts.push(`<p><strong>Traitements :</strong><br>${dossier.traitements || "—"}</p>`);
+        parts.push(`<p><strong>Histoire de la maladie :</strong><br>${dossier.histoire || "—"}</p>`);
+        parts.push(`<p><strong>CR Auscultation :</strong><br>${dossier.auscultation || "—"}</p>`);
+        parts.push(`<hr>`);
+        parts.push(`<h3>📈 Évolution aux urgences</h3>`);
+        parts.push(`<p style="white-space:pre-wrap">${evolution}</p>`);
+
+        // --- Sortie ---
+        if (sortie) {
+          parts.push(`<hr>`);
+          parts.push(`<h3>🚪 Sortie</h3>`);
+          parts.push(`<p><strong>Type :</strong> ${sortie.type || "—"}</p>`);
+          if (sortie.serviceHospitalisation)
+            parts.push(`<p><strong>🏥 Service hospitalisation :</strong> ${sortie.serviceHospitalisation}</p>`);
+          if (sortie.destinationTransfert)
+            parts.push(`<p><strong>↔️ Destination transfert :</strong> ${sortie.destinationTransfert}</p>`);
+          if (sortie.avisSpecialiste)
+            parts.push(`<p><strong>👩‍⚕️ Avis spécialiste :</strong> ${sortie.avisSpecialiste}</p>`);
+          if (Array.isArray(sortie.options) && sortie.options.length > 0)
+            parts.push(`<p><strong>📋 Options :</strong> ${sortie.options.join(", ")}</p>`);
+          if (sortie.traitementSortie)
+            parts.push(`<p><strong>💊 Traitement de sortie :</strong><br>${sortie.traitementSortie}</p>`);
+          if (sortie.autreSortieTexte)
+            parts.push(`<p><strong>🔤 Autre :</strong> ${sortie.autreSortieTexte}</p>`);
+          if (sortie.autreOptionTexte)
+            parts.push(`<p><strong>🔤 Autre option :</strong> ${sortie.autreOptionTexte}</p>`);
+        }
+
+        parts.push(`<p><strong></strong> ${rapport}</p>`);
+
+        // --- Injection dans la carte ---
+        card.innerHTML = parts.join("\n");
+        card.prepend(titre); // ✅ ajoute le titre au début sans l'écraser
+        contenu.appendChild(card);
+      });
+
+  } catch (err) {
+    console.error("Erreur chargement historique :", err);
+    contenu.innerHTML = "<p>❌ Erreur lors du chargement de l'historique.</p>";
+  }
+}
+
+
+const originalOpenTab = window.openTab;
+window.openTab = function(tabName, evt) {
+  originalOpenTab(tabName, evt);
+  if (tabName === "tab-exam-actes") {
+    chargerExamens();
+  }
+};
+
+
+
+
+function updateTime() {
+    const now = new Date();
+    const formatted = now.toLocaleString(); // date + heure locale
+    document.getElementById('currentTime').textContent = formatted;
+}
+
+
+
+	// --- Affiche l’écran de chargement ---
+window.afficherLoader = function() {
+  let loader = document.getElementById("loadingScreen");
+  if (!loader) {
+    loader = document.createElement("div");
+    loader.id = "loadingScreen";
+    loader.innerHTML = `
+      <div class="loader-content">
+        <div class="spinner"></div>
+        <h2>Chargement...</h2>
+      </div>
+    `;
+    document.body.appendChild(loader);
+  }
+  loader.style.display = "flex";
+  loader.classList.remove("hidden");
+};
+
+// --- Masque l’écran de chargement ---
+window.masquerLoader = function() {
+  const loader = document.getElementById("loadingScreen");
+  if (loader) {
+    loader.classList.add("hidden");
+    setTimeout(() => {
+      loader.style.display = "none";
+    }, 500); // délai pour l’animation
+  }
+};
+
+updateTime();
+setInterval(updateTime, 1000);
+  
+function openDocsTab(tabId, file) {
+    // récupère l’ID du patient
+    const url = file + "?id=" + patientId;
+
+    // active l’onglet
+    document.querySelectorAll(".docs-tab").forEach(t => t.classList.remove("active"));
+    document.getElementById(tabId).classList.add("active");
+
+    // charge l’URL avec ?id=
+    document.getElementById("docsFrame").src = url;
+}
+function openSection(panelId) {
+    // Masquer toutes les sections
+    document.querySelectorAll(".panel").forEach(panel => {
+        panel.classList.remove("active");
+        panel.style.display = "none";
+    });
+
+    // Activer la section demandée
+    const panel = document.getElementById(panelId);
+    if (panel) {
+        panel.style.display = "block";
+        panel.classList.add("active");
+    }
+
+    // Mettre à jour la barre latérale si elle existe
+    document.querySelectorAll(".nav-item").forEach(item => {
+        item.classList.remove("active");
+        if (item.dataset.module === panelId.replace("panel-", "")) {
+            item.classList.add("active");
+        }
+        if (panelId === "panel-medsurgences") {
+    const url = "medsurgences.html?id=" + patientId;
+    document.getElementById("medsurgencesFrame").src = url;
+}
+if (panelId === "panel-compte") {
+    const url = "viewaccount.html";
+    document.getElementById("compteFrame").src = url;
+}
+    });
+}
+window.openDocumentFromMenu = function(tabId, file) {
+    // 1️⃣ Ouvrir la section Documents
+    openSection('panel-documents');
+
+    // 2️⃣ Activer l'onglet désiré
+    document.querySelectorAll(".docs-tab").forEach(t => t.classList.remove("active"));
+    document.getElementById(tabId).classList.add("active");
+
+    // 3️⃣ Construire l'URL avec le patientId
+    const url = file + "?id=" + patientId;
+
+    // 4️⃣ Charger dans l’iframe
+    document.getElementById("docsFrame").src = url;
+};
+
+
+
+
+async function getHospitalisationEnCours() {
+  const snap = await db
+    .collection("patients")
+    .doc(idPatient)
+    .collection("hospitalisations")
+    .where("cloturee", "==", false)
+    .limit(1)
+    .get();
+
+  if (snap.empty) return null;
+console.log("snap empty ?", snap.empty);
+if (!snap.empty) console.log("Hospitalisation trouvée :", snap.docs[0].id);
+  return snap.docs[0].id;
+}
+
+
+
+// Ligne de test de fin
+console.log("Script terminé correctement ✅");
+</script>
+
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBKp5-7NNy0Gyl0tNbDgD-BxucYdg8ArWo",
+    authDomain: "urgences-a8ed4.firebaseapp.com",
+    projectId: "urgences-a8ed4"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+   let medecinNom = "";
+  let medecinSpecialite = "";
+  let medecinLieu = "";
+onAuthStateChanged(auth, async (user) => {
+  if (!user) {
+    window.location.href = "index.html";
+  } else {
+    try {
+      const docRef = doc(db, "medecins", user.uid);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        medecinNom = data.nom || "";
+        medecinSpecialite = data.specialite || "";
+        medecinLieu = data.lieu || "";
+
+        // Met à jour aussi les variables globales sur window
+        window.medecinNom = medecinNom;
+        window.medecinSpecialite = medecinSpecialite;
+        window.medecinLieu = medecinLieu;
+
+        // Mise à jour des éléments HTML si présents
+        const nomElem = document.getElementById("nom-medecin");
+        if (nomElem) nomElem.textContent = medecinNom;
+
+        const specElem = document.getElementById("specialite");
+        if (specElem) specElem.textContent = medecinSpecialite;
+
+        const lieuElem = document.getElementById("lieu-medecin");
+        if (lieuElem) lieuElem.textContent = medecinLieu;
+
+        // --- Vérification d'accès à la page ---
+        const pages = data.pages || {};
+        const currentPath = window.location.pathname;
+        const currentPage = currentPath.substring(currentPath.lastIndexOf("/") + 1).replace(".html", "");
+
+        if (!pages[currentPage]) {
+          alert("⛔️ Vous n’avez pas accès à cette page.");
+          window.location.href = "index.html";
+          return; // Stoppe le script ici
+        }
+      } else {
+        // Document inexistant — redirection
+        alert("Utilisateur non trouvé, veuillez vous reconnecter.");
+        window.location.href = "accueil.html";
+      }
+    } catch (error) {
+      console.error("Erreur chargement médecin :", error);
+      alert("Une erreur est survenue, veuillez réessayer plus tard.");
+    }
+  }
+});
+function initNavigation() {
+  const items = document.querySelectorAll('.nav-item');
+
+  items.forEach(item => {
+    item.addEventListener('click', () => {
+      // Gestion active sur les boutons
+      items.forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+
+      // Masquer tous les panels proprement (via classes)
+      document.querySelectorAll('section[id^="panel-"]').forEach(sec => {
+        sec.classList.remove('active');
+      });
+
+      // Afficher le panel correspondant en ajoutant la classe active
+      const module = item.getAttribute('data-module');
+      const panel = document.getElementById('panel-' + module);
+      if (panel) panel.classList.add('active');
+
+      // Charger l’historique si nécessaire
+      if (module === 'historique') {
+        if (typeof chargerHistoriqueComplet === 'function') chargerHistoriqueComplet();
+      }
+
+      // Gestion spécifique : mode Documents -> scroll interne iframe
+      if (module === 'documents') {
+        document.body.classList.add('no-scroll-docs'); // voir CSS que tu as ajouté avant
+      } else {
+        document.body.classList.remove('no-scroll-docs');
+      }
+    });
+  });
+  // Gestion spéciale de l'ouverture de la section Documents
+document.querySelector('[data-module="documents"]').addEventListener('click', () => {
+
+    const last = localStorage.getItem("lastDocsTab");
+
+    if (last) {
+        // 🔁 Revenir sur le dernier onglet visité
+        const { tabId, url } = JSON.parse(last);
+        openDocsTab(tabId, url);
+    } else {
+        // 🆕 1er lancement : ouvrir l’onglet par défaut
+        openDocsTab('tab-docs', 'docs.html');   // mets ici ton onglet par défaut
+    }
+});
+
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  // 1) Supprimer tout 'style.display' inline anciennement laissé dans le HTML (si présent)
+  document.querySelectorAll('section[id^="panel-"]').forEach(sec => {
+    sec.style.display = ''; // vide l'inline-style pour que notre CSS s'applique
+    sec.classList.remove('active');
+  });
+
+  // 2) Activer l’onglet par défaut (celui qui a .nav-item.active)
+  const ongletActif = document.querySelector('.nav-item.active') || document.querySelector('.nav-item');
+  if (ongletActif) {
+    const module = ongletActif.getAttribute('data-module');
+    const panel = document.getElementById('panel-' + module);
+    if (panel) panel.classList.add('active');
+
+    // Appliquer la classe no-scroll-docs si nécessaire
+    if (module === 'documents') {
+      document.body.classList.add('no-scroll-docs');
+    } else {
+      document.body.classList.remove('no-scroll-docs');
+    }
+  }
+
+  // Initialiser la navigation
+  initNavigation();
+});
+
+
+// --- Gestion du menu responsive ---
+const menuToggle = document.getElementById("menu-toggle");
+const nav = document.querySelector("nav");
+const navItems = document.querySelectorAll(".nav-item");
+
+menuToggle.addEventListener("click", () => {
+  nav.classList.toggle("open");
+});
+
+// Ferme le menu automatiquement quand on sélectionne un onglet
+navItems.forEach(item => {
+  item.addEventListener("click", () => {
+    if (window.innerWidth <= 900) {
+      nav.classList.remove("open");
+    }
+  });
+});
+
+// Ferme le menu si on clique à l’extérieur (mobile)
+document.addEventListener("click", e => {
+  if (window.innerWidth <= 900 && nav.classList.contains("open")) {
+    if (!nav.contains(e.target) && e.target !== menuToggle) {
+      nav.classList.remove("open");
+    }
+  }
+});
+// --- Gestion des menus déroulants supérieurs ---
+document.querySelectorAll('.dropbtn').forEach(btn => {
+  btn.addEventListener('click', e => {
+    e.stopPropagation();
+    const parent = btn.parentElement;
+    const isOpen = parent.classList.contains('show');
+
+    // Fermer tous les autres menus
+    document.querySelectorAll('.dropdown').forEach(d => d.classList.remove('show'));
+
+    // Ouvrir/fermer celui cliqué
+    if (!isOpen) parent.classList.add('show');
+  });
+});
+
+// Fermer les menus si on clique ailleurs
+document.addEventListener('click', () => {
+  document.querySelectorAll('.dropdown').forEach(d => d.classList.remove('show'));
+});
+  function LogOut () {
+    signOut(auth)
+      .then(() => {
+        window.location.href = "index.html";
+      })
+      .catch((error) => {
+        afficherBulle("Erreur de déconnexion" ,"error");
+      });
+  }
+document.addEventListener("DOMContentLoaded", () => {
+
+    const btnOrdo = document.querySelector('[data-module="medsurgences"]');
+
+    btnOrdo.addEventListener("click", () => {
+        // Charger l’ordonnancier avec l’ID patient
+        const iframe = document.getElementById("medsurgencesFrame");
+        iframe.src = "medsurgences.html?id=" + patientId;
+    });
+        const btncompte = document.querySelector('[data-module="compte"]');
+
+btncompte.addEventListener("click", () => {
+        const iframe = document.getElementById("compteFrame");
+        iframe.src = "viewacountf.html";
+    });
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  const panelDocs = document.getElementById("panel-documents");
+
+  const observer = new MutationObserver(() => {
+    if (panelDocs.style.display !== "none") {
+
+      // attendre que patientId soit disponible
+      const waitForPatientId = setInterval(() => {
+        if (typeof patientId !== "undefined" && patientId !== null && patientId !== "") {
+
+          clearInterval(waitForPatientId);
+
+          // ouvrir l’onglet correctement AVEC l'id
+          openDocsTab("tab-docs", "docs.html");
+
+          observer.disconnect();
+        }
+      }, 50); // vérifie toutes les 50 ms
+    }
+  });
+
+  observer.observe(panelDocs, { attributes: true, attributeFilter: ["style"] });
+});
+
+
+document.addEventListener("DOMContentLoaded", () => {
+  // --- Parcourir toutes les sections avec onglets internes ---
+  document.querySelectorAll('section[id^="panel-"]').forEach(section => {
+    // Si la section est active au démarrage
+    if (section.classList.contains('active')) {
+      ouvrirPremierOnglet(section);
+    }
+
+    // Observer les changements de classe "active" pour ouvrir le premier onglet si nécessaire
+    const observer = new MutationObserver(() => {
+      if (section.classList.contains('active')) {
+        ouvrirPremierOnglet(section);
+      }
+    });
+    observer.observe(section, { attributes: true, attributeFilter: ['class'] });
+  });
+
+  // Fonction qui ouvre le premier onglet d'une section
+  function ouvrirPremierOnglet(section) {
+    const subTabs = section.querySelectorAll('.sub-tab'); // tes sous-onglets
+    const subContents = section.querySelectorAll('.sub-tab-content'); // contenu associé
+    if (subTabs.length === 0) return;
+
+    // Retirer active de tous les onglets et contenus
+    subTabs.forEach(tab => tab.classList.remove('active'));
+    subContents.forEach(content => content.classList.remove('active'));
+
+    // Activer le premier
+    subTabs[0].classList.add('active');
+    if (subContents[0]) subContents[0].classList.add('active');
+
+    // Si c'est la section Documents, charger le contenu
+    if (section.id === 'panel-documents' && typeof openDocsTab === 'function') {
+      const defaultTabId = subTabs[0].id;
+      const defaultUrl = subTabs[0].getAttribute('data-url');
+      openDocsTab(defaultTabId, defaultUrl);
+    }
+  }
+});
+// Quand on ouvre l'onglet Documents, on charge automatiquement l'historique
+document.querySelector('[data-module="documents"]').addEventListener('click', () => {
+    // sélectionne automatiquement le bon onglet
+    openDocsTab('tab-docs', 'docs.html');
+});
+
+
+
+
+</script>
+
+</body>
+</html>
+
+
+
