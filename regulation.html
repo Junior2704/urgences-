@@ -449,7 +449,7 @@
 
   <div class="topbar-right">
 
-<div id="datetime"></div>
+
   </div>
 </div>
 </div>
@@ -532,14 +532,7 @@ const STATUTS_ATTENTE = [
   "Attente 1ere consult ext"
 ];
   // === HORLOGE ===
-  function updateClock() {
-    const now = new Date();
-    document.getElementById('datetime').textContent =
-      now.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
-      + ' – ' + now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-  }
-  updateClock();
-  setInterval(updateClock, 15000);
+  
 
   function setVal(id, val) {
     const el = document.getElementById(id);
