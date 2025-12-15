@@ -2395,8 +2395,9 @@ const pageKey = pageMapping[currentPage] || currentPage;
 console.log("Page actuelle :", currentPage);
 console.log("Page Firestore :", pageKey);
 if (!pages[pageKey]) {
-  window.location.href = "aucun-patients.html";
-
+lert("⛔️ Vous n’avez pas accès à cette page.");
+          window.location.href = "index.html";
+          
   return; // Stoppe l'exécution pour ceux qui n'ont pas accès
 } else {
   console.log("Accès autorisé à", currentPage);
