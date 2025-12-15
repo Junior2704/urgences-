@@ -283,13 +283,21 @@ function afficherPatients(data) {
     liste.innerHTML = "<li>Aucun patient trouvé.</li>";
     return;
   }
-  data.forEach(p => {
-    const li = document.createElement("li");
-    li.innerHTML = `<strong>${p.nom || "?"} ${p.prenom || ""}</strong><br>
-    Sexe : ${p.sexe || "-"} &nbsp; | &nbsp; 📅 ${p.dateNaissance || "?"}`;
-    li.ondblclick = () => ouvrirModale(p.id);
-    liste.appendChild(li);
-  });
+ data.forEach(p => {
+  const li = document.createElement("li");
+
+  li.innerHTML = `
+    <strong>${p.nom || "?"} ${p.prenom || ""}</strong><br>
+    Sexe : ${p.sexe || "-"} &nbsp; | &nbsp; 📅 ${p.dateNaissance || "?"}
+  `;
+
+  li.ondblclick = () => {
+    window.location.href = `fiche-patient.html?id=${p.id}`;
+  };
+
+  liste.appendChild(li);
+});
+
 }
 
 document.getElementById("btnVersFiche").addEventListener("click", () => {
