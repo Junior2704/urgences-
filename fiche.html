@@ -4273,8 +4273,7 @@ onAuthStateChanged(auth, async (user) => {
         const currentPage = currentPath.substring(currentPath.lastIndexOf("/") + 1).replace(".html", "");
 
         if (!pages[currentPage]) {
-          alert("⛔️ Vous n’avez pas accès à cette page.");
-          window.location.href = "index.html";
+          window.location.href = "aucun-patients.html";
           return; // Stoppe le script ici
         }
       } else {
