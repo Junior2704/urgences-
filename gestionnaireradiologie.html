@@ -869,15 +869,7 @@ function formatDate(isoString) {
   const secondes = String(date.getSeconds()).padStart(2, '0');
   return `${jour}/${mois}/${annee} ${heures}:${minutes}:${secondes}`;
 }
-document.getElementById("btnLogout").addEventListener("click", () => {
-    signOut(auth)
-      .then(() => {
-        window.location.href = "index.html";
-      })
-      .catch((error) => {
-        afficherBulle("Erreur de déconnexion" ,"error");
-      });
-  });
+
 </script>
 
 <div id="bubble-container"></div>
