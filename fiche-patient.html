@@ -1408,7 +1408,40 @@ nav:hover .nav-item span {
     grid-template-columns: 1fr;
   }
 }
+.modalna {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(5px); /* flou de l'écran */
+  z-index: 9999;
+}
 
+.modalna .card {
+  background: #fff;
+  padding: 24px 32px;
+  border-radius: 12px;
+  text-align: center;
+  max-width: 400px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+}
+
+.modalna h2 {
+  color: #d32f2f; /* rouge pour danger/erreur */
+  margin-bottom: 12px;
+}
+
+.modalna p {
+  font-size: 16px;
+  margin-bottom: 20px;
+}
+
+.modalna .btn {
+  padding: 10px 20px;
+  font-size: 14px;
+}
   </style>
 
 
@@ -1648,7 +1681,11 @@ nav:hover .nav-item span {
   100% { transform: rotate(360deg); }
 }
 </style>
-
+<div id="modal-no-access" class="modalna">
+  <div class="card">
+    <h2>⛔️ Accès refusé</h2>
+    <p>Vous n’avez pas accès à cette page.</p>
+  </div>
  </div>
 </div>
 <script>
@@ -2302,8 +2339,6 @@ if (!snap.empty) console.log("Hospitalisation trouvée :", snap.docs[0].id);
 // Ligne de test de fin
 console.log("Script terminé correctement ✅");
 </script>
-
-
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -2319,57 +2354,65 @@ console.log("Script terminé correctement ✅");
   const auth = getAuth(app);
   const db = getFirestore(app);
 
-   let medecinNom = "";
+let medecinNom = "";
   let medecinSpecialite = "";
   let medecinLieu = "";
+
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
-    window.location.href = "index.html";
-  } else {
-    try {
-      const docRef = doc(db, "medecins", user.uid);
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        medecinNom = data.nom || "";
-        medecinSpecialite = data.specialite || "";
-        medecinLieu = data.lieu || "";
+    window.location.href = "accueil.html";
+    return;
+  }
 
-        // Met à jour aussi les variables globales sur window
-        window.medecinNom = medecinNom;
-        window.medecinSpecialite = medecinSpecialite;
-        window.medecinLieu = medecinLieu;
+  try {
+    const docRef = doc(db, "medecins", user.uid);
+    const docSnap = await getDoc(docRef);
 
-        // Mise à jour des éléments HTML si présents
-        const nomElem = document.getElementById("nom-medecin");
-        if (nomElem) nomElem.textContent = medecinNom;
-
-        const specElem = document.getElementById("specialite");
-        if (specElem) specElem.textContent = medecinSpecialite;
-
-        const lieuElem = document.getElementById("lieu-medecin");
-        if (lieuElem) lieuElem.textContent = medecinLieu;
-
-        // --- Vérification d'accès à la page ---
-        const pages = data.pages || {};
-        const currentPath = window.location.pathname;
-        const currentPage = "fiche";
-        if (!pages[currentPage]) {
-          alert("⛔️ Vous n’avez pas accès à cette page.");
-          window.location.href = "index.html";
-          return; // Stoppe le script ici
-        }
-      } else {
-        // Document inexistant — redirection
-        alert("Utilisateur non trouvé, veuillez vous reconnecter.");
-        window.location.href = "accueil.html";
-      }
-    } catch (error) {
-      console.error("Erreur chargement médecin :", error);
-      alert("Une erreur est survenue, veuillez réessayer plus tard.");
+    if (!docSnap.exists()) {
+      alert("Utilisateur non trouvé, veuillez vous reconnecter.");
+      window.location.href = "accueil.html";
+      return;
     }
+
+    const data = docSnap.data();
+    const medecinNom = data.nom || "";
+    const medecinSpecialite = data.specialite || "";
+    const medecinLieu = data.lieu || "";
+
+    // variables globales
+    window.medecinNom = medecinNom;
+    window.medecinSpecialite = medecinSpecialite;
+    window.medecinLieu = medecinLieu;
+
+   
+const pages = data.pages || {};
+    const currentPath = window.location.pathname;
+const currentPage = currentPath.substring(currentPath.lastIndexOf("/") + 1).replace(".html", "");
+
+// Mapping pour Firestore
+const pageMapping = {
+  "fiche-patient": "fiche" // Ordonnancierf.html utilise les droits de Ordonnancier
+};
+
+const pageKey = pageMapping[currentPage] || currentPage;
+console.log("Page actuelle :", currentPage);
+console.log("Page Firestore :", pageKey);
+if (!pages[pageKey]) {
+  const modal = document.getElementById("modal-no-access");
+  if (modal) modal.style.display = "flex";
+  console.warn("Accès refusé à", currentPage);
+  return; // Stoppe l'exécution pour ceux qui n'ont pas accès
+} else {
+  console.log("Accès autorisé à", currentPage);
+  // Ici tu peux mettre tout le code spécifique à cette page
+}
+
+  } catch (error) {
+    console.error("Erreur chargement médecin :", error);
+    alert("Une erreur est survenue, veuillez réessayer plus tard.");
   }
 });
+
 function initNavigation() {
   const items = document.querySelectorAll('.nav-item');
 
