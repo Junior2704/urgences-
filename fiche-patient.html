@@ -2542,13 +2542,7 @@ document.addEventListener('click', () => {
   }
 document.addEventListener("DOMContentLoaded", () => {
 
-    const btnOrdo = document.querySelector('[data-module="medsurgences"]');
-
-    btnOrdo.addEventListener("click", () => {
-        // Charger l’ordonnancier avec l’ID patient
-        const iframe = document.getElementById("medsurgencesFrame");
-        iframe.src = "medsurgences.html?id=" + patientId;
-    });
+    
         const btncompte = document.querySelector('[data-module="compte"]');
 
 btncompte.addEventListener("click", () => {
