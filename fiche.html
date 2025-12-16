@@ -1324,11 +1324,15 @@ nav:hover {
 nav:hover .nav-item span {
   opacity: 1;
 }
+.field-group {
+  position: relative;
+}
+
 
 .suggestions {
   list-style: none;
   padding: 0;
-  margin: 0;
+  margin: 4px 0 0 0;
   border: 1px solid #ccc;
   background: white;
   max-height: 150px;
@@ -1338,6 +1342,8 @@ nav:hover .nav-item span {
   position: absolute;
   z-index: 1000;
   width: 100%;
+  top: 100%;
+  left: 0;
 }
 
 .suggestions li {
