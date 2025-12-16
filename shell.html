@@ -133,10 +133,14 @@ iframe{
   padding: 6px;
   z-index: 10001;
 }
+.dropdown-content {
+  display: none;
+}
 
-.dropdown:hover .dropdown-content {
+.dropdown-content.open {
   display: block;
 }
+
 
 .dropdown-item {
   position: relative;
@@ -201,10 +205,10 @@ iframe{
       <button class="action-btn" onclick="openTab('Patients','patients.html')">👥 Patients</button>
       <button class="action-btn" onclick="openTab('Tableau','regulation.html')">📊 Tableau</button>
       <button class="action-btn" onclick="openTab('Imagerie','gestionnaireradiologie.html')">🩻 Imagerie</button>
-<div class="dropdown">
-  <button class="action-btn">🧰 Outils ▾</button>
+<div class="dropdown" id="dropdownOutils">
+  <button class="action-btn" id="btnOutils">🧰 Outils ▾</button>
 
-  <div class="dropdown-content">
+  <div class="dropdown-content" id="menuOutils">
 
     <div class="dropdown-item" data-desc="Accéder aux dossiers et comptes rendus des patients.">
       👥 Patients
