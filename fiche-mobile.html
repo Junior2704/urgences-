@@ -707,23 +707,29 @@ input:focus {
 }
 
 /* ===============================
-   ACCUEIL – LOGO
+   ACCUEIL – LOGO (VERROUILLÉ)
 ================================ */
 #accueil-logo{
-  display:block;
-  margin:0 auto 20px auto;
-  width:clamp(90px, 25vw, 140px);
-  height:auto;
-  opacity:0.95;
+  display:block !important;
+  max-width:120px !important;   /* LIMITE DURE */
+  width:100% !important;
+  height:auto !important;
+  margin:0 auto 16px auto !important;
+  object-fit:contain;
 }
 
-/* Mobile : encore un peu plus discret */
-@media (max-width:600px){
-  #accueil-logo{
-    width:110px;
-    margin-bottom:16px;
-  }
+/* Sécurité absolue : jamais plus large que l'écran */
+#accueil-logo{
+  max-inline-size:120px;
 }
+
+/* Parent sécurisé */
+#accueil-logo-parent{
+  width:100%;
+  max-width:100%;
+  overflow:hidden;
+}
+
 
 </style>
 </head>
@@ -748,7 +754,9 @@ input:focus {
 <div id="sidebarOverlay" class="sidebar-overlay"></div>
 <div id="pageAccueil" class="page">
   <div class="accueil-wrap">
-    <img src="logo.png" class="accueil-logo" alt="Logo">
+<div id="accueil-logo-parent">
+  <img id="accueil-logo" src="logo.png" alt="Logo">
+</div>
     <h2 id="accueilBienvenue">Bienvenue</h2>
     <div id="accueilHeure" class="accueil-heure">--:--</div>
     <p class="accueil-txt">Sélectionnez une option dans le menu pour commencer.</p>
