@@ -3787,6 +3787,8 @@ async function chargerHistoriqueComplet() {
         card.innerHTML = parts.join("\n");
         card.prepend(titre); // ✅ ajoute le titre au début sans l'écraser
         contenu.appendChild(card);
+        card.style.display = "";
+
       });
 
   } catch (err) {
