@@ -1250,6 +1250,15 @@ setInterval(() => {
   const db = getFirestore(app);
 
   // Déconnexion
+window.addEventListener("message", (event) => {
+  if (!event.data) return;
+
+  if (event.data.type === "USER_CONNECTED") {
+    const user = event.data.user;
+    console.log("Utilisateur reçu depuis le shell :", user);
+    // Ici tu peux charger les données Firestore de ce médecin
+  }
+});
 
   // Auth state + récupération du médecin
   onAuthStateChanged(auth, async (user) => {
