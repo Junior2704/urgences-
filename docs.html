@@ -449,16 +449,16 @@ function fermerModal() {
     pdfViewer.src = "";
 }
 
-/* --- Fonction d'affichage des documents (corrigée) --- */
 function afficherDocuments() {
- afficherLoader();
-        db.collection('documents')
+    afficherLoader();
+
+    db.collection('documents')
       .where('patientId', '==', idPatient)
       .get()
       .then(querySnapshot => {
+
           if (querySnapshot.empty) {
               documentList.innerHTML = "<li>Aucun document trouvé.</li>";
-               masquerLoader();
               return;
           }
 
@@ -471,28 +471,24 @@ function afficherDocuments() {
           });
 
           docsArray.sort((a, b) => {
-    const dateA = parseDateFR(a.dateCreation);
-    const dateB = parseDateFR(b.dateCreation);
-    return dateB - dateA; // du plus récent au plus ancien
-});
+              const dateA = parseDateFR(a.dateCreation);
+              const dateB = parseDateFR(b.dateCreation);
+              return dateB - dateA;
+          });
 
-
-          documentList.innerHTML = ""; // clear list avant ajout
+          documentList.innerHTML = "";
 
           docsArray.forEach(data => {
-let extrait = "(pas de contenu)";
+              let extrait = "(pas de contenu)";
 
-if (typeof data.contenu === "string") {
-    extrait = data.contenu.substring(0, 50) + "…";
-}
-else if (data.contenu && typeof data.contenu.text === "string") {
-    // exemple : PDF avec texte extrait
-    extrait = data.contenu.text.substring(0, 50) + "…";
-}
+              if (typeof data.contenu === "string") {
+                  extrait = data.contenu.substring(0, 50) + "…";
+              } else if (data.contenu?.text) {
+                  extrait = data.contenu.text.substring(0, 50) + "…";
+              }
 
               const li = document.createElement('li');
 
-              // construit l'html des boutons — on utilise window.peutSupprimer
               let boutonsHTML = `<button class="btn-loupe" type="button">🔎</button>`;
               if (window.peutSupprimer) {
                   boutonsHTML += `<button class="btn-delete" type="button" data-doc-id="${data.id}">🗑️</button>`;
@@ -500,47 +496,36 @@ else if (data.contenu && typeof data.contenu.text === "string") {
 
               li.innerHTML = `
                   <div style="display:flex; align-items:center; gap:12px;">
-                    <span class="doc-type">${data.type || ""}</span>
-<span class="doc-date">${data.dateCreation || ""}</span>
-                    <span class="doc-contenu">${extrait}</span>
+                      <span class="doc-type">${data.type || ""}</span>
+                      <span class="doc-date">${data.dateCreation || ""}</span>
+                      <span class="doc-contenu">${extrait}</span>
                   </div>
                   <div style="display:flex; gap:10px;">
                       ${boutonsHTML}
                   </div>
               `;
 
-              // écouteurs — ajout après innerHTML (important)
-              const btnLoupe = li.querySelector('.btn-loupe');
-              if (btnLoupe) {
-                  btnLoupe.addEventListener('click', () => {
-                      const blob = b64toBlob(data.pdfBase64, "application/pdf");
-                      ouvrirModal(blob);
-                  });
-              }
+              li.querySelector('.btn-loupe')?.addEventListener('click', () => {
+                  const blob = b64toBlob(data.pdfBase64, "application/pdf");
+                  ouvrirModal(blob);
+              });
 
-              const btnDelete = li.querySelector('.btn-delete');
-              if (btnDelete) {
-                  btnDelete.addEventListener('click', (e) => {
-                      const idDoc = e.currentTarget.getAttribute("data-doc-id");
-                      console.log("clic supprimer doc:", idDoc);
-                      ouvrirConfirmDeleteModal(idDoc);
-                  });
-              }
+              li.querySelector('.btn-delete')?.addEventListener('click', e => {
+                  ouvrirConfirmDeleteModal(e.currentTarget.dataset.docId);
+              });
 
               documentList.appendChild(li);
           });
-		   masquerLoader();
       })
-
-    
       .catch(err => {
           console.error(err);
           documentList.innerHTML = "<li>Erreur lors du chargement.</li>";
-      });
-       .finally(() => {
-          masquerLoader(); // ✅ exécuté dans TOUS les cas
+      })
+      .finally(() => {
+          masquerLoader(); // ✅ toujours exécuté
       });
 }
+
 
 /* --- Suppression — modales et boutons --- */
 let documentToDelete = null;
