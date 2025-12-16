@@ -516,53 +516,22 @@ footer {
 .search-container {
   position: relative;
 }
-#recherchePatient {
-  display: none;
-}
+
 
 
   </style>
 </head>
 <body>
 <div id="mainContent">
-<div class="topbar">
-  <div class="topbar-left">
-    <div class="logo">🚑 GestUrg2</div>
 
-    <div class="tabs">
-      <button class="tab active">Urgences</button>
-      <button class="tab" onclick="location.href='regulation.html'">Tableau</button>
-      <button class="tab" onclick="location.href='gestionnaireradiologie.html'">Imagerie</button>
+ 
+ 
 
-      <button class="tab" onclick="location.href='patients.html'">Patients</button>
-            <button class="tab" onclick="location.href='MesOutils.html'">Outils</button>
+ 
+<button id="btnAddPatient" class="icon-btn" title="Ajouter un patient">➕ Ajouter un patient</button>
 
-    </div>
-  </div>
-
-  <div class="topbar-right">
-<button id="btnAddPatient" class="icon-btn" title="Ajouter un patient">➕</button>
-
-    <!-- 🔍 Bouton recherche -->
-    <button class="icon-btn" id="toggleSearch" title="Recherche patient">🔍</button>
-<div class="search-wrapper">
   <input type="text" id="recherchePatient" placeholder="Recherche patient…">
   <div id="resultatsRecherchePrincipale" class="search-results hidden"></div>
-</div>
-
-
-
-<div class="menu-wrapper">
-  <button class="icon-btn menu-toggle">👤</button>
-  <div class="menu-panel">
-    <button onclick="location.href='viewacount.html'">👤Mon compte</button>
-    <button id="btnLogout">🔓 Déconnexion</button>
-  </div>
-</div>
-
-
-  </div>
-</div>
 
 
 Connecté en tant que <b><span id="nom-medecin"></span></b> (<span id="specialite"></span>)
@@ -951,11 +920,6 @@ setTimeout(() => {
 
 });
 
-document.getElementById("toggleSearch").addEventListener("click", () => {
-  const input = document.getElementById("recherchePatient");
-  input.style.display = (input.style.display === "none") ? "inline-block" : "none";
-  input.focus();
-});
 
 
   // Reset formulaire
@@ -995,8 +959,16 @@ document.getElementById("toggleSearch").addEventListener("click", () => {
   div.className = "patient";
   div.dataset.id = id;
   div.draggable = true;
-  div.ondblclick = () => window.location.href = `fiche.html?id=${id}&from=urgences`;
-  div.textContent = nom[0].toUpperCase() + prenom[0].toUpperCase();
+div.ondblclick = () => {
+  window.parent.postMessage(
+    {
+      type: "OPEN_TAB",
+      title: `Fiche ${nom} ${prenom}`,
+      url: `fiche.html?id=${id}&from=urgences`
+    },
+    "*"
+  );
+};  div.textContent = nom[0].toUpperCase() + prenom[0].toUpperCase();
 
 
   const couleurs = {
@@ -1108,8 +1080,16 @@ recherchePatient.addEventListener("input", async (e) => {
     div.textContent = `${patient.nom} ${patient.prenom} (${patient.dateNaissance})`;
 
     div.addEventListener("dblclick", () => {
-      window.location.href = `fiche.html?id=${patient.id}`;
-    });
+div.ondblclick = () => {
+  window.parent.postMessage(
+    {
+      type: "OPEN_TAB",
+      title: `Fiche ${nom} ${prenom}`,
+      url: `fiche.html?id=${id}&from=urgences`
+    },
+    "*"
+  );
+};    });
 
     resultatsRecherchePrincipale.appendChild(div);
   });
