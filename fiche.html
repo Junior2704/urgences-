@@ -4215,11 +4215,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
-function updateTime() {
-    const now = new Date();
-    const formatted = now.toLocaleString(); // date + heure locale
-    document.getElementById('currentTime').textContent = formatted;
-}
+
 
 
 
@@ -4252,9 +4248,6 @@ window.masquerLoader = function() {
   }
 };
 
-updateTime();
-setInterval(updateTime, 1000);
-  
 function openDocsTab(tabId, file) {
     // récupère l’ID du patient
     const url = file + "?id=" + patientId;
