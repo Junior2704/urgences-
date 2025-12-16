@@ -53,24 +53,60 @@ iframe{
   display:flex;align-items:center;justify-content:center;
   height:100%;color:#6b7280;font-size:20px
 }
+#shell-topbar {
+  display: flex;
+  flex-direction: column;
+  padding: 6px 14px;
+}
+
+#topbar-left, #topbar-right {
+  display: flex;
+  align-items: center;
+}
+
+#topbar-left {
+  position: absolute;
+  left: 14px;
+  top: 10px;
+  font-weight: bold;
+  font-size: 20px;
+}
+
+#topbar-right {
+  position: absolute;
+  right: 14px;
+  top: 10px;
+  font-weight: 500;
+  font-size: 14px;
+  color: #374151;
+}
+
 </style>
 </head>
 <body>
 
 <div id="shell-topbar">
+  <div id="topbar-left">
+    <span id="app-title">🚑 GestUrg2</span>
+  </div>
+
   <div id="actions">
     <button class="action-btn" onclick="openTab('Urgences','urgences.html')">🚑 Urgences</button>
     <button class="action-btn" onclick="openTab('Patients','patients.html')">👥 Patients</button>
     <button class="action-btn" onclick="openTab('Tableau','regulation.html')">📊 Tableau</button>
-	    <button class="action-btn" onclick="openTab('Imagerie','gestionnaireradiologie.html')">🩻 Imagerie</button>
+    <button class="action-btn" onclick="openTab('Imagerie','gestionnaireradiologie.html')">🩻 Imagerie</button>
     <button class="action-btn" onclick="openTab('Outils','MesOutils.html')">🧰 Outils</button>
-	    <button class="action-btn" onclick="openTab('Compte','viewacount.html')">👤Mon compte</button>
+    <button class="action-btn" onclick="openTab('Compte','viewacount.html')">👤Mon compte</button>
     <button class ="action-btn" id="btnLogout">🔓 Déconnexion</button>
+  </div>
 
+  <div id="topbar-right">
+    <span id="datetime"></span>
   </div>
 
   <div id="tabs"></div>
 </div>
+
 
 <div id="content">
   <div id="home">Sélectionnez un module pour commencer</div>
@@ -139,6 +175,16 @@ window.addEventListener("message", (event) => {
     openTab(event.data.title, event.data.url);
   }
 });
+function updateDateTime() {
+  const now = new Date();
+  const options = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' };
+  const time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  document.getElementById('datetime').textContent = now.toLocaleDateString('fr-FR', options) + ' ' + time;
+}
+
+// Mise à jour toutes les secondes
+setInterval(updateDateTime, 1000);
+updateDateTime();
 
 </script>
 <script type="module">
