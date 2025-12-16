@@ -378,9 +378,7 @@ footer {
 .search-container {
   position: relative;
 }
-#recherchePatient {
-  display: none;
-}
+
  body  {
       font-family: 'Inter', sans-serif;
       margin: 0; padding: 20px;
@@ -395,7 +393,8 @@ footer {
 <div id="mainContent">
 
 
-
+ <input type="text" id="recherchePatient" placeholder="Recherche patient…">
+      <div id="resultatsRecherchePrincipale" class="search-results hidden"></div>
 <ul id="listePatients"></ul>
 
 <!-- 🪟 Modale patient -->
@@ -661,14 +660,7 @@ async function chargerHistoriqueComplet(patientId) {
     contenu.innerHTML = "<p>❌ Erreur lors du chargement de l'historique.</p>";
   }
 }
-const toggleSearch = document.getElementById("toggleSearch");
-const rechercheInput = document.getElementById("recherchePatient");
 
-toggleSearch.addEventListener("click", () => {
-  rechercheInput.style.display =
-    rechercheInput.style.display === "block" ? "none" : "block";
-  rechercheInput.focus();
-});
 rechercheInput.addEventListener("input", e => {
   const val = e.target.value.toLowerCase();
   const resultats = patients.filter(p =>
