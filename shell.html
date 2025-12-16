@@ -343,6 +343,25 @@ function updateDateTime() {
   const time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
   document.getElementById('datetime').textContent = now.toLocaleDateString('fr-FR', options) + ' ' + time;
 }
+const btnOutils = document.getElementById("btnOutils");
+const menuOutils = document.getElementById("menuOutils");
+const dropdownOutils = document.getElementById("dropdownOutils");
+
+// Ouvrir / fermer au clic
+btnOutils.addEventListener("click", (e) => {
+  e.stopPropagation();
+  menuOutils.classList.toggle("open");
+});
+
+// Empêcher la fermeture quand on clique dans le menu
+menuOutils.addEventListener("click", (e) => {
+  e.stopPropagation();
+});
+
+// Fermer si clic ailleurs
+document.addEventListener("click", () => {
+  menuOutils.classList.remove("open");
+});
 
 // Mise à jour toutes les secondes
 setInterval(updateDateTime, 1000);
