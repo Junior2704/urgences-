@@ -1599,12 +1599,25 @@ nav:hover .nav-item span {
 
 <section id="panel-historique" class="panel" style="display:none;">
 
-    <h3>📜 Historique</h3>    
+  <h3>📜 Historique</h3>
 
-  
+  <!-- 🔍 Recherche dans l’historique -->
+  <input
+    type="text"
+    id="rechercheHistorique"
+    placeholder="🔍 Rechercher (motif, service, date, texte...)"
+    style="
+      width:100%;
+      padding:10px;
+      margin-bottom:15px;
+      border-radius:8px;
+      border:1px solid #ccc;
+    "
+  />
 
   <div id="hospitalisationsContent"></div>
 </section>
+
 
 
 <section id="panel-admission" class="panel" style="display:none;">
@@ -4251,6 +4264,15 @@ if (!snap.empty) console.log("Hospitalisation trouvée :", snap.docs[0].id);
   return snap.docs[0].id;
 }
 
+document.getElementById("rechercheHistorique").addEventListener("input", function () {
+  const recherche = this.value.toLowerCase();
+  const cartes = document.querySelectorAll("#hospitalisationsContent .card");
+
+  cartes.forEach(card => {
+    const texte = card.innerText.toLowerCase();
+    card.style.display = texte.includes(recherche) ? "block" : "none";
+  });
+});
 
 
 // Ligne de test de fin
