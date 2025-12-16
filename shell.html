@@ -122,24 +122,27 @@ iframe{
 }
 
 .dropdown-content {
-  display: none;
   position: absolute;
-  top: 44px;
+  top: 100%;           /* collé au bouton */
   left: 0;
+  margin-top: 2px;     /* optionnel */
   background: white;
   min-width: 320px;
   border-radius: 12px;
   box-shadow: 0 10px 25px rgba(0,0,0,.15);
   padding: 6px;
   z-index: 10001;
-}
-.dropdown-content {
   display: none;
+}
+
+.dropdown:hover .dropdown-content {
+  display: block;
 }
 
 .dropdown-content.open {
   display: block;
 }
+
 
 
 .dropdown-item {
