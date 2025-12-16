@@ -51,28 +51,45 @@
   }
 
   /* Anneau externe */
-  .spinner-ring {
-    position: absolute;
-    width: 180px;
-    height: 180px;
-    border-radius: 50%;
-    border: 6px solid transparent;
-    border-top: 6px solid #1565c0;
-    border-right: 6px solid #42a5f5;
-    animation: spin 1.2s linear infinite;
-    z-index: 1;
-  }
+  /* Anneau externe – dégradé continu */
+.spinner-ring {
+  position: absolute;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    #0d47a1,
+    #1565c0,
+    #42a5f5,
+    #90caf9,
+    #42a5f5,
+    #1565c0,
+    #0d47a1
+  );
+  mask: radial-gradient(farthest-side, transparent 72%, #000 73%);
+  -webkit-mask: radial-gradient(farthest-side, transparent 72%, #000 73%);
+  animation: spin 1.3s linear infinite;
+  z-index: 1;
+}
 
-  /* Anneau interne */
-  .spinner-ring.inner {
-    width: 140px;
-    height: 140px;
-    border-radius: 50%;
-    border: 4px solid transparent;
-    border-top: 4px solid rgba(21,101,192,0.4);
-    border-right: 4px solid rgba(21,101,192,0.15);
-    animation: spinReverse 0.9s linear infinite;
-  }
+/* Anneau interne – plus doux */
+.spinner-ring.inner {
+  width: 140px;
+  height: 140px;
+  background: conic-gradient(
+    from 180deg,
+    rgba(21,101,192,0.15),
+    rgba(66,165,245,0.6),
+    rgba(144,202,249,0.9),
+    rgba(66,165,245,0.6),
+    rgba(21,101,192,0.15)
+  );
+  mask: radial-gradient(farthest-side, transparent 75%, #000 76%);
+  -webkit-mask: radial-gradient(farthest-side, transparent 75%, #000 76%);
+  animation: spinReverse 0.9s linear infinite;
+}
+
 
   /* Texte */
   .loading-text {
@@ -134,7 +151,7 @@ window.onload = function () {
     <div class="spinner-ring inner"></div>
   </div>
 
-  <div class="loading-text">Initialisation du système médical…</div>
+  <div class="loading-text">Connexion à GestUrg2</div>
 
 <script>
 if ('serviceWorker' in navigator) {
