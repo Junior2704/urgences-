@@ -191,6 +191,19 @@ iframe{
 .dropdown-item:hover::after {
   opacity: 1;
 }
+.dropdown-content {
+  display: none;
+}
+
+/* OUVERTURE AU SURVOL */
+.dropdown:hover .dropdown-content {
+  display: block;
+}
+
+/* OUVERTURE PERSISTANTE AU CLIC */
+.dropdown-content.open {
+  display: block;
+}
 
 </style>
 </head>
@@ -347,21 +360,22 @@ const btnOutils = document.getElementById("btnOutils");
 const menuOutils = document.getElementById("menuOutils");
 const dropdownOutils = document.getElementById("dropdownOutils");
 
-// Ouvrir / fermer au clic
+// Clic = ouverture persistante
 btnOutils.addEventListener("click", (e) => {
   e.stopPropagation();
   menuOutils.classList.toggle("open");
 });
 
-// Empêcher la fermeture quand on clique dans le menu
+// Empêcher fermeture quand on clique dans le menu
 menuOutils.addEventListener("click", (e) => {
   e.stopPropagation();
 });
 
-// Fermer si clic ailleurs
+// Fermer seulement si clic ailleurs
 document.addEventListener("click", () => {
   menuOutils.classList.remove("open");
 });
+
 
 // Mise à jour toutes les secondes
 setInterval(updateDateTime, 1000);
