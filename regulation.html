@@ -664,8 +664,14 @@ tr.innerHTML = `
 `;
 
 tr.ondblclick = () => {
-      window.location.href = `fiche.html?id=${id}&from=regulation`;
-  };
+  window.parent.postMessage(
+    {
+      type: "OPEN_TAB",
+      title: `Fiche ${nom} ${prenom}`,
+      url: `fiche.html?id=${id}&from=urgences`
+    },
+    "*"
+  );
       tbody.appendChild(tr);
     });
 
