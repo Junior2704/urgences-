@@ -4287,12 +4287,13 @@ if (!snap.empty) console.log("Hospitalisation trouvée :", snap.docs[0].id);
   return snap.docs[0].id;
 }
 
-document.getElementById("rechercheHistorique").addEventListener("input", function () {
-  const recherche = this.value.toLowerCase();
-  const cartes = document.querySelectorAll("#hospitalisationsContent .card");
+const input = document.getElementById("rechercheHistorique");
 
-  cartes.forEach(card => {
-    const texte = card.dataset.search || "";
+input.addEventListener("input", function () {
+  const recherche = this.value.toLowerCase();
+
+  document.querySelectorAll("#hospitalisationsContent .card").forEach(card => {
+    const texte = card.textContent.toLowerCase();
     card.style.display = texte.includes(recherche) ? "" : "none";
   });
 });
