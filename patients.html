@@ -564,15 +564,6 @@ document.getElementById("btnmailto").addEventListener("click", () => {
 
   
 
-// === RECHERCHE ===
-searchInput.addEventListener("input", e => {
-  const val = e.target.value.toLowerCase();
-  const filtrés = patients.filter(p =>
-    (p.nom && p.nom.toLowerCase().includes(val)) ||
-    (p.prenom && p.prenom.toLowerCase().includes(val))
-  );
-  afficherPatients(filtrés);
-});
 document.getElementById("closeModalBtn").onclick = () => modal.style.display = "none";
 
 // === MODALE ===
