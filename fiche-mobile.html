@@ -707,28 +707,31 @@ input:focus {
 }
 
 /* ===============================
-   ACCUEIL – LOGO (VERROUILLÉ)
+   ACCUEIL – LOGO (GAUCHE)
 ================================ */
 #accueil-logo{
   display:block !important;
-  max-width:120px !important;   /* LIMITE DURE */
-  width:100% !important;
+  max-width:120px !important;   /* limite dure */
+  width:auto !important;
   height:auto !important;
-  margin:0 auto 16px auto !important;
+  margin:0 0 16px 0 !important; /* PLUS de centrage */
   object-fit:contain;
 }
 
-/* Sécurité absolue : jamais plus large que l'écran */
+/* Sécurité écran */
 #accueil-logo{
   max-inline-size:120px;
 }
 
-/* Parent sécurisé */
+/* Parent : alignement à gauche */
 #accueil-logo-parent{
   width:100%;
   max-width:100%;
   overflow:hidden;
+  display:flex;
+  justify-content:flex-start;
 }
+
 
 
 </style>
