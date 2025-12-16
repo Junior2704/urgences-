@@ -4289,14 +4289,20 @@ if (!snap.empty) console.log("Hospitalisation trouvée :", snap.docs[0].id);
 
 const input = document.getElementById("rechercheHistorique");
 
-input.addEventListener("input", function () {
-  const recherche = this.value.toLowerCase();
+// 🔥 on supprime toute logique parasite
+input.replaceWith(input.cloneNode(true));
+const cleanInput = document.getElementById("rechercheHistorique");
 
-  document.querySelectorAll("#hospitalisationsContent .card").forEach(card => {
-    const texte = card.textContent.toLowerCase();
-    card.style.display = texte.includes(recherche) ? "" : "none";
-  });
+cleanInput.addEventListener("input", function () {
+  const recherche = this.value.toLowerCase().trim();
+
+  document.querySelectorAll("#hospitalisationsContent .card")
+    .forEach(card => {
+      const texte = card.textContent.toLowerCase();
+      card.style.display = texte.includes(recherche) ? "" : "none";
+    });
 });
+
 
 
 
