@@ -116,43 +116,76 @@ iframe{
   font-size: 14px;
   color: #374151;
 }
-/* Dropdown pour Outils */
+/* ===== DROPDOWN OUTILS ===== */
 .dropdown {
   position: relative;
-  display: inline-block;
 }
 
 .dropdown-content {
   display: none;
   position: absolute;
-  background-color: #ffffff;
-  min-width: 160px;
-  box-shadow: 0px 4px 8px rgba(0,0,0,0.15);
-  border-radius: 8px;
+  top: 44px;
+  left: 0;
+  background: white;
+  min-width: 320px;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0,0,0,.15);
+  padding: 6px;
   z-index: 10001;
-  flex-direction: column;
-  padding: 4px 0;
 }
 
-.dropdown-content a {
-  color: #111827;
-  padding: 8px 12px;
-  text-decoration: none;
-  display: block;
-  font-weight: 500;
-  cursor: pointer;
-}
-
-.dropdown-content a:hover {
-  background-color: #0078d4;
-  color: white;
-  border-radius: 6px;
-}
-
-/* Affichage du dropdown au hover */
 .dropdown:hover .dropdown-content {
+  display: block;
+}
+
+.dropdown-item {
+  position: relative;
   display: flex;
-  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: default;
+}
+
+.dropdown-item:hover {
+  background: #e6f0fc;
+}
+
+.dropdown-item span {
+  background: #0078d4;
+  color: white;
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.dropdown-item span:hover {
+  background: #005fa3;
+}
+
+/* ===== TOOLTIP DESCRIPTION ===== */
+.dropdown-item::after {
+  content: attr(data-desc);
+  position: absolute;
+  left: 105%;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #111827;
+  color: white;
+  padding: 8px 10px;
+  border-radius: 8px;
+  width: 260px;
+  font-size: 13px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .3s;
+}
+
+.dropdown-item:hover::after {
+  opacity: 1;
 }
 
 </style>
@@ -170,13 +203,57 @@ iframe{
       <button class="action-btn" onclick="openTab('Imagerie','gestionnaireradiologie.html')">🩻 Imagerie</button>
 <div class="dropdown">
   <button class="action-btn">🧰 Outils ▾</button>
+
   <div class="dropdown-content">
-    <a href="#" onclick="openTab('Calculatrice','calculatrice.html')">🧮 Calculatrice</a>
-    <a href="#" onclick="openTab('Bloc Notes','blocnotes.html')">📝 Bloc Notes</a>
-    <a href="#" onclick="openTab('Convertisseur','convertisseur.html')">🔄 Convertisseur</a>
-    <a href="#" onclick="openTab('MesOutils','MesOutils.html')">🔧 Autres Outils</a>
+
+    <div class="dropdown-item" data-desc="Accéder aux dossiers et comptes rendus des patients.">
+      👥 Patients
+      <span onclick="openTab('Patients','patients.html')">Ouvrir</span>
+    </div>
+
+    <div class="dropdown-item" data-desc="Créer les ordonnances médicales des patients. Pour le pré-remplissage, passer par la fiche patient.">
+      📄 Ordonnancier
+      <span onclick="openTab('Ordonnancier','Ordonnancier.html')">Ouvrir</span>
+    </div>
+
+    <div class="dropdown-item" data-desc="Établir les factures patients. Pré-remplissage possible via la fiche patient.">
+      💳 Facturation
+      <span onclick="openTab('Facturation','Facturation.html')">Ouvrir</span>
+    </div>
+
+    <div class="dropdown-item" data-desc="Rédiger rapidement des certificats médicaux.">
+      🧾 Certificats médicaux
+      <span onclick="openTab('Certificats','Certificatmedical.html')">Ouvrir</span>
+    </div>
+
+    <div class="dropdown-item" data-desc="Imprimer des fiches conseils de sortie adaptées à la pathologie.">
+      📋 Fiches conseils
+      <span onclick="openTab('Fiches conseils','fichesconseil.html')">Ouvrir</span>
+    </div>
+
+    <div class="dropdown-item" data-desc="Visualiser les examens, rédiger les comptes rendus et gérer l’imagerie.">
+      🩻 Gestionnaire imagerie
+      <span onclick="openTab('Imagerie','gestionnaireradiologie.html')">Ouvrir</span>
+    </div>
+
+    <div class="dropdown-item" data-desc="Écrire un email à un patient.">
+      ✉️ Mail To
+      <span onclick="openTab('Mail','mailto.html')">Ouvrir</span>
+    </div>
+
+    <div class="dropdown-item" data-desc="Créer un accès patient pour un PDF et/ou l’envoyer par email.">
+      📎 Accès PDF patient
+      <span onclick="openTab('PDF Patient','uploadpdf.html')">Ouvrir</span>
+    </div>
+
+    <div class="dropdown-item" data-desc="Voir les données de votre compte (non modifiables).">
+      👤 Mon compte
+      <span onclick="openTab('Mon compte','viewacount.html')">Ouvrir</span>
+    </div>
+
   </div>
 </div>
+
       <button class="action-btn" onclick="openTab('Compte','viewacount.html')">👤Mon compte</button>
       <button class ="action-btn" id="btnLogout">🔓 Déconnexion</button>
     </div>
