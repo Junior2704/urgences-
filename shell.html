@@ -80,32 +80,67 @@ iframe{
   font-size: 14px;
   color: #374151;
 }
+#shell-topbar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 64px;
+  background: #ffffff;
+  padding: 6px 14px;
+  box-shadow: 0 4px 16px rgba(0,0,0,.12);
+  display: flex;
+  flex-direction: column;
+  z-index: 10000;
+}
+
+#topbar-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* Titre à gauche, actions au centre, date à droite */
+  gap: 10px;
+}
+
+#app-title {
+  font-weight: bold;
+  font-size: 20px;
+}
+
+#actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap; /* pour les écrans plus petits */
+  justify-content: center; /* centre les boutons */
+}
+
+#datetime {
+  font-weight: 500;
+  font-size: 14px;
+  color: #374151;
+}
 
 </style>
 </head>
 <body>
 
 <div id="shell-topbar">
-  <div id="topbar-left">
+  <div id="topbar-main">
     <span id="app-title">🚑 GestUrg2</span>
-  </div>
 
-  <div id="actions">
-    <button class="action-btn" onclick="openTab('Urgences','urgences.html')">🚑 Urgences</button>
-    <button class="action-btn" onclick="openTab('Patients','patients.html')">👥 Patients</button>
-    <button class="action-btn" onclick="openTab('Tableau','regulation.html')">📊 Tableau</button>
-    <button class="action-btn" onclick="openTab('Imagerie','gestionnaireradiologie.html')">🩻 Imagerie</button>
-    <button class="action-btn" onclick="openTab('Outils','MesOutils.html')">🧰 Outils</button>
-    <button class="action-btn" onclick="openTab('Compte','viewacount.html')">👤Mon compte</button>
-    <button class ="action-btn" id="btnLogout">🔓 Déconnexion</button>
-  </div>
+    <div id="actions">
+      <button class="action-btn" onclick="openTab('Urgences','urgences.html')">🚑 Urgences</button>
+      <button class="action-btn" onclick="openTab('Patients','patients.html')">👥 Patients</button>
+      <button class="action-btn" onclick="openTab('Tableau','regulation.html')">📊 Tableau</button>
+      <button class="action-btn" onclick="openTab('Imagerie','gestionnaireradiologie.html')">🩻 Imagerie</button>
+      <button class="action-btn" onclick="openTab('Outils','MesOutils.html')">🧰 Outils</button>
+      <button class="action-btn" onclick="openTab('Compte','viewacount.html')">👤Mon compte</button>
+      <button class ="action-btn" id="btnLogout">🔓 Déconnexion</button>
+    </div>
 
-  <div id="topbar-right">
     <span id="datetime"></span>
   </div>
 
   <div id="tabs"></div>
 </div>
+
 
 
 <div id="content">
