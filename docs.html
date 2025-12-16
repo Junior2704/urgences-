@@ -458,6 +458,7 @@ function afficherDocuments() {
       .then(querySnapshot => {
           if (querySnapshot.empty) {
               documentList.innerHTML = "<li>Aucun document trouvé.</li>";
+               masquerLoader();
               return;
           }
 
@@ -535,6 +536,9 @@ else if (data.contenu && typeof data.contenu.text === "string") {
       .catch(err => {
           console.error(err);
           documentList.innerHTML = "<li>Erreur lors du chargement.</li>";
+      });
+       .finally(() => {
+          masquerLoader(); // ✅ exécuté dans TOUS les cas
       });
 }
 
