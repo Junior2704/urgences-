@@ -134,22 +134,237 @@ header h1 {
 }
 
 footer {
-  margin-top: auto;
+  margin-top: auto; /* pousse le footer en bas */
   padding: 15px;
-  text-align: center;
+  text-align: center; /* centre le texte à l'intérieur */
   color: #777;
   font-size: 0.9rem;
+  width: 100%; /* assure que le footer prend toute la largeur */
+}
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 9999;
+  background: #ffffff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  border-radius: 14px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  margin-bottom: 15px;
+}
+
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.logo {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #005ea2;
+}
+
+.tabs {
+  display: flex;
+  gap: 8px;
+}
+
+.tab {
+  background: transparent;
+  color: #005ea2;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tab.active,
+.tab:hover {
+  background: #e6f0fc;
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.icon-btn {
+  background: #f0f4f8;
+  color: #333;
+  border: none;
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+.icon-btn:hover {
+  background: #dbe9ff;
+}
+
+/* 🔽 Menu hover */
+.hover-menu {
+  position: relative;
+}
+
+.hover-panel {
+  position: absolute;
+  top: 120%;
+  right: 0;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.2);
+  display: none;
+  flex-direction: column;
+  min-width: 180px;
+  overflow: hidden;
+}
+
+.hover-panel button {
+  background: none;
+  border: none;
+  padding: 10px 14px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.hover-panel button:hover {
+  background: #f0f8ff;
+}
+
+.hover-menu:hover .hover-panel {
+  display: flex;
+}
+/* 🔧 Correctif lisibilité topbar */
+.topbar button,
+.topbar .tab,
+.topbar .icon-btn {
+  color: #1f2937; /* gris foncé lisible */
+}
+.hover-panel button {
+  color: #1f2937;
+  background: white;
+}
+
+.hover-panel button:hover {
+  background: #e6f0fc;
+  color: #005ea2;
+}
+.tab.active {
+  background: #0078d4;
+  color: white;
+}
+.menu-wrapper {
+  position: relative;
+}
+
+.menu-panel {
+  position: absolute;
+  top: 120%;
+  right: 0;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.2);
+  display: none;
+  flex-direction: column;
+  min-width: 180px;
+  z-index: 9999;
+  overflow: hidden;
+}
+
+.menu-panel button {
+  background: none;
+  border: none;
+  padding: 10px 14px;
+  text-align: left;
+  cursor: pointer;
+  color: #1f2937;
+}
+
+.menu-panel button:hover {
+  background: #e6f0fc;
+  color: #005ea2;
+}
+
+/* état ouvert */
+.menu-wrapper.open .menu-panel {
+  display: flex;
+}
+.search-wrapper {
+  position: relative;
+}
+
+.search-results {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  width: 100%;
+  max-height: 320px;
+  overflow-y: auto;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+  z-index: 10000;
+}
+
+.search-results.hidden {
+  display: none;
+}
+
+.resultat-item {
+  padding: 10px 14px;
+  cursor: pointer;
+  border-bottom: 1px solid #eee;
+}
+
+.resultat-item:hover {
+  background: #e6f0fc;
+}
+
+.topbar,
+.search-container {
+  position: relative;
+}
+#recherchePatient {
+  display: none;
 }
 
   </style>
 </head>
 <body>
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="logo">🚑 GestUrg2</div>
 
-  <header>
-    <button class="back-button" onclick="history.back()">← Retour</button>
-    <img src="logo.png" alt="Logo">
-    <h1>Mes Outils</h1>
-  </header>
+    <div class="tabs">
+            <button class="tab" onclick="location.href='urgences.html'">Urgences</button>
+      <button class="tab" onclick="location.href='regulation.html'">Tableau</button>
+      <button class="tab" onclick="location.href='patients.html'">Patients</button>
+            <button class="tab active">Outils</button>
+      <button class="tab" onclick="location.href='gestionnaireradiologie.html'">Imagerie</button>
+
+    </div>
+  </div>
+
+  <div class="topbar-right">
+
+
+<div class="menu-wrapper">
+  <button class="icon-btn menu-toggle">👤</button>
+  <div class="menu-panel">
+    <button onclick="location.href='viewacount.html'">👤Mon compte</button>
+    <button id="btnLogout">🔓 Déconnexion</button>
+  </div>
+</div>
+
+
+  </div>
+</div>
     <div class="container">
 	
 	
@@ -208,7 +423,36 @@ footer {
 
   </div>
 
-  <footer> © 2025 — GestUrg2 | Mes Outils  </footer>
+<footer>
+🚑 GestUrg2 - Outils  </footer>
 
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+
+  document.querySelectorAll(".menu-toggle").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+
+      const wrapper = btn.closest(".menu-wrapper");
+      if (!wrapper) return;
+
+      // Ferme les autres menus
+      document.querySelectorAll(".menu-wrapper.open").forEach(w => {
+        if (w !== wrapper) w.classList.remove("open");
+      });
+
+      // Toggle celui-ci
+      wrapper.classList.toggle("open");
+    });
+  });
+
+  // clic ailleurs → fermeture
+  document.addEventListener("click", () => {
+    document.querySelectorAll(".menu-wrapper.open")
+      .forEach(w => w.classList.remove("open"));
+  });
+
+});
+</script>
 </body>
 </html>
