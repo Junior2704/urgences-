@@ -1250,15 +1250,6 @@ setInterval(() => {
   const db = getFirestore(app);
 
   // Déconnexion
-  document.getElementById("btnLogout").addEventListener("click", () => {
-    signOut(auth)
-      .then(() => {
-        window.location.href = "index.html";
-      })
-      .catch((error) => {
-        afficherBulle("Erreur de déconnexion" ,"error");
-      });
-  });
 
   // Auth state + récupération du médecin
   onAuthStateChanged(auth, async (user) => {
