@@ -253,6 +253,7 @@ updateDateTime();
  onAuthStateChanged(auth, async (user) => {
   if (!user) {
     console.log("Aucun utilisateur connecté");
+   window.location.href = "index.html";
     return;
   }
 
