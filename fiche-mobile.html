@@ -193,7 +193,18 @@ input:focus {
     box-shadow: 0 3px 10px rgba(255, 0, 0, 0.25);
 }
 
-
+/* Modals */
+.modal-bg {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    backdrop-filter: blur(5px);
+    background: rgba(0, 0, 0, 0.45);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 5000;
+}
 
 .modal {
     width: 92%;
@@ -567,56 +578,134 @@ input:focus {
 .list{
   margin-top:12px;
 }
-
-/* =========================================
-   OVERLAY UNIQUE – BASE
-========================================= */
-.modal-overlay{
-  position:fixed;
-  inset:0;
-  display:none;
-  justify-content:center;
-  align-items:center;
-  background:rgba(0,0,0,0.45);
-  backdrop-filter:blur(5px);
+/* =====================================================
+   1️⃣ COULEURS PATIENTS — VERSION DOUCE / MÉDICALE
+===================================================== */
+.g-Urgences_Vitales,
+.g-Urgences_Vitales .avatar{
+  background:#fceaea;
+  color:#7a1c1c;
 }
 
-/* =========================================
-   NIVEAUX (STACK)
-========================================= */
-/* Fiche patient */
-.modal-overlay[data-layer="patient"]{
-  z-index:5000;
+.g-P3,
+.g-P3 .avatar{
+  background:#fdeeee;
+  color:#8b1d1d;
 }
 
-/* Examens / actes / meds AU-DESSUS */
-.modal-overlay[data-layer="sub"]{
-  z-index:9000;
+.g-P2,
+.g-P2 .avatar{
+  background:#fff4e5;
+  color:#8a4b12;
 }
 
-/* =========================================
-   MODALE PATIENT – PLEIN ÉCRAN
-========================================= */
-.modal-overlay[data-layer="patient"] .modal{
+.g-P1,
+.g-P1 .avatar{
+  background:#fffbe6;
+  color:#7a6a10;
+}
+
+.g-P0,
+.g-P0 .avatar{
+  background:#eefaf1;
+  color:#1f6b3a;
+}
+
+.g-Administratif,
+.g-Administratif .avatar{
+  background:#f3f4f6;
+  color:#374151;
+}
+
+/* Badge gravité plus discret */
+.badge{
+  background:#f1f5f9;
+  color:#334155;
+}
+
+/* =====================================================
+   2️⃣ MODALE PATIENT — PLEIN ÉCRAN MOBILE
+===================================================== */
+#modal.modal-overlay{
+  align-items:stretch;
+}
+
+#modal .modal{
   width:100%;
   height:100%;
   max-width:none;
   max-height:none;
   border-radius:0;
   padding:18px 16px;
+  animation:none;
+}
+
+/* Header collant */
+#modal .modal > div:first-child{
+  position:sticky;
+  top:0;
+  background:white;
+  z-index:1;
+  padding-bottom:10px;
+  margin-bottom:10px;
+  border-bottom:1px solid #e5e7eb;
+}
+
+/* Scroll confortable */
+#modal .modal{
   overflow-y:auto;
 }
 
-/* =========================================
-   MODALES SECONDAIRES – FEUILLE
-========================================= */
-.modal-overlay[data-layer="sub"] .modal{
+/* =====================================================
+   3️⃣ Z-INDEX PROPRE (ORDRE CLAIR)
+===================================================== */
+/* Fond patient */
+#modal.modal-overlay{
+  z-index:5000;
+}
+
+/* Examens / actes / meds AU-DESSUS */
+#examModal.modal-overlay,
+#acteModal.modal-overlay,
+#medModal.modal-overlay{
+  z-index:9999;
+}
+
+/* Sidebar toujours en dessous */
+.sidebar{
+  z-index:3000;
+}
+.sidebar-overlay{
+  z-index:2500;
+}
+
+/* =====================================================
+   4️⃣ MODALES SECONDAIRES — FORMAT "FEUILLE"
+===================================================== */
+#examModal .modal,
+#acteModal .modal,
+#medModal .modal{
   width:92%;
   max-width:420px;
   border-radius:18px;
   padding:20px;
-  box-shadow:0 20px 50px rgba(0,0,0,0.35);
+  animation:pop 0.25s ease-out;
+  z-index:9999;
 }
+
+/* =====================================================
+   5️⃣ PILLS PLUS DOUCES VISUELLEMENT
+===================================================== */
+.pill{
+  background:#f1f5f9;
+  color:#334155;
+  border:1px solid #e2e8f0;
+}
+
+.pill:hover{
+  background:#e8f0ff;
+}
+
 
 </style>
 </head>
@@ -663,7 +752,7 @@ input:focus {
   <div id="list" class="list" aria-live="polite"></div>
 
   <!-- Modal lecture seule -->
-  <div id="modal" class="modal-overlay" data-layer="patient" role="dialog" aria-modal="true" aria-hidden="true">
+  <div id="modal" class="modal-overlay" role="dialog" aria-modal="true" aria-hidden="true">
     <div class="modal" role="document">
       <div style="display:flex;justify-content:space-between;align-items:center">
         <h3 id="modalTitle">Fiche patient</h3>
@@ -711,7 +800,7 @@ input:focus {
     </div>
   </div>
 <!-- MODALE MEDICAMENT -->
-<div id="medModal" class="modal-overlay" >
+<div id="medModal" class="modal-overlay" style="display:none">
   <div class="modal">
     <div style="display:flex;justify-content:space-between;align-items:center">
       <h3 id="med-title">Médicament</h3>
@@ -732,7 +821,7 @@ input:focus {
 
 
 <!-- MODALE EXAMEN -->
-<div id="examModal" class="modal-overlay">
+<div id="examModal" class="modal-overlay" style="display:none">
   <div class="modal">
     <div style="display:flex;justify-content:space-between;align-items:center">
       <h3 id="exam-title">Examen</h3>
@@ -755,7 +844,7 @@ input:focus {
   </div>
 </div>
 <!-- MODALE ACTE -->
-<div id="acteModal" class="modal-overlay" ">
+<div id="acteModal" class="modal-overlay" style="display:none">
   <div class="modal">
     <div style="display:flex;justify-content:space-between;align-items:center">
       <h3 id="acte-title">Acte</h3>
