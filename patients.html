@@ -661,7 +661,7 @@ async function chargerHistoriqueComplet(patientId) {
   }
 }
 
-rechercheInput.addEventListener("input", e => {
+recherchePatient.addEventListener("input", e => {
   const val = e.target.value.toLowerCase();
   const resultats = patients.filter(p =>
     (p.nom && p.nom.toLowerCase().includes(val)) ||
