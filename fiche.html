@@ -2962,12 +2962,27 @@ if (recherche && recherche.value.trim() !== "") {
 
 // Fonction d'affichage d'une seule entrée dans le DOM
 function afficherHistorique(entry) {
-  if (!historiqueContainer) return;
-  const div = document.createElement("div");
-  div.className = "entry";
-  div.innerHTML = `<strong>${entry.date}</strong><br>${entry.texte}`;
-  historiqueContainer.appendChild(div);
+  const card = document.createElement("div");
+  card.className = "card";
+
+  // 🔎 TEXTE SERVANT À LA RECHERCHE
+  const texteRecherche = `
+    ${entry.date || ""}
+    ${entry.type || ""}
+    ${entry.auteur || ""}
+    ${entry.contenu || ""}
+  `.toLowerCase();
+
+  card.dataset.search = texteRecherche;
+
+  card.innerHTML = `
+    <p><strong>${entry.date}</strong></p>
+    <p>${entry.contenu}</p>
+  `;
+
+  historiqueContainer.appendChild(card);
 }
+
 
   function afficherHistoriqueAncienne(hospitalisation, index) {
     if (!historiqueAncienContainer) return;
@@ -4270,19 +4285,16 @@ if (!snap.empty) console.log("Hospitalisation trouvée :", snap.docs[0].id);
   return snap.docs[0].id;
 }
 
-const inputRecherche = document.getElementById("rechercheHistorique");
+document.getElementById("rechercheHistorique").addEventListener("input", function () {
+  const recherche = this.value.toLowerCase();
+  const cartes = document.querySelectorAll("#hospitalisationsContent .card");
 
-if (inputRecherche) {
-  inputRecherche.addEventListener("input", function () {
-    const recherche = this.value.toLowerCase();
-    const cartes = document.querySelectorAll("#hospitalisationsContent .card");
-
-    cartes.forEach(card => {
-      const texte = card.textContent.toLowerCase();
-      card.style.display = texte.includes(recherche) ? "" : "none";
-    });
+  cartes.forEach(card => {
+    const texte = card.dataset.search || "";
+    card.style.display = texte.includes(recherche) ? "" : "none";
   });
-}
+});
+
 
 document.getElementById("rechercheHistorique").addEventListener("keydown", function(e){
   if (e.key === "Escape") {
