@@ -283,9 +283,82 @@ iframe{
 
 
 
-<div id="content">
-  <div id="home">Sélectionnez un module pour commencer</div>
+<div id="home">
+  <svg viewBox="0 0 600 250" width="100%" height="250">
+    <!-- Ligne ECG -->
+    <polyline id="ecg" points="0,150 50,150 70,110 90,170 110,150 150,150 170,130 190,170 210,150 250,150 270,120 290,180 310,150 350,150 370,140 390,160 410,150 450,150 470,130 490,170 510,150 550,150 570,140 590,160 600,150"
+              fill="none" stroke="#0078d4" stroke-width="3" stroke-linecap="round"/>
+
+    <!-- Ambulance emoji (retourné pour avancer vers la droite) -->
+    <text id="ambulance" x="0" y="220" font-size="50" transform="scale(-1,1)">🚑</text>
+  </svg>
+  
+  <div id="home-text">Sélectionnez un module pour commencer</div>
 </div>
+
+<style>
+#home {
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  height:100%;
+  background: linear-gradient(to bottom,#f0f4f8,#e0e7ef);
+  overflow:hidden;
+  position:relative;
+  font-family:Inter, Arial, sans-serif;
+}
+
+#home-text {
+  margin-top:20px;
+  font-size:22px;
+  font-weight:500;
+  color:#374151;
+  opacity:0;
+  animation: fadeText 2s forwards 1s;
+}
+
+/* ECG animation */
+#ecg {
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+  animation: drawECG 2s linear infinite;
+}
+
+/* Coeur qui bat */
+#heart {
+  transform-origin: center;
+  animation: heartbeat 1s infinite;
+}
+
+/* Ambulance qui avance continuellement vers la droite */
+#ambulance {
+  animation: drive 3s linear infinite;
+}
+
+@keyframes drawECG {
+  0% { stroke-dashoffset: 1000; }
+  100% { stroke-dashoffset: 0; }
+}
+
+@keyframes heartbeat {
+  0%,100% { transform: scale(1); }
+  25% { transform: scale(1.2); }
+  50% { transform: scale(1); }
+  75% { transform: scale(1.2); }
+}
+
+@keyframes drive {
+  0% { transform: translateX(-60px) scale(-1,1); }
+  100% { transform: translateX(660px) scale(-1,1); } /* défilement continu */
+}
+
+@keyframes fadeText {
+  to { opacity:1; }
+}
+</style>
+
+
 
 <script>
 let tabs = [];
