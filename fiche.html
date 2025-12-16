@@ -2949,6 +2949,12 @@ async function chargerHistorique() {
     hospi.historique.forEach(entry => {
       afficherHistorique(entry);
     });
+    // 🔁 Réappliquer le filtre après chargement
+const recherche = document.getElementById("rechercheHistorique");
+if (recherche && recherche.value.trim() !== "") {
+  recherche.dispatchEvent(new Event("input"));
+}
+
   } catch (error) {
     console.error("Erreur chargement historique :", error);
   }
@@ -4264,14 +4270,25 @@ if (!snap.empty) console.log("Hospitalisation trouvée :", snap.docs[0].id);
   return snap.docs[0].id;
 }
 
-document.getElementById("rechercheHistorique").addEventListener("input", function () {
-  const recherche = this.value.toLowerCase();
-  const cartes = document.querySelectorAll("#hospitalisationsContent .card");
+const inputRecherche = document.getElementById("rechercheHistorique");
 
-  cartes.forEach(card => {
-    const texte = card.innerText.toLowerCase();
-    card.style.display = texte.includes(recherche) ? "block" : "none";
+if (inputRecherche) {
+  inputRecherche.addEventListener("input", function () {
+    const recherche = this.value.toLowerCase();
+    const cartes = document.querySelectorAll("#hospitalisationsContent .card");
+
+    cartes.forEach(card => {
+      const texte = card.textContent.toLowerCase();
+      card.style.display = texte.includes(recherche) ? "" : "none";
+    });
   });
+}
+
+document.getElementById("rechercheHistorique").addEventListener("keydown", function(e){
+  if (e.key === "Escape") {
+    this.value = "";
+    this.dispatchEvent(new Event("input"));
+  }
 });
 
 
