@@ -488,7 +488,7 @@ const patientEmail = data.email || "";
   const moyen = hospi.moyen || '';
   const adresse = data.adresse || '';
 window.patientData = data;
-const meds = hospi.medicaments_administres;
+const meds = hospi.meds;
 
 document.getElementById("medicaments").value =
   Array.isArray(meds) && meds.length > 0
