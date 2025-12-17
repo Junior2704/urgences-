@@ -673,9 +673,10 @@ tr.ondblclick = () => {
     "*"
   );
 };
+tbody.appendChild(tr);
 }); // ← fin snapshot.forEach
 
-tbody.appendChild(tr);
+
 const pec = Math.max(counts.total - counts.attente, 0);
 
 setVal('total', counts.total);
