@@ -41,15 +41,22 @@ window.allerAdmin = async function () {
       // 🔎 Vérifie dans Firestore si "doitChangerMDP" est vrai
       const ref = doc(db, "medecins", user.uid);
       const snap = await getDoc(ref);
+if (snap.exists()) {
+  const data = snap.data();
 
-      if (snap.exists()) {
-        const data = snap.data();
-        if (data.doitChangerMDP === true) {
-          // ➡️ Redirection vers la page de changement de mot de passe
-          window.location.href = "changer_mot_passe.html";
-          return;
-        }
-      }
+  // 🔴 Vérifie si le compte est marqué pour suppression
+  if (data.supprime === true) {
+    window.location.href = "suppressioncompte.html";
+    return;
+  }
+
+  // 🔐 Vérifie si l'utilisateur doit changer son mot de passe
+  if (data.doitChangerMDP === true) {
+    window.location.href = "changer_mot_passe.html";
+    return;
+  }
+}
+
 
     // ➡️ Sinon, redirige vers la page principale
 // (mobile → urgences_mobile, ordinateur → urgences)
