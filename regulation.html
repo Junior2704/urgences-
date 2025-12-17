@@ -689,6 +689,7 @@ tbody.appendChild(tr);
 
     Object.keys(circuits).forEach(c => setVal(`circuit-${c}`, circuits[c]));
  }
+}
  function isPhaseAttente(pdcStatut) {
   if (!pdcStatut) return true;
 
@@ -725,7 +726,7 @@ function formatEquipe(equipe) {
 }
 
   updateMedicalDashboard();
-  setInterval(updateMedicalDashboard, 500);
+setInterval(updateMedicalDashboard, 5000); // toutes les 5 secondes
 </script>
 
 </body>
