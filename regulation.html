@@ -673,24 +673,22 @@ tr.ondblclick = () => {
     "*"
   );
 };
+}); // ← fin snapshot.forEach
 
 tbody.appendChild(tr);
+const pec = Math.max(counts.total - counts.attente, 0);
 
-  
+setVal('total', counts.total);
+setVal('attente', counts.attente);
+setVal('pec', pec);
+setVal('critique', counts.critique);
+setVal('couche', counts.couche);
+setVal('admin', counts.admin);
 
-    const pec = Math.max(counts.total - counts.attente, 0);
+Object.keys(circuits).forEach(c => setVal(`circuit-${c}`, circuits[c]));
+} // ← fin updateMedicalDashboard
 
-    setVal('total', counts.total);
-    setVal('attente', counts.attente);
-    setVal('pec', pec);
-    setVal('critique', counts.critique);
-    setVal('couche', counts.couche);
-    setVal('admin', counts.admin);
-
-    Object.keys(circuits).forEach(c => setVal(`circuit-${c}`, circuits[c]));
- }
-    )};
- function isPhaseAttente(pdcStatut) {
+function isPhaseAttente(pdcStatut) {
   if (!pdcStatut) return true;
 
   const statut = pdcStatut.toLowerCase();
@@ -699,6 +697,7 @@ tbody.appendChild(tr);
     statut.includes(s.toLowerCase())
   );
 }
+
 
 
 function formatEquipe(equipe) {
