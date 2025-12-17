@@ -114,6 +114,8 @@
         <th>Lieu</th>
 		  <th> </th>
         <th>Changer MDP</th>
+        <th>Supprimer</th>
+      <th>Annuler suppression</th>
         <th>Urgences</th>
          <th>App mobile</th>
         <th>Accueil</th>
@@ -288,6 +290,41 @@ async function envoyerMailResetEmailJS(email, nom, motDePasseTemp) {
     }
   }
 }
+window.marquerSuppression = async (uid, email) => {
+  const confirmation = confirm(`Voulez-vous marquer le compte de ${email} comme supprimé ?`);
+  if (!confirmation) return;
+
+  try {
+    const ref = doc(db, "medecins", uid);
+    await updateDoc(ref, { supprime: true });
+    afficherBulle(`✅ Compte marqué comme supprimé pour ${email}`, "success");
+    chargerUtilisateurs();
+  } catch (err) {
+    console.error(err);
+    afficherBulle(`❌ Erreur lors de la suppression`, "error");
+  }
+};
+
+// Annuler la suppression
+window.annulerSuppression = async (uid, email) => {
+  const confirmation = confirm(`Voulez-vous annuler la suppression pour ${email} ?`);
+  if (!confirmation) return;
+
+  try {
+    const ref = doc(db, "medecins", uid);
+    await updateDoc(ref, { supprime: false });
+    afficherBulle(`✅ Suppression annulée pour ${email}`, "success");
+    chargerUtilisateurs();
+  } catch (err) {
+    console.error(err);
+    afficherBulle("❌ Erreur lors de l'annulation", "error");
+  }
+};
+
+
+
+
+
 
 // ✅ Sauvegarde des modifications
 document.getElementById("saveEditBtn").addEventListener("click", async () => {
@@ -342,6 +379,14 @@ tr.innerHTML = `
   <td>
     <button style="background:#0078d4" onclick="demanderChangement('${id}')">🔁 Demander un changement</button>
   </td>
+  <td>
+        <button style="background:#ff0000;color:white;" onclick="marquerSuppression('${id}','${data.email}')">
+          ❌ Supprimer
+        </button>
+      </td>
+      <td>
+        ${data.supprime ? `<button style="background:#4caf50;color:white;" onclick="annulerSuppression('${id}','${data.email}')">✅ Annuler</button>` : ""}
+      </td>
   <td><input type="checkbox" ${pages.urgences ? "checked" : ""} onchange="toggleAccess('${id}', 'urgences', this.checked)"></td>
     <td><input type="checkbox" ${pages.fichemobile ? "checked" : ""} onchange="toggleAccess('${id}', 'fichemobile', this.checked)"></td>
 
