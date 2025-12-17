@@ -295,6 +295,17 @@ iframe{
   background: #0078d4;
 }
 
+.tab {
+  user-select: none;
+}
+
+.tab.dragging {
+  opacity: 0.4;
+}
+
+.tab.drag-over {
+  border-left: 3px solid #0078d4;
+}
 
 </style>
 </head>
@@ -459,6 +470,7 @@ function openTab(title, url){
   tab.innerHTML=`${title} <span class="close">✕</span>`;
   tab.onclick=()=>setActive(id);
   tab.querySelector('.close').onclick=(e)=>{e.stopPropagation();closeTab(id)};
+  enableTabDrag(tab);
   document.getElementById('tabs').appendChild(tab);
 
   const iframe=document.createElement('iframe');
@@ -532,7 +544,59 @@ document.addEventListener("click", () => {
   menuOutils.classList.remove("open");
 });
 
+let draggedTab = null;
 
+function enableTabDrag(tabEl) {
+  tabEl.draggable = true;
+
+  tabEl.addEventListener("dragstart", (e) => {
+    draggedTab = tabEl;
+    tabEl.classList.add("dragging");
+    e.dataTransfer.effectAllowed = "move";
+  });
+
+  tabEl.addEventListener("dragend", () => {
+    tabEl.classList.remove("dragging");
+    document.querySelectorAll(".tab").forEach(t => t.classList.remove("drag-over"));
+    draggedTab = null;
+  });
+
+  tabEl.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    if (tabEl !== draggedTab) {
+      tabEl.classList.add("drag-over");
+    }
+  });
+
+  tabEl.addEventListener("dragleave", () => {
+    tabEl.classList.remove("drag-over");
+  });
+
+  tabEl.addEventListener("drop", (e) => {
+    e.preventDefault();
+    tabEl.classList.remove("drag-over");
+
+    if (!draggedTab || draggedTab === tabEl) return;
+
+    const tabsContainer = document.getElementById("tabs");
+    const draggedId = draggedTab.dataset.id;
+    const targetId = tabEl.dataset.id;
+
+    const draggedIndex = tabs.findIndex(t => t.id == draggedId);
+    const targetIndex = tabs.findIndex(t => t.id == targetId);
+
+    // Réorganisation DOM
+    if (draggedIndex < targetIndex) {
+      tabsContainer.insertBefore(draggedTab, tabEl.nextSibling);
+    } else {
+      tabsContainer.insertBefore(draggedTab, tabEl);
+    }
+
+    // Réorganisation tableau logique
+    const [moved] = tabs.splice(draggedIndex, 1);
+    tabs.splice(targetIndex, 0, moved);
+  });
+}
 // Mise à jour toutes les secondes
 setInterval(updateDateTime, 1000);
 updateDateTime();
@@ -650,6 +714,7 @@ updateDateTime();
     console.error("Erreur chargement messages accueil :", err);
   }
 }
+
 
 // Appel au chargement de la page
 loadHomeMessages();
