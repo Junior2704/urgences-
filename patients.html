@@ -487,7 +487,7 @@ function afficherPatients(data) {
   window.parent.postMessage(
     {
       type: "OPEN_TAB",
-      title: `Fiche Patient ${nom} ${prenom}`,
+      title: `Fiche Patient ${p.nom} ${p.prenom}`,
       url: `fiche-patient.html?id=${id}&from=urgences`
     },
     "*"

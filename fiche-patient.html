@@ -1830,7 +1830,7 @@ document.getElementById("vigilances").value = data.vigilances || "aucune";
 document.getElementById("importanceAllergies").checked = data.importanceAllergies === true;
 
 document.getElementById("patientName").textContent =
-    `Fiche Patient - ${data.prenom || ""} ${data.nom || ""}`;
+    `Fiche Patient -  ${data.nom || ""} ${data.prenom || ""}`;
 
     // Âge
     if (data.dateNaissance) {
