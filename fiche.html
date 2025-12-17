@@ -1713,6 +1713,10 @@ nav:hover .nav-item span {
     <label>Âge</label>
     <span id="age"></span>
   </div>
+  <div>
+    <label>Médecin(s) traitants</label>
+    <textarea id="medtraitant"></textarea>
+  </div>
    <div>
     <label>Vigilance(s)</label>
   <input type="text" id="vigilances" class="text2" />
@@ -2696,6 +2700,8 @@ window.location.href="aucun-patients.html";
     // Allergies
 document.getElementById("allergies").value = data.allergies || "aucun";
 document.getElementById("vigilances").value = data.vigilances || "aucune";
+document.getElementById("medtraitant").value = data.medtraitant || "";
+
 
 document.getElementById("importanceAllergies").checked = data.importanceAllergies === true;
 
@@ -2810,6 +2816,11 @@ document.getElementById("vigilances").addEventListener("change", async () => {
   const value = document.getElementById("vigilances").value.trim() || "aucun";
   await patientRef.update({ vigilances: value });
   afficherBulle("💾 Vigilances enregistrées", "success");
+});
+document.getElementById("medtraitant").addEventListener("change", async () => {
+  const value = document.getElementById("medtraitant").value.trim() || "";
+  await patientRef.update({ medtraitant: value });
+  afficherBulle("💾 Medecin(s) traitant(s) enregistré(s)", "success");
 });
 
 // Switch allergie(s) importantes
