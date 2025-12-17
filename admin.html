@@ -164,6 +164,8 @@ background:rgba(0,0,0,0.5);justify-content:center;align-items:center;">
 </div>
 
   <script type="module">
+    import emailjs from "https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js";
+  emailjs.init("CZapZCcxYfJ8-acLS"); // clé publique par défaut, remplacée si multi-comptes
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import {
       getAuth,
@@ -205,6 +207,39 @@ window.ouvrirModale = (id, nom, email, specialite, lieu, type) => {
 window.fermerModale = () => {
   document.getElementById("editModal").style.display = "none";
 };
+async function envoyerMailResetEmailJS(email, nom, motDePasseTemp) {
+  const htmlMessage = `
+    <p>Bonjour <strong>${nom}</strong>,</p>
+    <p>Votre compte a été créé dans le portail administratif.</p>
+    <p>Voici votre mot de passe temporaire : <strong>${motDePasseTemp}</strong></p>
+    <p>Pour définir un mot de passe sécurisé, cliquez sur le lien ci-dessous :</p>
+    <a href="https://votresite.com/reset.html?email=${encodeURIComponent(email)}"
+       style="padding:10px 20px;background:#0078d4;color:white;text-decoration:none;border-radius:6px;">Définir mon mot de passe</a>
+    <p>⚠️ Ce mot de passe temporaire est valable seulement jusqu'à votre première connexion.</p>
+  `;
+
+  const comptesEmailJS = [
+    { serviceID: "service_o07vuso", templateID: "template_vj03i4u", publicKey: "CZapZCcxYfJ8-acLS" },
+    { serviceID: "service_o3i8ac9", templateID: "template_0wbzbwe", publicKey: "j5G-06rjQm0P6wriE" },
+    { serviceID: "service_qij0y5a", templateID: "template_3qdes3p", publicKey: "nh2zkdRVJcGcE-Jwe" }
+  ];
+
+  for (const compte of comptesEmailJS) {
+    try {
+      await emailjs.send(compte.serviceID, compte.templateID, {
+        to_email: email,
+        html_message: htmlMessage
+      }, compte.publicKey);
+      afficherBulle(`📨 Email envoyé à ${email}`, "administratif");
+      break; // Stop après envoi réussi
+    } catch (err) {
+      console.warn(`⚠ Échec ${compte.serviceID} -> ${err.text || err}`);
+      // si erreur de quota, essayer le compte suivant
+      if ((err.text || "").toLowerCase().includes("quota")) continue;
+      else break;
+    }
+  }
+}
 
 // ✅ Sauvegarde des modifications
 document.getElementById("saveEditBtn").addEventListener("click", async () => {
@@ -355,48 +390,41 @@ import {
 
 document.getElementById("createUserBtn").addEventListener("click", async () => {
   const email = newEmail.value.trim();
-  const password = newPassword.value.trim();
   const nom = newNom.value.trim();
   const specialite = newSpecialite.value.trim();
   const lieu = newLieu.value.trim();
   const type = newType.value;
 
-  console.log("🔹 Bouton cliqué");
-  console.log("Email :", email, "Password :", password, "Nom :", nom);
-
-  if (!email || !password || !nom) {
-    console.log("❌ Champs obligatoires manquants");
+  if (!email || !nom) {
     afficherBulle("Veuillez remplir les champs obligatoires", "alerte");
     return;
   }
 
   try {
-    console.log("➕ Création de l'utilisateur Auth en cours...");
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    // --- Mot de passe temporaire aléatoire
+    const motDePasseTemp = "Temp" + Math.floor(Math.random() * 9000 + 1000) + "!";
+
+    // --- Création utilisateur Firebase Auth
+    const userCredential = await createUserWithEmailAndPassword(auth, email, motDePasseTemp);
     const newUser = userCredential.user;
-    console.log("✅ Utilisateur créé dans Auth :", newUser.uid);
+    console.log("✅ Utilisateur créé :", newUser.uid);
 
-    console.log("✉ Envoi email de vérification...");
-    await sendEmailVerification(newUser);
-    console.log("✅ Email de vérification envoyé");
-
-    console.log("🔑 Envoi email pour définir mot de passe sécurisé...");
-    await sendPasswordResetEmail(auth, email);
-    console.log("✅ Email de reset envoyé");
-
-    console.log("🗄 Enregistrement Firestore...");
+    // --- Enregistrement Firestore
     await setDoc(doc(db, "medecins", newUser.uid), {
       nom,
       email,
       specialite,
       lieu,
       type,
-      pages: {}
+      pages: {},
+      doitChangerMDP: true
     });
-    console.log("✅ Utilisateur enregistré dans Firestore");
 
-    afficherBulle("Utilisateur créé ✔️ — email de validation envoyé", "administratif");
+    // --- Envoi email via EmailJS
+    await envoyerMailResetEmailJS(email, nom, motDePasseTemp);
 
+    afficherBulle("Utilisateur créé ✔️ — email de réinitialisation envoyé", "administratif");
+    chargerUtilisateurs();
   } catch (err) {
     console.error("❌ ERREUR:", err);
     afficherBulle("Erreur : " + err.message, "alerte");
