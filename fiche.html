@@ -1606,6 +1606,24 @@ nav:hover .nav-item span {
 #recherchePatient {
   display: none;
 }
+
+.icon-button {
+  background: transparent;
+  border: none;
+  padding: 0;
+  box-shadow: none;
+  outline: none;
+  cursor: pointer;
+}
+
+.icon-button:hover,
+.icon-button:active,
+.icon-button:focus {
+  background: transparent;
+  box-shadow: none;
+  outline: none;
+}
+
   </style>
 
 
@@ -1630,9 +1648,8 @@ nav:hover .nav-item span {
   <div class="left-header">
 	  <button id="menu-toggle" class="menu-toggle">☰</button>
  <h2 id="patientName">Fiche Urgences</h2>
- <button onclick="location.reload();">
-    🔄
-</button>
+<button class="icon-button" onclick="location.reload();">🔄</button>
+
 
 	   <span id="currentTime"></span>
 		
