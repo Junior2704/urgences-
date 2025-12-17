@@ -1442,6 +1442,23 @@ nav:hover .nav-item span {
   padding: 10px 20px;
   font-size: 14px;
 }
+.icon-button {
+  font-size: 1.6em;
+  background: transparent;
+  border: none;
+  padding: 0;
+  box-shadow: none;
+  outline: none;
+  cursor: pointer;
+}
+
+.icon-button:hover,
+.icon-button:active,
+.icon-button:focus {
+  background: transparent;
+  box-shadow: none;
+  outline: none;
+}
   </style>
 
 
@@ -1464,6 +1481,8 @@ nav:hover .nav-item span {
   <div class="left-header">
 	  <button id="menu-toggle" class="menu-toggle">☰</button>
  <h2 id="patientName">Fiche Patient</h2>
+ <button class="icon-button" onclick="location.reload();">🔄</button>
+
 	   <span id="currentTime"></span>
 		
   </div>
@@ -2226,11 +2245,6 @@ window.openTab = function(tabName, evt) {
 
 
 
-function updateTime() {
-    const now = new Date();
-    const formatted = now.toLocaleString(); // date + heure locale
-    document.getElementById('currentTime').textContent = formatted;
-}
 
 
 
@@ -2263,9 +2277,6 @@ window.masquerLoader = function() {
   }
 };
 
-updateTime();
-setInterval(updateTime, 1000);
-  
 function openDocsTab(tabId, file) {
     // récupère l’ID du patient
     const url = file + "?id=" + patientId;
