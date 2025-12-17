@@ -20,7 +20,7 @@ body {
     position:absolute;
     top:30px;
     width:100%;
-    height:140px;
+    height:160px;
     pointer-events:none;
 }
 
@@ -34,7 +34,7 @@ body {
 
 .wall {
     position:absolute;
-    right:240px;
+    right:280px;
     bottom:30px;
     width:18px;
     height:70px;
@@ -42,59 +42,93 @@ body {
     border-radius:4px;
 }
 
-/* AMBULANCE */
-.ambulance {
+/* AMBULANCE + GYROS */
+.ambulance-wrapper {
     position:absolute;
-    left:-140px;
+    left:-160px;
     bottom:18px;
-    font-size:76px;
-    transform:scaleX(-1);
-    animation: crash 1.4s linear forwards;
+    animation: crash 1.3s linear forwards;
 }
 
-/* ÉTINCELLES */
+.ambulance {
+    font-size:78px;
+    transform:scaleX(-1);
+    position:relative;
+}
+
+/* Gyrophares */
+.gyro {
+    position:absolute;
+    top:20px;
+    width:14px;
+    height:14px;
+    border-radius:50%;
+    opacity:0.8;
+}
+
+.gyro.red {
+    left:34px;
+    background:red;
+    animation: gyroRed .3s infinite;
+}
+
+.gyro.blue {
+    right:45px;
+    background:#2563eb;
+    animation: gyroBlue .3s infinite;
+}
+
+@keyframes gyroRed {
+    0%,100% { opacity:0.1 }
+    50% { opacity:1 }
+}
+
+@keyframes gyroBlue {
+    0%,100% { opacity:1 }
+    50% { opacity:0.1 }
+}
+
+/* ÉTINCELLES RÉALISTES */
 .spark {
     position:absolute;
-    right:260px;
+    right:280px;
     bottom:70px;
-    width:6px;
-    height:6px;
-    background:gold;
-    border-radius:50%;
+    width:22px;
+    height:2px;
+    background:linear-gradient(to right, gold, transparent);
     opacity:0;
 }
 
-.spark:nth-child(1) { animation: spark 0.4s linear 1.05s forwards; }
-.spark:nth-child(2) { animation: spark 0.4s linear 1.05s forwards; transform:translate(10px,-10px); }
-.spark:nth-child(3) { animation: spark 0.4s linear 1.05s forwards; transform:translate(-10px,-5px); }
-.spark:nth-child(4) { animation: spark 0.4s linear 1.05s forwards; transform:translate(5px,10px); }
+.spark.s1 { animation: spark 0.35s linear 0.95s forwards; transform:rotate(-25deg); }
+.spark.s2 { animation: spark 0.35s linear 0.95s forwards; transform:rotate(10deg); }
+.spark.s3 { animation: spark 0.35s linear 0.95s forwards; transform:rotate(35deg); }
+.spark.s4 { animation: spark 0.35s linear 0.95s forwards; transform:rotate(-50deg); }
 
+@keyframes spark {
+    0% { opacity:1; transform:translateX(0) scaleX(1); }
+    100% { opacity:0; transform:translateX(30px) scaleX(0.3); }
+}
+
+/* CRASH */
 @keyframes crash {
     0% {
-        transform:translateX(0) scaleX(-1);
+        transform:translateX(0);
     }
     75% {
-        transform:translateX(calc(100vw - 240px)) scaleX(-1);
+        transform:translateX(calc(100vw - 260px));
     }
     76% {
-        transform:translateX(calc(100vw - 220px))
-                  scaleX(-1)
-                  scale(1.25,0.6)
+        transform:translateX(calc(100vw - 240px))
+                  scale(1.25,0.55)
                   rotate(-8deg)
                   skewX(-18deg);
     }
     100% {
-        transform:translateX(calc(100vw - 220px))
-                  scaleX(-1)
+        transform:translateX(calc(100vw - 240px))
                   scale(1.15,0.75)
                   rotate(-6deg)
                   skewX(-12deg);
     }
-}
-
-@keyframes spark {
-    0% { opacity:1; transform:scale(1); }
-    100% { opacity:0; transform:scale(2) translateY(-15px); }
 }
 
 /* CARTE */
@@ -107,7 +141,7 @@ body {
     border-radius:18px;
     box-shadow:0 18px 45px rgba(11,60,111,.18);
     text-align:center;
-    margin:200px auto 0;
+    margin:220px auto 0;
     z-index:2;
 }
 
@@ -135,36 +169,29 @@ p  { font-size:15px; color:#6b7280; }
 <div class="scene">
     <div class="road"></div>
     <div class="wall"></div>
-    <div class="ambulance">🚑</div>
+
+    <div class="ambulance-wrapper">
+        <div class="ambulance">
+            🚑
+            <div class="gyro red"></div>
+            <div class="gyro blue"></div>
+        </div>
+    </div>
 
     <!-- Étincelles -->
-    <div class="spark"></div>
-    <div class="spark"></div>
-    <div class="spark"></div>
-    <div class="spark"></div>
+    <div class="spark s1"></div>
+    <div class="spark s2"></div>
+    <div class="spark s3"></div>
+    <div class="spark s4"></div>
 </div>
 
 <div class="card">
-        <div class="badge">GestUrg2 · Gestion des urgences</div>
-
-        <div class="logo">
-            <img src="logo.png" alt="Logo GestUrg2">
-        </div>
-
-        <h1>404</h1>
-        <h2>Arrivée aux urgences… mais pas la bonne porte !</h2>
-
-        <p>
-            Le contenu demandé semble ne plus exister dans GestUrg2.
-            <br>
-            <span class="smile">🙂</span>
-        </p>
-
-
-        <div class="footer">
-            GestUrg2 
-        </div>
-    </div>
+    <div class="badge">GestUrg2 · Gestion des urgences</div>
+    <h1>404</h1>
+    <h2>Impact aux urgences… mauvaise entrée</h2>
+    <p>La page demandée n’existe pas.</p>
+    <div class="footer">GestUrg2</div>
+</div>
 
 </body>
 </html>
