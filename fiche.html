@@ -1629,7 +1629,7 @@ nav:hover .nav-item span {
 <header>
   <div class="left-header">
 	  <button id="menu-toggle" class="menu-toggle">☰</button>
- <h2 id="patientName">Fiche Patient</h2>
+ <h2 id="patientName">Fiche Urgences</h2>
 	   <span id="currentTime"></span>
 		
   </div>
@@ -2675,7 +2675,7 @@ document.getElementById("importanceAllergies").checked = data.importanceAllergie
 const patientNameSpan = document.getElementById("patientName");
 
 patientNameSpan.textContent =
-  `Fiche Patient - ${data.prenom || ""} ${data.nom || ""} `;
+  `Fiche Urgences - ${data.prenom || ""} ${data.nom || ""} `;
 
 const closeBtn = document.createElement("span");
 closeBtn.className = "close-tab";
