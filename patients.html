@@ -483,9 +483,16 @@ function afficherPatients(data) {
     Sexe : ${p.sexe || "-"} &nbsp; | &nbsp; 📅 ${p.dateNaissance || "?"}
   `;
 
-  li.ondblclick = () => {
-    window.location.href = `fiche-patient.html?id=${p.id}`;
-  };
+  li..ondblclick = () => {
+  window.parent.postMessage(
+    {
+      type: "OPEN_TAB",
+      title: `Fiche Patient ${nom} ${prenom}`,
+      url: `fiche-patient.html?id=${id}&from=urgences`
+    },
+    "*"
+  );
+}; 
 
   liste.appendChild(li);
 });
