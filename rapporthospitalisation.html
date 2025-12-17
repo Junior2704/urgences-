@@ -389,6 +389,8 @@
 
   <label for="actes">Actes réalisés</label>
   <textarea id="actes"></textarea>
+<label for="medicaments">Médicaments administrés aux urgences</label>
+<textarea id="medicaments"></textarea>
 
   <label for="sortie">Sortie</label>
   <textarea id="sortie"></textarea>
@@ -409,7 +411,17 @@
 <script>
 
 // Champs du rapport
-const champs = ["identite", "hospitalisation", "medical", "evolution", "constantes", "examens", "actes", "sortie"];
+const champs = [
+  "identite",
+  "hospitalisation",
+  "medical",
+  "evolution",
+  "constantes",
+  "examens",
+  "actes",
+  "medicaments",
+  "sortie"
+];
 const patientId = new URLSearchParams(window.location.search).get("id");
 
 if (!patientId) {
@@ -476,6 +488,33 @@ const patientEmail = data.email || "";
   const moyen = hospi.moyen || '';
   const adresse = data.adresse || '';
 window.patientData = data;
+const meds = hospi.medicaments_administres;
+
+document.getElementById("medicaments").value =
+  Array.isArray(meds) && meds.length > 0
+    ? "Médicaments administrés aux urgences :\n\n" +
+      meds.map(m => {
+        let ligne = `• ${m.product || "Médicament non renseigné"}`;
+
+        // Prescription
+        if (m.createdAt) ligne += `\n   ↳ Prescrit le : ${m.createdAt}`;
+        else if (m.dueAt) ligne += `\n   ↳ Pour le : ${m.dueAt}`;
+        if (m.comment) ligne += `\n   ↳ Commentaire prescription : ${m.comment}`;
+
+        // Administration
+        if (m.status === "pris") {
+          if (m.takenAt) ligne += `\n   ↳ Administré le : ${m.takenAt}`;
+          if (m.takeComment) ligne += `\n   ↳ Commentaire administration : ${m.takeComment}`;
+        } else {
+          ligne += `\n   ↳ Non administré`;
+        }
+
+
+        return ligne;
+      }).join('\n\n')
+    : "";
+
+
 
   document.getElementById("identite").value =
     `${sexe} ${prenom} ${nom}, \nNé(e) le ${dateNaissance2}, ${age} \n${adresse}\nCIP (Code d'Identification Patient) : ${patientId}`;
@@ -649,6 +688,8 @@ async function creerPDF(telecharger = false) {
         addBlock("Constantes Vitales", document.getElementById("constantes")?.value?.trim());
         addBlock("Examens Complémentaires", document.getElementById("examens")?.value?.trim());
         addBlock("Actes réalisés", document.getElementById("actes")?.value?.trim());
+        addBlock("Médicaments administrés aux urgences",document.getElementById("medicaments")?.value?.trim());
+
         addBlock("Sortie", document.getElementById("sortie")?.value?.trim());
 
         // 🔹 Signature
