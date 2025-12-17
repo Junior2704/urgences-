@@ -290,13 +290,8 @@ iframe{
               fill="none" stroke="#0078d4" stroke-width="3" stroke-linecap="round"/>
 
     <!-- Ambulance emoji (retourné pour avancer vers la droite) -->
-<div class="ambulance-wrapper">
-        <div class="ambulance">
-            🚑
-            <div class="gyro red"></div>
-            <div class="gyro blue"></div>
-        </div>
-    </div>  </svg>
+    <text id="ambulance" x="0" y="220" font-size="50" transform="scale(-1,1)">🚑</text>
+  </svg>
   
   <div id="home-text">Sélectionnez un module pour commencer</div>
 </div>
@@ -361,52 +356,6 @@ iframe{
 @keyframes fadeText {
   to { opacity:1; }
 }
-/* AMBULANCE + GYROS */
-.ambulance-wrapper {
-    position:absolute;
-    left:-160px;
-    bottom:18px;
-    
-}
-
-.ambulance {
-    font-size:78px;
-    transform:scaleX(-1);
-    position:relative;
-}
-
-/* Gyrophares */
-.gyro {
-    position:absolute;
-    top:20px;
-    width:14px;
-    height:14px;
-    border-radius:50%;
-    opacity:0.8;
-}
-
-.gyro.red {
-    left:34px;
-    background:red;
-    animation: gyroRed .3s infinite;
-}
-
-.gyro.blue {
-    right:45px;
-    background:#2563eb;
-    animation: gyroBlue .3s infinite;
-}
-
-@keyframes gyroRed {
-    0%,100% { opacity:0.1 }
-    50% { opacity:1 }
-}
-
-@keyframes gyroBlue {
-    0%,100% { opacity:1 }
-    50% { opacity:0.1 }
-}
-
 </style>
 </div>
 
