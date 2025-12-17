@@ -498,7 +498,7 @@ document.getElementById("medicaments").value =
 
         // Prescription
         if (m.createdAt) ligne += `\n   ↳ Prescrit le : ${m.createdAt}`;
-        else if (m.dueAt) ligne += `\n   ↳ Pour le : ${m.dueAt}`;
+        if (m.dueAt) ligne += `\n   ↳ Pour le : ${m.dueAt}`;
         if (m.comment) ligne += `\n   ↳ Commentaire prescription : ${m.comment}`;
 
         // Administration
