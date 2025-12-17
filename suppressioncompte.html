@@ -79,33 +79,34 @@
 </head>
 <body>
   <div class="cards-container">
-    <!-- Carte 1 : compte marqué pour suppression -->
-    <div id="cardSupprime" class="card">
-      <h2 class="warning-title">⚠️ Compte marqué pour suppression</h2>
-      <p>Votre compte a été marqué pour suppression par votre administrateur. 🥲</p>
-    <p>Nous sommes très heureux que vous ayez pu travailler avec GestUrg2 et esperons que vous avez été satisfait de votre expérience.</p>
-    <p>Pour valider la supression de votre compte, veuillez cliquer sur valider.</p>
-      <button id="validerBtn">Valider</button>
-            <p>Si vous pesnez qu'il s'agit d'une erreur, perci de contacter votrte administrateur.</p>
-
-    </div>
-
-    <!-- Carte 2 : compte actif -->
-    <div id="cardActif" class="card">
-      <h2 class="info-title">❌</h2>
-      <p>Erreur de destination, vous n'êtes pas au bon endroit</p>
-    <p>Si vous avez étét redirigé ici automatiquement, merci de contacter un administrateur</p>
-
-    </div>
-
-    <!-- Carte 3 : confirmation de suppression -->
-    <div id="cardConfirmation" class="card">
-      <h2 class="success-title">Compte supprimé</h2>
-      <p>Votre compte a été supprimé avec succès. </p>
-            <p>Merci pour votre fidèle service</p>
-
-    </div>
+  <!-- Carte 1 : compte marqué pour suppression -->
+  <div id="cardSupprime" class="card">
+    <h2 class="warning-title">⚠️ Compte marqué pour suppression</h2>
+    <p>Votre compte a été marqué pour suppression par votre administrateur. 🥲</p>
+    <p>Nous avons été ravis de vous compter parmi nos utilisateurs de GestUrg2 et espérons que votre expérience a été enrichissante et agréable.</p>
+    <p>Pour valider la suppression définitive de votre compte, veuillez cliquer sur le bouton ci-dessous.</p>
+    <button id="validerBtn">Valider</button>
+    <p>Si vous pensez qu'il s'agit d'une erreur, merci de contacter votre administrateur. 💌</p>
   </div>
+
+  <!-- Carte 2 : compte actif / page incorrecte -->
+  <div id="cardActif" class="card">
+    <h2 class="info-title">⚠️ Oups !</h2>
+    <p>Vous êtes arrivé ici par inadvertance 😅.</p>
+    <p>Cette page n'est pas destinée à votre usage actuel.</p>
+    <button onclick="window.location.href='index.html'">⬅️ Retour à l'accueil</button>
+  </div>
+
+  <!-- Carte 3 : confirmation de suppression -->
+  <div id="cardConfirmation" class="card">
+    <h2 class="success-title">Compte supprimé</h2>
+    <p>Votre compte a été supprimé avec succès. 😢</p>
+    <p>Merci infiniment pour votre engagement et votre fidélité auprès de GestUrg2. Votre passage ici a été précieux et restera dans nos souvenirs.</p>
+    <p>Nous vous souhaitons le meilleur pour la suite et espérons que nos chemins se recroiseront un jour. 🌟</p>
+  </div>
+</div>
+
+
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -129,7 +130,7 @@
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) {
-        window.location.href = "accueil.html";
+        window.location.href = "index.html";
         return;
       }
 
