@@ -1,123 +1,150 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <link rel="icon" type="image/jpeg" href="logo.png">
+<meta charset="UTF-8">
+<title>404 – GestUrg2</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 
-    <meta charset="UTF-8">
-    <title>Erreur 404 – GestUrg2</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body {
+    margin:0;
+    font-family:Inter,Arial,sans-serif;
+    background:linear-gradient(135deg,#f0f6fc,#ffffff);
+    height:100vh;
+    overflow:hidden;
+}
 
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+/* SCÈNE */
+.scene {
+    position:absolute;
+    top:30px;
+    width:100%;
+    height:140px;
+    pointer-events:none;
+}
 
-    <style>
-        :root {
-            --blue-main: #0b3c6f;
-            --blue-accent: #1e88e5;
-            --blue-soft: #eaf3fb;
-            --text-dark: #1f2937;
-            --text-muted: #6b7280;
-        }
+.road {
+    position:absolute;
+    bottom:30px;
+    width:100%;
+    height:4px;
+    background:#c7d2fe;
+}
 
-        body {
-            margin: 0;
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #f0f6fc, #ffffff);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-        }
+.wall {
+    position:absolute;
+    right:240px;
+    bottom:30px;
+    width:18px;
+    height:70px;
+    background:#1f2937;
+    border-radius:4px;
+}
 
-        .card {
-            background: #ffffff;
-            max-width: 520px;
-            width: 92%;
-            padding: 42px;
-            border-radius: 18px;
-            box-shadow: 0 18px 45px rgba(11, 60, 111, 0.18);
-            text-align: center;
-        }
+/* AMBULANCE */
+.ambulance {
+    position:absolute;
+    left:-140px;
+    bottom:18px;
+    font-size:76px;
+    transform:scaleX(-1);
+    animation: crash 1.4s linear forwards;
+}
 
-        .badge {
-            display: inline-block;
-            padding: 6px 14px;
-            background: var(--blue-soft);
-            color: var(--blue-main);
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            margin-bottom: 18px;
-        }
+/* ÉTINCELLES */
+.spark {
+    position:absolute;
+    right:260px;
+    bottom:70px;
+    width:6px;
+    height:6px;
+    background:gold;
+    border-radius:50%;
+    opacity:0;
+}
 
-        /* Conteneur logo */
-        .logo {
-            width: 90px;
-            height: 90px;
-            margin: 0 auto 20px;
-            background: var(--blue-soft);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+.spark:nth-child(1) { animation: spark 0.4s linear 1.05s forwards; }
+.spark:nth-child(2) { animation: spark 0.4s linear 1.05s forwards; transform:translate(10px,-10px); }
+.spark:nth-child(3) { animation: spark 0.4s linear 1.05s forwards; transform:translate(-10px,-5px); }
+.spark:nth-child(4) { animation: spark 0.4s linear 1.05s forwards; transform:translate(5px,10px); }
 
-        .logo img {
-            max-width: 70%;
-            max-height: 70%;
-            object-fit: contain;
-        }
+@keyframes crash {
+    0% {
+        transform:translateX(0) scaleX(-1);
+    }
+    75% {
+        transform:translateX(calc(100vw - 240px)) scaleX(-1);
+    }
+    76% {
+        transform:translateX(calc(100vw - 220px))
+                  scaleX(-1)
+                  scale(1.25,0.6)
+                  rotate(-8deg)
+                  skewX(-18deg);
+    }
+    100% {
+        transform:translateX(calc(100vw - 220px))
+                  scaleX(-1)
+                  scale(1.15,0.75)
+                  rotate(-6deg)
+                  skewX(-12deg);
+    }
+}
 
-        h1 {
-            font-size: 40px;
-            color: var(--blue-main);
-            margin-bottom: 6px;
-        }
+@keyframes spark {
+    0% { opacity:1; transform:scale(1); }
+    100% { opacity:0; transform:scale(2) translateY(-15px); }
+}
 
-        h2 {
-            font-size: 18px;
-            font-weight: 600;
-            color: var(--text-dark);
-            margin-bottom: 14px;
-        }
+/* CARTE */
+.card {
+    position:relative;
+    background:#fff;
+    max-width:520px;
+    width:92%;
+    padding:42px;
+    border-radius:18px;
+    box-shadow:0 18px 45px rgba(11,60,111,.18);
+    text-align:center;
+    margin:200px auto 0;
+    z-index:2;
+}
 
-        p {
-            font-size: 15px;
-            color: var(--text-muted);
-            line-height: 1.65;
-            margin-bottom: 30px;
-        }
+.badge {
+    display:inline-block;
+    padding:6px 14px;
+    background:#eaf3fb;
+    color:#0b3c6f;
+    border-radius:20px;
+    font-size:12px;
+    font-weight:600;
+    margin-bottom:18px;
+}
 
-        .btn {
-            display: inline-block;
-            padding: 14px 28px;
-            background: var(--blue-accent);
-            color: #ffffff;
-            text-decoration: none;
-            border-radius: 12px;
-            font-weight: 600;
-            transition: all 0.2s ease;
-        }
+h1 { font-size:40px; color:#0b3c6f; }
+h2 { font-size:18px; margin-bottom:14px; }
+p  { font-size:15px; color:#6b7280; }
+.footer { font-size:12px; color:#9ca3af; margin-top:24px; }
 
-        .btn:hover {
-            background: var(--blue-main);
-            transform: translateY(-1px);
-        }
-
-        .footer {
-            margin-top: 28px;
-            font-size: 12px;
-            color: #9ca3af;
-        }
-
-        .smile {
-            font-size: 18px;
-        }
-    </style>
+</style>
 </head>
 
 <body>
 
-    <div class="card">
+<div class="scene">
+    <div class="road"></div>
+    <div class="wall"></div>
+    <div class="ambulance">🚑</div>
+
+    <!-- Étincelles -->
+    <div class="spark"></div>
+    <div class="spark"></div>
+    <div class="spark"></div>
+    <div class="spark"></div>
+</div>
+
+<div class="card">
         <div class="badge">GestUrg2 · Gestion des urgences</div>
 
         <div class="logo">
