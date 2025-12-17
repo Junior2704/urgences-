@@ -208,36 +208,36 @@ iframe{
   display: block;
 }
 /* Conteneur messages sous le SVG */
+/* Conteneur messages sous le SVG */
 #home-messages-container {
   position: absolute;
   bottom: 40px;
   left: 50%;
   transform: translateX(-50%);
   width: 90%;
-  max-width: 800px;
-  overflow: hidden;
+  max-width: 600px;
   display: flex;
+  flex-direction: column;
   align-items: center;
+  font-family: Inter, Arial, sans-serif;
 }
 
-/* Carrousel */
-#home-messages-carousel {
-  display: flex;
-  gap: 16px;
-  transition: transform 0.5s ease;
-}
-
-/* Cartes */
+/* Carte unique visible */
 .home-message {
-  min-width: 240px;
-  flex: 0 0 auto;
+  width: 100%;
   border-radius: 16px;
   padding: 20px;
   color: white;
-  display: flex;
+  display: none;
   flex-direction: column;
   box-shadow: 0 6px 20px rgba(0,0,0,0.2);
-  font-family: Inter, Arial, sans-serif;
+  text-align: left;
+  transition: opacity 0.6s;
+}
+
+.home-message.active {
+  display: flex;
+  opacity: 1;
 }
 
 .home-message h3 {
@@ -258,18 +258,29 @@ iframe{
 }
 
 /* Couleurs selon type */
-.home-message.info { background-color: #3498db; }          /* bleu */
+.home-message.info { background-color: #3498db; }           /* bleu */
 .home-message.alerte-moyenne { background-color: #f39c12; } /* orange */
 .home-message.alerte-grave { background-color: #e74c3c; }   /* rouge */
 .home-message.remerciement { background-color: #d4af37; }    /* doré */
 
-/* Pagination */
+/* Barre pagination + flèches */
+#home-messages-controls {
+  display: flex;
+  align-items: center;
+  margin-top: 12px;
+  gap: 12px;
+}
+
+.home-arrow {
+  font-size: 20px;
+  cursor: pointer;
+  user-select: none;
+  color: #374151;
+}
+
 #home-messages-pagination {
   display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-top: 16px;
-  gap: 10px;
+  gap: 6px;
 }
 
 .home-dot {
@@ -282,13 +293,6 @@ iframe{
 
 .home-dot.active {
   background: #0078d4;
-}
-
-.home-arrow {
-  font-size: 20px;
-  cursor: pointer;
-  user-select: none;
-  color: #374151;
 }
 
 
@@ -385,8 +389,13 @@ iframe{
   <div id="home-text">Sélectionnez un module pour commencer</div>
 <div id="home-messages-container">
   <div id="home-messages-carousel"></div>
+  <div id="home-messages-controls">
+    <span class="home-arrow" id="prev-msg">◀</span>
+    <div id="home-messages-pagination"></div>
+    <span class="home-arrow" id="next-msg">▶</span>
+  </div>
 </div>
-<div id="home-messages-pagination"></div>
+
 
 
 </div>
@@ -587,8 +596,7 @@ updateDateTime();
     }, "*");
   });
 });
- 
-async function loadHomeMessages() {
+ async function loadHomeMessages() {
   const carousel = document.getElementById("home-messages-carousel");
   const pagination = document.getElementById("home-messages-pagination");
 
@@ -599,8 +607,7 @@ async function loadHomeMessages() {
 
     const messages = data.liste; // tableau d'objets {titre,type,texte1,texte2}
 
-    // Création des cartes
-    messages.forEach(msg => {
+    messages.forEach((msg, i) => {
       const div = document.createElement("div");
       div.className = "home-message " + msg.type.replace(/ /g,"-");
       div.innerHTML = `
@@ -609,25 +616,46 @@ async function loadHomeMessages() {
         <p class="text2">${msg.texte2}</p>
       `;
       carousel.appendChild(div);
+
+      const dot = document.createElement("div");
+      dot.className = "home-dot";
+      dot.addEventListener("click", () => showMessage(i));
+      pagination.appendChild(dot);
     });
 
-    // Cloner les cartes pour effet infini
+    let currentIndex = 0;
     const cards = Array.from(carousel.children);
-    cards.forEach(card => {
-      const clone = card.cloneNode(true);
-      carousel.appendChild(clone);
+    const dots = Array.from(pagination.children);
+
+    function showMessage(index) {
+      cards.forEach((c,i)=>c.classList.toggle("active",i===index));
+      dots.forEach((d,i)=>d.classList.toggle("active",i===index));
+      currentIndex = index;
+    }
+
+    // Navigation flèches
+    document.getElementById("prev-msg").addEventListener("click", ()=>{
+      showMessage((currentIndex-1+cards.length)%cards.length);
+      resetAutoSlide();
+    });
+    document.getElementById("next-msg").addEventListener("click", ()=>{
+      showMessage((currentIndex+1)%cards.length);
+      resetAutoSlide();
     });
 
-    let offset = 0;
-    const cardWidth = cards[0].offsetWidth + 16; // largeur + gap
+    showMessage(0);
 
-    function animate() {
-      offset += 1; // vitesse de défilement
-      if (offset >= carousel.scrollWidth / 2) offset = 0; // reset pour boucle infinie
-      carousel.style.transform = `translateX(-${offset}px)`;
-      requestAnimationFrame(animate);
+    // Défilement automatique toutes les 5 secondes
+    let autoSlide = setInterval(()=>{
+      showMessage((currentIndex+1)%cards.length);
+    },5000);
+
+    function resetAutoSlide() {
+      clearInterval(autoSlide);
+      autoSlide = setInterval(()=>{
+        showMessage((currentIndex+1)%cards.length);
+      },5000);
     }
-    animate();
 
   } catch (err) {
     console.error("Erreur chargement messages accueil :", err);
