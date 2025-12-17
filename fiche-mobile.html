@@ -1198,7 +1198,8 @@ if (exams.length === 0) {
     const pill = document.createElement("span");
     pill.className = "pill";
     pill.style.cursor = "pointer";
-    pill.textContent = ex.type || "Examen";
+    pill.textContent = truncateText(ex.type || "Examen", 25);
+
 
     // ---------------------------
     // CODE COULEUR EXAMENS
@@ -1241,7 +1242,8 @@ if (actes.length) {
   actes.forEach((a, i) => {
     const s = document.createElement("span");
     s.className = "pill";
-    s.textContent = a.type || a || "Acte";
+    s.textContent = truncateText(a.type || a || "Acte", 25);
+
 
     // clique → modale acte
     s.style.cursor = "pointer";
@@ -1280,7 +1282,7 @@ console.log("m.dueAt raw:", m.dueAt);
         pill.className = "pill";
         pill.style.cursor = "pointer";
 
-        pill.textContent = m.product || "Médicament";
+pill.textContent = truncateText(m.product || "Médicament", 25);
 
         // -----------------------------
         // LOGIQUE CODE COULEUR EXACTE
@@ -1475,6 +1477,10 @@ function openMedicamentLocal(m) {
     showMedModal();
 }
 
+function truncateText(text, maxLength = 30) {
+  if (!text) return "";
+  return text.length > maxLength ? text.slice(0, maxLength) + "…" : text;
+}
 
 </script>
 
