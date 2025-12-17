@@ -275,6 +275,52 @@
     </div>
   </div>
 </div>
+<div class="section">
+  <h2>💬 Messages d’accueil 
+    <button class="btn btn-add" onclick="openAddMessageModal()">➕ Ajouter</button>
+  </h2>
+  <ul id="messagesAccueilList"></ul>
+</div>
+
+<!-- MODALE AJOUT -->
+<div class="modal" id="modalAddMessage">
+  <div class="modal-content">
+    <h3>➕ Ajouter un message d’accueil</h3>
+    <input type="text" id="newMessageTitle" placeholder="Titre..." />
+    <select id="newMessageType" style="margin-top:10px;">
+      <option value="info">Info</option>
+      <option value="alerte_grave">Alerte grave</option>
+      <option value="alerte_moyenne">Alerte moyenne</option>
+      <option value="remerciement">Remerciement</option>
+    </select>
+    <input type="text" id="newMessageText1" placeholder="Texte 1..." />
+    <input type="text" id="newMessageText2" placeholder="Texte 2..." />
+    <div class="modal-actions">
+      <button class="btn" onclick="cancelAddMessageModal()">❌ Annuler</button>
+      <button class="btn btn-add" onclick="confirmAddMessage()">✅ Valider</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODALE EDIT -->
+<div class="modal" id="modalEditMessage">
+  <div class="modal-content">
+    <h3>✏️ Modifier le message</h3>
+    <input type="text" id="editMessageTitle" placeholder="Titre..." />
+    <select id="editMessageType" style="margin-top:10px;">
+      <option value="info">Info</option>
+      <option value="alerte_grave">Alerte grave</option>
+      <option value="alerte_moyenne">Alerte moyenne</option>
+      <option value="remerciement">Remerciement</option>
+    </select>
+    <input type="text" id="editMessageText1" placeholder="Texte 1..." />
+    <input type="text" id="editMessageText2" placeholder="Texte 2..." />
+    <div class="modal-actions">
+      <button class="btn" onclick="cancelEditMessageModal()">❌ Annuler</button>
+      <button class="btn btn-add" onclick="confirmEditMessage()">✅ Valider</button>
+    </div>
+  </div>
+</div>
 
 
   <section id="nettoyage-section" 
@@ -714,6 +760,109 @@ btnValiderCode.addEventListener("click", async () => {
     afficherBulle("❌ Erreur d’enregistrement", "alerte");
   }
 });
+// ---------------- MESSAGES D'ACCUEIL ----------------
+const messagesAccueilListEl = document.getElementById("messagesAccueilList");
+let messagesAccueil = [];
+let editingIndex = null;
+
+async function loadMessagesAccueil() {
+  try {
+    const snap = await getDoc(doc(db, "référentiels", "messages_accueil"));
+    messagesAccueil = snap.exists() ? snap.data().liste || [] : [];
+    renderMessagesAccueil();
+  } catch (err) {
+    console.error("Erreur chargement messages accueil :", err);
+  }
+}
+
+function renderMessagesAccueil() {
+  messagesAccueilListEl.innerHTML = "";
+  messagesAccueil.forEach((msg, index) => {
+    const li = document.createElement("li");
+    li.innerHTML = `
+      <strong>${msg.titre}</strong> [${msg.type}]<br/>
+      ${msg.texte1}<br/>
+      ${msg.texte2}<br/>
+      <button class="btn btn-edit" onclick="openEditMessageModal(${index})">✏️</button>
+      <button class="btn btn-del" onclick="deleteMessage(${index})">❌</button>
+    `;
+    messagesAccueilListEl.appendChild(li);
+  });
+}
+
+// --- Ajouter message ---
+window.openAddMessageModal = () => {
+  document.getElementById("newMessageTitle").value = "";
+  document.getElementById("newMessageType").value = "info";
+  document.getElementById("newMessageText1").value = "";
+  document.getElementById("newMessageText2").value = "";
+  document.getElementById("modalAddMessage").style.display = "flex";
+};
+
+window.cancelAddMessageModal = () => {
+  document.getElementById("modalAddMessage").style.display = "none";
+};
+
+window.confirmAddMessage = async () => {
+  const titre = document.getElementById("newMessageTitle").value.trim();
+  const type = document.getElementById("newMessageType").value;
+  const texte1 = document.getElementById("newMessageText1").value.trim();
+  const texte2 = document.getElementById("newMessageText2").value.trim();
+  if (!titre) { afficherBulle("⚠️ Le titre est requis", "alerte"); return; }
+  messagesAccueil.push({ titre, type, texte1, texte2 });
+  await saveMessagesAccueil();
+  renderMessagesAccueil();
+  cancelAddMessageModal();
+};
+
+// --- Éditer message ---
+window.openEditMessageModal = (index) => {
+  editingIndex = index;
+  const msg = messagesAccueil[index];
+  document.getElementById("editMessageTitle").value = msg.titre;
+  document.getElementById("editMessageType").value = msg.type;
+  document.getElementById("editMessageText1").value = msg.texte1;
+  document.getElementById("editMessageText2").value = msg.texte2;
+  document.getElementById("modalEditMessage").style.display = "flex";
+};
+
+window.cancelEditMessageModal = () => {
+  document.getElementById("modalEditMessage").style.display = "none";
+};
+
+window.confirmEditMessage = async () => {
+  const titre = document.getElementById("editMessageTitle").value.trim();
+  const type = document.getElementById("editMessageType").value;
+  const texte1 = document.getElementById("editMessageText1").value.trim();
+  const texte2 = document.getElementById("editMessageText2").value.trim();
+  if (!titre) { afficherBulle("⚠️ Le titre est requis", "alerte"); return; }
+  messagesAccueil[editingIndex] = { titre, type, texte1, texte2 };
+  await saveMessagesAccueil();
+  renderMessagesAccueil();
+  cancelEditMessageModal();
+};
+
+// --- Supprimer message ---
+window.deleteMessage = async (index) => {
+  messagesAccueil.splice(index, 1);
+  await saveMessagesAccueil();
+  renderMessagesAccueil();
+};
+
+// --- Sauvegarde Firestore ---
+async function saveMessagesAccueil() {
+  try {
+    await setDoc(doc(db, "référentiels", "messages_accueil"), { liste: messagesAccueil });
+    afficherBulle("✅ Messages d’accueil enregistrés", "administratif");
+  } catch (err) {
+    console.error("Erreur enregistrement messages :", err);
+    afficherBulle("❌ Erreur d’enregistrement", "alerte");
+  }
+}
+
+// Charger les messages au démarrage
+loadMessagesAccueil();
+
 
 
 </script>
