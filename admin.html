@@ -87,7 +87,6 @@
 	<h2>➕ Créer un nouvel utilisateur</h2>
 <div id="creationBox" style="background:white;padding:20px;border-radius:10px;box-shadow:0 0 10px rgba(0,0,0,0.1);margin-bottom:30px;">
   <input type="email" id="newEmail" placeholder="Email *" style="padding:10px;width:220px;margin-right:10px;">
-  <input type="password" id="newPassword" placeholder="Mot de passe *" style="padding:10px;width:160px;margin-right:10px;">
   <input type="text" id="newNom" placeholder="Nom complet *" style="padding:10px;width:200px;margin-right:10px;">
   <input type="text" id="newSpecialite" placeholder="Spécialité" style="padding:10px;width:180px;margin-right:10px;">
   <input type="text" id="newLieu" placeholder="Lieu d'exercice" style="padding:10px;width:180px;margin-right:10px;">
@@ -209,14 +208,62 @@ window.fermerModale = () => {
 };
 async function envoyerMailResetEmailJS(email, nom, motDePasseTemp) {
   const htmlMessage = `
-    <p>Bonjour <strong>${nom}</strong>,</p>
-    <p>Votre compte a été créé dans le portail administratif.</p>
-    <p>Voici votre mot de passe temporaire : <strong>${motDePasseTemp}</strong></p>
-    <p>Pour définir un mot de passe sécurisé, cliquez sur le lien ci-dessous :</p>
-    <a href="https://votresite.com/reset.html?email=${encodeURIComponent(email)}"
-       style="padding:10px 20px;background:#0078d4;color:white;text-decoration:none;border-radius:6px;">Définir mon mot de passe</a>
-    <p>⚠️ Ce mot de passe temporaire est valable seulement jusqu'à votre première connexion.</p>
-  `;
+    
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Votre compte GestUrg2</title>
+</head>
+<body style="margin:0; padding:0; background-color:#f4f6f9; font-family:'Segoe UI', Roboto, Arial, sans-serif; color:#333;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="max-width:640px; margin:auto; background:white; border-radius:10px; box-shadow:0 3px 10px rgba(0,0,0,0.08); overflow:hidden;">
+    <tr>
+      <td style="background-color:#1a73e8; padding:24px; text-align:center;">
+        <img src="https://junior2704.github.io/urgences-/logo.png" alt="Logo Hôpital" style="height:60px; display:block; margin:0 auto 10px auto;">
+        <h1 style="color:white; font-size:22px; margin:0;">Centre Hospitalier</h1>
+        <p style="color:#dce6f3; margin:6px 0 0; font-size:14px;">Service des Urgences</p>
+      </td>
+    </tr>
+
+    <tr>
+      <td style="padding:30px;">
+        <h2 style="color:#1a73e8; font-weight:600; margin-top:0;">Votre ordonnance médicale</h2>
+
+        <p style="font-size:16px; line-height:1.6;">
+          👋👋👋 Bonjour <strong>${nom}</strong>,
+        </p>
+
+        <p style="font-size:15px; line-height:1.6; color:#555;">
+          Votre compte GestUrg2 vient d'être créé par votre administrateur !
+		  🥳🥳🥳
+		  Bienvenue dans la communauté des utilisateurs GestUrg2 !
+		  Vous pouvez désormais vous connecter à GestUrg2 😎.
+		  Pour vous connecter, rentrez votre adresse email et ce mot de passe temporaire :  <strong>${motDePasseTemp}</strong>.
+		  Lors de votre première connexion, nous vous demanderons de modifr votre mot de passe pour en choisir un rien qu'à vous (et secret 👀).
+		  Au plaisir de vous revoir très vite et de vous faire découvrir l'incroyable univers GestUrg2.
+        </p>
+
+        
+
+
+        <p style="font-size:14px; color:#777;">
+          Pour toute question, merci de contacter le service des Urgences :
+          <a href="mailto:urgences.hopj@gmail.com" style="color:#1a73e8;">urgences.hopj@gmail.com</a>
+        </p>
+
+        <hr style="border:none; border-top:1px solid #e0e0e0; margin:30px 0;">
+        <p style="font-size:13px; color:#999; text-align:center;">
+          Votre très dévouée équipe de GestUrg2, <br>
+          <em>Cet e-mail a été généré automatiquement, merci de ne pas y répondre.
+            Si vous n'êtes pas concerné, merci d'écrire à <a href="mailto:urgences.hopj@gmail.com" style="color:#1a73e8;">urgences.hopj@gmail.com</a>
+</em>
+        </p>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+  
 
   const comptesEmailJS = [
     { serviceID: "service_o07vuso", templateID: "template_vj03i4u", publicKey: "CZapZCcxYfJ8-acLS" },
@@ -228,7 +275,9 @@ async function envoyerMailResetEmailJS(email, nom, motDePasseTemp) {
     try {
       await emailjs.send(compte.serviceID, compte.templateID, {
         to_email: email,
-        html_message: htmlMessage
+        subject: "Votre compte GestUrg2 est prêt !",
+        html_message: htmlMessage,
+        from_email: "no-reply@gesturg2.com"
       }, compte.publicKey);
       afficherBulle(`📨 Email envoyé à ${email}`, "administratif");
       break; // Stop après envoi réussi
