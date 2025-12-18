@@ -238,7 +238,7 @@ function imprimer() {
     window.parent.postMessage(
         {
             type: "OPEN_TAB",
-            title: "Ordonnance médicale",
+            title: "Certificat médical",
             url: `viewer.html?docId=${window.pdfIdExistante}` // URL avec l'ID existant
         },
         "*"
@@ -394,7 +394,7 @@ function imprimer() {
       const prenom = document.getElementById('prenom').value.trim();
       const fileName = `Certificat - ${prenom} ${nom}.pdf`;
       if (!patientId) { afficherBulle("Erreur : aucun patientId reçu", "alerte"); return; }
-window.pdfIdExistante = idUnique
+window.pdfIdExistante = idUnique;
       await db.collection("documents").doc(idUnique).set({
         patientId: patientId,
         nomFichier: fileName,
