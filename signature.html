@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Création Signature</title>
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f4f6f9;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0;
+    padding: 20px;
+  }
+
+  header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+
+  header img {
+    width: 60px;
+    margin-right: 15px;
+  }
+
+  header h1 {
+    font-size: 24px;
+    color: #333;
+  }
+
+  #canvasContainer {
+    background: #fff;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    text-align: center;
+  }
+
+  #canvas {
+    border: 2px solid #333;
+    border-radius: 8px;
+    cursor: crosshair;
+  }
+
+  #controls {
+    margin-top: 15px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  #controls input {
+    width: 60px;
+    padding: 5px;
+    margin-right: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+  }
+
+  #controls button {
+    padding: 8px 16px;
+    margin-right: 10px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    background-color: #1976d2;
+    color: #fff;
+    font-weight: bold;
+    transition: 0.2s;
+  }
+
+  #controls button:hover {
+    background-color: #1565c0;
+  }
+
+  /* Toast notifications */
+  .toast {
+    visibility: hidden;
+    min-width: 250px;
+    margin-left: -125px;
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    border-radius: 8px;
+    padding: 12px;
+    position: fixed;
+    z-index: 1000;
+    left: 50%;
+    bottom: 30px;
+    font-size: 16px;
+    opacity: 0;
+    transition: opacity 0.5s, visibility 0.5s;
+  }
+
+  .toast.show {
+    visibility: visible;
+    opacity: 1;
+  }
+
+  /* Modal */
+  .modal {
+    display: none;
+    position: fixed;
+    z-index: 2000;
+    left: 0; top: 0;
+    width: 100%; height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.5);
+  }
+
+  .modal-content {
+    background-color: #fff;
+    margin: 10% auto;
+    padding: 20px;
+    border-radius: 10px;
+    width: 350px;
+    text-align: center;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+  }
+
+  .modal-content p {
+    margin-bottom: 15px;
+    font-size: 16px;
+    color: #333;
+  }
+
+  .modal-content img {
+    max-width: 100%;
+    max-height: 120px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+  }
+
+  .modal-buttons {
+    display: flex;
+    justify-content: space-around;
+  }
+
+  .modal-buttons button {
+    padding: 8px 20px;
+    border-radius: 6px;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+
+  .modal-buttons .yes {
+    background-color: #1976d2;
+    color: #fff;
+  }
+
+  .modal-buttons .yes:hover {
+    background-color: #1565c0;
+  }
+
+  .modal-buttons .no {
+    background-color: #e53935;
+    color: #fff;
+  }
+
+  .modal-buttons .no:hover {
+    background-color: #c62828;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <img src="logo.png" alt="Logo">
+  <h1>Gestion des Signatures</h1>
+</header>
+
+<div id="canvasContainer">
+  <canvas id="canvas" width="400" height="150"></canvas>
+  <div id="controls">
+  Épaisseur: <input type="number" id="penSize" value="2" min="1" max="10">
+  <button id="clearBtn">Effacer</button> <!-- bouton effacer principal -->
+  <button id="saveBtn">Valider</button>
+</div>
+
+</div>
+
+<div id="toast" class="toast"></div>
+
+<!-- Modal remplacement signature -->
+<div id="replaceModal" class="modal">
+  <div class="modal-content">
+    <p>Une signature existe déjà pour ce médecin :</p>
+    <img id="existingSignature" src="" alt="Ancienne signature">
+    <div class="modal-buttons">
+      <button id="yesReplace" class="yes">Oui, remplacer</button>
+      <button id="noReplace" class="no">Non, quitter</button>
+    </div>
+  </div>
+</div>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+
+<script>
+  // Firebase
+const firebaseConfig = {
+    apiKey: "AIzaSyBKp5-7NNy0Gyl0tNbDgD-BxucYdg8ArWo",
+    authDomain: "urgences-a8ed4.firebaseapp.com",
+    projectId: "urgences-a8ed4",
+    storageBucket: "urgences-a8ed4.appspot.com",
+    messagingSenderId: "392921498200",
+    appId: "1:392921498200:web:7ccce767332c67c697c02d",
+    measurementId: "G-C74MK2KYDL"
+}; 	
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  // UID
+  const params = new URLSearchParams(window.location.search);
+  const uid = params.get("uid");
+  if(!uid){ alert("UID manquant !"); throw new Error("UID manquant"); }
+// Effacer le canvas principal
+document.getElementById("clearBtn").addEventListener("click", () => {
+  ctx.fillStyle = "#fff";          // remplir de blanc
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  showToast("Canvas vidé !");       // notification
+});
+
+  // Canvas
+  const canvas = document.getElementById("canvas");
+  const ctx = canvas.getContext("2d");
+  ctx.fillStyle="#fff"; ctx.fillRect(0,0,canvas.width,canvas.height);
+let drawing = false;
+let lastX = 0;
+let lastY = 0;
+
+canvas.addEventListener("mousedown", (e) => {
+  drawing = true;
+  const rect = canvas.getBoundingClientRect();
+  lastX = e.clientX - rect.left;
+  lastY = e.clientY - rect.top;
+});
+
+canvas.addEventListener("mouseup", () => drawing = false);
+canvas.addEventListener("mouseout", () => drawing = false);
+
+canvas.addEventListener("mousemove", (e) => {
+  if(!drawing) return;
+  const rect = canvas.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+
+  ctx.strokeStyle = "#000";
+  ctx.lineWidth = parseInt(document.getElementById("penSize").value) || 2;
+  ctx.lineCap = "round";   // pour avoir des lignes lisses
+  ctx.beginPath();
+  ctx.moveTo(lastX, lastY);
+  ctx.lineTo(x, y);
+  ctx.stroke();
+
+  lastX = x;
+  lastY = y;
+});
+
+
+  function showToast(msg){
+    const toast = document.getElementById("toast");
+    toast.textContent = msg;
+    toast.className="toast show";
+    setTimeout(()=>{toast.className="toast"},3000);
+  }
+
+  const replaceModal = document.getElementById("replaceModal");
+  const existingSignatureImg = document.getElementById("existingSignature");
+
+  async function checkMedecin(){
+    const medDoc = db.collection("medecins").doc(uid);
+    const docSnap = await medDoc.get();
+    if(!docSnap.exists){ alert("Médecin non trouvé !"); throw new Error("Médecin non trouvé"); }
+    const data = docSnap.data();
+    if(data.Signature){
+      // Afficher la modale avec ancienne signature
+      existingSignatureImg.src = `data:image/png;base64,${data.Signature}`;
+      replaceModal.style.display = "block";
+    }
+  }
+
+  checkMedecin();
+
+  document.getElementById("yesReplace").addEventListener("click", ()=>{
+    replaceModal.style.display="none";
+    // Charger l'ancienne signature sur le canvas
+    const img = new Image();
+    img.onload = ()=> ctx.drawImage(img,0,0,canvas.width,canvas.height);
+    img.src = existingSignatureImg.src;
+  });
+
+  document.getElementById("noReplace").addEventListener("click", ()=>{
+    replaceModal.style.display="none";
+    showToast("Processus de signature annulé");
+    // Fermer la page / rediriger
+    setTimeout(()=> window.close(), 500);
+  });
+</script>
+  <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  // --- Configuration Firebase ---
+  const firebaseConfig = {
+    apiKey: "AIzaSyBKp5-7NNy0Gyl0tNbDgD-BxucYdg8ArWo",
+    authDomain: "urgences-a8ed4.firebaseapp.com",
+    projectId: "urgences-a8ed4",
+  };
+
+  // --- Initialisation unique ---
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  console.log("✅ Firebase initialisé :", app.name);
+
+  
+  
+let medecinNom = "";
+  let medecinSpecialite = "";
+  let medecinLieu = "";
+
+  onAuthStateChanged(auth, async (user) => {
+  if (!user) {
+    window.location.href = "index.html";
+  } else {
+    try {
+      const docRef = doc(db, "medecins", user.uid);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        const medecinNom = data.nom || "";
+        const medecinSpecialite = data.specialite || "";
+        const medecinLieu = data.lieu || "";
+
+        // Met à jour aussi les variables globales sur window
+        window.medecinNom = medecinNom;
+        window.medecinSpecialite = medecinSpecialite;
+        window.medecinLieu = medecinLieu;
+
+        // Mise à jour des éléments HTML si présents
+        const nomElem = document.getElementById("nom-medecin");
+        if (nomElem) nomElem.textContent = medecinNom;
+
+        const specElem = document.getElementById("specialite");
+        if (specElem) specElem.textContent = medecinSpecialite;
+
+        const lieuElem = document.getElementById("lieu-medecin");
+        if (lieuElem) lieuElem.textContent = medecinLieu;
+
+        // --- Vérification d'accès à la page ---
+        const pages = data.pages || {};
+        const currentPath = window.location.pathname;
+        const currentPage = "admin");
+
+        if (!pages[currentPage]) {
+          alert("⛔️ Vous n’avez pas accès à cette page.");
+          window.location.href = "index.html";
+          return; // Stoppe le script ici
+        }
+      } else {
+        // Document inexistant — redirection
+        alert("Utilisateur non trouvé, veuillez vous reconnecter.");
+        window.location.href = "accueil.html";
+      }
+    } catch (error) {
+      console.error("Erreur chargement médecin :", error);
+      alert("Une erreur est survenue, veuillez réessayer plus tard.");
+    }
+  }
+});
+</body>
+</html>
