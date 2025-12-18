@@ -1070,7 +1070,6 @@ function filterMedicaments() {
 }
 
 function imprimer() {
-  console.log("imprimer cliqué");
     // Vérifie que l'ID du document existe
     if (!window.pdfIdExistante) {
         afficherBulle("❌ Aucun document disponible pour impression", "alerte");
@@ -1082,11 +1081,10 @@ function imprimer() {
         {
             type: "OPEN_TAB",
             title: "Ordonnance médicale",
-            url: `viewer.html?id=${window.pdfIdExistante}` // URL avec l'ID existant
+            url: `viewer.html?docId=${window.pdfIdExistante}` // URL avec l'ID existant
         },
         "*"
     );
-console.log("Onglet ouvert !");
 }
 
 
