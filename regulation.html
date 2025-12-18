@@ -460,6 +460,118 @@ body {
       box-shadow: 0 8px 20px rgba(0, 120, 212, 0.4);
       transform: scale(1.05);
     }
+/* 🔎 BARRE DE FILTRES */
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+  padding: 14px 18px;
+  background: #ffffff;
+  border-radius: 14px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.1);
+  margin-bottom: 16px;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 140px;
+}
+
+.filter-group label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #475569;
+  text-transform: uppercase;
+}
+
+.filter-group select {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  font-size: 0.9rem;
+  background: #f8fafc;
+}
+
+.filter-group.checkbox {
+  min-width: auto;
+}
+
+.filter-group.checkbox label {
+  text-transform: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+/* 🔘 PRESETS */
+.filter-presets {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+
+.preset {
+  border: none;
+  border-radius: 10px;
+  padding: 8px 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.preset:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+}
+
+.preset.danger {
+  background: #b71c1c;
+  color: white;
+}
+
+.preset.warning {
+  background: #f57c00;
+  color: white;
+}
+
+.preset.info {
+  background: #1976d2;
+  color: white;
+}
+
+.preset.reset {
+  background: #e2e8f0;
+  color: #1e293b;
+}
+.filter-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+}
+
+.filter-badge {
+  background: #b71c1c;
+  color: white;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.filter-badge.hidden {
+  display: none;
+}
+
+.filter-count {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #334155;
+}
+
 
   </style>
 </head>
@@ -493,10 +605,90 @@ body {
       <div class="circuit"><h3 id="circuit-psy">--</h3><span>Psychiatrie</span></div>
     </div>
   </section>
-
-    <!-- === LISTE PATIENTS === -->
+      <!-- === LISTE PATIENTS === -->
   <section style="margin-top:40px">
     <div class="section-title">Patients présents</div>
+  
+<!-- 🔎 BARRE DE FILTRES -->
+<div class="filter-bar">
+
+  <div class="filter-group">
+    <label>Gravité</label>
+    <select id="filterGravite">
+      <option value="">Toutes</option>
+      <option value="p3">P3 / Vital</option>
+      <option value="p2">P2</option>
+      <option value="p1">P1</option>
+      <option value="p0">P0</option>
+      <option value="admin">Administratif</option>
+    </select>
+  </div>
+
+  <div class="filter-group">
+    <label>Circuit</label>
+    <select id="filterCircuit">
+      <option value="">Tous</option>
+      <option value="général">Général</option>
+      <option value="pédiatrie">Pédiatrie</option>
+      <option value="traumatologie">Traumato</option>
+      <option value="ophtalmologie">Ophtalmo</option>
+      <option value="gynécologie">Gynéco</option>
+      <option value="psychiatrie">Psy</option>
+    </select>
+  </div>
+
+  <div class="filter-group">
+    <label>PDC</label>
+    <select id="filterPDC">
+      <option value="">Tous</option>
+      <option value="oui">Pris en charge</option>
+      <option value="non">Non pris</option>
+    </select>
+  </div>
+<div class="filter-group">
+  <label>Localisation</label>
+  <select id="filterLocalisation">
+    <option value="">Toutes</option>
+    <option value="attente">Salle d'attente</option>
+	    <option value="iao">IAO</option>
+    <option value="dechoc">Déchoquage</option>
+
+    <option value="box">Box</option>
+	    <option value="PEC">PEC</option>
+    <option value="Psy">Psy</option>
+
+    <option value="imagerie">Imagerie</option>
+    <option value="sortie">Sortie</option>
+  </select>
+</div>
+
+  <div class="filter-group checkbox">
+    <label>
+      <input type="checkbox" id="filterVigilance">
+      Vigilance
+    </label>
+  </div>
+
+  <!-- PRESETS -->
+  <div class="filter-presets">
+    <button class="preset danger" onclick="presetP3()">🔥 P3</button>
+    <button class="preset warning" onclick="presetVigilance()">⚠ Vigilance</button>
+    <button class="preset info" onclick="presetSansMedecin()">👨‍⚕️ Manque médecin</button>
+	<button class="preset info" onclick="presetTemps(2)">⏱ > 2h</button>
+<button class="preset info" onclick="presetTemps(4)">⏱ > 4h</button>
+<button class="preset warning" onclick="presetAllergies()">⭐ Allergies</button>
+
+    <button class="preset reset" onclick="resetFilters()">♻ Réinitialiser</button>
+  </div>
+<div class="filter-status">
+  <span id="activeFiltersBadge" class="filter-badge hidden">Filtres actifs</span>
+  <span id="visibleCount" class="filter-count">0 / 0</span>
+</div>
+
+</div>
+
+
+
     <div style="overflow-x:auto">
       <table class="medical-table">
         <thead>
@@ -685,6 +877,9 @@ setVal('couche', counts.couche);
 setVal('admin', counts.admin);
 
 Object.keys(circuits).forEach(c => setVal(`circuit-${c}`, circuits[c]));
+
+applyFilters();
+
 } // ← fin updateMedicalDashboard
 
 function isPhaseAttente(pdcStatut) {
@@ -722,9 +917,117 @@ function formatEquipe(equipe) {
 
   return lignes.join('<br>');
 }
+function applyFilters() {
+  const gravite = filterGravite.value.toLowerCase();
+  const circuit = filterCircuit.value.toLowerCase();
+  const pdc = filterPDC.value.toLowerCase();
+  const localisation = filterLocalisation.value.toLowerCase();
+  const vigilanceOnly = filterVigilance.checked;
+
+  let total = 0;
+  let visibles = 0;
+  let filtersActive = false;
+
+  document.querySelectorAll('#patient-list tr').forEach(tr => {
+    total++;
+
+    const td = tr.children;
+    const gravTxt = td[3]?.textContent.toLowerCase() || '';
+    const circuitTxt = td[5]?.textContent.toLowerCase() || '';
+    const pdcTxt = td[6]?.textContent.toLowerCase() || '';
+    const localisationTxt = td[7]?.textContent.toLowerCase() || '';
+    const vigilanceTxt = td[2]?.textContent.toLowerCase() || '';
+
+    let visible = true;
+
+    if (gravite && !gravTxt.includes(gravite)) visible = false;
+    if (circuit && !circuitTxt.includes(circuit)) visible = false;
+    if (pdc && !pdcTxt.includes(pdc)) visible = false;
+    if (localisation && !localisationTxt.includes(localisation)) visible = false;
+    if (vigilanceOnly && (vigilanceTxt === 'aucune' || vigilanceTxt === '')) visible = false;
+
+    if (gravite || circuit || pdc || localisation || vigilanceOnly) {
+      filtersActive = true;
+    }
+
+    tr.style.display = visible ? '' : 'none';
+    if (visible) visibles++;
+  });
+
+  // 🔴 badge filtres actifs
+  activeFiltersBadge.classList.toggle('hidden', !filtersActive);
+
+  // 🔢 compteur
+  visibleCount.textContent = `${visibles} / ${total}`;
+}
+
+
+// écouteurs
+['filterGravite','filterCircuit','filterPDC','filterVigilance']
+  .forEach(id => document.getElementById(id).addEventListener('change', applyFilters));
+  function presetP3() {
+  resetFilters(false);
+  document.getElementById('filterGravite').value = 'p3';
+  applyFilters();
+}
+function presetTemps(heures) {
+  resetFilters(false);
+
+  document.querySelectorAll('#patient-list tr').forEach(tr => {
+    const temps = tr.children[8]?.textContent || '';
+    const match = temps.match(/(\d+)h/);
+    const h = match ? parseInt(match[1]) : 0;
+
+    tr.style.display = h >= heures ? '' : 'none';
+  });
+
+  document.getElementById('activeFiltersBadge').classList.remove('hidden');
+}
+function presetAllergies() {
+  resetFilters(false);
+
+  document.querySelectorAll('#patient-list tr').forEach(tr => {
+    const nomCell = tr.children[0]?.innerHTML || '';
+    tr.style.display = nomCell.includes('⭐') ? '' : 'none';
+  });
+
+  document.getElementById('activeFiltersBadge').classList.remove('hidden');
+}
+
+function presetVigilance() {
+  resetFilters(false);
+  document.getElementById('filterVigilance').checked = true;
+  applyFilters();
+}
+
+function presetSansMedecin() {
+  resetFilters(false);
+
+  document.querySelectorAll('#patient-list tr').forEach(tr => {
+    const equipe = tr.children[9]?.textContent || '';
+    tr.style.display = equipe.includes('👨‍⚕️') ? 'none' : '';
+  });
+}
+
+function resetFilters(apply = true) {
+  filterGravite.value = '';
+  filterCircuit.value = '';
+  filterPDC.value = '';
+  filterVigilance.checked = false;
+
+  document.querySelectorAll('#patient-list tr')
+    .forEach(tr => tr.style.display = '');
+
+  document.getElementById('activeFiltersBadge').classList.add('hidden');
+
+  if (apply) applyFilters();
+}
+
+document.getElementById('filterLocalisation')
+  .addEventListener('change', applyFilters);
 
   updateMedicalDashboard();
-setInterval(updateMedicalDashboard, 5000); // toutes les 5 secondes
+setInterval(updateMedicalDashboard, 1000); // toutes les 5 secondes
 </script>
 
 </body>
