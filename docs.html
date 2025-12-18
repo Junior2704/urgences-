@@ -506,11 +506,16 @@ function afficherDocuments() {
               `;
 
               li.querySelector('.btn-loupe')?.addEventListener('click', () => {
+                const blob = b64toBlob(data.pdfBase64, "application/pdf");
+
+    // Création d'une URL temporaire pour le PDF
+    const url = URL.createObjectURL(blob);
+
   window.parent.postMessage(
     {
       type: "OPEN_TAB",
-      title: `Fiche Urgences ${nom} ${prenom}`,
-      url: `fiche.html?id=${id}&from=urgences`
+      title: `${data.type || ""}`,
+      url: url
     },
     "*"
   );
