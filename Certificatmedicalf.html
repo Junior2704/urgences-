@@ -119,7 +119,9 @@
           <!-- Zone affichée après validation du certificat -->
           <div id="postValidationActions" style="display:none; margin-top:20px; text-align:center;">
             <h3>✔ Certificat validé</h3>
-
+<button type="button" class="btn btn-success btn-lg" onclick="imprimer()">
+                🖨️ Imprimer le certificat
+            </button>
             <button type="button" class="btn btn-success btn-lg" onclick="telechargerCertif()">
                 📥 Télécharger le certificat
             </button>
@@ -225,6 +227,23 @@
       if(input.style.display === 'none') input.value = "";
     }
   }
+function imprimer() {
+    // Vérifie que l'ID du document existe
+    if (!window.pdfIdExistante) {
+        afficherBulle("❌ Aucun document disponible pour impression", "alerte");
+        return;
+    }
+
+    // Envoie le message au parent pour ouvrir un nouvel onglet
+    window.parent.postMessage(
+        {
+            type: "OPEN_TAB",
+            title: "Ordonnance médicale",
+            url: `viewer.html?docId=${window.pdfIdExistante}` // URL avec l'ID existant
+        },
+        "*"
+    );
+}
 
   // ========== Génération PDF (renvoie base64 si telecharger=false) ==========
   async function genererCertif(telecharger = false) {
@@ -375,7 +394,7 @@
       const prenom = document.getElementById('prenom').value.trim();
       const fileName = `Certificat - ${prenom} ${nom}.pdf`;
       if (!patientId) { afficherBulle("Erreur : aucun patientId reçu", "alerte"); return; }
-
+window.pdfIdExistante = idUnique
       await db.collection("documents").doc(idUnique).set({
         patientId: patientId,
         nomFichier: fileName,
