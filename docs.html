@@ -506,8 +506,15 @@ function afficherDocuments() {
               `;
 
               li.querySelector('.btn-loupe')?.addEventListener('click', () => {
-                  const blob = b64toBlob(data.pdfBase64, "application/pdf");
-                  ouvrirModal(blob);
+  window.parent.postMessage(
+    {
+      type: "OPEN_TAB",
+      title: `Fiche Urgences ${nom} ${prenom}`,
+      url: `fiche.html?id=${id}&from=urgences`
+    },
+    "*"
+  );
+
               });
 
               li.querySelector('.btn-delete')?.addEventListener('click', e => {
