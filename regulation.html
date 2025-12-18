@@ -572,6 +572,15 @@ body {
   color: #334155;
 }
 
+.no-results-row td {
+  text-align: center;
+  padding: 22px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #64748b;
+  background: #f8fafc;
+  font-style: italic;
+}
 
   </style>
 </head>
@@ -959,6 +968,25 @@ function applyFilters() {
 
   // 🔢 compteur
   visibleCount.textContent = `${visibles} / ${total}`;
+  // ❌ Message "aucun résultat"
+const tbody = document.getElementById('patient-list');
+
+// Supprime l'ancien message si présent
+const existing = tbody.querySelector('.no-results-row');
+if (existing) existing.remove();
+
+// Si aucun patient visible → afficher message
+if (visibles === 0 && total > 0) {
+  const tr = document.createElement('tr');
+  tr.className = 'no-results-row';
+  tr.innerHTML = `
+    <td colspan="10">
+      Aucun patient ne correspond aux filtres sélectionnés
+    </td>
+  `;
+  tbody.appendChild(tr);
+}
+
 }
 
 
