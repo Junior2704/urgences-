@@ -2,169 +2,30 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>Création Signature</title>
+<title>Gestion Signatures</title>
+  <link rel="icon" href="logo.png" type="image/jpeg">
+
 <style>
-  body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: #f4f6f9;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin: 0;
-    padding: 20px;
-  }
-
-  header {
-    display: flex;
-    align-items: center;
-    margin-bottom: 20px;
-  }
-
-  header img {
-    width: 60px;
-    margin-right: 15px;
-  }
-
-  header h1 {
-    font-size: 24px;
-    color: #333;
-  }
-
-  #canvasContainer {
-    background: #fff;
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    text-align: center;
-  }
-
-  #canvas {
-    border: 2px solid #333;
-    border-radius: 8px;
-    cursor: crosshair;
-  }
-
-  #controls {
-    margin-top: 15px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-
-  #controls input {
-    width: 60px;
-    padding: 5px;
-    margin-right: 10px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
-  }
-
-  #controls button {
-    padding: 8px 16px;
-    margin-right: 10px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    background-color: #1976d2;
-    color: #fff;
-    font-weight: bold;
-    transition: 0.2s;
-  }
-
-  #controls button:hover {
-    background-color: #1565c0;
-  }
-
-  /* Toast notifications */
-  .toast {
-    visibility: hidden;
-    min-width: 250px;
-    margin-left: -125px;
-    background-color: #333;
-    color: #fff;
-    text-align: center;
-    border-radius: 8px;
-    padding: 12px;
-    position: fixed;
-    z-index: 1000;
-    left: 50%;
-    bottom: 30px;
-    font-size: 16px;
-    opacity: 0;
-    transition: opacity 0.5s, visibility 0.5s;
-  }
-
-  .toast.show {
-    visibility: visible;
-    opacity: 1;
-  }
-
-  /* Modal */
-  .modal {
-    display: none;
-    position: fixed;
-    z-index: 2000;
-    left: 0; top: 0;
-    width: 100%; height: 100%;
-    overflow: auto;
-    background-color: rgba(0,0,0,0.5);
-  }
-
-  .modal-content {
-    background-color: #fff;
-    margin: 10% auto;
-    padding: 20px;
-    border-radius: 10px;
-    width: 350px;
-    text-align: center;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-  }
-
-  .modal-content p {
-    margin-bottom: 15px;
-    font-size: 16px;
-    color: #333;
-  }
-
-  .modal-content img {
-    max-width: 100%;
-    max-height: 120px;
-    margin-bottom: 15px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-  }
-
-  .modal-buttons {
-    display: flex;
-    justify-content: space-around;
-  }
-
-  .modal-buttons button {
-    padding: 8px 20px;
-    border-radius: 6px;
-    font-weight: bold;
-    border: none;
-    cursor: pointer;
-    transition: 0.2s;
-  }
-
-  .modal-buttons .yes {
-    background-color: #1976d2;
-    color: #fff;
-  }
-
-  .modal-buttons .yes:hover {
-    background-color: #1565c0;
-  }
-
-  .modal-buttons .no {
-    background-color: #e53935;
-    color: #fff;
-  }
-
-  .modal-buttons .no:hover {
-    background-color: #c62828;
-  }
+body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:#f4f6f9; display:flex; flex-direction:column; align-items:center; margin:0; padding:20px; }
+header { display:flex; align-items:center; margin-bottom:20px; }
+header img { width:60px; margin-right:15px; }
+header h1 { font-size:24px; color:#333; }
+#canvasContainer { background:#fff; padding:20px; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.1); text-align:center; }
+#canvas { border:2px solid #333; border-radius:8px; cursor:crosshair; }
+#controls { margin-top:15px; display:flex; justify-content:center; align-items:center; flex-wrap:wrap; gap:10px; }
+#controls input[type="number"] { width:60px; padding:5px; border-radius:5px; border:1px solid #ccc; }
+#controls input[type="file"] { padding:3px; }
+#controls button { padding:8px 16px; border:none; border-radius:6px; cursor:pointer; background-color:#1976d2; color:#fff; font-weight:bold; transition:0.2s; }
+#controls button:hover { background-color:#1565c0; }
+.toast { visibility:hidden; min-width:250px; margin-left:-125px; background-color:#333; color:#fff; text-align:center; border-radius:8px; padding:12px; position:fixed; z-index:1000; left:50%; bottom:30px; font-size:16px; opacity:0; transition:opacity 0.5s, visibility 0.5s; }
+.toast.show { visibility:visible; opacity:1; }
+.modal { display:none; position:fixed; z-index:2000; left:0; top:0; width:100%; height:100%; overflow:auto; background-color:rgba(0,0,0,0.5); }
+.modal-content { background-color:#fff; margin:10% auto; padding:20px; border-radius:10px; width:420px; text-align:center; box-shadow:0 8px 20px rgba(0,0,0,0.2); }
+.modal-content img { max-width:100%; max-height:150px; margin-bottom:15px; border:1px solid #ccc; border-radius:6px; }
+.modal-buttons { display:flex; justify-content:center; gap:10px; margin-top:10px; }
+.modal-buttons button { padding:8px 20px; border-radius:6px; font-weight:bold; border:none; cursor:pointer; transition:0.2s; }
+.modal-buttons .close { background-color:#1976d2; color:#fff; }
+.modal-buttons .close:hover { background-color:#1565c0; }
 </style>
 </head>
 <body>
@@ -177,32 +38,55 @@
 <div id="canvasContainer">
   <canvas id="canvas" width="400" height="150"></canvas>
   <div id="controls">
-  Épaisseur: <input type="number" id="penSize" value="2" min="1" max="10">
-  <button id="clearBtn">Effacer</button> <!-- bouton effacer principal -->
-  <button id="saveBtn">Valider</button>
-</div>
-
+    Épaisseur: <input type="number" id="penSize" value="2" min="1" max="10">
+    <button id="clearBtn">Effacer</button>
+    <input type="file" id="uploadImage" accept="image/*">
+    <button id="uploadBtn">Uploader</button>
+    <button id="saveBtn">Valider</button>
+  </div>
 </div>
 
 <div id="toast" class="toast"></div>
 
-<!-- Modal remplacement signature -->
+<!-- Modal préexistante -->
 <div id="replaceModal" class="modal">
   <div class="modal-content">
     <p>Une signature existe déjà pour ce médecin :</p>
     <img id="existingSignature" src="" alt="Ancienne signature">
     <div class="modal-buttons">
-      <button id="yesReplace" class="yes">Oui, remplacer</button>
-      <button id="noReplace" class="no">Non, quitter</button>
+      <button id="yesReplace" class="close">Remplacer</button>
+      <button id="noReplace" class="close">Quitter</button>
     </div>
   </div>
 </div>
+
+<!-- Modal upload/recadrage -->
+<div id="uploadModal" class="modal">
+  <div class="modal-content">
+    <p>Recadrez votre signature :</p>
+    <canvas id="uploadCanvas" width="400" height="150" style="border:1px solid #333; cursor:grab;"></canvas>
+    <div class="modal-buttons">
+      <button id="flipBtn">Retourner</button>
+      <button id="confirmUpload">Confirmer</button>
+      <button id="cancelUpload">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal preview -->
+<div id="previewModal" class="modal">
+  <div class="modal-content">
+    <p>Signature enregistrée :</p>
+    <img id="previewImg" src="">
+    <div class="modal-buttons">
+      <button id="closePreview" class="close">Fermer</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-
-
 <script>
-  // Firebase
 const firebaseConfig = {
     apiKey: "AIzaSyBKp5-7NNy0Gyl0tNbDgD-BxucYdg8ArWo",
     authDomain: "urgences-a8ed4.firebaseapp.com",
@@ -211,170 +95,123 @@ const firebaseConfig = {
     messagingSenderId: "392921498200",
     appId: "1:392921498200:web:7ccce767332c67c697c02d",
     measurementId: "G-C74MK2KYDL"
-}; 	
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 
-  // UID
-  const params = new URLSearchParams(window.location.search);
-  const uid = params.get("uid");
-  if(!uid){ alert("UID manquant !"); throw new Error("UID manquant"); }
-// Effacer le canvas principal
-document.getElementById("clearBtn").addEventListener("click", () => {
-  ctx.fillStyle = "#fff";          // remplir de blanc
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  showToast("Canvas vidé !");       // notification
-});
+const params = new URLSearchParams(window.location.search);
+const uid = params.get("uid");
+if(!uid){ alert("UID manquant !"); throw new Error("UID manquant"); }
 
-  // Canvas
-  const canvas = document.getElementById("canvas");
-  const ctx = canvas.getContext("2d");
-  ctx.fillStyle="#fff"; ctx.fillRect(0,0,canvas.width,canvas.height);
-let drawing = false;
-let lastX = 0;
-let lastY = 0;
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+ctx.fillStyle="#fff"; ctx.fillRect(0,0,canvas.width,canvas.height);
 
-canvas.addEventListener("mousedown", (e) => {
-  drawing = true;
-  const rect = canvas.getBoundingClientRect();
-  lastX = e.clientX - rect.left;
-  lastY = e.clientY - rect.top;
-});
+// dessin
+let drawing=false, lastX=0, lastY=0;
+canvas.addEventListener("mousedown", e=>{ drawing=true; const r=canvas.getBoundingClientRect(); lastX=e.clientX-r.left; lastY=e.clientY-r.top; });
+canvas.addEventListener("mouseup", ()=>drawing=false);
+canvas.addEventListener("mouseout", ()=>drawing=false);
+canvas.addEventListener("mousemove", e=>{ if(!drawing) return; const r=canvas.getBoundingClientRect(); const x=e.clientX-r.left, y=e.clientY-r.top; ctx.strokeStyle="#000"; ctx.lineWidth=parseInt(document.getElementById("penSize").value)||2; ctx.lineCap="round"; ctx.beginPath(); ctx.moveTo(lastX,lastY); ctx.lineTo(x,y); ctx.stroke(); lastX=x; lastY=y; });
 
-canvas.addEventListener("mouseup", () => drawing = false);
-canvas.addEventListener("mouseout", () => drawing = false);
+function showToast(msg){ const t=document.getElementById("toast"); t.textContent=msg; t.className="toast show"; setTimeout(()=>{t.className="toast"},3000); }
+document.getElementById("clearBtn").addEventListener("click", ()=>{ ctx.fillStyle="#fff"; ctx.fillRect(0,0,canvas.width,canvas.height); showToast("Canvas vidé !"); });
 
-canvas.addEventListener("mousemove", (e) => {
-  if(!drawing) return;
-  const rect = canvas.getBoundingClientRect();
-  const x = e.clientX - rect.left;
-  const y = e.clientY - rect.top;
-
-  ctx.strokeStyle = "#000";
-  ctx.lineWidth = parseInt(document.getElementById("penSize").value) || 2;
-  ctx.lineCap = "round";   // pour avoir des lignes lisses
-  ctx.beginPath();
-  ctx.moveTo(lastX, lastY);
-  ctx.lineTo(x, y);
-  ctx.stroke();
-
-  lastX = x;
-  lastY = y;
-});
-
-
-  function showToast(msg){
-    const toast = document.getElementById("toast");
-    toast.textContent = msg;
-    toast.className="toast show";
-    setTimeout(()=>{toast.className="toast"},3000);
-  }
-
-  const replaceModal = document.getElementById("replaceModal");
-  const existingSignatureImg = document.getElementById("existingSignature");
-
-  async function checkMedecin(){
+// Vérification signature existante
+const replaceModal = document.getElementById("replaceModal");
+const existingSignatureImg = document.getElementById("existingSignature");
+async function checkMedecin(){
     const medDoc = db.collection("medecins").doc(uid);
     const docSnap = await medDoc.get();
     if(!docSnap.exists){ alert("Médecin non trouvé !"); throw new Error("Médecin non trouvé"); }
     const data = docSnap.data();
     if(data.Signature){
-      // Afficher la modale avec ancienne signature
-      existingSignatureImg.src = `data:image/png;base64,${data.Signature}`;
-      replaceModal.style.display = "block";
+      existingSignatureImg.src=`data:image/png;base64,${data.Signature}`;
+      replaceModal.style.display="block";
     }
-  }
+}
+checkMedecin();
 
-  checkMedecin();
-
-  document.getElementById("yesReplace").addEventListener("click", ()=>{
+document.getElementById("yesReplace").addEventListener("click", ()=>{
     replaceModal.style.display="none";
-    // Charger l'ancienne signature sur le canvas
-    const img = new Image();
+    const img=new Image();
     img.onload = ()=> ctx.drawImage(img,0,0,canvas.width,canvas.height);
     img.src = existingSignatureImg.src;
-  });
-
-  document.getElementById("noReplace").addEventListener("click", ()=>{
-    replaceModal.style.display="none";
-    showToast("Processus de signature annulé");
-    // Fermer la page / rediriger
-    setTimeout(()=> window.close(), 500);
-  });
-</script>
-  <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-  // --- Configuration Firebase ---
-  const firebaseConfig = {
-    apiKey: "AIzaSyBKp5-7NNy0Gyl0tNbDgD-BxucYdg8ArWo",
-    authDomain: "urgences-a8ed4.firebaseapp.com",
-    projectId: "urgences-a8ed4",
-  };
-
-  // --- Initialisation unique ---
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
-
-  console.log("✅ Firebase initialisé :", app.name);
-
-  
-  
-let medecinNom = "";
-  let medecinSpecialite = "";
-  let medecinLieu = "";
-
-  onAuthStateChanged(auth, async (user) => {
-  if (!user) {
-    window.location.href = "index.html";
-  } else {
-    try {
-      const docRef = doc(db, "medecins", user.uid);
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        const medecinNom = data.nom || "";
-        const medecinSpecialite = data.specialite || "";
-        const medecinLieu = data.lieu || "";
-
-        // Met à jour aussi les variables globales sur window
-        window.medecinNom = medecinNom;
-        window.medecinSpecialite = medecinSpecialite;
-        window.medecinLieu = medecinLieu;
-
-        // Mise à jour des éléments HTML si présents
-        const nomElem = document.getElementById("nom-medecin");
-        if (nomElem) nomElem.textContent = medecinNom;
-
-        const specElem = document.getElementById("specialite");
-        if (specElem) specElem.textContent = medecinSpecialite;
-
-        const lieuElem = document.getElementById("lieu-medecin");
-        if (lieuElem) lieuElem.textContent = medecinLieu;
-
-        // --- Vérification d'accès à la page ---
-        const pages = data.pages || {};
-        const currentPath = window.location.pathname;
-        const currentPage = "admin");
-
-        if (!pages[currentPage]) {
-          alert("⛔️ Vous n’avez pas accès à cette page.");
-          window.location.href = "index.html";
-          return; // Stoppe le script ici
-        }
-      } else {
-        // Document inexistant — redirection
-        alert("Utilisateur non trouvé, veuillez vous reconnecter.");
-        window.location.href = "accueil.html";
-      }
-    } catch (error) {
-      console.error("Erreur chargement médecin :", error);
-      alert("Une erreur est survenue, veuillez réessayer plus tard.");
-    }
-  }
 });
+document.getElementById("noReplace").addEventListener("click", ()=>{ window.close(); });
+
+// Upload / recadrage
+const uploadInput = document.getElementById("uploadImage");
+const uploadBtn = document.getElementById("uploadBtn");
+const uploadModal = document.getElementById("uploadModal");
+const uploadCanvas = document.getElementById("uploadCanvas");
+const uploadCtx = uploadCanvas.getContext("2d");
+let uploadedImg = new Image();
+let imgX=0, imgY=0, imgScale=1, drag=false, startX=0, startY=0, flip=false;
+
+uploadBtn.addEventListener("click", ()=>{
+    if(uploadInput.files.length===0){ showToast("Aucune image sélectionnée !"); return; }
+    const file = uploadInput.files[0];
+    const reader = new FileReader();
+    reader.onload = e=>{
+        uploadedImg.src = e.target.result;
+        uploadedImg.onload = ()=>{
+            imgX = 0; imgY = 0; imgScale = 1; flip=false;
+            drawUpload();
+            uploadModal.style.display="block";
+        };
+    };
+    reader.readAsDataURL(file);
+});
+
+function drawUpload(){
+    uploadCtx.clearRect(0,0,uploadCanvas.width,uploadCanvas.height);
+    uploadCtx.save();
+    if(flip){ uploadCtx.translate(uploadCanvas.width,0); uploadCtx.scale(-1,1); }
+    const w = uploadedImg.width*imgScale, h = uploadedImg.height*imgScale;
+    uploadCtx.drawImage(uploadedImg, imgX, imgY, w, h);
+    uploadCtx.restore();
+}
+
+// Drag pour déplacer l'image
+uploadCanvas.addEventListener("mousedown", e=>{ drag=true; startX=e.offsetX; startY=e.offsetY; });
+uploadCanvas.addEventListener("mouseup", e=>{ drag=false; });
+uploadCanvas.addEventListener("mouseout", e=>{ drag=false; });
+uploadCanvas.addEventListener("mousemove", e=>{
+    if(drag){
+        const dx = e.offsetX-startX, dy = e.offsetY-startY;
+        imgX += dx; imgY += dy;
+        startX=e.offsetX; startY=e.offsetY;
+        drawUpload();
+    }
+});
+// Zoom avec molette
+uploadCanvas.addEventListener("wheel", e=>{
+    e.preventDefault();
+    const scaleAmount = e.deltaY>0?0.9:1.1;
+    imgScale *= scaleAmount;
+    drawUpload();
+});
+
+document.getElementById("flipBtn").addEventListener("click", ()=>{ flip=!flip; drawUpload(); });
+document.getElementById("confirmUpload").addEventListener("click", ()=>{
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.drawImage(uploadCanvas,0,0,canvas.width,canvas.height);
+    uploadModal.style.display="none";
+});
+document.getElementById("cancelUpload").addEventListener("click", ()=>{ uploadModal.style.display="none"; });
+
+// Preview et sauvegarde
+const saveBtn=document.getElementById("saveBtn");
+const previewModal=document.getElementById("previewModal");
+const previewImg=document.getElementById("previewImg");
+saveBtn.addEventListener("click", async ()=>{
+    const dataURL=canvas.toDataURL("image/png");
+    previewImg.src=dataURL;
+    previewModal.style.display="block";
+    await db.collection("medecins").doc(uid).set({Signature:dataURL.split(",")[1]}, {merge:true});
+});
+document.getElementById("closePreview").addEventListener("click", ()=>{ previewModal.style.display="none"; window.close(); });
+</script>
 </body>
 </html>
