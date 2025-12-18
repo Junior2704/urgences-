@@ -881,7 +881,7 @@ html, body {
 <button id="validate-prescription-btn" class="btn" onclick="openConfirmModal()">✔️ Valider la prescription</button>
 
   <div class="buttons-wrapper" style="display:none;">
-    <button class="btn-print" onclick="window.print()">🖨️ Imprimer l'Ordonnance</button>
+    <button class="btn-print" onclick="imprimer">🖨️ Imprimer l'Ordonnance</button>
     <button class="btn-download" onclick="genererOrdo(true)">📥 Télécharger Ordonnance</button>
     <button type="button" id="btnEnvoyerMail" style="padding:10px 20px; background-color:#004AAD; color:white; border:none; border-radius:5px; cursor:pointer;">
       Envoyer l'ordonnance par e-mail
@@ -1069,7 +1069,21 @@ function filterMedicaments() {
   afficherMedicaments(filtres);
 }
 
+function imprimer() {
+  const pdfBase64=genererOrdo(false);
+  const blob = b64toBlob(pdfBase64, "application/pdf");
+    const url = URL.createObjectURL(blob);
 
+    window.parent.postMessage(
+        {
+            type: "OPEN_TAB",
+            title: "Ordonnance",
+            url: url
+        },
+        "*"
+    );
+});
+}
 
 		// Supprime toutes les références à la liste de médicaments et prescriptionItems
 
