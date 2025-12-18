@@ -4840,14 +4840,15 @@ document.querySelector('[data-module="documents"]').addEventListener('click', ()
     openDocsTab('tab-docs', 'docs.html');
 });
 
+window.addEventListener("message", (event) => {
+    if (!event.data || !event.data.type) return;
 
+    // Relais vers shell.html
+    window.parent.postMessage(event.data, "*");
+});
 
 
 </script>
 
 </body>
 </html>
-
-
-
->
