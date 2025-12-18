@@ -1070,19 +1070,24 @@ function filterMedicaments() {
 }
 
 function imprimer() {
-  const pdfBase64=genererOrdo(false);
-  const blob = b64toBlob(pdfBase64, "application/pdf");
-    const url = URL.createObjectURL(blob);
+    // Vérifie que l'ID du document existe
+    if (!window.pdfIdExistante) {
+        afficherBulle("❌ Aucun document disponible pour impression", "alerte");
+        return;
+    }
 
+    // Envoie le message au parent pour ouvrir un nouvel onglet
     window.parent.postMessage(
         {
             type: "OPEN_TAB",
             title: "Ordonnance",
-            url: url
+            url: `viewer.html?id=${window.pdfIdExistante}` // URL avec l'ID existant
         },
         "*"
     );
-};
+
+}
+
 
 
 		// Supprime toutes les références à la liste de médicaments et prescriptionItems
@@ -1132,6 +1137,7 @@ async function validatePrescription() {
       const idUnique = Math.random().toString(36).substring(2, 10);
       const dateFormatted = formatDate(new Date());
 console.log("📅 Date formatée envoyée :", dateFormatted);
+window.pdfIdExistante = idUnique; // après avoir créé le document
 
 await db.collection("documents").doc(idUnique).set({
   patientId: patientId,
