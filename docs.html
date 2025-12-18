@@ -506,14 +506,13 @@ function afficherDocuments() {
               `;
 
               li.querySelector('.btn-loupe')?.addEventListener('click', () => {
-    const blob = b64toBlob(data.pdfBase64, "application/pdf");
-    const url = URL.createObjectURL(blob);
+    const id=data.id
 
     window.parent.postMessage(
         {
             type: "OPEN_TAB",
             title: data.type || "Document",
-            url: url
+            url: 'viewer.html?id=${id}'
         },
         "*"
     );
