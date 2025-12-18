@@ -505,18 +505,19 @@ function afficherDocuments() {
                   </div>
               `;
 
-              li.querySelector('.btn-loupe')?.addEventListener('click', () => {
-    const id=data.id
+li.querySelector('.btn-loupe')?.addEventListener('click', () => {
+    const id = data.id;
 
     window.parent.postMessage(
         {
             type: "OPEN_TAB",
             title: data.type || "Document",
-            url: 'viewer.html?id=${id}'
+            url: `viewer.html?docId=${id}`
         },
         "*"
     );
 });
+
 
          
 
