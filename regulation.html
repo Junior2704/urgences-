@@ -788,9 +788,9 @@ const STATUTS_ATTENTE = [
       const medecinAbsent = !equipe.medecinReferent?.nom;
       const phaseAttente = isPhaseAttente(pdcStatut);
 
-      const gravite = hosp.gravite || '';
-      const motif = hosp.motif || '';
-      const circuit = hosp.circuit || '';
+   const gravite = hosp.gravite ?? '—';
+const motif   = hosp.motif   ?? '—';
+const circuit = hosp.circuit ?? '—';
 
       const posLower = position.toLowerCase();
       const gravLower = gravite.toLowerCase();
@@ -809,16 +809,16 @@ const STATUTS_ATTENTE = [
       else circuits.general++;
 
       // Calcul temps écoulé depuis admission
-      const dateDebutStr = hosp.dateDebut || '';
       let tempsEcoule = '—';
-      if (dateDebutStr) {
-        const [jour, mois, annee, heure, minute, seconde] = dateDebutStr.match(/\d+/g).map(Number);
-        const dateDebut = new Date(annee, mois - 1, jour, heure, minute, seconde);
-        const now = new Date();
-        const diffMs = now - dateDebut;
-        const diffHeures = Math.floor(diffMs / (1000 * 60 * 60));
-        const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-        tempsEcoule = `${diffHeures}h ${diffMinutes}m`;
+
+if (hosp.dateDebut?.seconds) {
+  const dateDebut = new Date(hosp.dateDebut.seconds * 1000);
+  const diffMs = Date.now() - dateDebut;
+  const h = Math.floor(diffMs / 3600000);
+  const m = Math.floor((diffMs % 3600000) / 60000);
+  tempsEcoule = `${h}h ${m}m`;
+}
+
       }
 
       // Vigilances
@@ -829,13 +829,29 @@ const STATUTS_ATTENTE = [
       const vigilanceClass = (vigilances !== 'aucune') ? 'vigilance-alert' : 'vigilance-none';
 
       const tr = document.createElement('tr');
-      if (gravLower.includes('p3') || gravLower.includes('vital')) tr.classList.add('grav-p3');
-      else if (gravLower.includes('p2')) tr.classList.add('grav-p2');
-      else if (gravLower.includes('p1')) tr.classList.add('grav-p1');
-      else if (gravLower.includes('p0')) tr.classList.add('grav-p0');
+    if (gravLower.includes('p3') || gravLower.includes('vital')) {
+  tr.classList.add('grav-p3');
+} 
+else if (gravLower.includes('p2')) {
+  tr.classList.add('grav-p2');
+} 
+else if (gravLower.includes('p1')) {
+  tr.classList.add('grav-p1');
+} 
+else if (
+  gravLower.includes('p0') ||
+  gravLower.includes('relatif') ||
+  gravLower.includes('administratif')
+) {
+  tr.classList.add('grav-p0');
+}
 
-      if (pdcStatut.toLowerCase().includes('oui')) tr.classList.add('pdc-oui');
-      if (pdcStatut.toLowerCase().includes('non')) tr.classList.add('pdc-non');
+    if (pdcStatut.toLowerCase().includes('oui')) {
+  tr.classList.add('pdc-oui');
+} else if (pdcStatut.toLowerCase().includes('non')) {
+  tr.classList.add('pdc-non');
+}
+
       if (!phaseAttente && medecinAbsent) tr.classList.add('alert-equipe');
 
       const allergiesImportant = data.importanceAllergies && data.allergies;
@@ -1050,7 +1066,7 @@ document.getElementById('filterLocalisation')
   .addEventListener('change', applyFilters);
 
   updateMedicalDashboard();
-setInterval(updateMedicalDashboard, 1000); // toutes les 5 secondes
+setInterval(updateMedicalDashboard, 3000); // toutes les 5 secondes
 </script>
 
 </body>
