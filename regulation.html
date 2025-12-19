@@ -755,6 +755,7 @@ const STATUTS_ATTENTE = [
 
   async function updateMedicalDashboard() {
   try {
+    // Récupérer tous les patients hospitalisés
     const snapshot = await db.collection('patients')
       .where('hospitalisationActive', '==', true)
       .get();
@@ -765,7 +766,7 @@ const STATUTS_ATTENTE = [
     const tbody = document.getElementById('patient-list');
     tbody.innerHTML = '';
 
-    snapshot.forEach(doc => {
+    for (const doc of snapshot.docs) {
       const data = doc.data() || {};
       counts.total++;
       const id = doc.id;
@@ -774,15 +775,14 @@ const STATUTS_ATTENTE = [
       const position = data.position || '';
       const pdcStatut = data.pdcStatut || '';
 
-      // Récupération de l'hospitalisation active
-      let index = 0;
-      if (data.hospitalisationActiveId && Array.isArray(data.hospitalisations)) {
-        index = data.hospitalisations.findIndex(h => h.id === data.hospitalisationActiveId);
-        if (index === -1) index = data.hospitalisations.length - 1;
-      } else {
-        index = data.hospitalisations?.length - 1 ?? 0;
+      // Récupération de l'hospitalisation active depuis la collection hospitalisations
+      let hosp = {};
+      if (data.hospitalisationActiveId) {
+        const hospDoc = await db.collection('hospitalisations').doc(data.hospitalisationActiveId).get();
+        if (hospDoc.exists) {
+          hosp = hospDoc.data();
+        }
       }
-      const hosp = data.hospitalisations?.[index] || {};
 
       const equipe = hosp.equipe || {};
       const medecinAbsent = !equipe.medecinReferent?.nom;
@@ -867,7 +867,7 @@ const STATUTS_ATTENTE = [
       };
 
       tbody.appendChild(tr);
-    });
+    }
 
     const pec = Math.max(counts.total - counts.attente, 0);
     setVal('total', counts.total);
