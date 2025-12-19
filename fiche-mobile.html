@@ -976,29 +976,40 @@ let lastOpenedId = null;
 /* ----------------------
    Récupère et rend la liste (méthode loyale à urgences.html)
    ---------------------- */
-async function fetchPatients(){
+async function fetchPatients() {
   listEl.innerHTML = '<div style="padding:12px;color:var(--muted)">Chargement…</div>';
-  try{
-    const snap = await db.collection('patients').where('hospitalisationActive','==',true).get();
+  try {
+    const snap = await db.collection('patients').get();
     const arr = [];
-    snap.forEach(doc => {
+
+    for (const doc of snap.docs) {
       const data = doc.data();
-      // respecter la logique : hospitalisationIndex -> hospitalisations[index]
-      const index = data.hospitalisationIndex ?? 0;
-      const hospi = (Array.isArray(data.hospitalisations) ? data.hospitalisations[index] : null) || {};
-      arr.push({
-        id: doc.id,
-        docData: data,
-        hospi
-      });
-    });
+
+      // Vérifie s'il y a une hospitalisation active
+      const hospiId = data.hospitalisationActiveId;
+      let hospi = null; // initialisation à null
+
+      if (hospiId) {
+        const hospiSnap = await db.collection('hospitalisations').doc(hospiId).get();
+        if (hospiSnap.exists) hospi = hospiSnap.data();
+      }
+
+      // Ne garder que les patients ayant une hospitalisation active
+      if (hospi) {
+        arr.push({
+          id: doc.id,
+          docData: data,
+          hospi
+        });
+      }
+    }
 
     // tri : urgences vitales, P3,P2,P1,P0, puis alpha
     const order = {'Urgences_Vitales':0,'P3':1,'P2':2,'P1':3,'P0':4,'Administratif':5};
-    arr.sort((a,b) => {
+    arr.sort((a, b) => {
       const oa = order[a.hospi?.gravite] ?? 6;
       const ob = order[b.hospi?.gravite] ?? 6;
-      if(oa !== ob) return oa - ob;
+      if (oa !== ob) return oa - ob;
       const na = (a.docData.nom || '').toLowerCase();
       const nb = (b.docData.nom || '').toLowerCase();
       return na.localeCompare(nb);
@@ -1006,11 +1017,13 @@ async function fetchPatients(){
 
     patientsCache = arr;
     renderList(arr);
-  }catch(e){
+
+  } catch(e) {
     console.error(e);
     listEl.innerHTML = '<div style="padding:12px;color:#d9534f">Erreur chargement patients.</div>';
   }
 }
+
 
 function renderList(arr){
   listEl.innerHTML = '';
@@ -1130,14 +1143,19 @@ function showModal(){ modalOverlay.style.display='flex'; modalOverlay.setAttribu
 function hideModal(){ modalOverlay.style.display='none'; modalOverlay.setAttribute('aria-hidden','true'); }
 closeModal.addEventListener('click', hideModal);
 
-async function openModalFor(id){
+async function openModalFor(id) {
   lastOpenedId = id;
-  try{
-    const doc = await db.collection('patients').doc(id).get();
-    if(!doc.exists){ alert('Patient introuvable'); return; }
-    const data = doc.data();
-    const index = data.hospitalisationIndex ?? 0;
-    const hospi = (Array.isArray(data.hospitalisations) ? data.hospitalisations[index] : null) || {};
+  try {
+    const patientSnap = await db.collection('patients').doc(id).get();
+    if (!patientSnap.exists) { alert('Patient introuvable'); return; }
+    const data = patientSnap.data();
+
+    const hospiId = data.hospitalisationActiveId;
+    let hospi = {};
+    if (hospiId) {
+      const hospiSnap = await db.collection('hospitalisations').doc(hospiId).get();
+      if (hospiSnap.exists) hospi = hospiSnap.data();
+    }
 
     // identité
     m_id.textContent = id;
@@ -1160,6 +1178,7 @@ async function openModalFor(id){
     m_histoire.textContent = dm.histoire || '—';
     m_auscultation.textContent = dm.auscultation || '—';
 
+    
     // ---------------------------
 // Constantes regroupées
 // ---------------------------
@@ -1358,20 +1377,27 @@ examClose2.onclick = hideExamModal;
 examModal.onclick = (e)=>{ if(e.target === examModal) hideExamModal(); };
 
 /* Charge un examen complet dans la modale */
-async function openExam(patientId, examIndex){
+async function openExam(patientId, examIndex) {
   try {
-    const snap = await db.collection("patients").doc(patientId).get();
-    if (!snap.exists) return alert("Patient introuvable");
+    // 🔹 Charger le patient
+    const patientSnap = await db.collection("patients").doc(patientId).get();
+    if (!patientSnap.exists) return alert("Patient introuvable");
+    const patientData = patientSnap.data();
 
-    const data = snap.data();
-    const index = data.hospitalisationIndex ?? 0;
-    const hospi = data.hospitalisations?.[index] || {};
+    // 🔹 Charger l'hospitalisation active
+    const hospiId = patientData.hospitalisationActiveId;
+    if (!hospiId) return alert("Aucune hospitalisation active");
+
+    const hospiSnap = await db.collection("hospitalisations").doc(hospiId).get();
+    if (!hospiSnap.exists) return alert("Hospitalisation introuvable");
+    const hospi = hospiSnap.data();
+
+    // 🔹 Récupérer examens
     const exams = hospi.examens || hospi.examensDemandes || [];
-
     const ex = exams[examIndex];
-    if (!ex) return;
+    if (!ex) return alert("Examen introuvable");
 
-    // remplissage
+    // 🔹 Remplissage modal
     document.getElementById("exam-title").textContent = ex.type || "Examen";
     document.getElementById("exam-type").textContent = ex.type || "—";
     document.getElementById("exam-date-demande").textContent = ex.dateDemande || "—";
@@ -1388,11 +1414,12 @@ async function openExam(patientId, examIndex){
 
     showExamModal();
 
-  } catch(e){
+  } catch (e) {
     console.error(e);
     alert("Erreur chargement examen");
   }
 }
+
 
 /* ----------------------
    Refresh / init
@@ -1418,19 +1445,27 @@ acteClose2.onclick = hideActeModal;
 acteModal.onclick = (e)=>{ if(e.target === acteModal) hideActeModal(); };
 
 /* Charger un acte dans la modale */
-async function openActe(patientId, acteIndex){
+async function openActe(patientId, acteIndex) {
   try {
-    const snap = await db.collection("patients").doc(patientId).get();
-    if (!snap.exists) return alert("Patient introuvable");
+    // 🔹 Charger le patient
+    const patientSnap = await db.collection("patients").doc(patientId).get();
+    if (!patientSnap.exists) return alert("Patient introuvable");
+    const patientData = patientSnap.data();
 
-    const data = snap.data();
-    const index = data.hospitalisationIndex ?? 0;
-    const hospi = data.hospitalisations?.[index] || {};
+    // 🔹 Charger l'hospitalisation active
+    const hospiId = patientData.hospitalisationActiveId;
+    if (!hospiId) return alert("Aucune hospitalisation active");
+
+    const hospiSnap = await db.collection("hospitalisations").doc(hospiId).get();
+    if (!hospiSnap.exists) return alert("Hospitalisation introuvable");
+    const hospi = hospiSnap.data();
+
+    // 🔹 Récupérer actes
     const actes = Array.isArray(hospi.actes) ? hospi.actes : [];
-
     const a = actes[acteIndex];
-    if (!a) return;
+    if (!a) return alert("Acte introuvable");
 
+    // 🔹 Remplissage modal
     document.getElementById("acte-title").textContent = a.type || "Acte";
     document.getElementById("acte-type").textContent = a.type || "—";
     document.getElementById("acte-date-demande").textContent = a.date || "—";
@@ -1443,38 +1478,55 @@ async function openActe(patientId, acteIndex){
     alert("Erreur chargement acte");
   }
 }
-async function openMedicamentDoc(patientId, medId) {
-  const snap = await db.collection("patients").doc(patientId)
-                       .collection("meds-urgences").doc(medId).get();
 
-  if (!snap.exists) {
-    alert("Détails du médicament introuvables");
-    return;
+async function openMedicament(patientId, medIndex) {
+  try {
+    // 🔹 Charger le patient
+    const patientSnap = await db.collection("patients").doc(patientId).get();
+    if (!patientSnap.exists) return alert("Patient introuvable");
+    const patientData = patientSnap.data();
+
+    // 🔹 Récupérer l'hospitalisation active
+    const hospiId = patientData.hospitalisationActiveId;
+    if (!hospiId) return alert("Aucune hospitalisation active");
+
+    const hospiSnap = await db.collection("hospitalisations").doc(hospiId).get();
+    if (!hospiSnap.exists) return alert("Hospitalisation introuvable");
+    const hospi = hospiSnap.data();
+
+    // 🔹 Récupérer le médicament
+    const meds = Array.isArray(hospi.meds) ? hospi.meds : [];
+    const m = meds[medIndex];
+    if (!m) return alert("Médicament introuvable");
+
+    // 🔹 Remplissage modal
+    document.getElementById("med-title").textContent = m.product || "Médicament";
+    document.getElementById("med-nom").textContent = m.product || "—";
+    document.getElementById("med-ddm").textContent = m.createdAt || "—";
+    document.getElementById("med-pr").textContent = m.dueAt || "—";
+    document.getElementById("med-date-admin").textContent = m.takenAt || "—";
+    document.getElementById("med-commentsd").textContent = m.comment || "—";
+    document.getElementById("med-commentsp").textContent = m.takeComment || "—";
+
+    showMedModal();
+
+  } catch (err) {
+    console.error(err);
+    alert("Erreur chargement médicament");
   }
+}
 
-  const m = snap.data();
-
+// Si tu as déjà l'objet médicament localement
+function openMedicamentLocal(m) {
   document.getElementById("med-title").textContent = m.product || "Médicament";
   document.getElementById("med-nom").textContent = m.product || "—";
-    document.getElementById("med-ddm").textContent = m.createdAt || "—";
+  document.getElementById("med-ddm").textContent = m.createdAt || "—";
   document.getElementById("med-pr").textContent = m.dueAt || "—";
   document.getElementById("med-date-admin").textContent = m.takenAt || "—";
   document.getElementById("med-commentsd").textContent = m.comment || "—";
   document.getElementById("med-commentsp").textContent = m.takeComment || "—";
 
   showMedModal();
-}
-function openMedicamentLocal(m) {
-    document.getElementById("med-title").textContent = m.product || "Médicament";
-  document.getElementById("med-nom").textContent = m.product || "—";
-    document.getElementById("med-ddm").textContent = m.createdAt || "—";
-  document.getElementById("med-pr").textContent = m.dueAt || "—";
-  document.getElementById("med-date-admin").textContent = m.takenAt || "—";
-  document.getElementById("med-commentsd").textContent = m.comment || "—";
-  document.getElementById("med-commentsp").textContent = m.takeComment || "—";
-
-
-    showMedModal();
 }
 
 function truncateText(text, maxLength = 30) {
@@ -1505,7 +1557,7 @@ let medecinNom = "";
 
   onAuthStateChanged(auth, async (user) => {
   if (!user) {
-    window.location.href = "accueil.html";
+    window.location.href = "index.html";
   } else {
     try {
       const docRef = doc(db, "medecins", user.uid);
@@ -1516,8 +1568,6 @@ let medecinNom = "";
         window.medecinSpecialite = data.specialite || "";
         window.medecinLieu = data.lieu || "";
 
-        // ✅ Affichage de contrôle (facultatif)
-        console.log("Médecin connecté :", window.medecinNom, window.medecinSpecialite, window.medecinLieu);
 
 
         // --- Vérification d'accès à la page ---
@@ -1533,7 +1583,7 @@ let medecinNom = "";
       } else {
         // Document inexistant — redirection
         alert("Utilisateur non trouvé, veuillez vous reconnecter.");
-        window.location.href = "accueil.html";
+        window.location.href = "index.html";
       }
     } catch (error) {
       console.error("Erreur chargement médecin :", error);

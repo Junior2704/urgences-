@@ -2499,21 +2499,52 @@ document.addEventListener("click", (e) => {
 });
 function sauvegarderAdmissionPDC() {
     if (!patientId) return;
- console.log("Fonction sauvegarde PDC exécutée");
-    console.log("Patient ID :", patientId);
-    console.log("Valeur PDC :", document.getElementById("pdcStatut").value);
+
+
     const pdcValue = document.getElementById("pdcStatut").value || "";
 
+    // 1️⃣ Lire le patient (LECTURE SEULE)
     db.collection("patients")
       .doc(patientId)
-      .update({ pdcStatut: pdcValue })
+      .get()
+      .then((doc) => {
+          if (!doc.exists) {
+              console.error("Patient introuvable");
+              return;
+          }
+
+          const data = doc.data();
+
+          // 2️⃣ Déterminer l'ID d'hospitalisation cible
+          let hospitalisationId = null;
+
+          if (data.hospitalisationActiveId) {
+              hospitalisationId = data.hospitalisationActiveId;
+          } else if (
+              Array.isArray(data.hospitalisations) &&
+              data.hospitalisations.length > 0
+          ) {
+              hospitalisationId =
+                  data.hospitalisations[data.hospitalisations.length - 1];
+          } else {
+              return;
+          }
+
+          // 3️⃣ Mise à jour UNIQUEMENT dans la collection hospitalisations
+          return db
+            .collection("hospitalisations")
+            .doc(hospitalisationId)
+            .update({
+                pdcStatut: pdcValue
+            });
+      })
       .then(() => {
-          console.log("Statut PDC enregistré :", pdcValue);
       })
       .catch((err) => {
           console.error("Erreur enregistrement PDC :", err);
       });
 }
+
 
 document.getElementById("pdcStatut").addEventListener("change", sauvegarderAdmissionPDC);
 
@@ -2556,40 +2587,64 @@ function ajouterBoutonEffacer(idChamp) {
     wrapper.appendChild(btn);
 }
 
-document.querySelector('[data-module="examens"]').addEventListener('click', async () => {
-  try {
-    const patientDoc = await db.collection("patients").doc(patientId).get();
+document
+  .querySelector('[data-module="examens"]')
+  .addEventListener('click', async () => {
+    try {
+      // 1️⃣ Lecture du patient (LECTURE SEULE)
+      const patientDoc = await db
+        .collection("patients")
+        .doc(patientId)
+        .get();
 
-    if (!patientDoc.exists) {
-      window.location.href="aucun-patients.html";
-      console.warn("Patient introuvable");
-      return;
+      if (!patientDoc.exists) {
+        window.location.href = "aucun-patients.html";
+        console.warn("Patient introuvable");
+        return;
+      }
+
+      const patientData = patientDoc.data();
+
+      // 2️⃣ Détermination de l'ID d'hospitalisation
+      let hospitalisationId = null;
+
+      if (patientData.hospitalisationActiveId) {
+        hospitalisationId = patientData.hospitalisationActiveId;
+      } else if (
+        Array.isArray(patientData.hospitalisations) &&
+        patientData.hospitalisations.length > 0
+      ) {
+        hospitalisationId =
+          patientData.hospitalisations[patientData.hospitalisations.length - 1];
+      } else {
+        console.warn("Aucune hospitalisation trouvée");
+        return;
+      }
+
+      // 3️⃣ Chargement de l'objet hospitalisation depuis la collection dédiée
+      const hospiDoc = await db
+        .collection("hospitalisations")
+        .doc(hospitalisationId)
+        .get();
+
+      if (!hospiDoc.exists) {
+        console.warn("Document hospitalisation introuvable :", hospitalisationId);
+        return;
+      }
+
+      const hospitalisation = {
+        id: hospiDoc.id,
+        ...hospiDoc.data()
+      };
+
+      // 4️⃣ Transmission de l'objet hospitalisation COMPLET
+      await chargerExamens(patientId, hospitalisation);
+
+    } catch (e) {
+      console.error("Erreur chargement examens :", e);
     }
+  });
 
-    const data = patientDoc.data();
-
-    // Le tableau des hospitalisations
-    const hospitalisations = data.hospitalisations || [];
-
-    if (hospitalisations.length === 0) {
-      console.warn("Aucune hospitalisation trouvée");
-      return;
-    }
-
-    // Trier par dateDebut décroissante pour obtenir la dernière
-    hospitalisations.sort((a, b) => {
-      return new Date(b.dateDebut) - new Date(a.dateDebut);
-    });
-
-    const derniereHospi = hospitalisations[0];
-
-    // On transmet l'ID patient + l'objet hospitalisation (ou son index)
-    await chargerExamens(patientId, derniereHospi.id || derniereHospi);
-
-  } catch (e) {
-    console.error("Erreur chargement examens :", e);
-  }
-});
 
 
 function openTab(tabId, event) {
@@ -2677,63 +2732,49 @@ if (!containerDynamique) {
 
 async function chargerPatient(patientId) {
   afficherLoader();
+
   try {
-    const doc = await db.collection("patients").doc(patientId).get();
-    if (!doc.exists) {
-window.location.href="aucun-patients.html";
+    // ===============================
+    // 1️⃣ LECTURE PATIENT (IDENTITÉ)
+    // ===============================
+    const patientDoc = await db.collection("patients").doc(patientId).get();
+
+    if (!patientDoc.exists) {
+      window.location.href = "aucun-patients.html";
       return;
     }
 
- const data = doc.data();
-    const index = data.hospitalisationIndex ?? 0;
-    const hospi = data.hospitalisations?.[index];
+    const patient = patientDoc.data();
 
     // --- Infos patient ---
-	 document.getElementById("idPatient").textContent = patientId || "Non défini";
-    document.getElementById("nom").textContent = data.nom || "";
-    document.getElementById("prenom").textContent = data.prenom || "";
-    document.getElementById("sexe").textContent = data.sexe || "";
-    document.getElementById("poids").value = data.poids || "";
-    document.getElementById("taille").value = data.taille || "";
-       document.getElementById("pdcStatut").value = data.pdcStatut || "";
+    document.getElementById("idPatient").textContent = patientId || "Non défini";
+    document.getElementById("nom").textContent = patient.nom || "";
+    document.getElementById("prenom").textContent = patient.prenom || "";
+    document.getElementById("sexe").textContent = patient.sexe || "";
+    document.getElementById("poids").value = patient.poids || "";
+    document.getElementById("taille").value = patient.taille || "";
 
-    // Allergies
-document.getElementById("allergies").value = data.allergies || "aucun";
-document.getElementById("vigilances").value = data.vigilances || "aucune";
-document.getElementById("medtraitant").value = data.medtraitant || "";
+    document.getElementById("allergies").value = patient.allergies || "aucun";
+    document.getElementById("vigilances").value = patient.vigilances || "aucune";
+    document.getElementById("medtraitant").value = patient.medtraitant || "";
+    document.getElementById("importanceAllergies").checked = patient.importanceAllergies === true;
 
+    const patientNameSpan = document.getElementById("patientName");
+    patientNameSpan.textContent = `Fiche Urgences - ${patient.nom || ""} ${patient.prenom || ""}`;
 
-document.getElementById("importanceAllergies").checked = data.importanceAllergies === true;
-
-const patientNameSpan = document.getElementById("patientName");
-
-patientNameSpan.textContent =
-    `Fiche Urgences -  ${data.nom || ""} ${data.prenom || ""}`;
-
-const closeBtn = document.createElement("span");
-closeBtn.className = "close-tab";
-closeBtn.id = "closeBtn";
-closeBtn.textContent = "❌";
-
-closeBtn.onclick = (e) => {
-  e.stopPropagation();
-
-  if (from) {
-    window.location.href = `${from}.html`;
-  } else {
-    window.location.href = 'index.html';
-  }
-};
-
-
-
-
-
-
+    // Bouton fermeture
+    const closeBtn = document.createElement("span");
+    closeBtn.className = "close-tab";
+    closeBtn.id = "closeBtn";
+    closeBtn.textContent = "❌";
+    closeBtn.onclick = (e) => {
+      e.stopPropagation();
+      window.location.href = from ? `${from}.html` : "index.html";
+    };
 
     // IMC
-    const poids = parseFloat(data.poids);
-    const taille = parseFloat(data.taille);
+    const poids = parseFloat(patient.poids);
+    const taille = parseFloat(patient.taille);
     const elImc = document.getElementById("imc");
     if (!isNaN(poids) && !isNaN(taille) && taille > 0) {
       elImc.textContent = (poids / ((taille / 100) ** 2)).toFixed(1);
@@ -2742,70 +2783,97 @@ closeBtn.onclick = (e) => {
     }
 
     // Âge
-    if (data.dateNaissance) {
-      const age = calculerAge(data.dateNaissance);
-      document.getElementById("age").textContent = !isNaN(age) ? `${age} ans` : "Inconnu";
+    if (patient.dateNaissance) {
+      const age = calculerAge(patient.dateNaissance);
+      document.getElementById("age").textContent =
+        !isNaN(age) ? `${age} ans` : "Inconnu";
     }
 
-    // --- Hospitalisation courante ---
-    if (hospi) {
-      // 🔹 Informations d’hospitalisation
-      document.getElementById("gravite").value = hospi.gravite || "";
-      document.getElementById("motif").value = hospi.motif || "";
-      document.getElementById("moyen").value = hospi.moyen || "";
-      document.getElementById("circuit").value = hospi.circuit || "";
+    // =========================================
+    // 2️⃣ DÉTERMINER L’HOSPITALISATION ACTIVE
+    // =========================================
+    let hospitalisationId = null;
 
+    if (patient.hospitalisationActiveId) {
+      hospitalisationId = patient.hospitalisationActiveId;
+    } else if (Array.isArray(patient.hospitalisations) && patient.hospitalisations.length > 0) {
+      hospitalisationId = patient.hospitalisations[patient.hospitalisations.length - 1];
+    }
 
-      // 🔹 Constantes vitales
-      document.getElementById("temperature").value = hospi.constantes?.temperature || "";
-      document.getElementById("fc").value = hospi.constantes?.fc || "";
-      document.getElementById("ta").value = hospi.constantes?.ta || "";
-      document.getElementById("saturation").value = hospi.constantes?.saturation || "";
-	  document.getElementById("fr").value = hospi.constantes?.fr || "";
-      document.getElementById("douleur").value = hospi.constantes?.douleur || "";
+    if (!hospitalisationId) {
+      console.warn("Aucune hospitalisation active");
+      masquerLoader();
+      return;
+    }
 
-      // 🔹 Dossier médical (nouvelle section)
-      const dm = hospi.dossierMedical || {};
-	  document.getElementById("questionnaire").value = dm.questionnaire || "";
-      document.getElementById("antecedents").value = dm.antecedents || "";
-      document.getElementById("traitements").value = dm.traitements || "";
-      document.getElementById("histoire").value = dm.histoire || "";
-      document.getElementById("auscultation").value = dm.auscultation || "";
-
-      // 🔹 Évolution aux urgences
-      document.getElementById("evolutionTexte").value = hospi.evolution || "";
-
-		if (hospi.sortie) {
-  afficherSortieListe(hospi.sortie);
-}
-
-	}
-   const hospiSnap = await db.collection("patients")
-      .doc(patientId)
+    // ==================================
+    // 3️⃣ CHARGER L’HOSPITALISATION
+    // ==================================
+    const hospiDoc = await db
       .collection("hospitalisations")
-      .orderBy("dateAdmission", "desc") // ou autre critère
-      .limit(1)
+      .doc(hospitalisationId)
       .get();
 
-    if (!hospiSnap.empty) {
-      const hospiDoc = hospiSnap.docs[0];   // dernier séjour
-      // --- Charger actes & examens depuis les sous-collections ---
-      await chargerActes();
-      await chargerExamens(patientId, hospiDoc.id);
+    if (!hospiDoc.exists) {
+      console.warn("Hospitalisation introuvable :", hospitalisationId);
+      masquerLoader();
+      return;
     }
 
-    // Services et Réalisateurs
+    const hospi = hospiDoc.data();
+
+    // 🔹 Informations d’hospitalisation
+    document.getElementById("gravite").value = hospi.gravite || "";
+    document.getElementById("motif").value = hospi.motif || "";
+    document.getElementById("moyen").value = hospi.moyen || "";
+    document.getElementById("circuit").value = hospi.circuit || "";
+    document.getElementById("pdcStatut").value = hospi.pdcStatut || "";
+
+    // 🔹 Constantes vitales
+    document.getElementById("temperature").value = hospi.constantes?.temperature || "";
+    document.getElementById("fc").value = hospi.constantes?.fc || "";
+    document.getElementById("ta").value = hospi.constantes?.ta || "";
+    document.getElementById("saturation").value = hospi.constantes?.saturation || "";
+    document.getElementById("fr").value = hospi.constantes?.fr || "";
+    document.getElementById("douleur").value = hospi.constantes?.douleur || "";
+
+    // 🔹 Dossier médical
+    const dm = hospi.dossierMedical || {};
+    document.getElementById("questionnaire").value = dm.questionnaire || "";
+    document.getElementById("antecedents").value = dm.antecedents || "";
+    document.getElementById("traitements").value = dm.traitements || "";
+    document.getElementById("histoire").value = dm.histoire || "";
+    document.getElementById("auscultation").value = dm.auscultation || "";
+
+    // 🔹 Évolution aux urgences
+    document.getElementById("evolutionTexte").value = hospi.evolution || "";
+
+    if (hospi.sortie) {
+      afficherSortieListe(hospi.sortie);
+    }
+
+    // ==================================
+    // 4️⃣ ACTES & EXAMENS
+    // ==================================
+    await chargerActes(hospitalisationId);
+    await chargerExamens(patientId, {
+      id: hospitalisationId,
+      ...hospi
+    });
+
+    // Services / équipes
     chargerServices();
     chargerRealisateurs();
-      await chargerEquipeReferente();
-    
-	
+    await chargerEquipeReferente();
+
   } catch (err) {
     console.error("Erreur chargement patient :", err);
     afficherBulle("❌ Erreur de chargement", "error");
-  } 
+  }
+
   masquerLoader();
 }
+
 // Champ allergies
 document.getElementById("allergies").addEventListener("change", async () => {
   const value = document.getElementById("allergies").value.trim() || "aucun";
@@ -2832,24 +2900,46 @@ document.getElementById("importanceAllergies").addEventListener("change", async 
 
 async function updateHospitalisationField(field, value) {
   try {
-    const doc = await patientRef.get();
-    if (!doc.exists) return;
+    if (!patientId) return;
 
-    const data = doc.data();
-    const index = data.hospitalisationIndex ?? 0;
-    const hospitalisations = Array.isArray(data.hospitalisations) ? [...data.hospitalisations] : [];
+    // 1️⃣ Lecture patient (LECTURE SEULE)
+    const patientDoc = await db.collection("patients").doc(patientId).get();
+    if (!patientDoc.exists) return;
 
-    hospitalisations[index] = { ...hospitalisations[index], [field]: value };
+    const patient = patientDoc.data();
 
-    await patientRef.update({ hospitalisations });
+    // 2️⃣ Déterminer l'hospitalisation cible
+    let hospitalisationId = null;
+
+    if (patient.hospitalisationActiveId) {
+      hospitalisationId = patient.hospitalisationActiveId;
+    } else if (
+      Array.isArray(patient.hospitalisations) &&
+      patient.hospitalisations.length > 0
+    ) {
+      hospitalisationId =
+        patient.hospitalisations[patient.hospitalisations.length - 1];
+    } else {
+      console.warn("Aucune hospitalisation trouvée");
+      return;
+    }
+
+    // 3️⃣ Mise à jour DU CHAMP dans hospitalisations
+    await db
+      .collection("hospitalisations")
+      .doc(hospitalisationId)
+      .update({
+        [field]: value
+      });
 
     ajouterEntreeHistorique(`Modification de ${field} : ${value}`);
-    
+
   } catch (err) {
     console.error(`Erreur mise à jour ${field} :`, err);
     afficherBulle("❌ Erreur d’enregistrement", "error");
   }
 }
+
 
 
 	document.getElementById("btnOuvrirModaleDemande").addEventListener("click", () => {
@@ -2939,36 +3029,72 @@ function afficherSortieListe(sortie) {
     <p><strong>Options :</strong> ${sortie.options?.join(", ") || "Aucune"}</p>
   `;
 
-  if (sortie.destinationTransfert) html += `<p><strong>↔️ Destination :</strong> ${sortie.destinationTransfert}</p>`;
-  if (sortie.serviceHospitalisation) html += `<p><strong>🏥 Service :</strong> ${sortie.serviceHospitalisation}</p>`;
-  if (sortie.avisSpecialiste) html += `<p><strong>👨‍⚕️ Spécialiste :</strong> ${sortie.avisSpecialiste}</p>`;
-  if (sortie.autreOptionTexte) html += `<p><strong>🔤 Autre option :</strong> ${sortie.autreOptionTexte}</p>`;
-  if (sortie.traitementSortie) html += `<p><strong>💊 Traitement de sortie :</strong> ${sortie.traitementSortie}</p>`;
+  if (sortie.destinationTransfert)
+    html += `<p><strong>↔️ Destination :</strong> ${sortie.destinationTransfert}</p>`;
+  if (sortie.serviceHospitalisation)
+    html += `<p><strong>🏥 Service :</strong> ${sortie.serviceHospitalisation}</p>`;
+  if (sortie.avisSpecialiste)
+    html += `<p><strong>👨‍⚕️ Spécialiste :</strong> ${sortie.avisSpecialiste}</p>`;
+  if (sortie.autreOptionTexte)
+    html += `<p><strong>🔤 Autre option :</strong> ${sortie.autreOptionTexte}</p>`;
+  if (sortie.traitementSortie)
+    html += `<p><strong>💊 Traitement de sortie :</strong> ${sortie.traitementSortie}</p>`;
 
-  html += `<button id="btnSupprimerSortie" class="danger" style="margin-top:10px;">🗑 Supprimer</button>`;
+  html += `
+    <button id="btnSupprimerSortie" class="danger" style="margin-top:10px;">
+      🗑 Supprimer
+    </button>
+  `;
+
   sortieListe.innerHTML = html;
 
-  document.getElementById("btnSupprimerSortie").addEventListener("click", async () => {
-    const doc = await patientRef.get();
-    const data = doc.data();
-    const index = data.hospitalisationIndex ?? 0;
-    const hospitalisations = [...(data.hospitalisations || [])];
+  document
+    .getElementById("btnSupprimerSortie")
+    .addEventListener("click", async () => {
+      try {
+        if (!patientId) return;
 
-    delete hospitalisations[index].sortie;
-    if (hospitalisations[index].traitementSortie) hospitalisations[index].traitementSortie = "";
+        // 1️⃣ Lecture patient (LECTURE SEULE)
+        const patientDoc = await db.collection("patients").doc(patientId).get();
+        if (!patientDoc.exists) return;
 
-    await patientRef.update({ hospitalisations });
-    sortieListe.innerHTML = "<p>Sortie supprimée.</p>";
-    afficherBulle("🗑️ Sortie supprimée", "success");
-  });
+        const patient = patientDoc.data();
+
+        // 2️⃣ Déterminer l'hospitalisation cible
+        let hospitalisationId = null;
+
+        if (patient.hospitalisationActiveId) {
+          hospitalisationId = patient.hospitalisationActiveId;
+        } else if (
+          Array.isArray(patient.hospitalisations) &&
+          patient.hospitalisations.length > 0
+        ) {
+          hospitalisationId =
+            patient.hospitalisations[patient.hospitalisations.length - 1];
+        } else {
+          console.warn("Aucune hospitalisation trouvée");
+          return;
+        }
+
+        // 3️⃣ Suppression de la sortie dans hospitalisations
+        await db
+          .collection("hospitalisations")
+          .doc(hospitalisationId)
+          .update({
+            sortie: firebase.firestore.FieldValue.delete(),
+            traitementSortie: ""
+          });
+
+        sortieListe.innerHTML = "<p>Sortie supprimée.</p>";
+        afficherBulle("🗑️ Sortie supprimée", "success");
+
+      } catch (err) {
+        console.error("Erreur suppression sortie :", err);
+        afficherBulle("❌ Erreur suppression sortie", "error");
+      }
+    });
 }
-document.addEventListener("DOMContentLoaded", () => {
-  rafraichirChampsSortie();
-  champAutreSortie.style.display = document.querySelector('input[name="typeSortie"][value="autre"]')?.checked ? "block" : "none";
-  if (patientId) {
-    chargerPatient(patientId);
-  }
-});
+
 
 
 function formaterDate(dateStr) {
@@ -3051,7 +3177,6 @@ async function ajouterEntreeHistorique(texte) {
   try {
    
 
-    afficherHistorique(entree);
   } catch (error) {
     console.error("Erreur ajout historique :", error);
   }
@@ -3179,72 +3304,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   const historiqueContainer = document.getElementById("historique");
 
 // Fonction pour charger tout l'historique de l'hospitalisation en cours
-async function chargerHistorique() {
-  try {
-    const doc = await patientRef.get();
-    const data = doc.data();
-
-    const index = data.hospitalisationIndex ?? 0;
-    const hospi = data.hospitalisations?.[index];
-
-    if (!hospi || !hospi.historique || hospi.historique.length === 0) {
-      historiqueContainer.innerHTML = "<p>Aucune entrée dans l'historique.</p>";
-      return;
-    }
-
-    historiqueContainer.innerHTML = ""; // on vide avant d'afficher
-
-    hospi.historique.forEach(entry => {
-      afficherHistorique(entry);
-    });
-    // 🔁 Réappliquer le filtre après chargement
-const recherche = document.getElementById("rechercheHistorique");
-if (recherche && recherche.value.trim() !== "") {
-  recherche.dispatchEvent(new Event("input"));
-}
-
-  } catch (error) {
-    console.error("Erreur chargement historique :", error);
-  }
-}
 
 // Fonction d'affichage d'une seule entrée dans le DOM
-function afficherHistorique(entry) {
-  const card = document.createElement("div");
-  card.className = "card";
 
-  // 🔎 TEXTE SERVANT À LA RECHERCHE
-  const texteRecherche = `
-    ${entry.date || ""}
-    ${entry.type || ""}
-    ${entry.auteur || ""}
-    ${entry.contenu || ""}
-  `.toLowerCase();
-
-  card.dataset.search = texteRecherche;
-
-  card.innerHTML = `
-    <p><strong>${entry.date}</strong></p>
-    <p>${entry.contenu}</p>
-  `;
-
-  historiqueContainer.appendChild(card);
-}
-
-
-  function afficherHistoriqueAncienne(hospitalisation, index) {
-    if (!historiqueAncienContainer) return;
-    const titre = document.createElement("div");
-    titre.innerHTML = `<strong style="color:#d9534f">Hospitalisation ${index + 1} (${hospitalisation.dateDebut} - ${hospitalisation.dateFin || "en cours"})</strong>`;
-    historiqueAncienContainer.appendChild(titre);
-    hospitalisation.historique?.forEach(entry => afficherHistorique(entry, "ancien"));
-  }
-  function clearHistoriqueAnciennes() {
-    if(historiqueAncienContainer) historiqueAncienContainer.innerHTML = "";
-  }
-  function clearHistorique() {
-    if(historiqueContainer) historiqueContainer.innerHTML = "";
-  }
   const btnDemandeExamen = document.getElementById("btnDemandeExamen");
 const fenetreExamens = document.getElementById("fenetreExamens");
 const listeExamens = document.getElementById("listeExamens");
@@ -3286,16 +3348,32 @@ document.getElementById("btnSaveExamen").addEventListener("click", async () => {
   const date = new Date().toLocaleString();
 
   try {
-    const doc = await patientRef.get();
-    const data = doc.data();
-    const index = data.hospitalisationIndex ?? 0;
-    const hospitalisations = [...(data.hospitalisations || [])];
+    // 1️⃣ Charger le patient
+    const patientDoc = await db.collection("patients").doc(patientId).get();
+    const patientData = patientDoc.data();
 
-    if (!hospitalisations[index].examens) hospitalisations[index].examens = [];
+    if (!patientData) throw new Error("Patient introuvable");
 
-    // Ajouter chaque examen individuellement
+    // 2️⃣ Déterminer l'hospitalisation active
+    let hospitalisationId = patientData.hospitalisationActiveId 
+                            || (patientData.hospitalisations?.slice(-1)[0]);
+
+    if (!hospitalisationId) {
+      afficherBulle("❌ Aucune hospitalisation active pour ce patient", "warning");
+      return;
+    }
+
+    // 3️⃣ Charger le document hospitalisation
+    const hospiRef = db.collection("hospitalisations").doc(hospitalisationId);
+    const hospiDoc = await hospiRef.get();
+    if (!hospiDoc.exists) throw new Error("Hospitalisation introuvable");
+
+    const hospiData = hospiDoc.data();
+    const examensHospitalisation = hospiData.examens || [];
+
+    // 4️⃣ Ajouter les examens
     examens.forEach(type => {
-      hospitalisations[index].examens.push({
+      examensHospitalisation.push({
         type,
         commentaire,
         dateDemande: date,
@@ -3303,19 +3381,21 @@ document.getElementById("btnSaveExamen").addEventListener("click", async () => {
       });
     });
 
-    await patientRef.update({ hospitalisations });
+    // 5️⃣ Mettre à jour la collection hospitalisations
+    await hospiRef.update({ examens: examensHospitalisation });
 
+    // 6️⃣ UI feedback
     modalExamen.style.display = "none";
     afficherBulle("✔️ Examens enregistrés", "success");
-    ajouterEntreeHistorique(`📋 Examens demandés : ${examens.join(", ")}`);
-	  reinitialiserFormulaireExamen();
-	  chargerExamens();
+    reinitialiserFormulaireExamen();
+    chargerExamens(); // Recharge les examens depuis Firestore
+
   } catch (err) {
     console.error("Erreur enregistrement examens :", err);
     afficherBulle("❌ Erreur enregistrement", "error");
   }
-  
 });
+
 	function reinitialiserFormulaireExamen() {
   // Décoche tous les checkboxes dans le modal
   const checkboxes = document.querySelectorAll("#modalExamen input[type='checkbox']");
@@ -3352,6 +3432,7 @@ btnValiderCode.addEventListener("click", async () => {
   }
 
   try {
+    // ✅ Vérification du code (ici conservé pour le patient "QhwMJ0mjmUnS8MTNBCFU")
     const codeDoc = await db.collection("patients").doc("QhwMJ0mjmUnS8MTNBCFU").get();
     const codeAttendu = codeDoc.data().CCH;
 
@@ -3377,47 +3458,52 @@ btnValiderCode.addEventListener("click", async () => {
     // 🕓 Simulation du traitement de clôture
     setTimeout(async () => {
       try {
-        const now = new Date().toLocaleString();
-        const doc = await patientRef.get();
-        const data = doc.data();
-        const index = data.hospitalisationIndex ?? 0;
-        const hospitalisations = data.hospitalisations || [];
+        // 1️⃣ Récupérer le patient
+        const patientDoc = await db.collection("patients").doc(patientId).get();
+        const patientData = patientDoc.data();
 
-        if (hospitalisations[index]) {
-          hospitalisations[index].dateFin = now;
-          hospitalisations[index].historique = hospitalisations[index].historique || [];
-          hospitalisations[index].historique.push({ date: now, texte: "Hospitalisation clôturée" });
-          hospitalisations[index].rapport = `Rapport d'hospitalisation pour ${data.nom} ${data.prenom} clôturé le ${now}.`;
-// 🔄 Mise à jour automatique du Statut PDC lors de la clôture
-if (patientId) {
-    db.collection("patients").doc(patientId).update({
-        pdcStatut: "Attente enregistrement"
-    }).then(() => {
-        console.log("Statut PDC mis à jour : Attente enregistrement");
-        const pdcField = document.getElementById("pdcStatut");
-        if (pdcField) pdcField.value = "Attente enregistrement"; // mise à jour affichage
-    });
-}
+        if (!patientData) throw new Error("Patient introuvable");
 
-          await patientRef.update({
-            hospitalisations,
-            hospitalisationIndex: index + 1,
-            hospitalisationActive: false
-          });
+        // 2️⃣ Déterminer l'hospitalisation active
+        const hospitalisationId = patientData.hospitalisationActiveId
+                                  || (patientData.hospitalisations?.slice(-1)[0]);
 
-          afficherBulle("✅ Hospitalisation clôturée", "success");
-// Récupération des paramètres de l'URL
-const params = new URLSearchParams(window.location.search);
-const from = params.get('from'); // récupère "urgences" ou autre
-
-// Redirection dynamique selon le paramètre
-if (from) {
-    window.location.href = `${from}.html`;
-} else {
-    // Redirection par défaut si aucun paramètre
-    window.location.href = 'index.html';
-}
+        if (!hospitalisationId) {
+          afficherBulle("⚠️ Aucune hospitalisation active", "warning");
+          return;
         }
+
+        // 3️⃣ Récupérer le document hospitalisation
+        const hospiRef = db.collection("hospitalisations").doc(hospitalisationId);
+        const hospiDoc = await hospiRef.get();
+
+        if (!hospiDoc.exists) throw new Error("Hospitalisation introuvable");
+
+        const hospiData = hospiDoc.data();
+        const now = new Date().toLocaleString();
+
+        // 4️⃣ Mettre à jour l'hospitalisation
+        const historique = hospiData.historique || [];
+        historique.push({ date: now, texte: "Hospitalisation clôturée" });
+        await hospiRef.update({
+          dateFin: now,
+          historique,
+          rapport: `Rapport d'hospitalisation pour ${patientData.nom} ${patientData.prenom} clôturé le ${now}.`
+        });
+
+        // 🔄 Mise à jour automatique du statut PDC sur le patient
+        await db.collection("patients").doc(patientId).update({
+          pdcStatut: "Attente enregistrement",
+          hospitalisationActiveId: "" // plus d'hospitalisation active
+        });
+
+        // ✅ Feedback UI
+        afficherBulle("✅ Hospitalisation clôturée", "success");
+
+        const params = new URLSearchParams(window.location.search);
+        const from = params.get('from');
+        window.location.href = from ? `${from}.html` : 'index.html';
+
       } catch (error) {
         console.error("Erreur clôture hospitalisation :", error);
         afficherBulle("⚠️ Erreur de clôture", "error");
@@ -3431,6 +3517,7 @@ if (from) {
     afficherBulle("Erreur de vérification du code", "error");
   }
 });
+
 
   
 
@@ -3635,23 +3722,43 @@ function ajouterFiltreTypeActe() {
 async function supprimerActeRealise(index) {
   if (!confirm("Supprimer cet acte ?")) return;
 
-  const doc = await patientRef.get();
-  const data = doc.data();
-  const iHospi = data.hospitalisationIndex ?? 0;
-  const hospitalisations = [...(data.hospitalisations || [])];
-  const actes = [...(hospitalisations[iHospi].actes_realises || [])];
-  const acteSupprimé = actes[index];
+  try {
+    // 1️⃣ Récupérer le patient
+    const patientDoc = await db.collection("patients").doc(patientId).get();
+    const patientData = patientDoc.data();
+    if (!patientData) throw new Error("Patient introuvable");
 
-  actes.splice(index, 1);
-  hospitalisations[iHospi].actes_realises = actes;
+    // 2️⃣ Déterminer l'hospitalisation active
+    const hospitalisationId = patientData.hospitalisationActiveId
+                              || (patientData.hospitalisations?.slice(-1)[0]);
+    if (!hospitalisationId) {
+      afficherBulle("⚠️ Aucune hospitalisation active", "warning");
+      return;
+    }
 
-  await patientRef.update({ hospitalisations });
+    // 3️⃣ Récupérer la hospitalisation
+    const hospiRef = db.collection("hospitalisations").doc(hospitalisationId);
+    const hospiDoc = await hospiRef.get();
+    if (!hospiDoc.exists) throw new Error("Hospitalisation introuvable");
 
-  ajouterEntreeHistorique(`❌ Acte supprimé : ${acteSupprimé.type} (par ${acteSupprimé.realisateur})`);
-  afficherActesRealises(document.getElementById("filtreTypeActe")?.value || "tous");
-  afficherBulle("🗑️ Acte supprimé", "success");
+    const hospiData = hospiDoc.data();
+    const actes = [...(hospiData.actes_realises || [])];
+    const acteSupprime = actes[index];
+
+    // 4️⃣ Supprimer l'acte
+    actes.splice(index, 1);
+    await hospiRef.update({ actes_realises: actes });
+
+    // 5️⃣ Feedback UI
+    ajouterEntreeHistorique(`❌ Acte supprimé : ${acteSupprime.type} (par ${acteSupprime.realisateur})`);
+    afficherActesRealises(document.getElementById("filtreTypeActe")?.value || "tous");
+    afficherBulle("🗑️ Acte supprimé", "success");
+
+  } catch (err) {
+    console.error("Erreur suppression acte :", err);
+    afficherBulle("❌ Erreur suppression acte", "error");
+  }
 }
-
 document.getElementById("btnEnregistrerActe").addEventListener("click", async () => {
   const type = document.getElementById("rechercherActe").value.trim();
   const realisateur = document.getElementById("selectRealisateur").value;
@@ -3666,39 +3773,58 @@ document.getElementById("btnEnregistrerActe").addEventListener("click", async ()
     type,
     realisateur,
     remarque,
-   date: new Date().toLocaleString("fr-FR", {
-  day: "2-digit",
-  month: "2-digit",
-  year: "numeric",
-  hour: "2-digit",
-  minute: "2-digit",
-  second: "2-digit"
-})
-
+    date: new Date().toLocaleString("fr-FR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit"
+    })
   };
 
   try {
-    const doc = await patientRef.get();
-    const data = doc.data();
-    const index = data.hospitalisationIndex ?? 0;
-    const hospitalisations = Array.isArray(data.hospitalisations) ? [...data.hospitalisations] : [];
-    hospitalisations[index] = hospitalisations[index] || {};
-    hospitalisations[index].actes = hospitalisations[index].actes || [];
-    hospitalisations[index].actes.push(acte);
+    // 1️⃣ Récupérer le patient
+    const patientDoc = await db.collection("patients").doc(patientId).get();
+    const patientData = patientDoc.data();
+    if (!patientData) throw new Error("Patient introuvable");
 
-    await patientRef.update({ hospitalisations });
+    // 2️⃣ Déterminer l'hospitalisation active
+    const hospitalisationId = patientData.hospitalisationActiveId
+                              || (patientData.hospitalisations?.slice(-1)[0]);
+    if (!hospitalisationId) {
+      afficherBulle("⚠️ Aucune hospitalisation active", "warning");
+      return;
+    }
 
+    // 3️⃣ Récupérer la hospitalisation
+    const hospiRef = db.collection("hospitalisations").doc(hospitalisationId);
+    const hospiDoc = await hospiRef.get();
+    if (!hospiDoc.exists) throw new Error("Hospitalisation introuvable");
+
+    const hospiData = hospiDoc.data();
+    const actes = hospiData.actes || [];
+
+    // 4️⃣ Ajouter le nouvel acte
+    actes.push(acte);
+    await hospiRef.update({ actes });
+
+    // 5️⃣ Feedback UI
     afficherBulle("✔️ Acte enregistré", "success");
     document.getElementById("rechercherActe").value = "";
     document.getElementById("remarqueActe").value = "";
+	chargerActes();
+
   } catch (err) {
     console.error("Erreur enregistrement acte :", err);
     afficherBulle("❌ Erreur lors de l’enregistrement de l’acte", "error");
   }
 });
 
+
 async function chargerServices() {
   try {
+    // 🔹 Charger les services depuis le référentiel
     const doc = await db.collection("référentiels").doc("spécialités").get();
     const data = doc.data();
     const services = data?.spécialités || [];
@@ -3713,38 +3839,59 @@ async function chargerServices() {
       select.appendChild(option);
     });
 
-    // Pré-remplir si une valeur existe
-    const patientDoc = await patientRef.get();
-    const patientData = patientDoc.data();
-    const index = patientData.hospitalisationIndex ?? 0;
-    const hospi = patientData.hospitalisations?.[index];
-    if (hospi?.service) select.value = hospi.service || "";
+    // 🔹 Récupérer l'hospitalisation active
+	 const patientId = new URLSearchParams(window.location.search).get("id");
+    const hospiId = await getHospitalisationEnCours(patientId);
+    if (!hospiId) return;
+
+    const hospiDoc = await db
+      .collection("patients")
+      .doc(patientId)
+      .collection("hospitalisations")
+      .doc(hospiId)
+      .get();
+
+    const hospiData = hospiDoc.data();
+    if (hospiData?.service) select.value = hospiData.service;
 
   } catch (e) {
     console.error("Erreur chargement services :", e);
   }
 }
 
+
 // Écouteur de modification
 document.getElementById("service").addEventListener("change", async (e) => {
   const service = e.target.value;
+
   try {
-    const doc = await patientRef.get();
-    const data = doc.data();
-    const index = data.hospitalisationIndex ?? 0;
-    const hospitalisations = [...(data.hospitalisations || [])];
+    // 1️⃣ Récupérer le patient
+    const patientDoc = await db.collection("patients").doc(patientId).get();
+    const patientData = patientDoc.data();
+    if (!patientData) throw new Error("Patient introuvable");
 
-    hospitalisations[index] = {
-      ...hospitalisations[index],
-      service
-    };
+    // 2️⃣ Déterminer l'hospitalisation active
+    const hospitalisationId = patientData.hospitalisationActiveId
+                              || (patientData.hospitalisations?.slice(-1)[0]);
+    if (!hospitalisationId) {
+      afficherBulle("⚠️ Aucune hospitalisation active", "warning");
+      return;
+    }
 
-    await patientRef.update({ hospitalisations });
+    // 3️⃣ Mettre à jour le champ service dans l'hospitalisation
+    const hospiRef = db.collection("hospitalisations").doc(hospitalisationId);
+    await hospiRef.update({ service });
+
+    // 4️⃣ Historique et feedback
     ajouterEntreeHistorique(`Changement de service : ${service}`);
+    afficherBulle(`✔️ Service mis à jour : ${service}`, "success");
+
   } catch (err) {
     console.error("Erreur mise à jour service :", err);
+    afficherBulle("❌ Erreur mise à jour service", "error");
   }
 });
+
 	
 function reinitialiserFormulaireActe() {
   document.getElementById("selectActe").value = "";
@@ -3828,22 +3975,44 @@ document.getElementById("btnEnregistrerGlasgow").addEventListener("click", async
   const texte = `Score de Glasgow enregistré : ${total} (Yeux ${yeux}, Verbal ${verbal}, Moteur ${moteur})`;
 
   try {
-    const doc = await patientRef.get();
-    const data = doc.data();
-    const index = data.hospitalisationIndex ?? 0;
-    const hospitalisations = [...(data.hospitalisations || [])];
-    hospitalisations[index].glasgow = { yeux, verbal, moteur, total, date: new Date().toISOString() };
+    // 1️⃣ Récupérer le patient
+    const patientDoc = await db.collection("patients").doc(patientId).get();
+    const patientData = patientDoc.data();
+    if (!patientData) throw new Error("Patient introuvable");
 
-    await patientRef.update({ hospitalisations });
+    // 2️⃣ Déterminer l'hospitalisation active
+    const hospitalisationId = patientData.hospitalisationActiveId
+                              || (patientData.hospitalisations?.slice(-1)[0]);
+    if (!hospitalisationId) {
+      afficherBulle("⚠️ Aucune hospitalisation active", "warning");
+      return;
+    }
 
+    // 3️⃣ Récupérer la hospitalisation
+    const hospiRef = db.collection("hospitalisations").doc(hospitalisationId);
+
+    // 4️⃣ Mettre à jour le score de Glasgow
+    await hospiRef.update({
+      glasgow: {
+        yeux,
+        verbal,
+        moteur,
+        total,
+        date: new Date().toISOString()
+      }
+    });
+
+    // 5️⃣ Historique et feedback
     await ajouterEntreeHistorique(texte);
-    afficherBulle("✔️ Score de Glasgow enregistré", "succcess");
+    afficherBulle("✔️ Score de Glasgow enregistré", "success");
     document.getElementById("modalGlasgow").style.display = "none";
+
   } catch (e) {
     console.error("Erreur enregistrement Glasgow :", e);
     afficherBulle("❌ Erreur enregistrement", "error");
   }
 });
+
 function ajouterHorodatage() {
   const textarea = document.getElementById("texteRemarque");
   const now = new Date();
@@ -3936,108 +4105,105 @@ async function chargerHistoriqueComplet() {
   contenu.innerHTML = "<p>⏳ Chargement...</p>";
 
   try {
+    // 1️⃣ Récupérer le patient
     const patientDoc = await db.collection("patients").doc(patientId).get();
     if (!patientDoc.exists) {
       contenu.innerHTML = "<p>❌ Patient introuvable</p>";
-      window.location.href="aucun-patients.html";
-
+      window.location.href = "aucun-patients.html";
       return;
     }
 
-    const data = patientDoc.data();
-    let hospitalisations = Array.isArray(data.hospitalisations) ? data.hospitalisations : [];
+    const patientData = patientDoc.data();
+    let hospitalisationIds = Array.isArray(patientData.hospitalisations) ? [...patientData.hospitalisations] : [];
 
     // on enlève la dernière hospitalisation (courante)
-    if (hospitalisations.length > 1) {
-      hospitalisations = hospitalisations.slice(0, -1);
+    if (hospitalisationIds.length > 1) {
+      hospitalisationIds = hospitalisationIds.slice(0, -1);
     } else {
-      hospitalisations = [];
+      hospitalisationIds = [];
     }
 
-    if (hospitalisations.length === 0) {
+    if (hospitalisationIds.length === 0) {
       contenu.innerHTML = "<p>Aucune hospitalisation antérieure.</p>";
       return;
     }
 
     contenu.innerHTML = "";
 
-    // afficher les hospitalisations les plus récentes d'abord
-    hospitalisations
-      .slice()
-      .reverse()
-      .forEach((hospi, idx) => {
-        const card = document.createElement("div");
-        card.className = "card";
+    // 2️⃣ Charger chaque document hospitalisation et afficher
+    // affichage du plus récent au plus ancien
+    for (let i = hospitalisationIds.length - 1; i >= 0; i--) {
+      const hospiId = hospitalisationIds[i];
+      const hospiDoc = await db.collection("hospitalisations").doc(hospiId).get();
+      if (!hospiDoc.exists) continue;
 
-        // 🏥 titre avec numéro d’hospitalisation
-    const numero = hospitalisations.length - idx;
+      const hospi = hospiDoc.data();
+      const card = document.createElement("div");
+      card.className = "card";
 
+      const numero = hospitalisationIds.length - i;
+      const titre = document.createElement("h2");
+      titre.textContent = `🏥 Hospitalisation n°${numero}`;
+      titre.style.color = "#0078d4";
+      titre.style.borderBottom = "3px solid #0078d4";
+      titre.style.paddingBottom = "5px";
+      titre.style.marginTop = "0";
+      titre.style.marginBottom = "15px";
 
-        const titre = document.createElement("h2");
-        titre.textContent = `🏥 Hospitalisation n°${numero}`;
-        titre.style.color = "#0078d4";
-        titre.style.borderBottom = "3px solid #0078d4";
-        titre.style.paddingBottom = "5px";
-        titre.style.marginTop = "0";
-        titre.style.marginBottom = "15px";
+      // --- Données hospitalisation ---
+      const date = hospi.dateDebut || "Date inconnue";
+      const datef = hospi.dateFin || "Date inconnue";
+      const motif = hospi.motif || "—";
+      const gravite = hospi.gravite || "—";
+      const evolution = hospi.evolution || "Aucune évolution enregistrée.";
+      const dossier = hospi.dossierMedical || {};
+      const sortie = hospi.sortie || null;
+      const rapport = hospi.rapport || "Pas de rapport d'hospitalisation validé";
 
-        // --- Données de l'hospitalisation ---
-        const date = hospi.dateDebut || "Date inconnue";
-        const datef = hospi.dateFin || "Date inconnue";
-        const motif = hospi.motif || "—";
-        const gravite = hospi.gravite || "—";
-        const evolution = hospi.evolution || "Aucune évolution enregistrée.";
-        const dossier = hospi.dossierMedical || {};
-        const sortie = hospi.sortie || null;
-        const rapport = hospi.rapport || "Pas de rapport d'hospitalisation validé";
+      const parts = [];
+      parts.push(`<div class="entry"><strong>📅 Admission :</strong> ${date}</div>`);
+      parts.push(`<div class="entry"><strong>📅 Sortie :</strong> ${datef}</div>`);
+      parts.push(`<div class="entry"><strong>Motif :</strong> ${motif}</div>`);
+      parts.push(`<div class="entry"><strong>Gravité :</strong> ${gravite}</div>`);
+      parts.push(`<hr>`);
+      parts.push(`<h3>📋 Dossier médical</h3>`);
+      parts.push(`<p><strong>Questionnaire IAO :</strong><br>${dossier.questionnaire || "—"}</p>`);
+      parts.push(`<p><strong>Antécédents :</strong><br>${dossier.antecedents || "—"}</p>`);
+      parts.push(`<p><strong>Traitements :</strong><br>${dossier.traitements || "—"}</p>`);
+      parts.push(`<p><strong>Histoire de la maladie :</strong><br>${dossier.histoire || "—"}</p>`);
+      parts.push(`<p><strong>CR Auscultation :</strong><br>${dossier.auscultation || "—"}</p>`);
+      parts.push(`<hr>`);
+      parts.push(`<h3>📈 Évolution aux urgences</h3>`);
+      parts.push(`<p style="white-space:pre-wrap">${evolution}</p>`);
 
-        // --- Construction du contenu HTML ---
-        const parts = [];
-        parts.push(`<div class="entry"><strong>📅 Admission :</strong> ${date}</div>`);
-        parts.push(`<div class="entry"><strong>📅 Sortie :</strong> ${datef}</div>`);
-        parts.push(`<div class="entry"><strong>Motif :</strong> ${motif}</div>`);
-        parts.push(`<div class="entry"><strong>Gravité :</strong> ${gravite}</div>`);
+      // --- Sortie ---
+      if (sortie) {
         parts.push(`<hr>`);
-        parts.push(`<h3>📋 Dossier médical</h3>`);
-        parts.push(`<p><strong>Questionnaire IAO :</strong><br>${dossier.questionnaire || "—"}</p>`);
-        parts.push(`<p><strong>Antécédents :</strong><br>${dossier.antecedents || "—"}</p>`);
-        parts.push(`<p><strong>Traitements :</strong><br>${dossier.traitements || "—"}</p>`);
-        parts.push(`<p><strong>Histoire de la maladie :</strong><br>${dossier.histoire || "—"}</p>`);
-        parts.push(`<p><strong>CR Auscultation :</strong><br>${dossier.auscultation || "—"}</p>`);
-        parts.push(`<hr>`);
-        parts.push(`<h3>📈 Évolution aux urgences</h3>`);
-        parts.push(`<p style="white-space:pre-wrap">${evolution}</p>`);
+        parts.push(`<h3>🚪 Sortie</h3>`);
+        parts.push(`<p><strong>Type :</strong> ${sortie.type || "—"}</p>`);
+        if (sortie.serviceHospitalisation)
+          parts.push(`<p><strong>🏥 Service hospitalisation :</strong> ${sortie.serviceHospitalisation}</p>`);
+        if (sortie.destinationTransfert)
+          parts.push(`<p><strong>↔️ Destination transfert :</strong> ${sortie.destinationTransfert}</p>`);
+        if (sortie.avisSpecialiste)
+          parts.push(`<p><strong>👩‍⚕️ Avis spécialiste :</strong> ${sortie.avisSpecialiste}</p>`);
+        if (Array.isArray(sortie.options) && sortie.options.length > 0)
+          parts.push(`<p><strong>📋 Options :</strong> ${sortie.options.join(", ")}</p>`);
+        if (sortie.traitementSortie)
+          parts.push(`<p><strong>💊 Traitement de sortie :</strong><br>${sortie.traitementSortie}</p>`);
+        if (sortie.autreSortieTexte)
+          parts.push(`<p><strong>🔤 Autre :</strong> ${sortie.autreSortieTexte}</p>`);
+        if (sortie.autreOptionTexte)
+          parts.push(`<p><strong>🔤 Autre option :</strong> ${sortie.autreOptionTexte}</p>`);
+      }
 
-        // --- Sortie ---
-        if (sortie) {
-          parts.push(`<hr>`);
-          parts.push(`<h3>🚪 Sortie</h3>`);
-          parts.push(`<p><strong>Type :</strong> ${sortie.type || "—"}</p>`);
-          if (sortie.serviceHospitalisation)
-            parts.push(`<p><strong>🏥 Service hospitalisation :</strong> ${sortie.serviceHospitalisation}</p>`);
-          if (sortie.destinationTransfert)
-            parts.push(`<p><strong>↔️ Destination transfert :</strong> ${sortie.destinationTransfert}</p>`);
-          if (sortie.avisSpecialiste)
-            parts.push(`<p><strong>👩‍⚕️ Avis spécialiste :</strong> ${sortie.avisSpecialiste}</p>`);
-          if (Array.isArray(sortie.options) && sortie.options.length > 0)
-            parts.push(`<p><strong>📋 Options :</strong> ${sortie.options.join(", ")}</p>`);
-          if (sortie.traitementSortie)
-            parts.push(`<p><strong>💊 Traitement de sortie :</strong><br>${sortie.traitementSortie}</p>`);
-          if (sortie.autreSortieTexte)
-            parts.push(`<p><strong>🔤 Autre :</strong> ${sortie.autreSortieTexte}</p>`);
-          if (sortie.autreOptionTexte)
-            parts.push(`<p><strong>🔤 Autre option :</strong> ${sortie.autreOptionTexte}</p>`);
-        }
+      parts.push(`<p><strong></strong> ${rapport}</p>`);
 
-        parts.push(`<p><strong></strong> ${rapport}</p>`);
-
-        // --- Injection dans la carte ---
-        card.innerHTML = parts.join("\n");
-        card.prepend(titre); // ✅ ajoute le titre au début sans l'écraser
-        contenu.appendChild(card);
-        card.style.display = "";
-
-      });
+      card.innerHTML = parts.join("\n");
+      card.prepend(titre);
+      contenu.appendChild(card);
+      card.style.display = "";
+    }
 
   } catch (err) {
     console.error("Erreur chargement historique :", err);
@@ -4045,39 +4211,57 @@ async function chargerHistoriqueComplet() {
   }
 }
 
-
-
-
-
-
 async function chargerExamens() {
   try {
-    const snap = await patientRef.get();
-    if (!snap.exists) return;
+    // 1️⃣ Récupérer le patient
+    const patientDoc = await db.collection("patients").doc(patientId).get();
+    if (!patientDoc.exists) return;
 
-    const data = snap.data();
-    const hosp = data.hospitalisations?.[data.hospitalisationIndex];
-    if (!hosp || !hosp.examens) {
+    const patientData = patientDoc.data();
+
+    // 2️⃣ Déterminer l'hospitalisation active
+    const hospitalisationId = patientData.hospitalisationActiveId
+                              || (patientData.hospitalisations?.slice(-1)[0]);
+    if (!hospitalisationId) {
       document.getElementById("examensListe").innerHTML = "<i>Aucun examen enregistré.</i>";
       return;
     }
 
+    // 3️⃣ Charger l'hospitalisation
+    const hospiDoc = await db.collection("hospitalisations").doc(hospitalisationId).get();
+    if (!hospiDoc.exists) {
+      document.getElementById("examensListe").innerHTML = "<i>Aucun examen enregistré.</i>";
+      return;
+    }
+
+    const hosp = hospiDoc.data();
+    if (!hosp.examens || hosp.examens.length === 0) {
+      document.getElementById("examensListe").innerHTML = "<i>Aucun examen enregistré.</i>";
+      return;
+    }
+
+    // 4️⃣ Construire la liste HTML
     const liste = hosp.examens.map(ex => `
       <div class="examen-encart" style="margin-bottom:8px; padding:10px; border-radius:8px; background:${ex.realise ? '#eaf9ea' : '#f5faff'};">
-        <p><b>☢️Type :</b> ${ex.type || "N/A"}</p>
-        <p><b>💬Commentaire :</b> ${ex.commentaire || ""}</p>
-        <p><b>📅Date demande :</b> ${ex.dateDemande || "?"}</p>
-        ${ex.realise ? `<p><b>✅ Réalisé le :</b> ${ex.dateRealisation || "?"}</p>
-		<p><b>📄Compte rendu :</b> ${ex.compteRendu || ""}</p>` : ""}
+        <p><b>☢️ Type :</b> ${ex.type || "N/A"}</p>
+        <p><b>💬 Commentaire :</b> ${ex.commentaire || ""}</p>
+        <p><b>📅 Date demande :</b> ${ex.dateDemande || "?"}</p>
+        ${ex.realise 
+          ? `<p><b>✅ Réalisé le :</b> ${ex.dateRealisation || "?"}</p>
+             <p><b>📄 Compte rendu :</b> ${ex.compteRendu || ""}</p>`
+          : ""}
       </div>
     `).join("");
 
     document.getElementById("examensListe").innerHTML = liste || "<i>Aucun examen enregistré.</i>";
+
   } catch (e) {
     console.error("Erreur lors du chargement des examens :", e);
     document.getElementById("examensListe").innerHTML = "<i>Erreur de chargement.</i>";
   }
 }
+
+
 
 const originalOpenTab = window.openTab;
 window.openTab = function(tabName, evt) {
@@ -4086,31 +4270,52 @@ window.openTab = function(tabName, evt) {
     chargerExamens();
   }
 };
+// 🔹 Charger les actes
 async function chargerActes() {
   try {
-    const snap = await patientRef.get();
-    if (!snap.exists) return;
+    // 1️⃣ Récupérer le patient
+    const patientDoc = await db.collection("patients").doc(patientId).get();
+    if (!patientDoc.exists) return;
 
-    const data = snap.data();
-    const hosp = data.hospitalisations?.[data.hospitalisationIndex];
+    const patientData = patientDoc.data();
 
-    // Si aucun acte trouvé
-    if (!hosp || !hosp.actes) {
+    // 2️⃣ Déterminer l'hospitalisation active
+    const hospitalisationId = patientData.hospitalisationActiveId
+                              || (patientData.hospitalisations?.slice(-1)[0]);
+    if (!hospitalisationId) {
       document.getElementById("actesListe").innerHTML = "<i>Aucun acte enregistré.</i>";
       return;
     }
 
-    // Construire l'affichage HTML
+    // 3️⃣ Charger l'hospitalisation
+    const hospiDoc = await db.collection("hospitalisations").doc(hospitalisationId).get();
+    if (!hospiDoc.exists) {
+      document.getElementById("actesListe").innerHTML = "<i>Aucun acte enregistré.</i>";
+      return;
+    }
+
+    const hosp = hospiDoc.data();
+
+    if (!hosp.actes || hosp.actes.length === 0) {
+      document.getElementById("actesListe").innerHTML = "<i>Aucun acte enregistré.</i>";
+      return;
+    }
+
+    // 4️⃣ Construire l'affichage HTML
     const liste = hosp.actes.map((acte, i) => `
-  <div class="prescription-item" style="margin-bottom:8px; padding:10px; border-radius:8px; background:#f5faff;">
-    <p><b>💉 Type :</b> ${acte.type || "N/A"}</p>
-    <p><b>👨‍⚕️ Réalisé par :</b> ${acte.realisateur || "?"}</p>
-    <p><b>📅 Date :</b> ${acte.date || "?"}</p>
-    ${acte.remarque ? `<p><b>💬 Remarque :</b> ${acte.remarque}</p>` : ""}
-    <button class="btn-delete" onclick="supprimerActe(${i})">🗑</button>
-  </div>
-`).join("");
+      <div class="prescription-item" style="margin-bottom:8px; padding:10px; border-radius:8px; background:#f5faff;">
+        <p><b>💉 Type :</b> ${acte.type || "N/A"}</p>
+        <p><b>👨‍⚕️ Réalisé par :</b> ${acte.realisateur || "?"}</p>
+        <p><b>📅 Date :</b> ${acte.date || "?"}</p>
+        ${acte.remarque 
+          ? `<p><b>💬 Remarque :</b> ${acte.remarque}</p>` 
+          : ""}
+        <button class="btn-delete" onclick="supprimerActe(${i})">🗑</button>
+      </div>
+    `).join("");
+
     document.getElementById("actesListe").innerHTML = liste || "<i>Aucun acte enregistré.</i>";
+
   } catch (e) {
     console.error("Erreur lors du chargement des actes :", e);
     document.getElementById("actesListe").innerHTML = "<i>Erreur de chargement.</i>";
@@ -4118,38 +4323,50 @@ async function chargerActes() {
 }
 
 
+// 🔹 Supprimer un acte
 async function supprimerActe(indexActe) {
   try {
     if (!confirm("Supprimer cet acte ?")) return;
 
-    // Charger le document patient
-    const snap = await patientRef.get();
-    if (!snap.exists) {
-      window.location.href="aucun-patients.html";
-
+    // 1️⃣ Récupérer le patient
+    const patientDoc = await db.collection("patients").doc(patientId).get();
+    if (!patientDoc.exists) {
       afficherBulle("❌ Patient introuvable", "error");
+      window.location.href = "aucun-patients.html";
       return;
     }
 
-    const data = snap.data();
-    const hospIndex = data.hospitalisationIndex ?? 0;
-    const hospitalisations = data.hospitalisations || [];
-    const hosp = hospitalisations[hospIndex];
+    const patientData = patientDoc.data();
+    const hospitalisationId = patientData.hospitalisationActiveId
+                              || (patientData.hospitalisations?.slice(-1)[0]);
+    if (!hospitalisationId) {
+      afficherBulle("❌ Aucune hospitalisation active", "warning");
+      return;
+    }
 
-    if (!hosp || !hosp.actes) {
+    // 2️⃣ Récupérer l'hospitalisation
+    const hospiRef = db.collection("hospitalisations").doc(hospitalisationId);
+    const hospiDoc = await hospiRef.get();
+    if (!hospiDoc.exists) {
+      afficherBulle("❌ Hospitalisation introuvable", "error");
+      return;
+    }
+
+    const hosp = hospiDoc.data();
+    if (!hosp.actes || hosp.actes.length <= indexActe) {
       afficherBulle("❌ Aucun acte à supprimer", "warning");
       return;
     }
 
-    // Supprimer l'acte à l'indice donné
-    hosp.actes.splice(indexActe, 1);
+    // 3️⃣ Supprimer l'acte
+    const acteSupprime = hosp.actes.splice(indexActe, 1);
 
-    // Mettre à jour Firestore
-    hospitalisations[hospIndex] = hosp;
-    await patientRef.update({ hospitalisations });
+    // 4️⃣ Mettre à jour Firestore
+    await hospiRef.update({ actes: hosp.actes });
 
     afficherBulle("🗑️ Acte supprimé", "success");
-    await chargerActes(); // 🔄 Rafraîchir la liste à l’écran
+    await chargerActes(); // 🔄 Rafraîchir la liste
+
   } catch (err) {
     console.error("Erreur suppression acte :", err);
     afficherBulle("❌ Erreur lors de la suppression", "error");
@@ -4187,16 +4404,42 @@ async function chargerRealisateurs() {
 
 async function remplirDepuisAncienneHospi(champ) {
   try {
-    const doc = await patientRef.get();
-    const data = doc.data();
-    const index = data.hospitalisationIndex ?? 0;
+    const patientId = new URLSearchParams(window.location.search).get("id");
+    const patientRef = db.collection("patients").doc(patientId);
+    const patientSnap = await patientRef.get();
 
-    if (index <= 0) {
-      afficherBulle("❌ Aucune hospitalisation antérieure", "warning");
+    if (!patientSnap.exists) {
+      alert("Patient introuvable");
       return;
     }
 
-    const ancienne = data.hospitalisations?.[index - 1]?.dossierMedical;
+    const patientData = patientSnap.data();
+
+    // 🔹 Tableau des IDs d'hospitalisations
+    const hospitalisations = Array.isArray(patientData.hospitalisations) ? [...patientData.hospitalisations] : [];
+
+    // 🔹 Hospitalisation en cours (à exclure)
+    const hospiEnCours = patientData.hospitalisationActiveId;
+
+    // 🔹 On prend la dernière hospitalisation avant celle en cours
+    const anciennes = hospitalisations.filter(id => id !== hospiEnCours);
+
+    if (anciennes.length === 0) {
+      alert("Aucune hospitalisation antérieure");
+      return;
+    }
+
+    const derniereHospiId = anciennes[anciennes.length - 1];
+
+    // 🔥 Récupération du document hospitalisation
+    const hospiDoc = await db.collection("hospitalisations").doc(derniereHospiId).get();
+    if (!hospiDoc.exists) {
+      alert("Hospitalisation introuvable");
+      return;
+    }
+
+    const hospiData = hospiDoc.data();
+const ancienne = hospiData.dossierMedical
     if (!ancienne || !ancienne[champ]) {
       afficherBulle(`❌ Pas d'ancien contenu pour ${champ}`, "warning");
       return;
@@ -4224,6 +4467,10 @@ async function remplirDepuisAncienneHospi(champ) {
     afficherBulle("❌ Erreur de récupération", "error");
   }
 }
+
+
+
+
 
 
 
@@ -4329,88 +4576,80 @@ window.openDocumentFromMenu = function(tabId, file) {
 
 
 // ===============================
-// 👥 ÉQUIPE RÉFÉRENTE — VERSION DÉFINITIVE (SANS DATE)
+// 👥 ÉQUIPE RÉFÉRENTE — VERSION GESTURG2
 // ===============================
 
 const patientIdEquipe = new URLSearchParams(window.location.search).get("id");
 const patientRefEquipe = db.collection("patients").doc(patientIdEquipe);
 
-// ===============================
-// 🔎 Utilitaire hospitalisation courante
-// ===============================
-function getHospFromData(data) {
-  const idx = data.hospitalisationIndex;
-  if (!Array.isArray(data.hospitalisations) || !data.hospitalisations[idx]) {
-    throw "Hospitalisation invalide";
-  }
-  return { idx, hosp: data.hospitalisations[idx] };
+// 🔎 Déterminer hospitalisation active
+async function getHospActive() {
+  const snap = await patientRefEquipe.get();
+  if (!snap.exists) throw "Patient introuvable";
+
+  const data = snap.data();
+  const hospitalisationId = data.hospitalisationActiveId
+    || (Array.isArray(data.hospitalisations) ? data.hospitalisations.slice(-1)[0] : null);
+
+  if (!hospitalisationId) throw "Aucune hospitalisation active";
+
+  const hospiRef = db.collection("hospitalisations").doc(hospitalisationId);
+  const hospiSnap = await hospiRef.get();
+  if (!hospiSnap.exists) throw "Hospitalisation introuvable";
+
+  return { hospiRef, hospiData: hospiSnap.data() };
 }
 
-// ===============================
 // 💾 SAUVEGARDE ÉQUIPE (TRANSACTION SAFE)
-// ===============================
 async function saveEquipe(roleKey, equipeData) {
+  const { hospiRef, hospiData } = await getHospActive();
   await db.runTransaction(async (tx) => {
-    const snap = await tx.get(patientRefEquipe);
-    if (!snap.exists) throw "Patient introuvable";
+    const snap = await tx.get(hospiRef);
+    if (!snap.exists) throw "Hospitalisation introuvable";
 
     const data = snap.data();
-    const { idx } = getHospFromData(data);
-
-    const hospitalisations = [...data.hospitalisations];
-
-    hospitalisations[idx] = {
-      ...hospitalisations[idx],
+    const hospitalisationUpdate = {
+      ...data,
       equipe: {
-        ...(hospitalisations[idx].equipe || {}),
+        ...(data.equipe || {}),
         [roleKey]: equipeData
       }
     };
-
-    tx.update(patientRefEquipe, { hospitalisations });
+    tx.update(hospiRef, hospitalisationUpdate);
   });
 }
 
-// ===============================
 // ❌ SUPPRESSION ÉQUIPE
-// ===============================
 async function removeEquipe(roleKey) {
+  const { hospiRef, hospiData } = await getHospActive();
   await db.runTransaction(async (tx) => {
-    const snap = await tx.get(patientRefEquipe);
+    const snap = await tx.get(hospiRef);
     if (!snap.exists) return;
 
     const data = snap.data();
-    const { idx } = getHospFromData(data);
-
-    const hospitalisations = [...data.hospitalisations];
-    if (hospitalisations[idx].equipe) {
-      delete hospitalisations[idx].equipe[roleKey];
+    if (data.equipe) {
+      delete data.equipe[roleKey];
+      tx.update(hospiRef, { equipe: data.equipe });
     }
-
-    tx.update(patientRefEquipe, { hospitalisations });
   });
 }
 
-// ===============================
 // 👥 CHARGEMENT ÉQUIPE
-// ===============================
 async function chargerEquipeReferente() {
-  const snap = await patientRefEquipe.get();
-  if (!snap.exists) return;
+  try {
+    const { hospiData } = await getHospActive();
+    const equipe = hospiData.equipe || {};
 
-  const data = snap.data();
-  const { hosp } = getHospFromData(data);
-  const equipe = hosp.equipe || {};
-
-  setEquipeInput("medecinReferent", equipe.medecinReferent, "doc", "alerteMedecin");
-  setEquipeInput("infirmierReferent", equipe.infirmierReferent, "infirmier", "alerteInfirmier");
-  setEquipeInput("interneReferent", equipe.interneReferent, "Int", "alerteInterne");
-  setEquipeInput("externeReferent", equipe.externeReferent, "Ext", "alerteExterne");
+    setEquipeInput("medecinReferent", equipe.medecinReferent, "doc", "alerteMedecin");
+    setEquipeInput("infirmierReferent", equipe.infirmierReferent, "infirmier", "alerteInfirmier");
+    setEquipeInput("interneReferent", equipe.interneReferent, "Int", "alerteInterne");
+    setEquipeInput("externeReferent", equipe.externeReferent, "Ext", "alerteExterne");
+  } catch (err) {
+    console.error("Erreur chargement équipe :", err);
+  }
 }
 
-// ===============================
 // 🔎 Recherche utilisateur
-// ===============================
 function setupUserSearchEquipe(inputId, listId, expectedType, alertId, roleKey) {
   const input = document.getElementById(inputId);
   const list = document.getElementById(listId);
@@ -4424,7 +4663,6 @@ function setupUserSearchEquipe(inputId, listId, expectedType, alertId, roleKey) 
     if (q.length < 2) return;
 
     const snap = await db.collection("medecins").get();
-
     snap.forEach(d => {
       const u = d.data();
       if (!u.nom.toLowerCase().includes(q)) return;
@@ -4433,12 +4671,7 @@ function setupUserSearchEquipe(inputId, listId, expectedType, alertId, roleKey) 
       li.textContent = `${u.nom} (${u.type})`;
 
       li.onclick = async () => {
-        const equipeData = {
-          id: d.id,
-          nom: u.nom,
-          type: u.type
-        };
-
+        const equipeData = { id: d.id, nom: u.nom, type: u.type };
         await saveEquipe(roleKey, equipeData);
 
         input.value = u.nom;
@@ -4459,9 +4692,7 @@ function setupUserSearchEquipe(inputId, listId, expectedType, alertId, roleKey) 
   });
 }
 
-// ===============================
 // ❌ Boutons croix
-// ===============================
 function setupClearButton(inputId, clearBtnId, roleKey) {
   document.getElementById(clearBtnId).onclick = async () => {
     await removeEquipe(roleKey);
@@ -4471,9 +4702,7 @@ function setupClearButton(inputId, clearBtnId, roleKey) {
   };
 }
 
-// ===============================
 // 🔔 UI
-// ===============================
 function setEquipeInput(inputId, data, expectedType, alertId) {
   const input = document.getElementById(inputId);
   const alertBox = document.getElementById(alertId);
@@ -4493,9 +4722,7 @@ function setEquipeInput(inputId, data, expectedType, alertId) {
   }
 }
 
-// ===============================
 // 🚀 INIT
-// ===============================
 setupUserSearchEquipe("medecinReferent", "medecinSuggestions", "doc", "alerteMedecin", "medecinReferent");
 setupUserSearchEquipe("infirmierReferent", "infirmierSuggestions", "infirmier", "alerteInfirmier", "infirmierReferent");
 setupUserSearchEquipe("interneReferent", "interneSuggestions", "Int", "alerteInterne", "interneReferent");
@@ -4508,21 +4735,48 @@ setupClearButton("externeReferent", "clearExterne", "externeReferent");
 
 chargerEquipeReferente();
 
+async function getHospitalisationEnCours(patientId) {
+  if (!patientId) throw "Patient ID non fourni";
 
-async function getHospitalisationEnCours() {
-  const snap = await db
-    .collection("patients")
-    .doc(idPatient)
-    .collection("hospitalisations")
-    .where("cloturee", "==", false)
-    .limit(1)
-    .get();
+  try {
+    // 🔹 Récupérer le document patient
+    const patientDoc = await db.collection("patients").doc(patientId).get();
+    if (!patientDoc.exists) {
+      console.warn("Patient introuvable :", patientId);
+      return null;
+    }
 
-  if (snap.empty) return null;
-console.log("snap empty ?", snap.empty);
-if (!snap.empty) console.log("Hospitalisation trouvée :", snap.docs[0].id);
-  return snap.docs[0].id;
+    const patientData = patientDoc.data();
+    const hospiActiveId = patientData.hospitalisationActiveId;
+
+    if (!hospiActiveId) {
+      console.log("Aucun hospitalisationActiveId défini pour ce patient");
+      return null;
+    }
+
+    // 🔹 Vérifier que le document hospitalisation existe
+    const hospiDoc = await db
+      .collection("patients")
+      .doc(patientId)
+      .collection("hospitalisations")
+      .doc(hospiActiveId)
+      .get();
+
+    if (!hospiDoc.exists) {
+      console.warn("Hospitalisation référencée par hospitalisationActiveId introuvable :", hospiActiveId);
+      return null;
+    }
+
+    console.log("Hospitalisation active trouvée :", hospiDoc.id);
+    return hospiDoc.id;
+
+  } catch (err) {
+    console.error("Erreur récupération hospitalisation en cours :", err);
+    return null;
+  }
 }
+
+
 
 const input = document.getElementById("rechercheHistorique");
 
@@ -4840,12 +5094,9 @@ document.querySelector('[data-module="documents"]').addEventListener('click', ()
     openDocsTab('tab-docs', 'docs.html');
 });
 
-window.addEventListener("message", (event) => {
-    if (!event.data || !event.data.type) return;
 
-    // Relais vers shell.html
-    window.parent.postMessage(event.data, "*");
-});
+
+
 </script>
 
 </body>

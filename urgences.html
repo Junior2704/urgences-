@@ -806,8 +806,7 @@ function remplirFormulaireDepuisPatient(id, data) {
     resetForm();
   });
 
-  btnSavePatient.addEventListener("click", async () => {
-  const id = inputId.value;
+ btnSavePatient.addEventListener("click", async () => {
   const nom = inputNom.value.trim();
   const prenom = inputPrenom.value.trim();
   const dateNaiss = inputDateNaiss.value;
@@ -817,98 +816,109 @@ function remplirFormulaireDepuisPatient(id, data) {
   const moyen = document.getElementById("moyenPatient").value;
   const pdcStatut = "";
 
-
-
   if (!nom || !prenom || !dateNaiss) {
-    afficherBulle("Veuillez Remplir les champs obligatoires", "warning");
+    afficherBulle("Veuillez remplir les champs obligatoires", "warning");
     return;
   }
 
   const now = new Date().toLocaleString();
 
   try {
+    const id = inputId.value;
+
     if (id) {
-      
-      const docRef = db.collection("patients").doc(id);
-      const docSnap = await docRef.get();
-      if (!docSnap.exists) {
-    afficherBulle("Patient introuvable !", "error");
+      // 🔹 Patient existant
+      const patientRef = db.collection("patients").doc(id);
+      const patientSnap = await patientRef.get();
+      if (!patientSnap.exists) {
+        afficherBulle("Patient introuvable !", "error");
         return;
       }
 
-      const data = docSnap.data();
-      const hospitalisations = data.hospitalisations || [];
+      const patientData = patientSnap.data();
+      const hospitalisationsIds = Array.isArray(patientData.hospitalisations) ? [...patientData.hospitalisations] : [];
 
-      hospitalisations.push({
-  dateDebut: now,
-  gravite,
-  motif,
-  moyen,
-  historique: [],
-  evolutionTexte:{},
-  constantes: {},
-  antecedents:{},
-  traitements:{},
-  histoire:{},
-  auscultation:{},
-  examens: []
-});
-
-
-      await docRef.update({
-  nom,
-  prenom,
-  sexe,
-  dateNaissance: dateNaiss,
-  hospitalisationActive: true,
-  hospitalisationIndex: hospitalisations.length - 1,
-  hospitalisations,
-  position: "salle-attente"
-});
-
-modalAddPatient.classList.remove("active");
-    resetForm();
-          afficherBulle("Nouvelle hospitalisation crée !", "success");
-	        
-
-
-    } else {
-  const newDoc = await db.collection("patients").add({
-    nom,
-    prenom,
-    sexe,
-    dateNaissance: dateNaiss,
-    pdcStatut, 
-    hospitalisationActive: true,
-    hospitalisationIndex: 0,
-    hospitalisations: [
-      {
+      // 🔹 Créer une nouvelle hospitalisation
+      const hospiRef = await db.collection("hospitalisations").add({
+        patientId: id,
         dateDebut: now,
         gravite,
         motif,
-		moyen,
-circuit:"",
+        moyen,
+        circuit: "",
         historique: [],
-  evolutionTexte:{},
-  constantes: {},
-  antecedents:{},
-  traitements:{},
-  histoire:{},
-  auscultation:{},
-  examens: []
-      }
-    ],
-    position: "salle-attente"
-  });
+        evolutionTexte: {},
+        constantes: {},
+        antecedents: {},
+        traitements: {},
+        histoire: {},
+        auscultation: {},
+        examens: [],
+        cloturee: false
+      });
 
-  inputId.value = newDoc.id;
-    modalAddPatient.classList.remove("active");
-setTimeout(() => {
-  afficherBulle("Nouveau patient créé ! ", "success");
-}, 100);
-	    
+      hospitalisationsIds.push(hospiRef.id);
 
-}
+      await patientRef.update({
+        nom,
+        prenom,
+        sexe,
+        dateNaissance: dateNaiss,
+        hospitalisations: hospitalisationsIds,
+        hospitalisationActiveId: hospiRef.id,
+        pdcStatut,
+        position: "salle-attente"
+      });
+
+      modalAddPatient.classList.remove("active");
+      resetForm();
+      afficherBulle("Nouvelle hospitalisation créée !", "success");
+
+    } else {
+      // 🔹 Nouveau patient
+      const newPatientRef = await db.collection("patients").add({
+        nom,
+        prenom,
+        sexe,
+        dateNaissance: dateNaiss,
+        pdcStatut,
+        hospitalisations: [], // temporaire
+        hospitalisationActiveId: null,
+        position: "salle-attente"
+      });
+
+      // 🔹 Créer la première hospitalisation
+      const hospiRef = await db.collection("hospitalisations").add({
+        patientId: newPatientRef.id,
+        dateDebut: now,
+        gravite,
+        motif,
+        moyen,
+        circuit: "",
+        historique: [],
+        evolutionTexte: {},
+        constantes: {},
+        antecedents: {},
+        traitements: {},
+        histoire: {},
+        auscultation: {},
+        examens: [],
+        cloturee: false
+      });
+
+      // 🔹 Mettre à jour le patient avec tableau d’IDs + hospitalisationActiveId
+      await newPatientRef.update({
+        hospitalisations: [hospiRef.id],
+        hospitalisationActiveId: hospiRef.id
+      });
+
+      inputId.value = newPatientRef.id;
+      modalAddPatient.classList.remove("active");
+      setTimeout(() => {
+        afficherBulle("Nouveau patient créé !", "success");
+      }, 100);
+    }
+
     resetForm();
     rechargerPlan();
 
@@ -916,10 +926,7 @@ setTimeout(() => {
     console.error(err);
     afficherBulle("Erreur", "error");
   }
-  
-
 });
-
 
 
   // Reset formulaire
@@ -936,7 +943,7 @@ setTimeout(() => {
  async function chargerPatients() {
   afficherLoader()
  patients = {}; 
-  const snapshot = await db.collection("patients").where("hospitalisationActive", "==", true).get();
+  const snapshot = await db.collection("patients").where("hospitalisationActiveId", "!=", "").get();
   snapshot.forEach(doc => {
     const data = doc.data();
     patients[doc.id] = data;
@@ -946,73 +953,94 @@ setTimeout(() => {
 
 
   // Ajoute patient visuel sur la salle donnée
-  function ajouterPatientVisuel(id, nom, prenom, salleId) {
+  async function ajouterPatientVisuel(id, nom, prenom, salleId) {
   const salle = document.getElementById(salleId);
   if (!salle) return;
 
-  // On récupère la gravité depuis l'hospitalisation en cours
-  const index = patients[id].hospitalisationIndex ?? 0;
-  const hosp = patients[id].hospitalisations?.[index] || {};
-  const gravite = hosp.gravite || "P0";
+  try {
+    // Charger le patient
+    const patientDoc = await db.collection("patients").doc(id).get();
+    if (!patientDoc.exists) return;
+    const patient = patientDoc.data();
 
-  const div = document.createElement("div");
-  div.className = "patient";
-  div.dataset.id = id;
-  div.draggable = true;
-div.ondblclick = () => {
-  window.parent.postMessage(
-    {
-      type: "OPEN_TAB",
-      title: `Fiche Urgences ${nom} ${prenom}`,
-      url: `fiche.html?id=${id}&from=urgences`
-    },
-    "*"
-  );
-};  div.textContent = nom[0].toUpperCase() + prenom[0].toUpperCase();
+    // Charger l'hospitalisation active
+    let hosp = {};
+    if (patient.hospitalisationActiveId) {
+      const hospiDoc = await db
+        .collection("hospitalisations")
+        .doc(patient.hospitalisationActiveId)
+        .get();
+      if (hospiDoc.exists) hosp = hospiDoc.data();
+    }
 
+    const gravite = hosp.gravite || "P0";
 
-  const couleurs = {
-    P0: "#4CAF50",
-    P1: "#ffff00",
-    P2: "#FF9800",
-    P3: "#F44336",
-    Urgences_Vitales: "#000000",
-    Administratif: "#4169E1"
-  };
+    const div = document.createElement("div");
+    div.className = "patient";
+    div.dataset.id = id;
+    div.draggable = true;
+    div.ondblclick = () => {
+      window.parent.postMessage(
+        {
+          type: "OPEN_TAB",
+          title: `Fiche Urgences ${nom} ${prenom}`,
+          url: `fiche.html?id=${id}&from=urgences`
+        },
+        "*"
+      );
+    };
+    div.textContent = nom[0].toUpperCase() + prenom[0].toUpperCase();
 
-  div.style.backgroundColor = couleurs[gravite] || "gray";
-// Étoile rouge si allergie(s) importantes
-if (patients[id].importanceAllergies === true) {
-  const star = document.createElement("span");
-  star.className = "allergie-star";
-  star.textContent = "*";
-  div.appendChild(star);
+    const couleurs = {
+      P0: "#4CAF50",
+      P1: "#FFFF00",
+      P2: "#FF9800",
+      P3: "#F44336",
+      Urgences_Vitales: "#000000",
+      Administratif: "#4169E1"
+    };
+    div.style.backgroundColor = couleurs[gravite] || "gray";
+
+    // Étoile rouge si allergies importantes
+    if (patient.importanceAllergies === true) {
+      const star = document.createElement("span");
+      star.className = "allergie-star";
+      star.textContent = "*";
+      div.appendChild(star);
+    }
+
+    // Drag events
+    div.addEventListener("dragstart", e => {
+      e.dataTransfer.setData("id", id);
+    });
+
+    salle.appendChild(div);
+
+    // Popover
+    let pop;
+    div.addEventListener("mouseenter", (e) => {
+      const content = `
+        <strong>${nom} ${prenom}</strong><br/>
+        Naissance : ${patient.dateNaissance || 'N/A'}<br/>
+        Motif : ${hosp.motif || 'N/A'}<br/>
+        Gravité : ${gravite || 'N/A'}<br/>
+        Statut : ${hosp.pdcStatut || 'Aucun'}<br/>
+        Circuit : ${hosp.circuit || 'Aucun'}<br/>
+      `;
+      pop = createPopover(content, e.clientX + 10, e.clientY + 10);
+    });
+
+    div.addEventListener("mouseleave", () => {
+      if (pop) pop.remove();
+    });
+
+    masquerLoader();
+  } catch (err) {
+    console.error("Erreur ajout patient visuel :", err);
+  }
 }
-  // Drag events
-  div.addEventListener("dragstart", e => {
-    e.dataTransfer.setData("id", id);
-  });
 
-  salle.appendChild(div);
 
-  let pop;
-  div.addEventListener("mouseenter", (e) => {
-    const content = `
-      <strong>${nom} ${prenom}</strong><br/>
-      Naissance : ${patients[id].dateNaissance || 'N/A'}<br/>
-      Motif : ${hosp.motif || 'N/A'}<br/>
-      Gravité : ${gravite || 'N/A'}<br/>
-	    Statut : ${patients[id].pdcStatut || 'Aucun'}<br/>
-      Circuit : ${hosp.circuit || 'Aucun'}<br/>
-    `;
-    pop = createPopover(content, e.clientX + 10, e.clientY + 10);
-  });
-
-  div.addEventListener("mouseleave", () => {
-    if (pop) pop.remove();
-  });
-  masquerLoader()
-}
 
 
   salles.forEach(zone => {
@@ -1050,7 +1078,7 @@ recherchePatient.addEventListener("input", async (e) => {
 
   const snapshot = await db
     .collection("patients")
-    .where("hospitalisationActive", "==", true)
+    .where("hospitalisationActiveId", "!=", "")
     .get();
 
   let results = [];
@@ -1256,63 +1284,12 @@ window.addEventListener("message", (event) => {
 
   if (event.data.type === "USER_CONNECTED") {
     const user = event.data.user;
-    console.log("Utilisateur reçu depuis le shell :", user);
-    // Ici tu peux charger les données Firestore de ce médecin
+    
   }
 });
 
   // Auth state + récupération du médecin
-  onAuthStateChanged(auth, async (user) => {
-    afficherLoader();
-  if (!user) {
-    window.location.href = "index.html";
-  } else {
-    try {
-      const docRef = doc(db, "medecins", user.uid);
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        const medecinNom = data.nom || "";
-        const medecinSpecialite = data.specialite || "";
-        const medecinLieu = data.lieu || "";
-
-        // Met à jour aussi les variables globales sur window
-        window.medecinNom = medecinNom;
-        window.medecinSpecialite = medecinSpecialite;
-        window.medecinLieu = medecinLieu;
-
-        // Mise à jour des éléments HTML si présents
-        const nomElem = document.getElementById("nom-medecin");
-        if (nomElem) nomElem.textContent = medecinNom;
-
-        const specElem = document.getElementById("specialite");
-        if (specElem) specElem.textContent = medecinSpecialite;
-
-        const lieuElem = document.getElementById("lieu-medecin");
-        if (lieuElem) lieuElem.textContent = medecinLieu;
-
-        // --- Vérification d'accès à la page ---
-        const pages = data.pages || {};
-        const currentPath = window.location.pathname;
-        const currentPage = currentPath.substring(currentPath.lastIndexOf("/") + 1).replace(".html", "");
-
-        if (!pages[currentPage]) {
-          alert("⛔️ Vous n’avez pas accès à cette page.");
-          window.location.href = "index.html";
-          return; // Stoppe le script ici
-        }
-      } else {
-        // Document inexistant — redirection
-        alert("Utilisateur non trouvé, veuillez vous reconnecter.");
-        window.location.href = "index.html";
-      }
-    } catch (error) {
-      console.error("Erreur chargement médecin :", error);
-      alert("Une erreur est survenue, veuillez réessayer plus tard.");
-    }
-  }
-  masquerLoader()
-});
+  
 
   
 </script>

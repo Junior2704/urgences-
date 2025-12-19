@@ -463,141 +463,179 @@ let pdfBase64 = "";
 
 // Charger données depuis Firestore
 async function chargerDepuisFirestore() {
-  const doc = await patientRef.get();
-  if (!doc.exists) {
-    afficherBulle("❌Patient non trouvé","alerte");
-    return;
+  try {
+    const patientRef = db.collection("patients").doc(patientId);
+    const doc = await patientRef.get();
+
+    if (!doc.exists) {
+      afficherBulle("❌ Patient non trouvé", "alerte");
+      return;
+    }
+
+    const data = doc.data();
+    window.patientData = data;
+
+    const patientEmail = data.email || "";
+    const sexe = data.sexe || '';
+    const nom = data.nom || '';
+    const prenom = data.prenom || '';
+    const dateNaissance = data.dateNaissance || '';
+    const dateNaissance2 = convertirDateEnFrancais(dateNaissance);
+    const age = dateNaissance ? `${calculerAge(dateNaissance)} ans` : '';
+    const adresse = data.adresse || '';
+
+    // 🔹 Hospitalisation active via hospitalisationActiveId
+    const hospiId = data.hospitalisationActiveId;
+    let hospi = {};
+    if (hospiId) {
+      const hospiSnap = await db.collection("hospitalisations").doc(hospiId).get();
+      if (hospiSnap.exists) {
+        hospi = hospiSnap.data();
+      }
+    }
+
+    const dateDebut = hospi.dateDebut || '';
+    const motif = hospi.motif || '';
+    const moyen = hospi.moyen || '';
+
+    const meds = hospi.meds || [];
+
+    document.getElementById("medicaments").value =
+      meds.length > 0
+        ? "Médicaments administrés aux urgences :\n\n" +
+          meds.map(m => {
+            let ligne = `• ${m.product || "Médicament non renseigné"}`;
+            if (m.createdAt) ligne += `\n   ↳ Prescrit le : ${m.createdAt}`;
+            if (m.dueAt) ligne += `\n   ↳ Pour le : ${m.dueAt}`;
+            if (m.comment) ligne += `\n   ↳ Commentaire prescription : ${m.comment}`;
+            if (m.status === "pris") {
+              if (m.takenAt) ligne += `\n   ↳ Administré le : ${m.takenAt}`;
+              if (m.takeComment) ligne += `\n   ↳ Commentaire administration : ${m.takeComment}`;
+            } else {
+              ligne += `\n   ↳ Non administré`;
+            }
+            return ligne;
+          }).join('\n\n')
+        : "";
+
+    document.getElementById("identite").value =
+      `${sexe} ${prenom} ${nom}, \nNé(e) le ${dateNaissance2}, ${age} \n${adresse}\nCIP (Code d'Identification Patient) : ${patientId}`;
+
+    document.getElementById("hospitalisation").value =
+      `Ouverture du dossier : ${hospi.dateDebut || ''} \nMotif d'entrée : ${hospi.motif || ''} \nMoyen d'entrée : ${hospi.moyen || ''}\nClôture du dossier : ${hospi.sortie?.date || "—"}`;
+
+    document.getElementById("medical").value =
+      `Questionnaire IAO :\n${hospi.dossierMedical?.questionnaire || ''}\n\n` +
+      `Antécédents médicaux:\n${hospi.dossierMedical?.antecedents || ''}\n\n` +
+      `Traitements en cours :\n${hospi.dossierMedical?.traitements || ''}\n\n` +
+      `Histoire de la maladie :\n${hospi.dossierMedical?.histoire || ''}\n\n` +
+      `Auscultation initiale :\n${hospi.dossierMedical?.auscultation || ''}`;
+
+    document.getElementById("evolution").value = hospi.evolution || '';
+    document.getElementById("constantes").value =
+      `Température : ${hospi.constantes?.temperature || ''}°C\nFC : ${hospi.constantes?.fc || ''} bpm\nTA : ${hospi.constantes?.ta || ''}\nSaturation : ${hospi.constantes?.saturation || ''}%\nFR : ${hospi.constantes?.fr || ''}\nDouleur : ${hospi.constantes?.douleur || ''}/10`;
+
+    document.getElementById("examens").value =
+      (hospi.examens || []).map(e => {
+        const commentaire = e.commentaire || '';
+        const typeAvecCommentaire = commentaire.trim() !== '' ? `${e.type} (${commentaire})` : e.type;
+        return `• ${typeAvecCommentaire} : demandé le ${e.dateDemande || "?"}, réalisé le ${e.dateRealisation || "?"}\n   Résultat : ${e.compteRendu || 'en attente'}`;
+      }).join('\n');
+
+    document.getElementById("actes").value =
+      (hospi.actes || []).map(a => {
+        const remarques = a.remarques ? ` : ${a.remarques}` : '';
+        return `• ${a.date || '?'} : ${a.type} par ${a.realisateur || 'inconnu'}${remarques}`;
+      }).join('\n');
+
+    if (!hospi.sortie) {
+      document.getElementById("sortie").value = '';
+    } else {
+      const sortie = hospi.sortie;
+      let texte = '';
+      if (sortie.type) texte += `Type : ${sortie.type}\n`;
+      if (sortie.options && sortie.options.length > 0) texte += `Options : ${sortie.options.join(', ')}\n\n`;
+      if (sortie.destinationTransfert) texte += `Destination : ${sortie.destinationTransfert}\n\n`;
+      if (sortie.serviceHospitalisation) texte += `Service : ${sortie.serviceHospitalisation}\n\n`;
+      if (sortie.avisSpecialiste) texte += `Avis : ${sortie.avisSpecialiste}\n\n`;
+      if (sortie.traitementSortie) texte += `Traitement sortie : \n${sortie.traitementSortie}\n`;
+      document.getElementById("sortie").value = texte.trim();
+    }
+
+    // Rapport existant
+    if (hospi.rapport) {
+      const modal = document.getElementById("choixRapportModal");
+      if (modal) modal.style.display = "flex";
+
+      document.getElementById("btnOuvrir").onclick = () => {
+        champs.forEach(c => {
+          document.getElementById(c).value = hospi.rapport[c] || "";
+        });
+        setRapportValide(false);
+        modal.style.display = "none";
+        afficherBulle("✅ Rapport existant chargé !", "administratif");
+      };
+
+      document.getElementById("btnEcraser").onclick = () => {
+        afficherBulle("✏️ Nouveau rapport initialisé", "administratif");
+        setRapportValide(false);
+        modal.style.display = "none";
+      };
+
+      return; // attendre choix de l'utilisateur
+    }
+
+    // Ajuster textarea
+    champs.forEach(id => autoResizeTextarea(document.getElementById(id)));
+
+  } catch (err) {
+    console.error(err);
+    afficherBulle("Erreur chargement patient : " + err.message, "error");
   }
-  const data = doc.data();
-  const index = data.hospitalisationIndex ?? 0;
-  const hospi = data.hospitalisations?.[index] || {};
-
-
-
-const patientEmail = data.email || "";
-
-
-  const sexe = data.sexe || '';
-  const nom = data.nom || '';
-  const prenom = data.prenom || '';
-  const dateNaissance = data.dateNaissance || '';
-  const dateNaissance2 = convertirDateEnFrancais(dateNaissance)
-  const age = dateNaissance ? `${calculerAge(dateNaissance)} ans` : '';
-  const dateDebut=hospi.dateDebut || '';
-  const motif = hospi.motif || '';
-  const moyen = hospi.moyen || '';
-  const adresse = data.adresse || '';
-window.patientData = data;
-const meds = hospi.meds;
-
-document.getElementById("medicaments").value =
-  Array.isArray(meds) && meds.length > 0
-    ? "Médicaments administrés aux urgences :\n\n" +
-      meds.map(m => {
-        let ligne = `• ${m.product || "Médicament non renseigné"}`;
-
-        // Prescription
-        if (m.createdAt) ligne += `\n   ↳ Prescrit le : ${m.createdAt}`;
-        if (m.dueAt) ligne += `\n   ↳ Pour le : ${m.dueAt}`;
-        if (m.comment) ligne += `\n   ↳ Commentaire prescription : ${m.comment}`;
-
-        // Administration
-        if (m.status === "pris") {
-          if (m.takenAt) ligne += `\n   ↳ Administré le : ${m.takenAt}`;
-          if (m.takeComment) ligne += `\n   ↳ Commentaire administration : ${m.takeComment}`;
-        } else {
-          ligne += `\n   ↳ Non administré`;
-        }
-
-
-        return ligne;
-      }).join('\n\n')
-    : "";
-
-
-
-  document.getElementById("identite").value =
-    `${sexe} ${prenom} ${nom}, \nNé(e) le ${dateNaissance2}, ${age} \n${adresse}\nCIP (Code d'Identification Patient) : ${patientId}`;
-document.getElementById("hospitalisation").value = 
-  `Ouverture du dossier : ${hospi.dateDebut} \nMotif d'entrée : ${hospi.motif} \nMoyen d'entrée : ${hospi.moyen}\nClôture du dossier : ${hospi.sortie?.date || "—"}`;
-  document.getElementById("medical").value = `   Questionnaitre IAO :\n${hospi.dossierMedical?.questionnaire || ''}\n\n
-   Antécédents médicaux:\n${hospi.dossierMedical?.antecedents || ''}\n\n
-   Traitements en cours :\n${hospi.dossierMedical?.traitements || ''}\n\n
-   Histoire de la maladie :\n${hospi.dossierMedical?.histoire || ''}\n\n
-   Auscultation initiale :\n${hospi.dossierMedical?.auscultation || ''}`;
-  document.getElementById("evolution").value = hospi.evolution || '';
-  document.getElementById("constantes").value = `Température : ${hospi.constantes?.temperature || ''}°C\nFC : ${hospi.constantes?.fc || ''} bpm\nTA : ${hospi.constantes?.ta || ''}\nSaturation : ${hospi.constantes?.saturation || ''}%\nFR : ${hospi.constantes?.fr || ''}\nDouleur : ${hospi.constantes?.douleur || ''}/10`;
-document.getElementById("examens").value = (hospi.examens || []).map(e => {
-  const commentaire = e.commentaire || ''; 
-  const typeAvecCommentaire = commentaire.trim() !== '' ? `${e.type} (${commentaire})` : e.type;
-  return `• ${typeAvecCommentaire} : demandé le ${e.dateDemande}, réalisé le ${e.dateRealisation}\n   Résultat :${e.compteRendu || 'en attente'}`;
-}).join('\n');
-document.getElementById("actes").value = (hospi.actes_realises || []).map(a => {
-  const remarques = a.remarques ? ` : ${a.remarques}` : '';
-  return `• ${a.date} : ${a.type} par ${a.realisateur || 'inconnu'}${remarques}`;
-}).join('\n');
-if (!hospi.sortie) {
-  document.getElementById("sortie").value = '';
-} else {
-  const sortie = hospi.sortie;
-  let texte = '';
-
-  if (sortie.type) texte += `Type : ${sortie.type}\n`;
-  if (sortie.options && sortie.options.length > 0) texte += `Options : ${sortie.options.join(', ')}\n\n`;
-  if (sortie.destinationTransfert) texte += `Destination : ${sortie.destinationTransfert}\n\n`;
-  if (sortie.serviceHospitalisation) texte += `Service : ${sortie.serviceHospitalisation}\n\n`;
-  if (sortie.avisSpecialiste) texte += `Avis : ${sortie.avisSpecialiste}\n\n`;
-  if (sortie.traitementSortie) texte += `Traitement sortie : \n${sortie.traitementSortie}\n`;
-
-  document.getElementById("sortie").value = texte.trim();
 }
 
-  // Si rapport existant, on le charge pour modification ou affichage readonly
-if (hospi.rapport) {
-  const modal = document.getElementById("choixRapportModal");
-if (modal) modal.style.display = "flex";
-
-
-  // Bouton "ouvrir rapport existant"
-  document.getElementById("btnOuvrir").onclick = () => {
-    champs.forEach(c => {
-      document.getElementById(c).value = hospi.rapport[c] || "";
-    });
-    setRapportValide(false);
-    modal.style.display = "none";
-	  afficherBulle("✅Rapport existant chargé !", "administratif");
-  };
-
-  // Bouton "écraser et créer un nouveau"
-  document.getElementById("btnEcraser").onclick = () => {
-    afficherBulle("✏️ Nouveau rapport initialisé", "administratif");
-    setRapportValide(false);
-    modal.style.display = "none";
-  };
-
-  return; // attend que l'utilisateur choisisse
-}
-
-  // Ajuste hauteur textarea
-  champs.forEach(id => autoResizeTextarea(document.getElementById(id)));
-}
 
 // Enregistrer dans Firestore
 async function enregistrerDansFirestore() {
-  const values = {};
-  champs.forEach(id => values[id] = document.getElementById(id).value);
-  values.valide = true; // marque le rapport comme validé
+  try {
+    // Récupération des valeurs depuis les champs
+    const values = {};
+    champs.forEach(id => values[id] = document.getElementById(id).value);
+    values.valide = true; // marque le rapport comme validé
 
-  const doc = await patientRef.get();
-  const data = doc.data();
-  const index = data.hospitalisationIndex ?? 0;
-  const hospitalisations = [...(data.hospitalisations || [])];
-  hospitalisations[index] = {
-    ...hospitalisations[index],
-    rapport: values
-  };
-  await patientRef.update({ hospitalisations });
+    // Récupérer le document patient
+    const patientSnap = await patientRef.get();
+    if (!patientSnap.exists) {
+      afficherBulle("❌ Patient introuvable", "error");
+      return;
+    }
+
+    const patientData = patientSnap.data();
+    const hospiId = patientData.hospitalisationActiveId;
+
+    if (!hospiId) {
+      afficherBulle("❌ Aucune hospitalisation active", "warning");
+      return;
+    }
+
+    // Récupérer le document hospitalisation
+    const hospiRef = db.collection("hospitalisations").doc(hospiId);
+    const hospiSnap = await hospiRef.get();
+    if (!hospiSnap.exists) {
+      afficherBulle("❌ Hospitalisation introuvable", "warning");
+      return;
+    }
+
+    // Mettre à jour le rapport dans l'hospitalisation
+    await hospiRef.update({ rapport: values });
+
+    afficherBulle("✔️ Rapport enregistré", "success");
+  } catch (err) {
+    console.error("Erreur enregistrement rapport :", err);
+    afficherBulle("❌ Erreur lors de l'enregistrement", "error");
+  }
 }
+
 
 
 
@@ -1028,7 +1066,7 @@ hideLoadingModal()
 
   onAuthStateChanged(auth, async (user) => {
     if (!user) {
-      window.location.href = "accueil.html";
+      //window.location.href = "index.html";
     } else {
       const docSnap = await getDoc(doc(db, "medecins", user.uid));
       if (docSnap.exists()) {
@@ -1049,7 +1087,7 @@ let medecinNom = "";
 
   onAuthStateChanged(auth, async (user) => {
   if (!user) {
-    window.location.href = "accueil.html";
+    window.location.href = "index.html";
   } else {
     try {
       const docRef = doc(db, "medecins", user.uid);
@@ -1101,34 +1139,3 @@ let medecinNom = "";
 
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
