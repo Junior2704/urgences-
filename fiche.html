@@ -2985,18 +2985,20 @@ const boxMoyen = document.getElementById("suggestionsMoyen");
 
 let moyensListe = [];
 
-// 🔹 Chargement depuis Firestore
+// 🔹 Chargement Firestore (API globale)
 async function chargerMoyens() {
-  const ref = doc(db, "referentiels", "moyens");
-  const snap = await getDoc(ref);
+  const snap = await db
+    .collection("referentiels")
+    .doc("moyens")
+    .get();
 
-  if (snap.exists() && Array.isArray(snap.data().liste)) {
+  if (snap.exists && Array.isArray(snap.data().liste)) {
     moyensListe = snap.data().liste;
   }
 }
 chargerMoyens();
 
-// 🔹 Suggestions dynamiques
+// 🔹 Autocomplétion
 inputMoyen.addEventListener("input", () => {
   const valeur = inputMoyen.value.toLowerCase().trim();
   boxMoyen.innerHTML = "";
@@ -3021,7 +3023,7 @@ inputMoyen.addEventListener("input", () => {
     div.textContent = moyen;
 
     div.addEventListener("mousedown", () => {
-      inputMoyen.value = moyen;       // ✅ pré-remplissage
+      inputMoyen.value = moyen;
       boxMoyen.style.display = "none";
     });
 
@@ -3036,7 +3038,8 @@ document.addEventListener("click", e => {
   if (!e.target.closest("#moyen")) {
     boxMoyen.style.display = "none";
   }
-});	
+});
+
 // --- Rafraîchissement des champs dynamiques ---
 function rafraichirChampsSortie() {
   const typeSortie = document.querySelector('input[name="typeSortie"]:checked')?.value;
