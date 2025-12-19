@@ -1629,6 +1629,28 @@ nav:hover .nav-item span {
   align-items: center;
   gap: 10px; /* espace entre les éléments */
 }
+.suggestions-box {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  max-height: 160px;
+  overflow-y: auto;
+  display: none;
+  z-index: 1000;
+}
+
+.suggestion-item {
+  padding: 8px 10px;
+  cursor: pointer;
+}
+
+.suggestion-item:hover {
+  background-color: #eef3ff;
+}
 
   </style>
 
@@ -1854,8 +1876,19 @@ nav:hover .nav-item span {
    <label for="motif">🤕 Motif d'entrée</label>
   <input type="text" id="motif" placeholder="Motif d'entrée" class="text2" />
 
-  <label for="moyen">🚑 Moyen d'entrée</label>
-  <input type="text" id="moyen" placeholder="Moyen d'entrée" class="text2" />
+ <label for="moyen">🚑 Moyen d'entrée</label>
+
+<div style="position: relative;">
+  <input
+    type="text"
+    id="moyen"
+    placeholder="Moyen d'entrée"
+    class="text2"
+    autocomplete="off"
+  />
+  <div id="suggestionsMoyen" class="suggestions-box"></div>
+</div>
+
   <label for="gravite" >🚨 Gravité</label>
   <select id="gravite"class="text2" >
     <option value="P0">P0</option>
@@ -2946,7 +2979,64 @@ async function updateHospitalisationField(field, value) {
   document.getElementById("modalExamen").style.display = "block";
 });
 
-	
+// --- barre de recherche moyens ---
+const inputMoyen = document.getElementById("moyen");
+const boxMoyen = document.getElementById("suggestionsMoyen");
+
+let moyensListe = [];
+
+// 🔹 Chargement depuis Firestore
+async function chargerMoyens() {
+  const ref = doc(db, "referentiels", "moyens");
+  const snap = await getDoc(ref);
+
+  if (snap.exists() && Array.isArray(snap.data().liste)) {
+    moyensListe = snap.data().liste;
+  }
+}
+chargerMoyens();
+
+// 🔹 Suggestions dynamiques
+inputMoyen.addEventListener("input", () => {
+  const valeur = inputMoyen.value.toLowerCase().trim();
+  boxMoyen.innerHTML = "";
+
+  if (!valeur) {
+    boxMoyen.style.display = "none";
+    return;
+  }
+
+  const filtres = moyensListe.filter(m =>
+    m.toLowerCase().includes(valeur)
+  );
+
+  if (filtres.length === 0) {
+    boxMoyen.style.display = "none";
+    return;
+  }
+
+  filtres.forEach(moyen => {
+    const div = document.createElement("div");
+    div.className = "suggestion-item";
+    div.textContent = moyen;
+
+    div.addEventListener("mousedown", () => {
+      inputMoyen.value = moyen;       // ✅ pré-remplissage
+      boxMoyen.style.display = "none";
+    });
+
+    boxMoyen.appendChild(div);
+  });
+
+  boxMoyen.style.display = "block";
+});
+
+// 🔹 Fermer si clic ailleurs
+document.addEventListener("click", e => {
+  if (!e.target.closest("#moyen")) {
+    boxMoyen.style.display = "none";
+  }
+});	
 // --- Rafraîchissement des champs dynamiques ---
 function rafraichirChampsSortie() {
   const typeSortie = document.querySelector('input[name="typeSortie"]:checked')?.value;
