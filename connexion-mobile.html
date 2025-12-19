@@ -183,11 +183,12 @@ button:active {
   font-size: 0.95rem;
 }
 
-/* 🟦 LOADER FULL SCREEN */
+
+/* 🟦 Loader plein écran */
 #loader {
   position: fixed;
   inset: 0;
-  background: white;
+  background: #f4f6f8;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -195,30 +196,99 @@ button:active {
   z-index: 9999;
 }
 
-/* Logo loader */
-#loaderLogo {
+/* Wrapper principal */
+.loader-wrapper {
+  position: relative;
   width: 180px;
-  margin-bottom: 30px;
-  animation: fade 1.2s infinite alternate;
+  height: 180px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-@keyframes fade {
-  from { opacity: 0.4; }
-  to { opacity: 1; }
-}
-
-/* Spinner */
-.spinner {
-  width: 48px;
-  height: 48px;
-  border: 5px solid #ddd;
-  border-top-color: #1976d2;
+/* Halo lumineux */
+.loader-wrapper::before {
+  content: "";
+  position: absolute;
+  width: 140px;
+  height: 140px;
   border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+  background: rgba(21,101,192,0.18);
+  filter: blur(22px);
+  animation: glow 2.8s ease-in-out infinite;
+  z-index: 0;
 }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
+/* Logo */
+#logo {
+  width: 120px;
+  position: absolute;
+  z-index: 2;
+  animation: breathe 2.6s ease-in-out infinite;
+}
+
+/* Anneau externe */
+.spinner-ring {
+  position: absolute;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    #0d47a1,
+    #1565c0,
+    #42a5f5,
+    #90caf9,
+    #42a5f5,
+    #1565c0,
+    #0d47a1
+  );
+  mask: radial-gradient(farthest-side, transparent 72%, #000 73%);
+  -webkit-mask: radial-gradient(farthest-side, transparent 72%, #000 73%);
+  animation: spin 1.3s linear infinite;
+  z-index: 1;
+}
+
+/* Anneau interne */
+.spinner-ring.inner {
+  width: 140px;
+  height: 140px;
+  background: conic-gradient(
+    from 180deg,
+    rgba(21,101,192,0.15),
+    rgba(66,165,245,0.6),
+    rgba(144,202,249,0.9),
+    rgba(66,165,245,0.6),
+    rgba(21,101,192,0.15)
+  );
+  mask: radial-gradient(farthest-side, transparent 75%, #000 76%);
+  -webkit-mask: radial-gradient(farthest-side, transparent 75%, #000 76%);
+  animation: spinReverse 0.9s linear infinite;
+}
+
+/* Texte */
+.loading-text {
+  margin-top: 30px;
+  font-size: 14px;
+  color: #1565c0;
+  letter-spacing: 0.6px;
+  animation: fadeText 1.8s ease-in-out infinite;
+}
+
+/* Animations */
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes spinReverse { to { transform: rotate(-360deg); } }
+@keyframes breathe {
+  0%,100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.05); opacity: 0.92; }
+}
+@keyframes glow {
+  0%,100% { transform: scale(0.9); opacity: 0.6; }
+  50% { transform: scale(1.1); opacity: 1; }
+}
+@keyframes fadeText {
+  0%,100% { opacity: 0.4; }
+  50% { opacity: 1; }
 }
 
 
@@ -228,10 +298,17 @@ button:active {
 <body>
 
 <!-- 🟦 LOADER FULL SCREEN -->
+<!-- 🟦 LOADER FULLSCREEN PREMIUM -->
 <div id="loader">
-  <img src="logo.png" id="loaderLogo">
-  <div class="spinner"></div>
+  <div class="loader-wrapper">
+    <img id="logo" src="logo.png" alt="Logo">
+    <div class="spinner-ring"></div>
+    <div class="spinner-ring inner"></div>
+  </div>
+
+  <div class="loading-text">Connexion sécurisée…</div>
 </div>
+
 
 <!-- 📱 LOGIN MOBILE -->
 <div id="loginBox">
