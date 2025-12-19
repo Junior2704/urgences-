@@ -383,7 +383,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 async function loadMedicaments() {
   try {
-    const res = await fetch("medicament.json");
+    const res = await fetch("medicaments.json");
     medicaments = await res.json();
     renderMedicaments(medicaments);
   } catch (e) {
