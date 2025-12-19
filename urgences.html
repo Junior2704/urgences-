@@ -517,6 +517,23 @@ footer {
   position: relative;
 }
 
+.suggestions-box {
+  position: absolute;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  max-height: 150px;
+  overflow-y: auto;
+  z-index: 1002;
+  width: calc(100% - 10px);
+}
+.suggestion-item {
+  padding: 6px 10px;
+  cursor: pointer;
+}
+.suggestion-item:hover {
+  background: #f0f8ff;
+}
 
 
   </style>
@@ -619,7 +636,9 @@ Connecté en tant que <b><span id="nom-medecin"></span></b> (<span id="specialit
   <option value="Administratif">Administratif</option>
 </select>
 <label for="moyenPatient">Moyen d'entrée</label>
-    <input type="text" id="moyenPatient" autocomplete="off" />
+<input type="text" id="moyenPatient" autocomplete="off" />
+<div id="suggestionsMoyenPatient" class="suggestions-box"></div>
+
 <div id="modalAddPatientButtons" style="display: flex; gap: 30px;">
 <button id="readVitaleBtn" style="background-color: #28a745; color: white;">🆔 Lecture Carte Vitale</button>
   <button id="btnSavePatient">✅ Valider</button>
@@ -805,6 +824,48 @@ function remplirFormulaireDepuisPatient(id, data) {
     modalAddPatient.classList.remove("active");
     resetForm();
   });
+const inputPatient = document.getElementById("moyenPatient");
+const boxPatient = document.getElementById("suggestionsMoyenPatient");
+
+let moyensListe = [];
+
+// Charger la liste depuis Firestore (réutilise le même document)
+db.collection("référentiels").doc("moyens").get().then(snap => {
+  if (snap.exists && Array.isArray(snap.data().liste)) {
+    moyensListe = snap.data().liste;
+    console.log("Moyens chargés:", moyensListe);
+  } else {
+    console.log("Aucun moyen trouvé ou liste manquante");
+  }
+});
+
+// Affichage des suggestions
+inputPatient.addEventListener("input", () => {
+  const valeur = inputPatient.value.toLowerCase().trim();
+  boxPatient.innerHTML = "";
+
+  if (!valeur) { boxPatient.style.display = "none"; return; }
+
+  const filtres = moyensListe.filter(m => m.toLowerCase().includes(valeur));
+
+  filtres.forEach(moyen => {
+    const div = document.createElement("div");
+    div.className = "suggestion-item";
+    div.textContent = moyen;
+    div.addEventListener("mousedown", () => {
+      inputPatient.value = moyen;
+      boxPatient.style.display = "none";
+    });
+    boxPatient.appendChild(div);
+  });
+
+  boxPatient.style.display = filtres.length ? "block" : "none";
+});
+
+// Fermer la liste si clic en dehors
+document.addEventListener("click", e => {
+  if (!e.target.closest("#moyenPatient")) boxPatient.style.display = "none";
+});
 
  btnSavePatient.addEventListener("click", async () => {
   const nom = inputNom.value.trim();
