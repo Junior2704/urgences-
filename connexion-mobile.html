@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta charset="UTF-8">
 <title>Connexion Mobile</title>
 <link rel="icon" type="image/jpeg" href="logo.png">
@@ -112,66 +113,105 @@ onAuthStateChanged(auth, async (user) => {
 
 <style>
 body {
-  font-family: sans-serif;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  margin: 0;
+  padding: 0;
+  font-family: system-ui, -apple-system, sans-serif;
+  background: #f5f7fa;
   height: 100vh;
-  background: #f4f4f4;
 }
+
+/* 📱 BOX MOBILE */
 #loginBox {
-  background: white;
-  padding: 30px;
-  border-radius: 10px;
-  box-shadow: 0 0 15px rgba(0,0,0,0.1);
+  display: none;
+  min-height: 100vh;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: stretch;
+  max-width: 420px;
+  margin: auto;
+}
+
+/* Logo */
+.logo {
+  width: 160px;
+  margin: 0 auto 30px;
+}
+
+/* Titre */
+h2 {
   text-align: center;
-  width: 300px;
+  margin-bottom: 25px;
+  color: #1565c0;
 }
-input, button {
-  width: 100%;
-  padding: 10px;
-  margin-top: 10px;
-  border-radius: 8px;
+
+/* Champs tactiles */
+input {
+  font-size: 1rem;
+  padding: 16px;
+  margin-bottom: 15px;
+  border-radius: 12px;
+  border: 1px solid #ccc;
+  outline: none;
 }
+
+input:focus {
+  border-color: #1976d2;
+}
+
+/* Bouton principal */
 button {
+  padding: 16px;
+  font-size: 1.1rem;
+  border-radius: 14px;
   background: #1976d2;
   color: white;
   border: none;
+  margin-top: 10px;
 }
-button:hover { opacity: 0.9; }
-/* 🟦 Écran de chargement full-screen */
+
+button:active {
+  transform: scale(0.98);
+}
+
+/* Message erreur */
+#message {
+  margin-top: 15px;
+  text-align: center;
+  color: red;
+  font-size: 0.95rem;
+}
+
+/* 🟦 LOADER FULL SCREEN */
 #loader {
   position: fixed;
-  top: 0; left: 0;
-  width: 100vw;
-  height: 100vh;
+  inset: 0;
   background: white;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   z-index: 9999;
-  transition: opacity 0.4s ease;
 }
 
-/* Logo centré */
+/* Logo loader */
 #loaderLogo {
   width: 180px;
-  margin-bottom: 25px;
+  margin-bottom: 30px;
   animation: fade 1.2s infinite alternate;
 }
 
-/* Animation légère du logo */
 @keyframes fade {
   from { opacity: 0.4; }
   to { opacity: 1; }
 }
 
-/* Spinner professionnel */
+/* Spinner */
 .spinner {
-  width: 45px;
-  height: 45px;
-  border: 5px solid #d1d1d1;
+  width: 48px;
+  height: 48px;
+  border: 5px solid #ddd;
   border-top-color: #1976d2;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
@@ -181,30 +221,32 @@ button:hover { opacity: 0.9; }
   to { transform: rotate(360deg); }
 }
 
-/* Cacher la box de connexion tant que pas validé */
-#loginBox {
-  display: none;
-}
 
 </style>
 
 </head>
 <body>
 
-<div id="loginBox">
-  <h2>🔐 Connexion</h2>
-  <input type="email" id="email" placeholder="Email">
-  <input type="password" id="password" placeholder="Mot de passe">
-  <button onclick="seConnecter()">Se connecter</button>
-  <div id="message" style="color:red;margin-top:10px;"></div>
-  <img src="logo.png" width="200">
-  <!-- ⭐ ÉCRAN DE CHARGEMENT ⭐ -->
+<!-- 🟦 LOADER FULL SCREEN -->
 <div id="loader">
   <img src="logo.png" id="loaderLogo">
   <div class="spinner"></div>
 </div>
 
+<!-- 📱 LOGIN MOBILE -->
+<div id="loginBox">
+  <img src="logo.png" class="logo">
+
+  <h2>Connexion</h2>
+
+  <input type="email" id="email" placeholder="Email" autocomplete="username">
+  <input type="password" id="password" placeholder="Mot de passe" autocomplete="current-password">
+
+  <button onclick="seConnecter()">Se connecter</button>
+
+  <div id="message"></div>
 </div>
 
 </body>
+
 </html>
