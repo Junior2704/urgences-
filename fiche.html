@@ -2988,7 +2988,7 @@ let moyensListe = [];
 // 🔹 Chargement Firestore (API globale)
 async function chargerMoyens() {
   const snap = await db
-    .collection("referentiels")
+    .collection("référentiels")
     .doc("moyens")
     .get();
 
