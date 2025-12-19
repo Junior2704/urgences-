@@ -754,6 +754,7 @@ const STATUTS_ATTENTE = [
   }
 
   async function updateMedicalDashboard() {
+  try {
     const snapshot = await db.collection('patients')
       .where('hospitalisationActive', '==', true)
       .get();
@@ -767,24 +768,25 @@ const STATUTS_ATTENTE = [
     snapshot.forEach(doc => {
       const data = doc.data() || {};
       counts.total++;
-const id = doc.id;
+      const id = doc.id;
       const nom = data.nom || '';
       const prenom = data.prenom || '';
       const position = data.position || '';
       const pdcStatut = data.pdcStatut || '';
 
-      const index = data.hospitalisationIndex ?? (data.hospitalisations?.length - 1);
+      // Récupération de l'hospitalisation active
+      let index = 0;
+      if (data.hospitalisationActiveId && Array.isArray(data.hospitalisations)) {
+        index = data.hospitalisations.findIndex(h => h.id === data.hospitalisationActiveId);
+        if (index === -1) index = data.hospitalisations.length - 1;
+      } else {
+        index = data.hospitalisations?.length - 1 ?? 0;
+      }
       const hosp = data.hospitalisations?.[index] || {};
-const equipe = hosp.equipe || {};
-const medecinAbsent = !equipe.medecinReferent?.nom;
 
-const phaseAttente = isPhaseAttente(pdcStatut);
-
-
-const med = equipe.medecinReferent;
-const ide = equipe.infirmierReferent;
-const interne = equipe.interneReferent;
-const externe = equipe.externeReferent;
+      const equipe = hosp.equipe || {};
+      const medecinAbsent = !equipe.medecinReferent?.nom;
+      const phaseAttente = isPhaseAttente(pdcStatut);
 
       const gravite = hosp.gravite || '';
       const motif = hosp.motif || '';
@@ -793,7 +795,6 @@ const externe = equipe.externeReferent;
       const posLower = position.toLowerCase();
       const gravLower = gravite.toLowerCase();
       const circuitLower = circuit.toLowerCase();
-
 
       if (posLower.includes('attente') || posLower.includes('sortie')) counts.attente++;
       if (gravLower.includes('admin')) counts.admin++;
@@ -806,33 +807,28 @@ const externe = equipe.externeReferent;
       else if (circuitLower.includes('gyn')) circuits.gyn++;
       else if (circuitLower.includes('psy')) circuits.psy++;
       else circuits.general++;
-const dateDebutStr = hosp.dateDebut || '';
-let tempsEcoule = '—';
 
-if (dateDebutStr) {
-  // Firestore stocke le format "28/10/2025 19:07:04"
-  const [jour, mois, annee, heure, minute, seconde] = dateDebutStr.match(/\d+/g).map(Number);
-  const dateDebut = new Date(annee, mois-1, jour, heure, minute, seconde);
-  const now = new Date();
-  const diffMs = now - dateDebut;
+      // Calcul temps écoulé depuis admission
+      const dateDebutStr = hosp.dateDebut || '';
+      let tempsEcoule = '—';
+      if (dateDebutStr) {
+        const [jour, mois, annee, heure, minute, seconde] = dateDebutStr.match(/\d+/g).map(Number);
+        const dateDebut = new Date(annee, mois - 1, jour, heure, minute, seconde);
+        const now = new Date();
+        const diffMs = now - dateDebut;
+        const diffHeures = Math.floor(diffMs / (1000 * 60 * 60));
+        const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+        tempsEcoule = `${diffHeures}h ${diffMinutes}m`;
+      }
 
-  const diffHeures = Math.floor(diffMs / (1000 * 60 * 60));
-  const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+      // Vigilances
+      let vigilances = 'aucune';
+      if (data.vigilances && typeof data.vigilances === 'string' && data.vigilances.trim() !== '') {
+        vigilances = data.vigilances.trim();
+      }
+      const vigilanceClass = (vigilances !== 'aucune') ? 'vigilance-alert' : 'vigilance-none';
 
-  tempsEcoule = `${diffHeures}h ${diffMinutes}m`;
-}
-// Récupération sécurisée du champ vigilances
-let vigilances = 'aucune';
-if (data.vigilances && typeof data.vigilances === 'string' && data.vigilances.trim() !== '') {
-  vigilances = data.vigilances.trim();
-}
-
-// Classe pour alerte visuelle si vigilance présente
-const vigilanceClass = (vigilances !== 'aucune') ? 'vigilance-alert' : 'vigilance-none';
-
-
-            const tr = document.createElement('tr');
-
+      const tr = document.createElement('tr');
       if (gravLower.includes('p3') || gravLower.includes('vital')) tr.classList.add('grav-p3');
       else if (gravLower.includes('p2')) tr.classList.add('grav-p2');
       else if (gravLower.includes('p1')) tr.classList.add('grav-p1');
@@ -840,56 +836,55 @@ const vigilanceClass = (vigilances !== 'aucune') ? 'vigilance-alert' : 'vigilanc
 
       if (pdcStatut.toLowerCase().includes('oui')) tr.classList.add('pdc-oui');
       if (pdcStatut.toLowerCase().includes('non')) tr.classList.add('pdc-non');
-if (!phaseAttente && medecinAbsent) {
-  tr.classList.add('alert-equipe');
+      if (!phaseAttente && medecinAbsent) tr.classList.add('alert-equipe');
+
+      const allergiesImportant = data.importanceAllergies && data.allergies;
+      const iconAllergies = allergiesImportant 
+        ? `<span class="tooltip">⭐<span class="tooltiptext">${data.allergies}</span></span>` 
+        : '';
+      const iconCritique = gravLower.includes('p3') || gravLower.includes('vital') ? '🔥' : '';
+      const iconPDC = pdcStatut.toLowerCase().includes('non') ? '❌' : '';
+
+      tr.innerHTML = `
+        <td>${iconCritique} ${nom} ${iconAllergies}</td>
+        <td>${prenom}</td>
+        <td class="${vigilanceClass}">${vigilances}</td>
+        <td>${gravite}</td>
+        <td>${motif}</td>
+        <td>${circuit}</td>
+        <td>${iconPDC} ${pdcStatut}</td>
+        <td>${position}</td>
+        <td>${tempsEcoule}</td>
+        <td>${formatEquipe(equipe)}</td>
+      `;
+
+      tr.ondblclick = () => {
+        window.parent.postMessage({
+          type: "OPEN_TAB",
+          title: `Fiche Urgences ${nom} ${prenom}`,
+          url: `fiche.html?id=${id}&from=urgences`
+        }, "*");
+      };
+
+      tbody.appendChild(tr);
+    });
+
+    const pec = Math.max(counts.total - counts.attente, 0);
+    setVal('total', counts.total);
+    setVal('attente', counts.attente);
+    setVal('pec', pec);
+    setVal('critique', counts.critique);
+    setVal('couche', counts.couche);
+    setVal('admin', counts.admin);
+
+    Object.keys(circuits).forEach(c => setVal(`circuit-${c}`, circuits[c]));
+    applyFilters();
+
+  } catch (err) {
+    console.error("Erreur dashboard :", err);
+  }
 }
-// Icones pour alertes
-const allergiesImportant = data.importanceAllergies && data.allergies;
-const iconAllergies = allergiesImportant 
-    ? `<span class="tooltip">⭐<span class="tooltiptext">${data.allergies}</span></span>` 
-    : '';
-const iconCritique = gravLower.includes('p3') || gravLower.includes('vital') ? '🔥' : '';
-const iconPDC = pdcStatut.toLowerCase().includes('non') ? '❌' : '';
 
-tr.innerHTML = `
-  <td>${iconCritique} ${nom} ${iconAllergies}</td>
-  <td>${prenom}</td>
-<td class="${vigilanceClass}">${vigilances}</td>
-  <td>${gravite}</td>
-  <td>${motif}</td>
-  <td>${circuit}</td>
-  <td>${iconPDC} ${pdcStatut}</td>
-  <td>${position}</td>
-  <td>${tempsEcoule}</td>
-  <td>${formatEquipe(equipe)}</td>
-`;
-
-tr.ondblclick = () => {
-  window.parent.postMessage(
-    {
-      type: "OPEN_TAB",
-      title: `Fiche Urgences ${nom} ${prenom}`,
-      url: `fiche.html?id=${id}&from=urgences`
-    },
-    "*"
-  );
-};
-tbody.appendChild(tr);
-}); // ← fin snapshot.forEach
-const pec = Math.max(counts.total - counts.attente, 0);
-
-setVal('total', counts.total);
-setVal('attente', counts.attente);
-setVal('pec', pec);
-setVal('critique', counts.critique);
-setVal('couche', counts.couche);
-setVal('admin', counts.admin);
-
-Object.keys(circuits).forEach(c => setVal(`circuit-${c}`, circuits[c]));
-
-applyFilters();
-
-} // ← fin updateMedicalDashboard
 
 function isPhaseAttente(pdcStatut) {
   if (!pdcStatut) return true;
