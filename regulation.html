@@ -753,9 +753,8 @@ const STATUTS_ATTENTE = [
     if (el) el.textContent = val;
   }
 
-  async function updateMedicalDashboard() {
+async function updateMedicalDashboard() {
   try {
-    // Récupérer tous les patients hospitalisés
     const snapshot = await db.collection('patients')
       .where('hospitalisationActive', '==', true)
       .get();
@@ -769,34 +768,29 @@ const STATUTS_ATTENTE = [
     for (const doc of snapshot.docs) {
       const data = doc.data() || {};
       counts.total++;
+
       const id = doc.id;
       const nom = data.nom || '';
       const prenom = data.prenom || '';
       const position = data.position || '';
       const pdcStatut = data.pdcStatut || '';
 
-      // Récupération de l'hospitalisation active depuis la collection hospitalisations
       let hosp = {};
       if (data.hospitalisationActiveId) {
-        const hospDoc = await db.collection('hospitalisations').doc(data.hospitalisationActiveId).get();
-        if (hospDoc.exists) {
-          hosp = hospDoc.data();
-        }
+        const hospDoc = await db.collection('hospitalisations')
+          .doc(data.hospitalisationActiveId)
+          .get();
+        if (hospDoc.exists) hosp = hospDoc.data();
       }
 
-      const equipe = hosp.equipe || {};
-      const medecinAbsent = !equipe.medecinReferent?.nom;
-      const phaseAttente = isPhaseAttente(pdcStatut);
+      const gravite = hosp.gravite ?? '—';
+      const motif   = hosp.motif   ?? '—';
+      const circuit = hosp.circuit ?? '—';
 
-   const gravite = hosp.gravite ?? '—';
-const motif   = hosp.motif   ?? '—';
-const circuit = hosp.circuit ?? '—';
-
-      const posLower = position.toLowerCase();
       const gravLower = gravite.toLowerCase();
       const circuitLower = circuit.toLowerCase();
 
-      if (posLower.includes('attente') || posLower.includes('sortie')) counts.attente++;
+      if (position.toLowerCase().includes('attente')) counts.attente++;
       if (gravLower.includes('admin')) counts.admin++;
       if (gravLower.match(/p0|p1|p2/)) counts.couche++;
       if (gravLower.includes('p3') || gravLower.includes('vital')) counts.critique++;
@@ -808,98 +802,69 @@ const circuit = hosp.circuit ?? '—';
       else if (circuitLower.includes('psy')) circuits.psy++;
       else circuits.general++;
 
-      // Calcul temps écoulé depuis admission
+      /* ⏱ TEMPS ÉCOULÉ */
       let tempsEcoule = '—';
-
-if (hosp.dateDebut?.seconds) {
-  const dateDebut = new Date(hosp.dateDebut.seconds * 1000);
-  const diffMs = Date.now() - dateDebut;
-  const h = Math.floor(diffMs / 3600000);
-  const m = Math.floor((diffMs % 3600000) / 60000);
-  tempsEcoule = `${h}h ${m}m`;
-}
-
+      if (hosp.dateDebut?.seconds) {
+        const dateDebut = new Date(hosp.dateDebut.seconds * 1000);
+        const diffMs = Date.now() - dateDebut;
+        const h = Math.floor(diffMs / 3600000);
+        const m = Math.floor((diffMs % 3600000) / 60000);
+        tempsEcoule = `${h}h ${m}m`;
       }
 
-      // Vigilances
-      let vigilances = 'aucune';
-      if (data.vigilances && typeof data.vigilances === 'string' && data.vigilances.trim() !== '') {
-        vigilances = data.vigilances.trim();
-      }
-      const vigilanceClass = (vigilances !== 'aucune') ? 'vigilance-alert' : 'vigilance-none';
+      /* VIGILANCES */
+      const vigilances = data.vigilances?.trim() || 'aucune';
+      const vigilanceClass = vigilances !== 'aucune'
+        ? 'vigilance-alert'
+        : 'vigilance-none';
 
       const tr = document.createElement('tr');
-    if (gravLower.includes('p3') || gravLower.includes('vital')) {
-  tr.classList.add('grav-p3');
-} 
-else if (gravLower.includes('p2')) {
-  tr.classList.add('grav-p2');
-} 
-else if (gravLower.includes('p1')) {
-  tr.classList.add('grav-p1');
-} 
-else if (
-  gravLower.includes('p0') ||
-  gravLower.includes('relatif') ||
-  gravLower.includes('administratif')
-) {
-  tr.classList.add('grav-p0');
-}
 
-    if (pdcStatut.toLowerCase().includes('oui')) {
-  tr.classList.add('pdc-oui');
-} else if (pdcStatut.toLowerCase().includes('non')) {
-  tr.classList.add('pdc-non');
-}
+      /* 🎨 COULEURS GRAVITÉ */
+      if (gravLower.includes('p3') || gravLower.includes('vital')) tr.classList.add('grav-p3');
+      else if (gravLower.includes('p2')) tr.classList.add('grav-p2');
+      else if (gravLower.includes('p1')) tr.classList.add('grav-p1');
+      else if (gravLower.includes('p0') || gravLower.includes('admin') || gravLower.includes('relatif'))
+        tr.classList.add('grav-p0');
 
-      if (!phaseAttente && medecinAbsent) tr.classList.add('alert-equipe');
-
-      const allergiesImportant = data.importanceAllergies && data.allergies;
-      const iconAllergies = allergiesImportant 
-        ? `<span class="tooltip">⭐<span class="tooltiptext">${data.allergies}</span></span>` 
-        : '';
-      const iconCritique = gravLower.includes('p3') || gravLower.includes('vital') ? '🔥' : '';
-      const iconPDC = pdcStatut.toLowerCase().includes('non') ? '❌' : '';
+      /* PDC */
+      if (pdcStatut.toLowerCase().includes('oui')) tr.classList.add('pdc-oui');
+      else if (pdcStatut.toLowerCase().includes('non')) tr.classList.add('pdc-non');
 
       tr.innerHTML = `
-        <td>${iconCritique} ${nom} ${iconAllergies}</td>
+        <td>${nom}</td>
         <td>${prenom}</td>
         <td class="${vigilanceClass}">${vigilances}</td>
         <td>${gravite}</td>
         <td>${motif}</td>
         <td>${circuit}</td>
-        <td>${iconPDC} ${pdcStatut}</td>
+        <td>${pdcStatut}</td>
         <td>${position}</td>
         <td>${tempsEcoule}</td>
-        <td>${formatEquipe(equipe)}</td>
+        <td>—</td>
       `;
-
-      tr.ondblclick = () => {
-        window.parent.postMessage({
-          type: "OPEN_TAB",
-          title: `Fiche Urgences ${nom} ${prenom}`,
-          url: `fiche.html?id=${id}&from=urgences`
-        }, "*");
-      };
 
       tbody.appendChild(tr);
     }
 
-    const pec = Math.max(counts.total - counts.attente, 0);
     setVal('total', counts.total);
     setVal('attente', counts.attente);
-    setVal('pec', pec);
+    setVal('pec', Math.max(counts.total - counts.attente, 0));
     setVal('critique', counts.critique);
     setVal('couche', counts.couche);
     setVal('admin', counts.admin);
 
-    Object.keys(circuits).forEach(c => setVal(`circuit-${c}`, circuits[c]));
+    Object.keys(circuits).forEach(c =>
+      setVal(`circuit-${c}`, circuits[c])
+    );
+
     applyFilters();
 
   } catch (err) {
-    console.error("Erreur dashboard :", err);
+    console.error('❌ Erreur updateMedicalDashboard :', err);
   }
 }
+
 
 
 function isPhaseAttente(pdcStatut) {
