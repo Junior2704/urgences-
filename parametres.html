@@ -233,7 +233,10 @@
   </h2>
   <ul id="facturablesList"></ul>
 </div>
-
+<div class="section">
+    <h2>🚑 Moyens <button class="btn btn-add" onclick="openModal('moyens')">➕ Ajouter</button></h2>
+    <ul id="moyensList"></ul>
+  </div>
 <!-- Modale spécifique pour les facturables -->
 <div class="modal" id="modalFacturable">
   <div class="modal-content">
@@ -421,6 +424,8 @@ onAuthStateChanged(auth, async (user) => {
 
 
 const actesListEl = document.getElementById('actesList');
+const moyensListEl = document.getElementById('moyensList');
+
 const personnelListEl = document.getElementById('personnelList');
 let actes = [];
 let personnel = [];
@@ -459,7 +464,7 @@ spécialités = spécialitésSnap.exists() ? spécialitésSnap.data().spécialit
 }
 
 function renderList(type, array) {
-const container = type === "actes" ? actesListEl : type === "spécialités" ? document.getElementById("spécialitésList") : personnelListEl;
+const container = type === "actes" ? actesListEl : type === "moyens" ? moyensListEl : type === "spécialités" ? document.getElementById("spécialitésList") : personnelListEl;
   container.innerHTML = "";
   array.forEach((item, index) => {
     const li = document.createElement("li");
@@ -475,6 +480,7 @@ const container = type === "actes" ? actesListEl : type === "spécialités" ? do
     window.location.href = "afficheur-patient.html";
   });
 window.updateItem = async (type, index, newValue) => {
+    if (type === "moyens") moyens[index] = newValue;
   if (type === "actes") actes[index] = newValue;
   if (type === "personnel") personnel[index] = newValue;
   if (type === "spécialités") spécialités[index] = newValue;
@@ -483,6 +489,7 @@ window.updateItem = async (type, index, newValue) => {
 };
 
 window.removeItem = async (type, index) => {
+    if (type === "moyens") moyens.splice(index, 1);
   if (type === "actes") actes.splice(index, 1);
   if (type === "personnel") personnel.splice(index, 1);
   if (type === "spécialités") spécialités.splice(index, 1);
@@ -500,6 +507,7 @@ window.openModal = (type) => {
 window.confirmModal = async () => {
   const val = document.getElementById("modalInput").value.trim();
   if (!val) return;
+    if (currentType === "moyens") moyens.push(val);
   if (currentType === "actes") actes.push(val);
   if (currentType === "personnel") personnel.push(val);
     if (currentType === "spécialités") spécialités.push(val);
