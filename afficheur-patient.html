@@ -474,56 +474,82 @@ async function updateCounts() {
       .get();
 
     const counts = { total: 0, attente: 0, couche: 0, critique: 0, admin: 0 };
+    const circuits = { general: 0, pediatrie: 0, traumato: 0, ophtalmo: 0, gyn: 0, psy: 0 };
 
-    snapshot.forEach(doc => {
+    for (const doc of snapshot.docs) {
       const data = doc.data() || {};
       counts.total++;
 
-      // 🔹 Position
+      // 🔹 Position (reste côté patient)
       const pos = (data.position || "").toLowerCase();
 
-      // 🔹 Récupération de la gravité depuis l’hospitalisation en cours
+      // 🔹 Chargement hospitalisation active
       let gravite = "";
-      if (Array.isArray(data.hospitalisations)) {
-        const index = data.hospitalisationIndex ?? (data.hospitalisations.length - 1);
-        const hosp = data.hospitalisations[index] || {};
-        gravite = (hosp.gravite || "").toLowerCase();
+      let circuit = "";
+
+      if (data.hospitalisationActiveId) {
+        const hospSnap = await db
+          .collection("hospitalisations")
+          .doc(data.hospitalisationActiveId)
+          .get();
+
+        if (hospSnap.exists) {
+          const hosp = hospSnap.data() || {};
+          gravite = (hosp.gravite || "").toLowerCase();
+          circuit = (hosp.circuit || "").toLowerCase();
+        }
       }
 
-      // Comptages
+      // =====================
+      // Comptages principaux
+      // =====================
+
       if (
         pos.includes("attente") ||
         pos.includes("sortie") ||
         pos.includes("nv-couche")
-      
       ) {
         counts.attente++;
       }
-      
+
       if (gravite.includes("admin")) counts.admin++;
-  if (
+
+      if (
         gravite.includes("p0") ||
         gravite.includes("p1") ||
-        gravite.includes("p2") 
- 
+        gravite.includes("p2")
       ) {
         counts.couche++;
       }
 
-      // ✅ Détection étendue des urgences vitales
+      // ✅ urgences vitales étendues
       if (
         gravite.includes("vital") ||
         gravite.includes("urgences_vitales") ||
         gravite.includes("urgence vitale") ||
-        gravite.includes("p3") 
+        gravite.includes("p3")
       ) {
         counts.critique++;
       }
-    });
+
+      // =====================
+      // Comptage circuits
+      // =====================
+
+      if (circuit.includes("péd") || circuit.includes("ped")) circuits.pediatrie++;
+      else if (circuit.includes("trauma")) circuits.traumato++;
+      else if (circuit.includes("opht")) circuits.ophtalmo++;
+      else if (circuit.includes("gyn")) circuits.gyn++;
+      else if (circuit.includes("psy")) circuits.psy++;
+      else circuits.general++;
+    }
 
     const pec = Math.max(counts.total - counts.attente, 0);
 
-    // 🔹 Mise à jour visuelle
+    // =====================
+    // Mise à jour visuelle
+    // =====================
+
     animateUpdate(document.getElementById("total"), counts.total);
     animateUpdate(document.getElementById("attente"), counts.attente);
     animateUpdate(document.getElementById("pec"), pec);
@@ -531,38 +557,18 @@ async function updateCounts() {
     animateUpdate(document.getElementById("critique"), counts.critique);
     animateUpdate(document.getElementById("admin"), counts.admin);
 
-
-// --- Comptage des circuits particuliers ---
-// --- Comptage des circuits particuliers ---
-const circuits = { general: 0, pediatrie: 0, traumato: 0, ophtalmo: 0, gyn: 0, psy: 0 };
-
-snapshot.forEach(doc => {
-  const data = doc.data();
-  const index = data.hospitalisationIndex ?? 0;
-  const hosp = data.hospitalisations?.[index] || {};
-  const circuit = (hosp.circuit || "").toLowerCase();
-
-  if (circuit.includes("péd") || circuit.includes("ped")) circuits.pediatrie++;
-  else if (circuit.includes("trauma")) circuits.traumato++;
-  else if (circuit.includes("ophtalmo")) circuits.ophtalmo++;
-  else if (circuit.includes("gyn")) circuits.gyn++;
-  else if (circuit.includes("psy")) circuits.psy++;
-  else circuits.general++; // ✔️ tous les autres vont dans "général"
-});
-
-// --- Affichage circuits particuliers ---
-animateUpdate(document.getElementById("circuit-general"), circuits.general);
-animateUpdate(document.getElementById("circuit-pediatrie"), circuits.pediatrie);
-animateUpdate(document.getElementById("circuit-traumato"), circuits.traumato);
-animateUpdate(document.getElementById("circuit-ophtalmo"), circuits.ophtalmo);
-animateUpdate(document.getElementById("circuit-gyn"), circuits.gyn);
-animateUpdate(document.getElementById("circuit-psy"), circuits.psy);
-
+    animateUpdate(document.getElementById("circuit-general"), circuits.general);
+    animateUpdate(document.getElementById("circuit-pediatrie"), circuits.pediatrie);
+    animateUpdate(document.getElementById("circuit-traumato"), circuits.traumato);
+    animateUpdate(document.getElementById("circuit-ophtalmo"), circuits.ophtalmo);
+    animateUpdate(document.getElementById("circuit-gyn"), circuits.gyn);
+    animateUpdate(document.getElementById("circuit-psy"), circuits.psy);
 
   } catch (err) {
     console.error("Erreur Firestore:", err);
   }
 }
+
 
     updateCounts();
     setInterval(updateCounts, 100);
