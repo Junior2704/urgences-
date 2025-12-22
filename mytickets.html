@@ -208,7 +208,7 @@ document.getElementById("acceptAlert").addEventListener("click", () => {
   vibrationEnabled = true;
   localStorage.setItem("alerteActif", "true"); // enregistrement
   if("vibrate" in navigator){
-    navigator.vibrate([200,100,300,150,400,100,300,200,200]); // vibration sophistiquée
+    navigator.vibrate([200]); // vibration sophistiquée
   }
   document.getElementById("alertModal").classList.add("hidden");
 });
@@ -252,10 +252,10 @@ function updateUI(data){
         bureauEl.classList.add("visible");
       }
       triggerConfetti();
-        if(vibrationEnabled && "vibrate" in navigator){
-  // Motif sophistiqué : vibrations + pauses alternées
-  navigator.vibrate([200, 100, 300, 150, 400, 100, 300, 200, 200]);
-}
+        const alertChoice = localStorage.getItem("alerteActif");
+  if(alertChoice === "true" && "vibrate" in navigator){
+    navigator.vibrate([200, 100, 300, 150, 400, 100, 300, 200, 200]);
+  }
 
       break;
     case "termine":
