@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Suivi Patient – Urgences</title>
+  <link rel="icon" type="image/jpeg" href="logo.png">
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+
+<!-- Google Fonts & Tailwind CDN -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!-- Confetti JS -->
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+
+<style>
+body {
+  font-family: 'Inter', sans-serif;
+  background: #f4f7fb;
+  margin:0;
+  padding:0;
+}
+
+.container {
+  max-width: 480px;
+  margin: 2rem auto;
+  padding: 1.5rem;
+  background: #fff;
+  border-radius: 1rem;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  text-align: center;
+  position: relative;
+}
+
+.logo {
+  max-width: 120px;
+  margin: 0 auto 1rem auto;
+}
+
+.status {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  transition: all 0.5s ease;
+}
+
+.status.en-attente { color: #f59e0b; }
+.status.appele { color: #10b981; animation: pulse 1s infinite; }
+.status.termine { color: #6b7280; }
+
+@keyframes pulse {
+  0%,100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+.numero {
+  font-size: 4rem;
+  font-weight: 800;
+  margin: 1rem 0;
+  color: #ef4444;
+  transition: transform 0.3s ease;
+}
+
+.motif {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.bureau {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #0b5ed7;
+  margin-bottom: 1rem;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.bureau.visible { opacity: 1; }
+
+.consignes {
+  background: #f1f5f9;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  font-size: 1rem;
+  line-height: 1.5rem;
+  color: #334155;
+  margin-bottom: 1rem;
+  transition: background 0.5s ease;
+}
+
+.fade-in {
+  animation: fadeIn 0.5s ease forwards;
+}
+@keyframes fadeIn {
+  0% { opacity:0; transform: translateY(20px);}
+  100% { opacity:1; transform: translateY(0);}
+}
+
+.phone-icon {
+  display: inline-block;
+  margin-left: 0.5rem;
+  animation: ring 1s infinite;
+  font-size: 2rem;
+}
+@keyframes ring {
+  0% { transform: rotate(0deg); }
+  25% { transform: rotate(20deg); }
+  50% { transform: rotate(-20deg); }
+  75% { transform: rotate(20deg); }
+  100% { transform: rotate(0deg); }
+}
+
+.error-container {
+  max-width: 480px;
+  margin: 2rem auto;
+  padding: 1.5rem;
+  background: #fee2e2;
+  border-radius: 1rem;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  text-align: center;
+  color: #b91c1c;
+}
+</style>
+</head>
+
+<body>
+<!-- CONTENEUR PRINCIPAL -->
+<div id="mainContainer" class="container">
+  <img src="logo.png" class="logo" alt="Logo Hôpital">
+  <div class="status en-attente" id="status">En attente...</div>
+  <div class="numero" id="numero">--</div>
+  <div class="motif" id="motif">Motif : --</div>
+  <div class="bureau" id="bureau">--</div>
+  <div class="consignes" id="consignes">
+    Merci de patienter. Veuillez rester attentif aux annonces.
+  </div>
+</div>
+
+<!-- ERREUR ID INEXISTANT -->
+<div id="errorContainer" class="error-container" style="display:none;">
+  <h2>Oups !</h2>
+  <p>Une erreur semble s'être produite</p>
+    <p>Veuillez ré-essayer ou signaler le problème à un membre du personnel</p>
+
+  <p>Veuillez nous excuser pour la gène occasionnée. 
+</div>
+
+<script>
+// ================= FIREBASE =================
+const firebaseConfig = {
+    apiKey: "AIzaSyBKp5-7NNy0Gyl0tNbDgD-BxucYdg8ArWo",
+    authDomain: "urgences-a8ed4.firebaseapp.com",
+    projectId: "urgences-a8ed4"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// ================= PARAM ID =================
+const urlParams = new URLSearchParams(window.location.search);
+const patientId = urlParams.get('id');
+if(!patientId){
+  document.getElementById("mainContainer").style.display="none";
+  document.getElementById("errorContainer").style.display="block";
+}
+
+// ================= FONCTIONS =================
+function triggerConfetti(){
+  confetti({
+    particleCount: 100,
+    spread: 70,
+    origin: { y: 0.6 }
+  });
+}
+
+function updateUI(data){
+  const statusEl = document.getElementById("status");
+  const numeroEl = document.getElementById("numero");
+  const motifEl = document.getElementById("motif");
+  const consignesEl = document.getElementById("consignes");
+  const bureauEl = document.getElementById("bureau");
+
+  numeroEl.textContent = data.numero ?? '--';
+  motifEl.textContent = "Motif : " + (data.motif ?? '--');
+  if(data.consignes){
+    consignesEl.textContent = data.consignes;
+  }
+
+  bureauEl.classList.remove("visible");
+
+  // Statut
+  statusEl.classList.remove("en-attente","appele","termine");
+  switch(data.statut){
+    case "attente":
+      statusEl.textContent = "En attente...";
+      statusEl.classList.add("en-attente");
+      break;
+    case "appele":
+      statusEl.innerHTML = `Appelé ! <span class="phone-icon">📱</span>`;
+      statusEl.classList.add("appele");
+      if(data.bureau){
+        bureauEl.textContent = "Veuillez vous rendre au : " + data.bureau;
+        bureauEl.classList.add("visible");
+      }
+      triggerConfetti();
+      break;
+    case "termine":
+      statusEl.textContent = "Terminé";
+      statusEl.classList.add("termine");
+      break;
+    default:
+      statusEl.textContent = "En attente...";
+      statusEl.classList.add("en-attente");
+  }
+
+  document.getElementById("mainContainer").classList.add("fade-in");
+  setTimeout(()=>document.getElementById("mainContainer").classList.remove("fade-in"),500);
+}
+
+// ================= SNAPSHOT EN TEMPS RÉEL =================
+if(patientId){
+  db.collection("accueil-1").doc(patientId)
+    .onSnapshot((doc)=>{
+      if(doc.exists){
+        updateUI(doc.data());
+      } else {
+        document.getElementById("mainContainer").style.display="none";
+        document.getElementById("errorContainer").style.display="block";
+      }
+    });
+}
+</script>
+</body>
+</html>

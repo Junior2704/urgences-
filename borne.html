@@ -9,6 +9,8 @@
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+<!-- QR Code JS -->
+<script src="https://cdn.jsdelivr.net/npm/qrious/dist/qrious.min.js"></script>
 
 <style>
 :root{
@@ -151,6 +153,21 @@ button:disabled{
     margin-top: 6px;
   }
 }
+.qr-container {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center; /* centre horizontalement */
+  align-items: center;     /* centre verticalement si besoin */
+  flex-direction: column;  /* pour que le bouton Merci reste en dessous */
+}
+
+.ticket-qr {
+  display: block;
+  margin: 10px auto;
+  width: 30mm;
+  height: 30mm;
+}
+
 
 
 </style>
@@ -187,6 +204,9 @@ button:disabled{
   <div class="footer">
     Merci de préparer vos documents administratifs
   </div>
+  <div class="qr-container">
+  <canvas id="qr"></canvas>
+</div>
 </div>
 <div class="ticket" id="ticket">
   <div class="ticket-box">
@@ -205,6 +225,11 @@ button:disabled{
       <div><strong>Motif :</strong> <span id="ticketMotif"></span></div>
       <div><strong>Date & heure :</strong> <span id="ticketDate"></span></div>
     </div>
+	<div class="ticket-footer">
+      Suivez en temps réel votre attente <br>
+	  en scannant le qr-code ci-dessous
+    </div>
+<canvas id="ticket-qr" class="ticket-qr"></canvas>
 
     <div class="ticket-separator">
       --------------------------------
@@ -230,6 +255,8 @@ button:disabled{
 
 
 
+
+
 <script>
 // ================= FIREBASE =================
 const firebaseConfig = {
@@ -243,9 +270,11 @@ let verrou = false;
 
 // ================= PRENDRE TICKET =================
 async function prendreTicket(motif, circuit){
-
   if(verrou) return;
   verrou = true;
+
+  // 🔹 Masquer les boutons
+  document.querySelector(".motifs").style.display = "none";
 
   try{
     // 🔢 Dernier numéro
@@ -259,50 +288,70 @@ async function prendreTicket(motif, circuit){
       numero = snap.docs[0].data().numero + 1;
     }
 
-    // 🧾 Création ticket
-    await db.collection("accueil-1").add({
+    const docRef = await db.collection("accueil-1").add({
       numero,
       motif,
       circuit,
-
-      // 🔑 CRITIQUE
       statut: "attente",
-
-      // 🔑 double timestamp (solution définitive)
       dateArrivee: firebase.firestore.FieldValue.serverTimestamp(),
       dateArriveeClient: Date.now()
     });
 
-    // 🎟️ UI
-document.getElementById("numero").innerText = numero;
-document.getElementById("ticket-numero").innerText = numero;
+    const idDoc = docRef.id;
+    const qrLink = "https://junior2704.github.io/urgences-/mytickets?id=" + idDoc;
 
-document.getElementById("ticketMotif").innerText = "Motif : " + motif;
-
-const now = new Date();
-document.getElementById("ticketDate").innerText =
-  now.toLocaleDateString("fr-FR") + " " +
-  now.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
-
-document.getElementById("ticket").style.display = "block";
-
-window.addEventListener('load', () => {
-  setTimeout(() => {
-    window.print();
-  }, 1000); // 1 seconde pour être sûr que tout est chargé
+    // QR code pour la borne
+    const qr = new QRious({ element: document.getElementById('qr'), value: qrLink, size: 150 });
+    // QR code pour le ticket
+// QR code pour le ticket (taille réduite)
+const qrTicket = new QRious({ 
+  element: document.getElementById('ticket-qr'), 
+  value: qrLink, 
+  size: 120 // <- réduit ici, avant c'était 250
 });
 
+    // 🎟️ UI
+    document.getElementById("numero").innerText = numero;
+    document.getElementById("ticket-numero").innerText = numero;
+    document.getElementById("ticketMotif").innerText = "Motif : " + motif;
 
+    const now = new Date();
+    document.getElementById("ticketDate").innerText =
+      now.toLocaleDateString("fr-FR") + " " +
+      now.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
 
+    document.getElementById("ticket").style.display = "block";
 
-    // 🔁 Reset borne après 10s
-    setTimeout(() => location.reload(), 5000);
+    // Crée le bouton Merci dynamiquement
+    const btnMerci = document.createElement("button");
+    btnMerci.textContent = "Terminé !";
+    btnMerci.style.marginTop = "20px";
+    btnMerci.style.backgroundColor = "#10b981";
+    btnMerci.style.color = "white";
+    btnMerci.style.padding = "12px 20px";
+    btnMerci.style.fontSize = "1rem";
+    btnMerci.style.border = "none";
+    btnMerci.style.borderRadius = "10px";
+    btnMerci.style.cursor = "pointer";
 
-  }catch(e){
+    // Au clic, reload de la page
+    btnMerci.onclick = () => location.reload();
+
+    // Ajoute le bouton sous le QR code
+    document.querySelector(".qr-container").appendChild(btnMerci);
+
+    // Impression automatique
+    setTimeout(() => window.print(), 1000);
+
+    // 🔁 Reset borne après 10s (au cas où le bouton n’est pas cliqué)
+    setTimeout(() => location.reload(), 10000);
+
+  } catch(e){
     alert("Erreur : " + e);
     verrou = false;
   }
 }
+
 </script>
 
 </body>
