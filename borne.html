@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Borne d’accueil – Urgences</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+
+<style>
+:root{
+  --blue:#0b5ed7;
+  --bg:#f4f7fb;
+  --card:#ffffff;
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:"Inter","Segoe UI",Arial,sans-serif;
+  background:var(--bg);
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  color:#0b2240;
+}
+
+.card{
+  background:var(--card);
+  width:100%;
+  max-width:520px;
+  border-radius:20px;
+  box-shadow:0 14px 35px rgba(0,0,0,.12);
+  padding:30px;
+  text-align:center;
+}
+
+h1{
+  margin-top:0;
+  font-size:2rem;
+}
+
+.motifs{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:16px;
+  margin-top:25px;
+}
+
+button{
+  padding:18px;
+  font-size:1.1rem;
+  font-weight:600;
+  border-radius:14px;
+  border:none;
+  cursor:pointer;
+  background:var(--blue);
+  color:white;
+}
+
+button:disabled{
+  opacity:.6;
+  cursor:not-allowed;
+}
+
+.ticket{
+  display:none;
+}
+
+.numero{
+  font-size:4rem;
+  font-weight:800;
+  color:#dc3545;
+  margin:20px 0;
+}
+
+.footer{
+  margin-top:20px;
+  font-size:.9rem;
+  color:#667;
+}
+/* ================= TICKET THERMIQUE 58mm ================= */
+
+.ticket {
+  display: none;
+}
+
+@media print {
+
+  @page {
+    size: 58mm auto;
+    margin: 0;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+  }
+
+  body * {
+    display: none !important;
+  }
+
+  .ticket,
+  .ticket * {
+    display: block !important;
+  }
+
+  .ticket {
+    width: 58mm;
+    margin: 0 auto;
+  }
+
+  .ticket-box {
+    width: 58mm;
+    padding: 4mm 3mm;
+    font-family: "Courier New", monospace;
+    text-align: center;
+    color: #000;
+  }
+
+  .ticket-header {
+    font-size: 15px;
+    font-weight: bold;
+    margin-bottom: 6px;
+  }
+
+  .ticket-numero {
+    font-size: 44px;
+    font-weight: bold;
+    margin: 8px 0;
+  }
+
+  .ticket-details {
+    font-size: 11px;
+    margin-bottom: 6px;
+  }
+
+  .ticket-separator {
+    font-size: 10px;
+    margin: 6px 0;
+  }
+
+  .ticket-footer {
+    font-size: 10px;
+    margin-top: 6px;
+  }
+}
+
+
+</style>
+</head>
+
+<body>
+
+<div class="card" id="borne">
+  <h1>Bienvenue aux Urgences</h1>
+  <p>Veuillez choisir le motif de votre venue</p>
+
+  <div class="motifs">
+  <button onclick="prendreTicket('Urgences diverses','general')">🩺 Urgences diverses</button>
+  <button onclick="prendreTicket('Traumatologie','traumato')">🦴 Traumatologie</button>
+  <button onclick="prendreTicket('Pédiatrie','pediatrie')">👶 Pédiatrie</button>
+
+  <button onclick="prendreTicket('Gynécologie','gyneco')">🤰 Gynécologie</button>
+  <button onclick="prendreTicket('Ophtalmologie','ophtalmo')">👁️ Ophtalmologie</button>
+    <button onclick="prendreTicket('Administratif','admin')">📝 Administratif</button>
+	  <button onclick="prendreTicket('Sortie','sortie')">🚪 Sortie</button>
+
+
+  <button onclick="prendreTicket('Autres','autres')">❓ Autres</button>
+  
+</div>
+
+
+  <div class="ticket" id="ticket">
+    <h2>Votre numéro</h2>
+    <div class="numero" id="numero"></div>
+    <p>Merci de patienter jusqu’à l’appel de votre numéro</p>
+  </div>
+
+  <div class="footer">
+    Merci de préparer vos documents administratifs
+  </div>
+</div>
+<div class="ticket" id="ticket">
+  <div class="ticket-box">
+
+    <div class="ticket-header">
+      🏥 SERVICE DES URGENCES
+    </div>
+
+    <div class="ticket-subheader">
+      Centre Hospitalier
+    </div>
+
+    <div class="ticket-numero" id="ticket-numero"></div>
+
+    <div class="ticket-details">
+      <div><strong>Motif :</strong> <span id="ticketMotif"></span></div>
+      <div><strong>Date & heure :</strong> <span id="ticketDate"></span></div>
+    </div>
+
+    <div class="ticket-separator">
+      --------------------------------
+    </div>
+
+    <div class="ticket-footer">
+      Ce ticket confirme votre prise en charge<br>
+      par le service des urgences.
+    </div>
+
+    <div class="ticket-footer">
+      Merci de patienter en salle d’attente.<br>
+      Vous serez appelé(e) dès que possible<br>
+      selon le degré de priorité médicale.
+    </div>
+
+    <div class="ticket-signature">
+      Service des urgences
+    </div>
+
+  </div>
+</div>
+
+
+
+<script>
+// ================= FIREBASE =================
+const firebaseConfig = {
+    apiKey: "AIzaSyBKp5-7NNy0Gyl0tNbDgD-BxucYdg8ArWo",
+    authDomain: "urgences-a8ed4.firebaseapp.com",
+    projectId: "urgences-a8ed4"
+  };
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+let verrou = false;
+
+// ================= PRENDRE TICKET =================
+async function prendreTicket(motif, circuit){
+
+  if(verrou) return;
+  verrou = true;
+
+  try{
+    // 🔢 Dernier numéro
+    const snap = await db.collection("accueil-1")
+      .orderBy("numero","desc")
+      .limit(1)
+      .get();
+
+    let numero = 1;
+    if(!snap.empty){
+      numero = snap.docs[0].data().numero + 1;
+    }
+
+    // 🧾 Création ticket
+    await db.collection("accueil-1").add({
+      numero,
+      motif,
+      circuit,
+
+      // 🔑 CRITIQUE
+      statut: "attente",
+
+      // 🔑 double timestamp (solution définitive)
+      dateArrivee: firebase.firestore.FieldValue.serverTimestamp(),
+      dateArriveeClient: Date.now()
+    });
+
+    // 🎟️ UI
+document.getElementById("numero").innerText = numero;
+document.getElementById("ticket-numero").innerText = numero;
+
+document.getElementById("ticketMotif").innerText = "Motif : " + motif;
+
+const now = new Date();
+document.getElementById("ticketDate").innerText =
+  now.toLocaleDateString("fr-FR") + " " +
+  now.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+
+document.getElementById("ticket").style.display = "block";
+
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    window.print();
+  }, 1000); // 1 seconde pour être sûr que tout est chargé
+});
+
+
+
+
+    // 🔁 Reset borne après 10s
+    setTimeout(() => location.reload(), 5000);
+
+  }catch(e){
+    alert("Erreur : " + e);
+    verrou = false;
+  }
+}
+</script>
+
+</body>
+</html>

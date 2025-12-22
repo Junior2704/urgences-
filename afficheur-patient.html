@@ -326,6 +326,81 @@
   display: block;
   margin: 0 auto;
 }
+/* ===== PANNEAU APPELS ===== */
+#appels {
+  position: fixed;
+  top: 90px;
+  right: 20px;
+  width: 280px;
+  height: calc(100vh - 140px);
+  background: #ffffff;
+  border-radius: 14px;
+  box-shadow: 0 4px 16px rgba(0,0,0,.15);
+  padding: 12px;
+  display: none; /* activé dynamiquement */
+  z-index: 1000;
+}
+
+#appels h2 {
+  margin: 0 0 10px;
+  text-align: center;
+  font-size: 1.1rem;
+  color: #003366;
+}
+
+#listeAppels {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+  max-height: calc(100% - 40px);
+}
+
+#aucunAppel {
+  text-align: center;
+  color: #666;
+  font-size: 0.95rem;
+  margin-top: 20px;
+}
+
+/* ===== APPEL ===== */
+.appel {
+  background: #003366;
+  color: white;
+  border-radius: 12px;
+  padding: 12px;
+  text-align: center;
+  opacity: 1;
+  transform: translateY(0);
+  transition:
+    transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.45s ease,
+    background-color 1.5s ease;
+}
+
+.appel .numero {
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+
+.appel .bureau {
+  font-size: 1.1rem;
+  opacity: 0.9;
+}
+
+/* Nouvel appel */
+.appel.nouveau {
+  opacity: 0;
+  transform: translateY(-20px);
+  background-color: #005fa3;
+}
+
+.appel.visible {
+  opacity: 1;
+  transform: translateY(0);
+  background-color: #003366;
+}
+
 
   </style>
 </head>
@@ -432,6 +507,14 @@
       </div>
 	  
     </div>
+<section id="appels">
+  <h2>📣 Appels en cours</h2>
+  <div id="listeAppels"></div>
+  <div id="aucunAppel">Aucun appel en cours</div>
+</section>
+
+<div id="alerteNouvelAppel">📣 Nouveau numéro appelé</div>
+
   </main>
 
   <script>
@@ -571,7 +654,7 @@ async function updateCounts() {
 
 
     updateCounts();
-    setInterval(updateCounts, 100);
+    setInterval(updateCounts, 5000);
 
     // --- ANIMATION DES ÉTAPES ---
     const steps = document.querySelectorAll(".step-anim");
@@ -661,6 +744,90 @@ function afficherBulle(msg, type = 'info') {
   console.log("💡 Cliquez une fois dans la page pour passer en plein écran.");
   afficherBulle("💡 Cliquez une fois dans la page pour passer en plein écran", "default");
 
+
+/* ===== CONFIGURATION ===== */
+const MAX_APPELS = 4;
+const DUREE_AFFICHAGE = 2 * 60 * 1000; // 2 minutes
+
+const liste = document.getElementById("listeAppels");
+const vide = document.getElementById("aucunAppel");
+const panneau = document.getElementById("appels");
+
+let appelsConnus = new Set();
+
+/* ===== ÉCOUTE DES APPELS ===== */
+db.collection("accueil-1")
+  .where("statut", "==", "appele")
+  .onSnapshot(async snapshot => {
+
+    liste.innerHTML = "";
+    let affiches = 0;
+    const maintenant = Date.now();
+
+    for (const doc of snapshot.docs) {
+      const d = doc.data();
+      if (!d.numero || !d.bureau) continue;
+
+      
+if (!d.afficheDepuis) continue;
+
+const age = maintenant - d.afficheDepuis.toMillis();
+
+if (age > DUREE_AFFICHAGE) continue;
+
+
+      if (affiches >= MAX_APPELS) continue;
+      affiches++;
+
+      const estNouveau = !appelsConnus.has(doc.id);
+      appelsConnus.add(doc.id);
+
+      /* ===== Création DOM ===== */
+      const el = document.createElement("div");
+      el.className = "appel" + (estNouveau ? " nouveau" : "");
+      el.innerHTML = `
+        <div class="numero">N° ${d.numero}</div>
+        <div class="bureau">Bureau ${d.bureau}</div>
+      `;
+
+      liste.prepend(el);
+
+      /* Animation d'entrée */
+     if (estNouveau) {
+    requestAnimationFrame(() => el.classList.add("visible"));
+    setTimeout(() => el.classList.remove("nouveau"), 2000);
+
+    const sonBulle = new Audio('notification-appel.mp3');
+    sonBulle.volume = 0.5;
+    sonBulle.currentTime = 0;
+    sonBulle.play().catch(err => console.log("Erreur lecture son :", err));
+}
+
+    }
+
+    /* État vide */
+    vide.style.display = affiches === 0 ? "block" : "none";
+  });
+
+async function verifierActivationBureaux() {
+  try {
+    const snap = await db
+      .collection("référentiels")
+      .doc("bureau")
+      .get();
+
+    if (!snap.exists) return;
+
+    const actif = snap.data()?.general?.active === true;
+    panneau.style.display = actif ? "block" : "none";
+
+  } catch (err) {
+    console.error("Erreur activation bureaux :", err);
+  }
+}
+
+/* 🔹 Exécution une seule fois au chargement */
+verifierActivationBureaux();
 
 
 
