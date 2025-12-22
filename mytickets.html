@@ -149,7 +149,17 @@ body {
 
   <p>Veuillez nous excuser pour la gène occasionnée. 
 </div>
-
+<!-- MODALE DE NOTIFICATION -->
+<div id="alertModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 hidden">
+  <div class="bg-white rounded-xl shadow-lg p-6 max-w-sm text-center">
+    <h2 class="text-xl font-bold mb-4">🔔 Recevoir une alerte ?</h2>
+    <p class="mb-6">Souhaitez-vous être alerté dès que vous serez appelé ?</p>
+    <div class="flex justify-around">
+      <button id="acceptAlert" class="px-4 py-2 bg-green-500 text-white rounded-lg font-semibold hover:bg-green-600">Oui</button>
+      <button id="declineAlert" class="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg font-semibold hover:bg-gray-400">Non</button>
+    </div>
+  </div>
+</div>
 <script>
 // ================= FIREBASE =================
 const firebaseConfig = {
@@ -176,6 +186,28 @@ function triggerConfetti(){
     origin: { y: 0.6 }
   });
 }
+let vibrationEnabled = false;
+
+// Afficher la modale si statut = attente
+function showAlertModal(){
+  const modal = document.getElementById("alertModal");
+  modal.classList.remove("hidden");
+}
+
+// Gestion boutons modale
+document.getElementById("acceptAlert").addEventListener("click", () => {
+  vibrationEnabled = true;
+  // Test de vibration
+  if("vibrate" in navigator){
+    navigator.vibrate(200);
+  }
+  document.getElementById("alertModal").classList.add("hidden");
+});
+
+document.getElementById("declineAlert").addEventListener("click", () => {
+  vibrationEnabled = false;
+  document.getElementById("alertModal").classList.add("hidden");
+});
 
 function updateUI(data){
   const statusEl = document.getElementById("status");
@@ -208,9 +240,11 @@ function updateUI(data){
         bureauEl.classList.add("visible");
       }
       triggerConfetti();
-        if("vibrate" in navigator){
-    navigator.vibrate([300, 100, 300]); // 300ms pause 100ms, 300ms
-  }
+        if(vibrationEnabled && "vibrate" in navigator){
+  // Motif sophistiqué : vibrations + pauses alternées
+  navigator.vibrate([200, 100, 300, 150, 400, 100, 300, 200, 200]);
+}
+
       break;
     case "termine":
       statusEl.textContent = "Terminé";
