@@ -208,6 +208,9 @@ function updateUI(data){
         bureauEl.classList.add("visible");
       }
       triggerConfetti();
+        if("vibrate" in navigator){
+    navigator.vibrate([300, 100, 300]); // 300ms pause 100ms, 300ms
+  }
       break;
     case "termine":
       statusEl.textContent = "Terminé";
