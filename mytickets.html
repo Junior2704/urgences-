@@ -202,6 +202,7 @@ function updateUI(data){
     case "appele":
       statusEl.innerHTML = `Appelé ! <span class="phone-icon">📱</span>`;
       statusEl.classList.add("appele");
+      consignesEl.style.display = "none"; 
       if(data.bureau){
         bureauEl.textContent = "Veuillez vous rendre au : " + data.bureau;
         bureauEl.classList.add("visible");
@@ -211,6 +212,7 @@ function updateUI(data){
     case "termine":
       statusEl.textContent = "Terminé";
       statusEl.classList.add("termine");
+      consignesEl.style.display = "none"; 
       break;
     default:
       statusEl.textContent = "En attente...";
