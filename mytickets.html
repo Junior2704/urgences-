@@ -188,24 +188,34 @@ function triggerConfetti(){
 }
 let vibrationEnabled = false;
 
-// Afficher la modale si statut = attente
+// Vérifier localStorage
+const storedAlert = localStorage.getItem("alerteActif");
+if(storedAlert === "true"){
+  vibrationEnabled = true;
+} else if(storedAlert === "false"){
+  vibrationEnabled = false;
+}
+
+// Afficher la modale si jamais pas encore choisi
 function showAlertModal(){
-  const modal = document.getElementById("alertModal");
-  modal.classList.remove("hidden");
+  if(storedAlert === null){ // jamais choisi
+    document.getElementById("alertModal").classList.remove("hidden");
+  }
 }
 
 // Gestion boutons modale
 document.getElementById("acceptAlert").addEventListener("click", () => {
   vibrationEnabled = true;
-  // Test de vibration
+  localStorage.setItem("alerteActif", "true"); // enregistrement
   if("vibrate" in navigator){
-    navigator.vibrate(200);
+    navigator.vibrate([200,100,300,150,400,100,300,200,200]); // vibration sophistiquée
   }
   document.getElementById("alertModal").classList.add("hidden");
 });
 
 document.getElementById("declineAlert").addEventListener("click", () => {
   vibrationEnabled = false;
+  localStorage.setItem("alerteActif", "false"); // enregistrement
   document.getElementById("alertModal").classList.add("hidden");
 });
 
@@ -235,6 +245,7 @@ function updateUI(data){
       statusEl.innerHTML = `Appelé ! <span class="phone-icon">📱</span>`;
       statusEl.classList.add("appele");
       consignesEl.style.display = "none"; 
+      showAlertModal(); 
       if(data.bureau){
         bureauEl.textContent = "Veuillez vous rendre au : " + data.bureau;
         bureauEl.classList.add("visible");
