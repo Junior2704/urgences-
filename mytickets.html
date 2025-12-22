@@ -204,14 +204,22 @@ function showAlertModal(){
 }
 
 // Gestion boutons modale
-document.getElementById("acceptAlert").addEventListener("click", () => {
+document.getElementById("acceptAlert").addEventListener("click", async () => {
   vibrationEnabled = true;
-  localStorage.setItem("alerteActif", "true"); // enregistrement
-  if("vibrate" in navigator){
-    navigator.vibrate([200]); // vibration sophistiquée
-  }
+  localStorage.setItem("alerteActif", "true");
   document.getElementById("alertModal").classList.add("hidden");
+
+  // Vibration de feedback
+  if("vibrate" in navigator){
+    navigator.vibrate([200,100,300,150,400,100,300,200,200]);
+  }
+
+  // Demander permission notification (une seule fois)
+  if(Notification.permission !== "granted"){
+    await Notification.requestPermission();
+  }
 });
+
 
 document.getElementById("declineAlert").addEventListener("click", () => {
   vibrationEnabled = false;
@@ -242,22 +250,32 @@ function updateUI(data){
       statusEl.classList.add("en-attente");
       showAlertModal();
       break;
-    case "appele":
-      statusEl.innerHTML = `Appelé ! <span class="phone-icon">📱</span>`;
-      statusEl.classList.add("appele");
-      consignesEl.style.display = "none"; 
-       
-      if(data.bureau){
-        bureauEl.textContent = "Veuillez vous rendre au : " + data.bureau;
-        bureauEl.classList.add("visible");
-      }
-      triggerConfetti();
-        const alertChoice = localStorage.getItem("alerteActif");
-  if(alertChoice === "true" && "vibrate" in navigator){
-    navigator.vibrate([200, 100, 300, 150, 400, 100, 300, 200, 200]);
+  case "appele":
+  statusEl.innerHTML = `Appelé ! <span class="phone-icon">📱</span>`;
+  statusEl.classList.add("appele");
+  consignesEl.style.display = "none";
+  if(data.bureau){
+    bureauEl.textContent = "Veuillez vous rendre au : " + data.bureau;
+    bureauEl.classList.add("visible");
+  }
+  triggerConfetti();
+
+  // Vibration si accepté
+  if(localStorage.getItem("alerteActif") === "true" && "vibrate" in navigator){
+    navigator.vibrate([200,100,300,150,400,100,300,200,200]);
   }
 
-      break;
+  // Notification push locale
+  if(localStorage.getItem("alerteActif") === "true" && "Notification" in window){
+    if(Notification.permission === "granted"){
+      new Notification("🔔 Vous avez été appelé !", {
+        body: `Veuillez vous rendre au bureau : ${data.bureau ?? '--'}`,
+        icon: "/logo.png"
+      });
+    }
+  }
+  break;
+
     case "termine":
       statusEl.textContent = "Terminé";
       statusEl.classList.add("termine");
