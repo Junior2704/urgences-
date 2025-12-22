@@ -373,6 +373,23 @@
     </button>
   </div>
 </section>
+<div class="section" id="sectionBureaux" style="display:none;">
+  <h2>🏢 Bureaux <button class="btn btn-add" onclick="openModalBureau()">➕ Ajouter</button></h2>
+  <ul id="bureauxList"></ul>
+</div>
+
+<!-- Modale spécifique pour créer/modifier un bureau -->
+<div class="modal" id="modalBureau">
+  <div class="modal-content">
+    <h3>➕ Ajouter un Bureau</h3>
+    <input type="text" id="bureauNameInput" placeholder="Nom du bureau..." />
+    <div class="modal-actions">
+      <button class="btn" onclick="cancelModalBureau()">❌ Annuler</button>
+      <button class="btn btn-add" onclick="confirmModalBureau()">✅ Valider</button>
+    </div>
+  </div>
+</div>
+
   <!-- MODALE -->
   <div class="modal" id="modal">
     <div class="modal-content">
@@ -601,6 +618,91 @@ async function saveFacturables() {
 
 // Charger les facturables au démarrage
 loadFacturables();
+const sectionBureaux = document.getElementById("sectionBureaux");
+const bureauxListEl = document.getElementById("bureauxList");
+let bureaux = {}; // objet { nomBureau: {agentEmail:null, agentUid:null, connecte:false, connexionAt:null} }
+let editingBureau = null;
+
+// 🔹 Charger l'état général et les bureaux
+async function loadBureaux() {
+  const ref = doc(db, "référentiels", "bureau");
+  const snap = await getDoc(ref);
+  if (snap.exists()) {
+    const data = snap.data();
+    const generalActive = data.general?.active ?? false;
+    sectionBureaux.style.display = generalActive ? "block" : "none";
+    
+    bureaux = {...data};
+    delete bureaux.general; // enlever le champ general pour ne garder que les bureaux
+    renderBureaux();
+  }
+}
+
+function renderBureaux() {
+  bureauxListEl.innerHTML = "";
+  Object.entries(bureaux).forEach(([nom, info]) => {
+    const li = document.createElement("li");
+    li.innerHTML = `
+      <input value="${nom.replace(/"/g,'&quot;')}" onchange="updateBureauName('${nom}', this.value)" />
+      <button class="btn btn-del" onclick="deleteBureau('${nom}')">❌</button>
+    `;
+    bureauxListEl.appendChild(li);
+  });
+}
+
+// --- Ajouter un nouveau bureau ---
+window.openModalBureau = () => {
+  editingBureau = null;
+  document.getElementById("bureauNameInput").value = "";
+  document.getElementById("modalBureau").style.display = "flex";
+};
+
+window.cancelModalBureau = () => {
+  document.getElementById("modalBureau").style.display = "none";
+};
+
+window.confirmModalBureau = async () => {
+  const name = document.getElementById("bureauNameInput").value.trim();
+  if (!name) return;
+
+  if (!bureaux[name]) {
+    bureaux[name] = { agentEmail: null, agentUid: null, connecte: false, connexionAt: null };
+  }
+
+  await saveBureaux();
+  renderBureaux();
+  document.getElementById("modalBureau").style.display = "none";
+};
+
+// --- Modifier le nom d'un bureau ---
+window.updateBureauName = async (oldName, newName) => {
+  if (!newName || oldName === newName) return;
+  bureaux[newName] = bureaux[oldName];
+  delete bureaux[oldName];
+  await saveBureaux();
+  renderBureaux();
+};
+
+// --- Supprimer un bureau ---
+window.deleteBureau = async (name) => {
+  delete bureaux[name];
+  await saveBureaux();
+  renderBureaux();
+};
+
+// --- Sauvegarde Firestore ---
+async function saveBureaux() {
+  try {
+    await setDoc(doc(db, "référentiels", "bureau"), { ...bureaux, general: { active: true } });
+    afficherBulle("✅ Bureaux enregistrés", "administratif");
+  } catch (err) {
+    console.error("Erreur enregistrement bureaux :", err);
+    afficherBulle("❌ Erreur d’enregistrement", "alerte");
+  }
+}
+
+// Charger au démarrage
+loadBureaux();
 
 
 function afficherBulle(texte, type) {
