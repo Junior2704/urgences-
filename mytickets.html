@@ -240,12 +240,13 @@ function updateUI(data){
     case "attente":
       statusEl.textContent = "En attente...";
       statusEl.classList.add("en-attente");
+      showAlertModal();
       break;
     case "appele":
       statusEl.innerHTML = `Appelé ! <span class="phone-icon">📱</span>`;
       statusEl.classList.add("appele");
       consignesEl.style.display = "none"; 
-      showAlertModal(); 
+       
       if(data.bureau){
         bureauEl.textContent = "Veuillez vous rendre au : " + data.bureau;
         bureauEl.classList.add("visible");
