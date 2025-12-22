@@ -324,7 +324,11 @@
     </div>
   </div>
 </div>
-
+<div class="section" id="sectionBureaux" style="display:none;">
+  <h2>🏢 Bureaux <button class="btn btn-add" onclick="openModalBureau()">➕ Ajouter</button></h2>
+  <ul id="bureauxList"></ul>
+</div>
+</section>
 
   <section id="nettoyage-section" 
          style="background: #f8fafc; border-radius: 16px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); 
@@ -373,10 +377,7 @@
     </button>
   </div>
 </section>
-<div class="section" id="sectionBureaux" style="display:none;">
-  <h2>🏢 Bureaux <button class="btn btn-add" onclick="openModalBureau()">➕ Ajouter</button></h2>
-  <ul id="bureauxList"></ul>
-</div>
+<section>
 
 <!-- Modale spécifique pour créer/modifier un bureau -->
 <div class="modal" id="modalBureau">
@@ -445,6 +446,7 @@ const moyensListEl = document.getElementById('moyensList');
 
 const personnelListEl = document.getElementById('personnelList');
 let actes = [];
+let moyens = [];
 let personnel = [];
 let spécialités = [];
 let currentType = null;
