@@ -415,9 +415,26 @@ await ref.update({
 });
 
   }
+  estConnecte = false; 
   await auth.signOut();
-  location.reload();
+  
 }
+let estConnecte = false;
+
+auth.onAuthStateChanged(user => {
+  if (user) {
+    estConnecte = true;
+  } else {
+    estConnecte = false;
+  }
+});
+window.addEventListener("beforeunload", (e) => {
+  if (estConnecte) {
+    e.preventDefault();
+    e.returnValue = "⚠️ Veuillez vous déconnecter avant de fermer cette fenêtre.";
+    return e.returnValue;
+  }
+});
 
 // ================= SESSION =================
 auth.onAuthStateChanged(user=>{
