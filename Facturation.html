@@ -852,6 +852,24 @@ async function creerFacture(telecharger = false) {
   }
 }
 
+btnImprimer.addEventListener("click", async () => {
+  const pdfBlob = await creerFacture(false);
+
+  // 🔹 Crée une URL temporaire vers le PDF
+  const pdfUrl = URL.createObjectURL(pdfBlob);
+const nomfacture = document.getElementById('lastName')
+const prenomfacture = document.getElementById('firstname')
+
+  // 🔹 Ouvre le PDF dans un nouvel onglet (sans téléchargement)
+  window.parent.postMessage(
+    {
+      type: "OPEN_TAB",
+      title: `Facture ${nomfacture} ${prenomfacture}`,
+      url: pdfUrl
+    },
+    "*"
+  );
+});
 
 
   // Download PDF button (uses html2pdf and cleans up)
