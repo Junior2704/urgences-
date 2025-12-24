@@ -3678,12 +3678,14 @@ const dateNaissance = document.getElementById("adminNaissance").value.trim();
     afficherBulle("❌Erreur enregistrement données administratives", "error");
   }
 });
+const nomfacture = document.getElementById("nom")
+const prenomfacture = document.getElementById("prenom")
 
 btnFacturer.addEventListener("click", () => {
   window.parent.postMessage(
         {
           type: "OPEN_TAB",
-          title: `Facturation ${nom} ${prenom}`,
+          title: `Facturation ${nomfacture} ${prenomfacture}`,
           url: `Facturation.html?id=${patientId}`
         },
         "*"
