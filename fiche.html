@@ -3680,7 +3680,14 @@ const dateNaissance = document.getElementById("adminNaissance").value.trim();
 });
 
 btnFacturer.addEventListener("click", () => {
-  window.location.href =`Facturation.html?id=${patientId}`;
+  window.parent.postMessage(
+        {
+          type: "OPEN_TAB",
+          title: `Facturation ${nom} ${prenom}`,
+          url: `Facturation.html?id=${id}`
+        },
+        "*"
+      );
 });
 
 let tousLesActesRealises = [];
