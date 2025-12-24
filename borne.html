@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr">
 <head>
     <link rel="icon" type="image/jpeg" href="logo.png">
@@ -110,51 +110,63 @@ button:disabled{
     display: none !important;
   }
 
-  .ticket,
-  .ticket * {
+  #ticket,
+  #ticket * {
     display: block !important;
   }
 
-  .ticket {
+  #ticket {
     width: 58mm;
     margin: 0 auto;
   }
 
   .ticket-box {
-    width: 58mm;
-    padding: 4mm 3mm;
+    width: 100%;
+    padding: 2mm;
     font-family: "Courier New", monospace;
     text-align: center;
     color: #000;
   }
 
   .ticket-header {
-    font-size: 15px;
+    font-size: 14px;
     font-weight: bold;
-    margin-bottom: 6px;
+    margin-bottom: 4px;
   }
 
-  .ticket-numero {
-    font-size: 44px;
-    font-weight: bold;
-    margin: 8px 0;
-  }
-
-  .ticket-details {
+  .ticket-subheader {
     font-size: 11px;
     margin-bottom: 6px;
   }
 
-  .ticket-separator {
-    font-size: 10px;
+  .ticket-numero {
+    font-size: 40px;
+    font-weight: bold;
     margin: 6px 0;
   }
 
-  .ticket-footer {
+  .ticket-details {
     font-size: 10px;
-    margin-top: 6px;
+    margin-bottom: 6px;
+  }
+
+  .ticket-qr {
+    width: 28mm;
+    height: 28mm;
+    margin: 6px auto;
+  }
+
+  .ticket-separator {
+    font-size: 10px;
+    margin: 4px 0;
+  }
+
+  .ticket-footer {
+    font-size: 9px;
+    margin-top: 4px;
   }
 }
+
 .qr-container {
   margin-top: 20px;
   display: flex;
@@ -168,6 +180,68 @@ button:disabled{
   margin: 10px auto;
   width: 30mm;
   height: 30mm;
+}
+/* ================= MODALE ATTENTE IMPRESSION ================= */
+
+.modal-wait {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.modal-box {
+  background: white;
+  padding: 30px 40px;
+  border-radius: 16px;
+  text-align: center;
+  max-width: 320px;
+  box-shadow: 0 20px 40px rgba(0,0,0,.25);
+}
+
+.modal-box h2 {
+  margin: 0 0 10px;
+  font-size: 1.4rem;
+}
+
+.modal-box p {
+  font-size: 1rem;
+  color: #555;
+}
+
+.spinner {
+  margin: 20px auto 0;
+  width: 40px;
+  height: 40px;
+  border: 4px solid #ddd;
+  border-top: 4px solid #0b5ed7;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+.modal-numero {
+  font-size: 3.5rem;
+  font-weight: 800;
+  color: #dc3545;
+  margin: 15px 0;
+}
+
+#modal-qr {
+  width: 140px;
+  height: 140px;
+  margin: 10px auto;
+}
+
+.modal-info {
+  font-size: 0.95rem;
+  color: #555;
+  margin-top: 8px;
 }
 
 
@@ -197,12 +271,25 @@ button:disabled{
 </div>
 
 
-  <div class="ticket" id="ticket">
-    <h2>Votre numéro</h2>
-    <div class="numero" id="numero"></div>
-    <p>Merci de patienter jusqu’à l’appel de votre numéro</p>
-    <p>Scannez ce qr code pour suivre la progression de votre attente et être alerté de votre appel</p>
+
+<div class="modal-wait" id="modalWait">
+  <div class="modal-box">
+
+    <h2>Veuillez patienter</h2>
+    <p>Votre ticket est en cours d’impression</p>
+
+    <div class="modal-numero" id="modalNumero">—</div>
+
+    <canvas id="modal-qr"></canvas>
+
+    <p class="modal-info">
+      Scannez ce QR code pour suivre votre attente
+    </p>
+
+    <div class="spinner"></div>
+
   </div>
+</div>
 
   <div class="footer">
     Merci de préparer vos documents administratifs
@@ -225,37 +312,23 @@ button:disabled{
     <div class="ticket-numero" id="ticket-numero"></div>
 
     <div class="ticket-details">
-      <div><strong>Motif :</strong> <span id="ticketMotif"></span></div>
-      <div><strong>Date & heure :</strong> <span id="ticketDate"></span></div>
+      <div id="ticketMotif"></div>
+      <div id="ticketDate"></div>
     </div>
-	<div class="ticket-footer">
-      Suivez en temps réel votre attente <br>
-	  en scannant le qr-code ci-dessous
-    </div>
-<canvas id="ticket-qr" class="ticket-qr"></canvas>
+
+    <canvas id="ticket-qr" class="ticket-qr"></canvas>
 
     <div class="ticket-separator">
-      --------------------------------
-    </div>
-
-    <div class="ticket-footer">
-      Ce ticket confirme votre prise en charge<br>
-      par le service des urgences.
+      ------------------------------
     </div>
 
     <div class="ticket-footer">
       Merci de patienter en salle d’attente.<br>
-      Vous serez appelé(e) dès que possible<br>
-      selon le degré de priorité médicale.
-    </div>
-
-    <div class="ticket-signature">
-      Service des urgences
+      Vous serez appelé(e) selon la priorité médicale.
     </div>
 
   </div>
 </div>
-
 
 
 
@@ -314,7 +387,8 @@ const qrTicket = new QRious({
 });
 
     // 🎟️ UI
-    document.getElementById("numero").innerText = numero;
+    
+    
     document.getElementById("ticket-numero").innerText = numero;
     document.getElementById("ticketMotif").innerText = "Motif : " + motif;
 
@@ -342,9 +416,28 @@ const qrTicket = new QRious({
 
     // Ajoute le bouton sous le QR code
     document.querySelector(".qr-container").appendChild(btnMerci);
+// ===== MODALE : numéro + QR =====
+document.getElementById("modalNumero").innerText = numero;
+
+// QR code pour la modale
+new QRious({
+  element: document.getElementById("modal-qr"),
+  value: qrLink,
+  size: 150
+});
+
+document.querySelector(".qr-container").style.display = "none";
+
 
     // Impression automatique
-    setTimeout(() => window.print(), 1000);
+    // Affiche la modale
+document.getElementById("modalWait").style.display = "flex";
+document.body.style.pointerEvents = "none";
+
+// Lance l'impression
+setTimeout(() => {
+  window.print();
+}, 500);
 
     // 🔁 Reset borne après 10s (au cas où le bouton n’est pas cliqué)
     setTimeout(() => location.reload(), 10000);
