@@ -162,9 +162,24 @@ button:disabled{
   }
 
   .ticket-footer {
-    font-size: 9px;
-    margin-top: 4px;
-  }
+  font-size: 10px;   /* PAS moins */
+  font-weight: bold;
+}
+.ticket-line {
+  font-size: 10px;
+  margin-bottom: 3px;
+}
+
+.ticket-label {
+  font-weight: bold;
+}
+
+.ticket-value {
+  font-weight: 800;      /* TRÈS IMPORTANT */
+  font-size: 11px;       /* légèrement plus grand */
+  letter-spacing: 0.3px; /* épaissit les chiffres */
+}
+
 }
 
 .qr-container {
@@ -302,30 +317,33 @@ button:disabled{
   <div class="ticket-box">
 
     <div class="ticket-header">
-      🏥 SERVICE DES URGENCES
+      SERVICE DES URGENCES
     </div>
 
-    <div class="ticket-subheader">
-      Centre Hospitalier
-    </div>
 
     <div class="ticket-numero" id="ticket-numero"></div>
 
-    <div class="ticket-details">
-      <div id="ticketMotif"></div>
-      <div id="ticketDate"></div>
-    </div>
+    <div class="ticket-line">
+  <span class="ticket-label">Motif :</span>
+  <span class="ticket-value" id="ticketMotif"></span>
+</div>
+
+<div class="ticket-line">
+  <span class="ticket-label">Date :</span>
+  <span class="ticket-value" id="ticketDate"></span>
+</div>
+
 
     <canvas id="ticket-qr" class="ticket-qr"></canvas>
 
-    <div class="ticket-separator">
-      ------------------------------
-    </div>
-
     <div class="ticket-footer">
-      Merci de patienter en salle d’attente.<br>
-      Vous serez appelé(e) selon la priorité médicale.
-    </div>
+  Ticket de passage – Urgences
+</div>
+
+<div class="ticket-footer">
+  Merci de patienter en salle d’attente
+</div>
+
 
   </div>
 </div>
