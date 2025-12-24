@@ -1,7 +1,7 @@
 {
   "name": "🚑 GestUrg2",
   "short_name": "🚑 GestUrg2",
-  "start_url": "./index.html",
+  "start_url": "./",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#007bff",
