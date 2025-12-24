@@ -86,12 +86,21 @@ button:disabled{
   color:#667;
 }
 /* ================= TICKET THERMIQUE 58mm ================= */
+/* 🔒 Le ticket ne doit JAMAIS être visible à l'écran */
+#ticket {
+  display: none !important;
+  visibility: hidden;
+  height: 0;
+  overflow: hidden;
+}
 
 @media print {
 
+
+
   @page {
-    margin: 0;
     size: 58mm auto;
+    margin: 0;
   }
 
   body {
@@ -99,17 +108,25 @@ button:disabled{
     padding: 0;
   }
 
+  /* Cache tout */
   body * {
     display: none !important;
   }
 
- #ticket {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 58mm;
-  margin: 0;
-}
+  /* 🔥 SAUF le ticket */
+  #ticket,
+  #ticket * {
+    display: block !important;
+    visibility: visible !important;
+  }
+
+  #ticket {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 58mm;
+  }
+
 
 
   .ticket-box {
@@ -196,7 +213,7 @@ button:disabled{
 .modal-wait {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.6);
+  background: rgba(15, 23, 42, 0.85);
   display: none;
   justify-content: center;
   align-items: center;
@@ -205,54 +222,81 @@ button:disabled{
 
 .modal-box {
   background: white;
-  padding: 30px 40px;
-  border-radius: 16px;
+  width: 340px;
+  padding: 32px 28px;
+  border-radius: 22px;
   text-align: center;
-  max-width: 320px;
-  box-shadow: 0 20px 40px rgba(0,0,0,.25);
+  box-shadow: 0 30px 60px rgba(0,0,0,.35);
+}
+
+.modal-icon {
+  font-size: 2.5rem;
+  margin-bottom: 10px;
 }
 
 .modal-box h2 {
-  margin: 0 0 10px;
-  font-size: 1.4rem;
+  margin: 0;
+  font-size: 1.5rem;
 }
 
-.modal-box p {
+.modal-sub {
+  margin: 6px 0 20px;
+  color: #64748b;
   font-size: 1rem;
-  color: #555;
 }
 
-.spinner {
-  margin: 20px auto 0;
-  width: 40px;
-  height: 40px;
-  border: 4px solid #ddd;
-  border-top: 4px solid #0b5ed7;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
+.modal-ticket {
+  background: #f1f5f9;
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 20px;
 }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
+.modal-ticket .label {
+  font-size: 0.9rem;
+  color: #475569;
 }
+
 .modal-numero {
-  font-size: 3.5rem;
-  font-weight: 800;
-  color: #dc3545;
-  margin: 15px 0;
+  font-size: 3.8rem;
+  font-weight: 900;
+  color: #dc2626;
+  line-height: 1;
+}
+
+.modal-qr-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 18px;
 }
 
 #modal-qr {
   width: 140px;
   height: 140px;
-  margin: 10px auto;
 }
 
-.modal-info {
-  font-size: 0.95rem;
-  color: #555;
-  margin-top: 8px;
+.qr-text {
+  font-size: 0.85rem;
+  color: #475569;
+  margin-top: 6px;
 }
+
+/* Loader moderne */
+.loader {
+  width: 36px;
+  height: 36px;
+  border: 4px solid #e5e7eb;
+  border-top-color: #0b5ed7;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 
 
 
@@ -285,21 +329,26 @@ button:disabled{
 <div class="modal-wait" id="modalWait">
   <div class="modal-box">
 
-    <h2>Veuillez patienter</h2>
-    <p>Votre ticket est en cours d’impression</p>
+    <div class="modal-icon">🖨️</div>
 
-    <div class="modal-numero" id="modalNumero">—</div>
+    <h2>Impression en cours</h2>
+    <p class="modal-sub">Veuillez patienter quelques instants</p>
 
-    <canvas id="modal-qr"></canvas>
+    <div class="modal-ticket">
+      <span class="label">Votre numéro</span>
+      <div class="modal-numero" id="modalNumero">117</div>
+    </div>
 
-    <p class="modal-info">
-      Scannez ce QR code pour suivre votre attente
-    </p>
+    <div class="modal-qr-wrapper">
+      <canvas id="modal-qr"></canvas>
+      <span class="qr-text">Suivre mon attente</span>
+    </div>
 
-    <div class="spinner"></div>
+    <div class="loader"></div>
 
   </div>
 </div>
+
 
 
 </div>
@@ -381,8 +430,7 @@ async function prendreTicket(motif, circuit){
     const idDoc = docRef.id;
     const qrLink = "https://junior2704.github.io/urgences-/mytickets?id=" + idDoc;
 
-    // QR code pour la borne
-    const qr = new QRious({ element: document.getElementById('qr'), value: qrLink, size: 150 });
+    
     // QR code pour le ticket
 // QR code pour le ticket (taille réduite)
 const qrTicket = new QRious({ 
@@ -401,28 +449,7 @@ document.getElementById("ticketDate").innerText =
   now.toLocaleDateString("fr-FR") + " " +
   now.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
 
-
-   
-    
-    document.getElementById("ticket").style.display = "block";
-
-    // Crée le bouton Merci dynamiquement
-    const btnMerci = document.createElement("button");
-    btnMerci.textContent = "Terminé !";
-    btnMerci.style.marginTop = "20px";
-    btnMerci.style.backgroundColor = "#10b981";
-    btnMerci.style.color = "white";
-    btnMerci.style.padding = "12px 20px";
-    btnMerci.style.fontSize = "1rem";
-    btnMerci.style.border = "none";
-    btnMerci.style.borderRadius = "10px";
-    btnMerci.style.cursor = "pointer";
-
-    // Au clic, reload de la page
-    btnMerci.onclick = () => location.reload();
-
     // Ajoute le bouton sous le QR code
-    document.querySelector(".qr-container").appendChild(btnMerci);
 // ===== MODALE : numéro + QR =====
 document.getElementById("modalNumero").innerText = numero;
 
@@ -433,7 +460,6 @@ new QRious({
   size: 150
 });
 
-document.querySelector(".qr-container").style.display = "none";
 
 
     // Impression automatique
