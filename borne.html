@@ -408,13 +408,15 @@ const qrTicket = new QRious({
     
     
     document.getElementById("ticket-numero").innerText = numero;
-    document.getElementById("ticketMotif").innerText = "Motif : " + motif;
+    document.getElementById("ticketMotif").innerText = motif;
+ const now = new Date();
+document.getElementById("ticketDate").innerText =
+  now.toLocaleDateString("fr-FR") + " " +
+  now.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
 
-    const now = new Date();
-    document.getElementById("ticketDate").innerText =
-      now.toLocaleDateString("fr-FR") + " " +
-      now.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
 
+   
+    
     document.getElementById("ticket").style.display = "block";
 
     // Crée le bouton Merci dynamiquement
