@@ -272,6 +272,8 @@ footer {
   <div class="btn-container" style="margin-top:18px;">
     <button type="button" id="validateBtn" class="button secondary">✅ Valider le paiement</button>
     <button type="button" id="downloadPdfBtn" class="button" style="display:none;">📄 Télécharger la facture (PDF)</button>
+    <button type="button" id="printTicketBtn" class="button secondary" style="display:none;">🧾 Imprimer le ticket</button>
+
     <!-- bouton d'envoi email : apparait en même temps que téléchargement -->
     <button type="button" id="sendEmailBtn" class="button" style="display:none; background:#004AAD;">📧 Envoyer par e-mail</button>
   </div>
@@ -311,6 +313,19 @@ footer {
       <button type="button" id="confirmEmails">Envoyer</button>
     </form>
   </div>
+</div>
+<div id="ticketContainer" style="width:220px; padding:10px; font-family:monospace; display:none; background:#fff;">
+  <div style="text-align:center; font-weight:bold; font-size:16px;">CHU - Urgences</div>
+  <div style="text-align:center; margin-bottom:6px;">----------------------</div>
+
+  <div id="ticketPatient"></div>
+  <div style="margin-bottom:6px;">----------------------</div>
+
+  <div id="ticketItems"></div>
+  <div style="margin-bottom:6px;">----------------------</div>
+
+  <div style="text-align:right;">Total: <span id="ticketTotal"></span> €</div>
+  <div style="text-align:center; margin-top:10px;">Merci de votre visite !</div>
 </div>
 
 <!-- 🔷 MODALE DE CHARGEMENT -->
@@ -585,6 +600,45 @@ function blobToBase64(blob) {
     reader.readAsDataURL(blob);
   });
 }
+async function creerTicket() {
+  const nom = document.getElementById('lastName').value || '';
+  const prenom = document.getElementById('firstName').value || '';
+  const naissance = document.getElementById('birthDate').value || '';
+  const paiement = document.getElementById('paymentMode').value || '';
+  
+  const ticketPatientDiv = document.getElementById('ticketPatient');
+  ticketPatientDiv.innerHTML = `
+    ${prenom} ${nom}<br>
+    Né(e): ${naissance}<br>
+    Paiement: ${paiement}
+  `;
+
+  const ticketItemsDiv = document.getElementById('ticketItems');
+  ticketItemsDiv.innerHTML = '';
+  [...itemsTable.querySelectorAll('tr')].forEach(row => {
+    const service = row.querySelector('.serviceSearch')?.value || '';
+    const qty = row.querySelector('.qty')?.value || '';
+    const total = row.querySelector('.lineTotal')?.textContent || '';
+    if(service) {
+      ticketItemsDiv.innerHTML += `${service} x${qty} - ${total} €<br>`;
+    }
+  });
+
+  document.getElementById('ticketTotal').textContent = grandTotalElem.textContent;
+
+  // Générer PDF ticket
+  const container = document.getElementById('ticketContainer');
+  container.style.display = 'block';
+  const opt = {
+    margin: [0,0,0,0],
+    filename: `Ticket - ${prenom} ${nom}.pdf`,
+    image: { type:'jpeg', quality:0.98 },
+    html2canvas: { scale:2, useCORS:true },
+    jsPDF: { unit:'mm', format:[58, 200] } // largeur 58mm, hauteur auto
+  };
+  await html2pdf().set(opt).from(container).save();
+  container.style.display = 'none';
+}
 
   // ---------- Valider paiement ----------
   document.getElementById('validateBtn').addEventListener('click', async () => {
@@ -670,6 +724,9 @@ contenu: totalTTCStr + " €",   // <-- maintenant une string avec €
         // afficher boutons PDF et envoi email
         document.getElementById('downloadPdfBtn').style.display = 'inline-block';
         document.getElementById('sendEmailBtn').style.display = 'inline-block';
+        document.getElementById('printTicketBtn').style.display = 'inline-block';
+document.getElementById('printTicketBtn').addEventListener('click', creerTicket);
+
       }, 1200);
     } catch (err) {
       console.error('Erreur enregistrement facture', err);
@@ -691,7 +748,7 @@ function formatDate(date) {
   function verrouillerFormulaire(){
     // Désactive tous les inputs/selects et boutons (sauf downloadPdfBtn & sendEmailBtn)
     document.querySelectorAll('#invoiceForm input, #invoiceForm select, #invoiceForm button').forEach(el => {
-      if(el.id === 'downloadPdfBtn' || el.id === 'sendEmailBtn'|| el.id === 'retourBtn'|| el.id === 'readvitalBtn'|| el.id === 'resetBtn') return;
+      if(el.id === 'downloadPdfBtn' || el.id === 'sendEmailBtn'|| el.id === 'retourBtn'|| el.id === 'readVitaleBtn'|| el.id === 'resetBtn') return;
       el.disabled = true;
     });
     // Hide remove buttons visually
