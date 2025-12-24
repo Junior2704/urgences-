@@ -208,7 +208,6 @@ footer {
 
 <form id="invoiceForm">
   <div class="btn-container">
-    <button id="retourBtn" onclick="history.back()">⬅️ Retour</button>
     <button type="button" id="resetBtn" class="button danger">❌ Réinitialiser</button>
     <button type="button" id="readVitaleBtn" class="button">🆔 Lecture Carte Vitale</button>
   </div>
@@ -726,6 +725,8 @@ contenu: totalTTCStr + " €",   // <-- maintenant une string avec €
         document.getElementById('sendEmailBtn').style.display = 'inline-block';
         document.getElementById('printTicketBtn').style.display = 'inline-block';
 document.getElementById('printTicketBtn').addEventListener('click', creerTicket);
+document.getElementById('printTicketBtn').disabled = false;
+
 
       }, 1200);
     } catch (err) {
