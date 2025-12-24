@@ -88,11 +88,11 @@ button:disabled{
 /* ================= TICKET THERMIQUE 58mm ================= */
 /* 🔒 Le ticket ne doit JAMAIS être visible à l'écran */
 #ticket {
-  display: none !important;
-  visibility: hidden;
-  height: 0;
-  overflow: hidden;
+  position: absolute;
+  left: -9999px;
+  top: 0;
 }
+
 
 @media print {
 
@@ -467,10 +467,14 @@ new QRious({
 document.getElementById("modalWait").style.display = "flex";
 document.body.style.pointerEvents = "none";
 
-// Lance l'impression
+// Force le navigateur à rendre le ticket
+document.getElementById("ticket").offsetHeight;
+
+// Attendre que le canvas soit bien dessiné
 setTimeout(() => {
   window.print();
-}, 500);
+}, 1200);
+
 
     // 🔁 Reset borne après 10s (au cas où le bouton n’est pas cliqué)
     setTimeout(() => location.reload(), 10000);
