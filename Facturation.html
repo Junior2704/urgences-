@@ -271,6 +271,8 @@ footer {
   <div class="btn-container" style="margin-top:18px;">
     <button type="button" id="validateBtn" class="button secondary">✅ Valider le paiement</button>
     <button type="button" id="downloadPdfBtn" class="button" style="display:none;">📄 Télécharger la facture (PDF)</button>
+        <button type="button" id="btnImprimer" class="button secondary">🖨️ Imprimer</button>
+
 
     <!-- bouton d'envoi email : apparait en même temps que téléchargement -->
     <button type="button" id="sendEmailBtn" class="button" style="display:none; background:#004AAD;">📧 Envoyer par e-mail</button>
@@ -670,6 +672,8 @@ contenu: totalTTCStr + " €",   // <-- maintenant une string avec €
         verrouillerFormulaire();
         // afficher boutons PDF et envoi email
         document.getElementById('downloadPdfBtn').style.display = 'inline-block';
+                document.getElementById('btnImprimer').style.display = 'inline-block';
+
         document.getElementById('sendEmailBtn').style.display = 'inline-block';
         
 
@@ -852,7 +856,7 @@ async function creerFacture(telecharger = false) {
   }
 }
 
-btnImprimer.addEventListener("click", async () => {
+document.getElementById('btnImprimer').addEventListener("click", async () => {
   const pdfBlob = await creerFacture(false);
 
   // 🔹 Crée une URL temporaire vers le PDF
