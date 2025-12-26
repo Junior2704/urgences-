@@ -507,6 +507,8 @@ function afficherDocuments() {
 
 li.querySelector('.btn-loupe')?.addEventListener('click', () => {
     const id = data.id;
+console.log("window === window.parent ?", window === window.parent);
+console.log("window.parent :", window.parent);
 
     window.parent.postMessage(
         {
