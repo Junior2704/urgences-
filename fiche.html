@@ -5197,7 +5197,7 @@ document.querySelector('[data-module="documents"]').addEventListener('click', ()
 });
 
 window.addEventListener("message", (event) => {
-
+console.log("📩 Message reçu :", event.data, "depuis", event.origin);
   if (window.parent && window.parent !== window) {
     window.parent.postMessage(
       event.data,      // on transmet exactement le même message
