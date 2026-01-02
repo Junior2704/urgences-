@@ -1533,6 +1533,17 @@ function truncateText(text, maxLength = 30) {
   if (!text) return "";
   return text.length > maxLength ? text.slice(0, maxLength) + "…" : text;
 }
+async function notifyDoctor(msg) {
+  await fetch("https://onesignal-notify-backend.onrender.com", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      doctorId: auth.currentUser.uid,
+      title: "🩺 Patient mis à jour",
+      message: msg
+    })
+  });
+}
 
 </script>
 
@@ -1667,6 +1678,18 @@ function logout(){
   }
 }
 
+</script>
+<script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" async></script>
+<script>
+window.OneSignal = window.OneSignal || [];
+OneSignal.push(function() {
+  OneSignal.init({
+    appId: "a8c9aff4-37c2-4abe-ba52-72f9ff58b268"
+  });
+
+  // Lier le médecin connecté
+  OneSignal.login(firebase.auth().currentUser.uid);
+});
 </script>
 
 </body>
