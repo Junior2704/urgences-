@@ -306,6 +306,49 @@ iframe{
 .tab.drag-over {
   border-left: 3px solid #0078d4;
 }
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 20000;
+}
+
+.modal {
+  background: white;
+  border-radius: 16px;
+  padding: 22px;
+  width: 420px;
+  box-shadow: 0 20px 40px rgba(0,0,0,.25);
+  text-align: center;
+}
+
+.modal h3 {
+  margin-top: 0;
+}
+
+.modal-actions {
+  margin-top: 18px;
+}
+
+.modal-actions button {
+  background: #0078d4;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 18px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.modal-actions button:hover {
+  background: #005fa3;
+}
+
+#tabs {
+  overflow: hidden;
+}
 
 </style>
 </head>
@@ -375,6 +418,8 @@ iframe{
 </div>
 
       <button class ="action-btn" id="btnLogout">🔓 Déconnexion</button>
+	  <button class="action-btn" onclick="closeAllTabs()">🧹 Tout fermer</button>
+
     </div>
 
     <span id="datetime"></span>
@@ -402,6 +447,20 @@ iframe{
 
 
 </div>
+<div id="tabOverflowModal" class="modal-overlay">
+  <div class="modal">
+    <h3>⚠️ Trop d’onglets ouverts</h3>
+    <p>
+      La largeur disponible ne permet plus d’afficher de nouveaux onglets.<br>
+      Veuillez fermer un ou plusieurs onglets pour continuer.
+    </p>
+
+    <div class="modal-actions">
+      <button onclick="closeOverflowModal()">Compris</button>
+    </div>
+  </div>
+</div>
+
 
 <style>
 #home {
@@ -462,9 +521,26 @@ let tabs = [];
 let activeTab = null;
 
 function openTab(title, url){
-  let existing = tabs.find(t=>t.url===url);
-  if(existing){setActive(existing.id);return;}
+ let existing = tabs.find(t=>t.url===url);
+  if(existing){
+    setActive(existing.id);
+    return;
+  }
 
+  // 🔍 Test de place AVANT ouverture
+  const tempTab = document.createElement("div");
+  tempTab.className = "tab";
+  tempTab.style.visibility = "hidden";
+  tempTab.innerHTML = title;
+  document.getElementById("tabs").appendChild(tempTab);
+
+  const overflow = tabsOverflow();
+  tempTab.remove();
+
+  if (overflow) {
+    showOverflowModal();
+    return;
+  }
   const id = Date.now();
   tabs.push({id,title,url});
 
@@ -509,6 +585,9 @@ function closeTab(id){
   }
   if(activeTab===id) setActive(tabs[tabs.length-1].id);
 }
+window.addEventListener("resize", () => {
+  if (tabsOverflow()) showOverflowModal();
+});
 
 /* === API pour ouvrir depuis urgences.html === */
 window.openInShell = function(title, url){
@@ -541,7 +620,14 @@ btnOutils.addEventListener("click", (e) => {
 menuOutils.addEventListener("click", (e) => {
   e.stopPropagation();
 });
+function closeAllTabs() {
+  tabs = [];
+  document.querySelectorAll(".tab").forEach(t => t.remove());
+  document.querySelectorAll("iframe").forEach(f => f.remove());
 
+  activeTab = null;
+  document.getElementById('home').style.display = 'flex';
+}
 // Fermer seulement si clic ailleurs
 document.addEventListener("click", () => {
   menuOutils.classList.remove("open");
@@ -600,6 +686,25 @@ function enableTabDrag(tabEl) {
     tabs.splice(targetIndex, 0, moved);
   });
 }
+function tabsOverflow() {
+  const container = document.getElementById("tabs");
+  let totalWidth = 0;
+
+  container.querySelectorAll(".tab").forEach(tab => {
+    totalWidth += tab.offsetWidth + 4; // gap
+  });
+
+  return totalWidth > container.offsetWidth;
+}
+function showOverflowModal() {
+  document.getElementById("tabOverflowModal").style.display = "flex";
+}
+
+function closeOverflowModal() {
+  document.getElementById("tabOverflowModal").style.display = "none";
+}
+
+
 // Mise à jour toutes les secondes
 setInterval(updateDateTime, 1000);
 updateDateTime();
