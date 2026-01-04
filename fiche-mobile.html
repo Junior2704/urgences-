@@ -1966,14 +1966,7 @@ const menuAppels = document.getElementById("menuAppels");
     }
   }
 });
-function closeSidebar() {
-  sb.classList.remove("open");
-  sbOverlay.classList.remove("show");
-}
 
-window.addEventListener("load", () => {
-  showPage('pageAccueil');
-});
 
 
 </script>
@@ -2001,24 +1994,15 @@ window.addEventListener("load", () => {
   ouvrirAccueil();
   startHorloge();
 });
-
-// --- FONCTIONS POUR CHANGER DE "PAGE" ---
-function ouvrirAccueil(){
-  pageUrgences.style.display = "none";
-  pageAppels.style.display = "none";
-  pageAccueil.style.display = "block";
+function closeSidebar() {
   sb.classList.remove("open");
   sbOverlay.classList.remove("show");
 }
 
-function ouvrirUrgences(){
-  pageAccueil.style.display = "none";
-    pageAppels.style.display = "none";
-  pageUrgences.style.display = "block";
-  sb.classList.remove("open");
-  sbOverlay.classList.remove("show");
-}
 
+window.addEventListener("load", () => {
+  showPage('pageAccueil');
+});
 
 // --- HORLOGE ---
 function startHorloge(){
