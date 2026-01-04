@@ -2051,54 +2051,56 @@ function logout(){
 </script>
 <script>
 /* ===============================
-   SWIPE MENU — SAFE MOBILE PWA
+   SWIPE MENU — BLOQUE BACK SYSTEM
 ================================ */
 
 const sidebar = document.getElementById("sidebar");
 const sidebarOverlay = document.getElementById("sidebarOverlay");
 
-let touchStartX = 0;
-let touchStartY = 0;
-let isSwiping = false;
+let startX = 0;
+let startY = 0;
+let tracking = false;
 
 document.addEventListener("touchstart", (e) => {
-  // Ne pas déclencher si une modale est ouverte
+  // ne rien faire si menu ouvert ou modale ouverte
+  if (sidebar.classList.contains("open")) return;
   if (document.querySelector(".modal-overlay[style*='flex']")) return;
 
   const t = e.touches[0];
-  touchStartX = t.clientX;
-  touchStartY = t.clientY;
+  startX = t.clientX;
+  startY = t.clientY;
 
-  // zone bord gauche (sécurité retour système)
-  isSwiping = touchStartX < 30;
-}, { passive: true });
+  // 🔒 ZONE ULTRA SÉCURISÉE (évite le back Android)
+  tracking = startX <= 20;
+}, { passive: false });
 
 document.addEventListener("touchmove", (e) => {
-  if (!isSwiping) return;
-  if (sidebar.classList.contains("open")) return;
+  if (!tracking) return;
 
   const t = e.touches[0];
-  const dx = t.clientX - touchStartX;
-  const dy = Math.abs(t.clientY - touchStartY);
+  const dx = t.clientX - startX;
+  const dy = Math.abs(t.clientY - startY);
 
-  // priorité au scroll vertical
-  if (dy > 25) {
-    isSwiping = false;
+  // laisser passer le scroll vertical
+  if (dy > 20) {
+    tracking = false;
     return;
   }
 
   // swipe horizontal suffisant
-  if (dx > 60) {
+  if (dx > 50) {
+    e.preventDefault(); // 🔥 BLOQUE LE RETOUR ANDROID
     openSidebar();
-    isSwiping = false;
+    tracking = false;
   }
-}, { passive: true });
+}, { passive: false });
 
 function openSidebar() {
   sidebar.classList.add("open");
   sidebarOverlay.classList.add("show");
 }
 </script>
+
 
 
 </body>
