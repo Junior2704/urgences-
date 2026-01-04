@@ -1799,7 +1799,7 @@ nav:hover .nav-item span {
 </div>
 
 <div id="scopeSuccess" style="display:none; margin-top:10px;">
-  <button id="btnOpenScope">🖥️ Ouvrir VisionScope2</button>
+  <button id="btnOpenScope">🖥️ Ouvrir VisionScope</button>
 </div>
 
 
@@ -3374,7 +3374,14 @@ document.getElementById("btnSaveConst").addEventListener("click", async () => {
       afficherBulle("❌Numéro de scope manquant", "warning");
       return;
     }
-    window.location.href =`scope.html?id=${encodeURIComponent(patientId)}`;
+    window.parent.postMessage(
+        {
+          type: "OPEN_TAB",
+          title: `VisionScope ${nomfacture} ${prenomfacture}`,
+          url: `scope.html?id=${encodeURIComponent(patientId)}`
+        },
+        "*"
+      );
   });
 }
 
