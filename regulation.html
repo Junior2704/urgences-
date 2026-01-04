@@ -843,6 +843,10 @@ async function updateMedicalDashboard() {
         <td>${tempsEcoule}</td>
         <td>—</td>
       `;
+      // Lors de la création du tr
+tr.setAttribute('data-temps', hosp.dateDebut?.seconds || 0);
+tr.setAttribute('data-equipe', JSON.stringify(data.equipe || {}));
+
 tr.addEventListener('click', () => {
   window.parent.postMessage({
     type: "OPEN_TAB",
@@ -983,16 +987,22 @@ if (visibles === 0 && total > 0) {
 function presetTemps(heures) {
   resetFilters(false);
 
+  const now = Date.now();
   document.querySelectorAll('#patient-list tr').forEach(tr => {
-    const temps = tr.children[8]?.textContent || '';
-    const match = temps.match(/(\d+)h/);
-    const h = match ? parseInt(match[1]) : 0;
+    const dateDebutSec = parseInt(tr.getAttribute('data-temps') || 0);
+    if (!dateDebutSec) {
+      tr.style.display = 'none';
+      return;
+    }
+    const diffMs = now - dateDebutSec * 1000;
+    const h = Math.floor(diffMs / 3600000);
 
     tr.style.display = h >= heures ? '' : 'none';
   });
 
   document.getElementById('activeFiltersBadge').classList.remove('hidden');
 }
+
 function presetAllergies() {
   resetFilters(false);
 
@@ -1014,9 +1024,13 @@ function presetSansMedecin() {
   resetFilters(false);
 
   document.querySelectorAll('#patient-list tr').forEach(tr => {
-    const equipe = tr.children[9]?.textContent || '';
-    tr.style.display = equipe.includes('👨‍⚕️') ? 'none' : '';
+    const equipe = JSON.parse(tr.getAttribute('data-equipe') || '{}');
+    const hasMedecin = equipe.medecinReferent?.nom;
+
+    tr.style.display = hasMedecin ? 'none' : '';
   });
+
+  document.getElementById('activeFiltersBadge').classList.remove('hidden');
 }
 
 function resetFilters(apply = true) {
