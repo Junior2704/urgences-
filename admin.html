@@ -119,6 +119,7 @@
       <th>Annuler suppression</th>
         <th>Urgences</th>
          <th>App mobile</th>
+         <th>Appels patients</th>
         <th>Accueil</th>
         <th>Certificat Médical</th>
 		<th>Facturation</th>
@@ -399,6 +400,11 @@ tr.innerHTML = `
       
   <td><input type="checkbox" ${pages.urgences ? "checked" : ""} onchange="toggleAccess('${id}', 'urgences', this.checked)"></td>
     <td><input type="checkbox" ${pages.fichemobile ? "checked" : ""} onchange="toggleAccess('${id}', 'fichemobile', this.checked)"></td>
+<td>
+  <input type="checkbox"
+    ${pages.appelsmobile ? "checked" : ""}
+    onchange="toggleAccess('${id}', 'appelsmobile', this.checked)">
+</td>
 
   <td><input type="checkbox" ${pages.accueil ? "checked" : ""} onchange="toggleAccess('${id}', 'accueil', this.checked)"></td>
   <td><input type="checkbox" ${pages.Certificatmedical ? "checked" : ""} onchange="toggleAccess('${id}', 'Certificatmedical', this.checked)"></td>

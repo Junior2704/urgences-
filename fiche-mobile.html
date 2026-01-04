@@ -1782,7 +1782,7 @@ let medecinNom = "";
 
   onAuthStateChanged(auth, async (user) => {
   if (!user) {
-    //window.location.href = "index.html";
+    window.location.href = "index.html";
   } else {
     try {
       const docRef = doc(db, "medecins", user.uid);
@@ -1799,7 +1799,13 @@ let medecinNom = "";
         const pages = data.pages || {};
         const currentPath = window.location.pathname;
         const currentPage = "fichemobile";
+const menuAppels = document.getElementById("menuAppels");
 
+  if (pages.appelsmobile === true) {
+    menuAppels.style.display = "block";
+  } else {
+    menuAppels.style.display = "none";
+  }
         if (!pages[currentPage]) {
           alert("⛔️ Vous n’avez pas accès à cette page.");
           window.location.href = "index.html";
