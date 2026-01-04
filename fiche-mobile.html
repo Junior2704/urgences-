@@ -931,7 +931,46 @@ input:focus {
   <div id="list" class="list" aria-live="polite"></div>
 
 </div>
+iv id="pageAppels" class="page" style="display:none">
+  <h2>📞 Gestion des appels</h2>
 
+  <!-- Carte principale -->
+  <div class="card">
+    <label for="bureauMobile">Bureau</label>
+    <select id="bureauMobile">
+      <option value="">Sélectionner</option>
+      <option value="Bureau 1">Bureau 1</option>
+      <option value="Bureau 2">Bureau 2</option>
+      <option value="Bureau 3">Bureau 3</option>
+    </select>
+
+    <label for="typeAppel">Type d’appel</label>
+    <select id="typeAppel">
+      <option value="">Tous</option>
+      <option value="Traumatologie">Traumatologie</option>
+      <option value="Consultation">Consultation</option>
+      <option value="Administratif">Administratif</option>
+      <option value="Pédiatrie">Pédiatrie</option>
+    </select>
+
+    <button class="btn-success" onclick="appelerTicketMobile()">
+      📣 Appeler le patient suivant
+    </button>
+
+    <!-- Infos patient appelé -->
+    <div id="infosAppelMobile" style="display:none" class="card">
+      <div class="numero" id="numeroAppelMobile">—</div>
+
+      <div id="infoMotifMobile">📝 Motif : —</div>
+      <div id="infoCircuitMobile">🧭 Circuit : —</div>
+      <div id="infoAttenteMobile">⏱️ Attente : —</div>
+      <div id="infoBureauMobile">📍 Bureau : —</div>
+    </div>
+
+    <!-- Statut -->
+    <div class="status" id="appelStatusMobile"></div>
+  </div>
+</div>
   <!-- Modal lecture seule -->
   <div id="modal" class="modal-overlay" role="dialog" aria-modal="true" aria-hidden="true">
     <div class="modal" role="document">
@@ -1042,46 +1081,7 @@ input:focus {
 </div>
 
 
-<div id="pageAppels" class="page" style="display:none">
-  <h2>📞 Gestion des appels</h2>
 
-  <!-- Carte principale -->
-  <div class="card">
-    <label for="bureauMobile">Bureau</label>
-    <select id="bureauMobile">
-      <option value="">Sélectionner</option>
-      <option value="Bureau 1">Bureau 1</option>
-      <option value="Bureau 2">Bureau 2</option>
-      <option value="Bureau 3">Bureau 3</option>
-    </select>
-
-    <label for="typeAppel">Type d’appel</label>
-    <select id="typeAppel">
-      <option value="">Tous</option>
-      <option value="Traumatologie">Traumatologie</option>
-      <option value="Consultation">Consultation</option>
-      <option value="Administratif">Administratif</option>
-      <option value="Pédiatrie">Pédiatrie</option>
-    </select>
-
-    <button class="btn-success" onclick="appelerTicketMobile()">
-      📣 Appeler le patient suivant
-    </button>
-
-    <!-- Infos patient appelé -->
-    <div id="infosAppelMobile" style="display:none" class="card">
-      <div class="numero" id="numeroAppelMobile">—</div>
-
-      <div id="infoMotifMobile">📝 Motif : —</div>
-      <div id="infoCircuitMobile">🧭 Circuit : —</div>
-      <div id="infoAttenteMobile">⏱️ Attente : —</div>
-      <div id="infoBureauMobile">📍 Bureau : —</div>
-    </div>
-
-    <!-- Statut -->
-    <div class="status" id="appelStatusMobile"></div>
-  </div>
-</div>
 
 
 </div>
