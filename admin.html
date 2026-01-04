@@ -115,8 +115,7 @@
 		  <th> </th>
         <th>Changer MDP</th>
         <th>Signature</th>
-        <th>Supprimer</th>
-      <th>Annuler suppression</th>
+        <th>Suppression</th>
         <th>Urgences</th>
          <th>App mobile</th>
          <th>Appels patients</th>
@@ -388,15 +387,19 @@ tr.innerHTML = `
     🖊️ Gérer
   </button>
 </td>
-
-  <td>
-        <button style="background:#ff0000;color:white;" onclick="marquerSuppression('${id}','${data.email}')">
-          ❌ Supprimer
-        </button>
-      </td>
-      <td>
-        ${data.supprime ? `<button style="background:#4caf50;color:white;" onclick="annulerSuppression('${id}','${data.email}')">✅ Annuler</button>` : ""}
-      </td>
+<td>
+  ${
+    data.supprime
+    ? `<button style="background:#4caf50;color:white;"
+        onclick="annulerSuppression('${id}','${data.email}')">
+        ✅ Annuler
+      </button>`
+    : `<button style="background:#ff0000;color:white;"
+        onclick="marquerSuppression('${id}','${data.email}')">
+        ❌ Supprimer
+      </button>`
+  }
+</td>
       
   <td><input type="checkbox" ${pages.urgences ? "checked" : ""} onchange="toggleAccess('${id}', 'urgences', this.checked)"></td>
     <td><input type="checkbox" ${pages.fichemobile ? "checked" : ""} onchange="toggleAccess('${id}', 'fichemobile', this.checked)"></td>
