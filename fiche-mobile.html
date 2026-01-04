@@ -1966,6 +1966,16 @@ const menuAppels = document.getElementById("menuAppels");
     }
   }
 });
+function closeSidebar() {
+  sb.classList.remove("open");
+  sbOverlay.classList.remove("show");
+}
+
+window.addEventListener("load", () => {
+  showPage('pageAccueil');
+});
+
+
 </script>
 <script>
 const sb = document.getElementById("sidebar");
