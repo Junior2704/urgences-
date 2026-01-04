@@ -820,7 +820,7 @@ async function updateMedicalDashboard() {
 
       const tr = document.createElement('tr');
 
-      /* 🎨 COULEURS GRAVITÉ */
+      /* 🎨 CaOULEURS GRAVITÉ */
       if (gravLower.includes('p3') || gravLower.includes('vital')) tr.classList.add('grav-p3');
       else if (gravLower.includes('p2')) tr.classList.add('grav-p2');
       else if (gravLower.includes('p1')) tr.classList.add('grav-p1');
@@ -843,7 +843,13 @@ async function updateMedicalDashboard() {
         <td>${tempsEcoule}</td>
         <td>—</td>
       `;
-
+tr.addEventListener('click', () => {
+  window.parent.postMessage({
+    type: "OPEN_TAB",
+    title: `Fiche Urgences ${nom} ${prenom}`,
+    url: `fiche.html?id=${id}&from=tableau`
+  }, "*");
+});
       tbody.appendChild(tr);
     }
 

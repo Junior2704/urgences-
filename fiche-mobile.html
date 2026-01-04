@@ -867,6 +867,12 @@ input:focus {
     font-size: 13px;
   }
 }
+.page {
+  display: none;
+}
+.page.active {
+  display: block;
+}
 
 
 </style>
@@ -1737,27 +1743,7 @@ function hideAllPages(){
   document.querySelectorAll(".page").forEach(p=>p.style.display="none");
 }
 
-function goHome(){
-  hideAllPages();
-  document.getElementById("pageAccueil").style.display = "block";
-   sb.classList.remove("open");
-  sbOverlay.classList.remove("show");
-}
 
-function goUrgences(){
-  hideAllPages();
-  document.getElementById("pageUrgences").style.display = "block";
-   sb.classList.remove("open");
-  sbOverlay.classList.remove("show");
-}
-
-function goAppels(){
-  hideAllPages();
-  document.getElementById("pageAppels").style.display = "block";
-  sb.classList.remove("open");
-  sbOverlay.classList.remove("show");
-
-}
 const bureauSelectMobile = document.getElementById("bureauMobile");
 
 db.collection("référentiels").doc("bureau")
@@ -1781,6 +1767,30 @@ db.collection("référentiels").doc("bureau")
       bureauSelectMobile.appendChild(opt);
     }
   });
+  function showPage(pageId) {
+  // cacher toutes les pages
+  document.querySelectorAll('.page').forEach(p => {
+    p.classList.remove('active');
+  });
+
+  // afficher la bonne
+  document.getElementById(pageId).classList.add('active');
+
+  // fermer le menu
+  closeSidebar();
+}
+function goHome() {
+  showPage('pageAccueil');
+}
+
+function goUrgences() {
+  showPage('pageUrgences');
+}
+
+function goAppels() {
+  showPage('pageAppels');
+}
+
  async function appelerTicketMobile(){
   const bureau = document.getElementById("bureauMobile").value;
   const type = document.getElementById("typeAppel").value;
@@ -1985,6 +1995,7 @@ window.addEventListener("load", () => {
 // --- FONCTIONS POUR CHANGER DE "PAGE" ---
 function ouvrirAccueil(){
   pageUrgences.style.display = "none";
+  pageAppels.style.display = "none";
   pageAccueil.style.display = "block";
   sb.classList.remove("open");
   sbOverlay.classList.remove("show");
@@ -1992,14 +2003,12 @@ function ouvrirAccueil(){
 
 function ouvrirUrgences(){
   pageAccueil.style.display = "none";
+    pageAppels.style.display = "none";
   pageUrgences.style.display = "block";
   sb.classList.remove("open");
   sbOverlay.classList.remove("show");
 }
 
-// --- MENUS ---
-function goHome(){ ouvrirAccueil(); }
-function goUrgences(){ ouvrirUrgences(); }
 
 // --- HORLOGE ---
 function startHorloge(){
