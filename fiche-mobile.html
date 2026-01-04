@@ -911,20 +911,26 @@ input:focus {
   </div>
 </div>
 
-<div id="pageUrgences" class="page" style="display:none">
+<div id="pageUrgences" class="page">
+
   <div class="top-row">
-
     <div class="search-wrap">
-      <input id="searchInput" class="search" type="search" placeholder="Rechercher nom / prénom / ID..." aria-label="Rechercher patient"/>
-      <div id="results" style="display:none" role="listbox" aria-label="Résultats de recherche"></div>
-    
-    
-      <button id="refreshBtn" class="btn" title="Rafraîchir">🔄</button>
-  
-  </div>
-</div>
+      <input id="searchInput" class="search" type="search"
+             placeholder="Rechercher nom / prénom / ID..."
+             aria-label="Rechercher patient"/>
 
+      <div id="results" style="display:none"
+           role="listbox"
+           aria-label="Résultats de recherche"></div>
+
+      <button id="refreshBtn" class="btn" title="Rafraîchir">🔄</button>
+    </div>
+  </div>
+
+  <!-- ✅ LA LISTE DOIT ÊTRE ICI -->
   <div id="list" class="list" aria-live="polite"></div>
+
+</div>
 
   <!-- Modal lecture seule -->
   <div id="modal" class="modal-overlay" role="dialog" aria-modal="true" aria-hidden="true">
@@ -1035,7 +1041,7 @@ input:focus {
   </div>
 </div>
 
-</div>
+
 <div id="pageAppels" class="page" style="display:none">
   <h2>📞 Gestion des appels</h2>
 
@@ -1991,7 +1997,7 @@ sbOverlay.onclick = () => {
 
 // --- CHARGEMENT PAR DÉFAUT : ACCUEIL ---
 window.addEventListener("load", () => {
-  ouvrirAccueil();
+ 
   startHorloge();
 });
 function closeSidebar() {
