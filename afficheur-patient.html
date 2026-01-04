@@ -786,7 +786,7 @@ if (age > DUREE_AFFICHAGE) continue;
       el.className = "appel" + (estNouveau ? " nouveau" : "");
       el.innerHTML = `
         <div class="numero">N° ${d.numero}</div>
-        <div class="bureau">Bureau ${d.bureau}</div>
+        <div class="bureau">${d.bureau}</div>
       `;
 
       liste.prepend(el);
