@@ -732,7 +732,17 @@ input:focus {
   justify-content:flex-start;
 }
 
-
+.numero{text-align:center;font-size:4rem;font-weight:800;color:#dc3545}
+.status{text-align:center;font-weight:600;min-height:24px}
+.ok{color:#198754}
+.err{color:#dc3545}
+.footer{text-align:center;font-size:.85rem;color:#667;margin-top:10px}
+#infosPatient div{
+  font-size:1.05rem;
+  margin-top:4px;
+  font-weight:500;
+  color:#0b2240;
+}
 
 </style>
 </head>
@@ -751,6 +761,10 @@ input:focus {
 
   <div class="sidebar-item" onclick="goHome()">🏠 Accueil</div>
   <div class="sidebar-item" onclick="goUrgences()">🚑 Urgences</div>
+<div id="menuAppels" class="sidebar-item" onclick="goAppels()">
+  📞 Appels
+</div>
+
   <div class="sidebar-item logout" onclick="logout()">🔓 Se déconnecter</div>
 </div>
 
@@ -891,6 +905,41 @@ input:focus {
 </div>
 
 </div>
+<div id="pageAppels" class="page" style="display:none">
+  <h2>📞 Gestion des appels</h2>
+
+  <div class="card">
+    <label>Bureau</label>
+    <select id="bureauMobile"></select>
+
+    <label>Type d’appel</label>
+    <select id="typeAppel">
+      <option value="">Tous</option>
+      <option value="Traumatologie">Traumatologie</option>
+      <option value="Consultation">Consultation</option>
+      <option value="Administratif">Administratif</option>
+      <option value="Pédiatrie">Pédiatrie</option>
+    </select>
+
+    <button class="btn-success" onclick="appelerTicketMobile()">
+      📣 Appeler le patient suivant
+    </button>
+<!-- INFOS PATIENT APPELÉ -->
+<div id="infosAppelMobile" style="display:none" class="card">
+
+  <div class="numero" id="numeroAppelMobile">—</div>
+
+  <div id="infoMotifMobile">📝 Motif : —</div>
+  <div id="infoCircuitMobile">🧭 Circuit : —</div>
+  <div id="infoAttenteMobile">⏱️ Attente : —</div>
+  <div id="infoBureauMobile">📍 Bureau : —</div>
+
+</div>
+
+    <div class="status" id="appelStatusMobile"></div>
+  </div>
+</div>
+
 </div>
 
 <!-- Firebase compat (comme dans tes fichiers existants) -->
@@ -1097,6 +1146,14 @@ function renderList(arr){
     card.appendChild(rightCol);
     listEl.appendChild(card);
   });
+}
+function formatDuree(ms) {
+  const min = Math.floor(ms / 60000);
+  if (min < 1) return "moins d’1 min";
+  if (min < 60) return `${min} min`;
+  const h = Math.floor(min / 60);
+  const r = min % 60;
+  return r ? `${h}h ${r}min` : `${h}h`;
 }
 
 /* ----------------------
@@ -1544,6 +1601,163 @@ async function notifyDoctor(msg) {
     })
   });
 }
+function hideAllPages(){
+  document.querySelectorAll(".page").forEach(p=>p.style.display="none");
+}
+
+function goHome(){
+  hideAllPages();
+  document.getElementById("pageAccueil").style.display = "block";
+  closeSidebar();
+}
+
+function goUrgences(){
+  hideAllPages();
+  document.getElementById("pageUrgences").style.display = "block";
+  closeSidebar();
+}
+
+function goAppels(){
+  hideAllPages();
+  document.getElementById("pageAppels").style.display = "block";
+  sb.classList.remove("open");
+  sbOverlay.classList.remove("show");
+
+}
+const bureauSelectMobile = document.getElementById("bureauMobile");
+
+db.collection("référentiels").doc("bureau")
+  .onSnapshot(doc => {
+    bureauSelectMobile.innerHTML = "";
+    if (!doc.exists) return;
+
+    const data = doc.data();
+
+    for (const id in data) {
+
+      // ❌ exclure "general"
+      if (id === "general") continue;
+
+      // sécurité
+      if (typeof data[id] !== "object") continue;
+
+      const opt = document.createElement("option");
+      opt.value = id;
+      opt.textContent = id;
+      bureauSelectMobile.appendChild(opt);
+    }
+  });
+ async function appelerTicketMobile(){
+  const bureau = document.getElementById("bureauMobile").value;
+  const type = document.getElementById("typeAppel").value;
+
+  const status = document.getElementById("appelStatusMobile");
+
+  const numeroDiv  = document.getElementById("numeroAppelMobile");
+  const motifDiv   = document.getElementById("infoMotifMobile");
+  const circuitDiv = document.getElementById("infoCircuitMobile");
+  const attenteDiv = document.getElementById("infoAttenteMobile");
+  const bureauDiv  = document.getElementById("infoBureauMobile");
+  const infosBox   = document.getElementById("infosAppelMobile");
+
+  const snap = await db.collection("accueil-1")
+    .where("statut","==","attente")
+    .orderBy("dateArriveeClient")
+    .get();
+
+  if(snap.empty){
+    status.innerText = "Aucun patient en attente";
+    return;
+  }
+
+  // 🔍 filtrage par type
+  let doc = null;
+  for(const d of snap.docs){
+    const data = d.data();
+    if(!type || data.motif === type){
+      doc = d;
+      break;
+    }
+  }
+
+  if(!doc){
+    status.innerText = "Aucun patient correspondant";
+    return;
+  }
+
+  // 🔚 terminer anciens appels du même bureau
+  const anciens = await db.collection("accueil-1")
+    .where("statut","==","appele")
+    .where("bureau","==",bureau)
+    .get();
+
+  anciens.forEach(d=>d.ref.update({statut:"termine"}));
+
+  const data = doc.data();
+
+  await doc.ref.update({
+    statut: "appele",
+    bureau: bureau,
+    dateAppel: firebase.firestore.FieldValue.serverTimestamp(),
+    afficheDepuis: firebase.firestore.FieldValue.serverTimestamp()
+  });
+
+  // ================= AFFICHAGE =================
+  numeroDiv.innerText = "N° " + (data.numero ?? "—");
+
+  motifDiv.innerText =
+    data.motif ? "📝 Motif : " + data.motif : "📝 Motif : —";
+
+  circuitDiv.innerText =
+    data.circuit ? "🧭 Circuit : " + data.circuit : "🧭 Circuit : —";
+
+  bureauDiv.innerText = "📍 Bureau : " + bureau;
+
+  // ⏱️ calcul attente
+  let attenteMs = null;
+  const dateArrivee = data.dateArriveeClient || data.dateArrivee;
+
+  if(dateArrivee){
+    if(typeof dateArrivee.toMillis === "function"){
+      attenteMs = Date.now() - dateArrivee.toMillis();
+    }else{
+      attenteMs = Date.now() - new Date(dateArrivee).getTime();
+    }
+  }
+
+  attenteDiv.innerText =
+    attenteMs !== null
+      ? "⏱️ Attente : " + formatDuree(attenteMs)
+      : "⏱️ Attente : —";
+
+  infosBox.style.display = "block";
+  status.innerText = "Ticket appelé";
+}
+const menuAppels = document.getElementById("menuAppels");
+
+// Par défaut : caché
+menuAppels.style.display = "none";
+
+db.collection("référentiels").doc("bureau")
+  .onSnapshot(docSnap => {
+    if (!docSnap.exists) return;
+
+    const data = docSnap.data();
+
+    // 🔐 OPTION LOGICIELLE
+    const optionActive =
+      data.general &&
+      data.general.active === true;
+
+    // Affichage conditionnel
+    menuAppels.style.display = optionActive ? "block" : "none";
+
+    // Sécurité UX : si on est dessus et que ça se désactive
+    if (!optionActive) {
+      hideAllPages();
+      document.getElementById("pageAccueil").style.display = "block";
+    }
+  });
 
 </script>
 
@@ -1568,7 +1782,7 @@ let medecinNom = "";
 
   onAuthStateChanged(auth, async (user) => {
   if (!user) {
-    window.location.href = "index.html";
+    //window.location.href = "index.html";
   } else {
     try {
       const docRef = doc(db, "medecins", user.uid);
@@ -1679,18 +1893,7 @@ function logout(){
 }
 
 </script>
-<script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" async></script>
-<script>
-window.OneSignal = window.OneSignal || [];
-OneSignal.push(function() {
-  OneSignal.init({
-    appId: "a8c9aff4-37c2-4abe-ba52-72f9ff58b268"
-  });
 
-  // Lier le médecin connecté
-  OneSignal.login(firebase.auth().currentUser.uid);
-});
-</script>
 
 </body>
 </html>
