@@ -195,6 +195,31 @@
   from { transform: scale(0.95); opacity: 0; }
   to { transform: scale(1); opacity: 1; }
 }
+/* 🔽 Accordéon */
+.section-title {
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.section-title::after {
+  content: "▾";
+  font-size: 18px;
+  transition: transform 0.25s ease;
+}
+
+.section.collapsed .section-title::after {
+  transform: rotate(-90deg);
+}
+
+.section-content {
+  margin-top: 15px;
+}
+
+.section.collapsed .section-content {
+  display: none;
+}
 
   </style>
 </head>
@@ -214,29 +239,56 @@
 <div id="specialite"></div>
 <div id="lieu-medecin"></div>
 
-  <div class="section">
-    <h2>🩺 Actes <button class="btn btn-add" onclick="openModal('actes')">➕ Ajouter</button></h2>
+  <div class="section collapsed">
+  <h2 class="section-title">
+    🩺 Actes
+    <button class="btn btn-add" onclick="event.stopPropagation(); openModal('actes')">➕ Ajouter</button>
+  </h2>
+  <div class="section-content">
     <ul id="actesList"></ul>
   </div>
+</div>
 
-  <div class="section">
-    <h2>👨‍⚕️ Personnel <button class="btn btn-add" onclick="openModal('personnel')">➕ Ajouter</button></h2>
+
+ <div class="section collapsed">
+  <h2 class="section-title">
+    👨‍⚕️ Personnel
+    <button class="btn btn-add" onclick="event.stopPropagation(); openModal('personnel')">➕ Ajouter</button>
+  </h2>
+  <div class="section-content">
     <ul id="personnelList"></ul>
   </div>
-<div class="section">
-    <h2>Services <button class="btn btn-add" onclick="openModal('spécialités')">➕ Ajouter</button></h2>
+</div>
+
+<div class="section collapsed">
+  <h2 class="section-title">
+    🏥 Services
+    <button class="btn btn-add" onclick="event.stopPropagation(); openModal('spécialités')">➕ Ajouter</button>
+  </h2>
+  <div class="section-content">
     <ul id="spécialitésList"></ul>
   </div>
-  <div class="section">
-  <h2>💶 Facturables 
-    <button class="btn btn-add" onclick="openFacturableModal()">➕ Ajouter</button>
-  </h2>
-  <ul id="facturablesList"></ul>
 </div>
-<div class="section">
-    <h2>🚑 Moyens <button class="btn btn-add" onclick="openModal('moyens')">➕ Ajouter</button></h2>
+
+<div class="section collapsed">
+  <h2 class="section-title">
+    💶 Facturables
+    <button class="btn btn-add" onclick="event.stopPropagation(); openFacturableModal()">➕ Ajouter</button>
+  </h2>
+  <div class="section-content">
+    <ul id="facturablesList"></ul>
+  </div>
+</div>
+<div class="section collapsed">
+  <h2 class="section-title">
+    🚑 Moyens
+    <button class="btn btn-add" onclick="event.stopPropagation(); openModal('moyens')">➕ Ajouter</button>
+  </h2>
+  <div class="section-content">
     <ul id="moyensList"></ul>
   </div>
+</div>
+
 <!-- Modale spécifique pour les facturables -->
 <div class="modal" id="modalFacturable">
   <div class="modal-content">
@@ -251,21 +303,24 @@
 </div>
 
 <!-- 🔐 Codes d’accès -->
-<div class="section">
-  <h2>🔒 Codes d’accès</h2>
+<div class="section collapsed">
+  <h2 class="section-title">🔒 Codes d’accès</h2>
 
-  <p>
-    <strong>🧾 Code de Clôture d’Hospitalisation (CCH) :</strong>
-    <span id="afficheCCH">.......</span>
-    <button class="btn-edit" id="btnEditCCH" title="Modifier le CCH">✏️</button>
-  </p>
+  <div class="section-content">
+    <p>
+      <strong>🧾 Code de Clôture d’Hospitalisation (CCH) :</strong>
+      <span id="afficheCCH">.......</span>
+      <button class="btn-edit" id="btnEditCCH">✏️</button>
+    </p>
 
-  <p>
-    <strong>⚙️ Code d’Accès Administratif (CAA) :</strong>
-    <span id="afficheCAA">.......</span>
-    <button class="btn-edit" id="btnEditCAA" title="Modifier le CAA">✏️</button>
-  </p>
+    <p>
+      <strong>⚙️ Code d’Accès Administratif (CAA) :</strong>
+      <span id="afficheCAA">.......</span>
+      <button class="btn-edit" id="btnEditCAA">✏️</button>
+    </p>
+  </div>
 </div>
+
 
 <!-- 🪟 Modale pour modifier un code -->
 <div class="modal" id="modalCode">
@@ -278,12 +333,16 @@
     </div>
   </div>
 </div>
-<div class="section">
-  <h2>💬 Messages d’accueil 
-    <button class="btn btn-add" onclick="openAddMessageModal()">➕ Ajouter</button>
+<div class="section collapsed">
+  <h2 class="section-title">
+    💬 Messages d’accueil
+    <button class="btn btn-add" onclick="event.stopPropagation(); openAddMessageModal()">➕ Ajouter</button>
   </h2>
-  <ul id="messagesAccueilList"></ul>
+  <div class="section-content">
+    <ul id="messagesAccueilList"></ul>
+  </div>
 </div>
+
 
 <!-- MODALE AJOUT -->
 <div class="modal" id="modalAddMessage">
@@ -324,60 +383,49 @@
     </div>
   </div>
 </div>
-<div class="section" id="sectionBureaux" style="display:none;">
-  <h2>🏢 Bureaux <button class="btn btn-add" onclick="openModalBureau()">➕ Ajouter</button></h2>
-  <ul id="bureauxList"></ul>
+<div class="section collapsed" id="sectionBureaux" style="display:none;">
+  <h2 class="section-title">
+    🏢 Bureaux
+    <button class="btn btn-add" onclick="event.stopPropagation(); openModalBureau()">➕ Ajouter</button>
+  </h2>
+  <div class="section-content">
+    <ul id="bureauxList"></ul>
+  </div>
 </div>
+
 </section>
 
-  <section id="nettoyage-section" 
-         style="background: #f8fafc; border-radius: 16px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); 
-                padding: 24px; margin: 20px auto; max-width: 700px;">
+ <div class="section collapsed">
+  <h2 class="section-title">🧹 Nettoyage et maintenance</h2>
 
-  <h2 style="font-size: 22px; color: #1a73e8; font-weight: 600; margin-bottom: 10px;">
-    🧹 Nettoyage et maintenance
-  </h2>
+  <div class="section-content">
+    <p>
+      Cette section vous permet de gérer le nettoyage automatique des anciens rapports
+      et documents stockés sur le serveur.
+    </p>
 
-  <p style="font-size: 15px; color: #555; line-height: 1.6;">
-    Cette section vous permet de gérer le nettoyage automatique des anciens rapports et documents stockés sur le serveur. 
-    Le nettoyage se fait normalement automatiquement.
-    Pour relancer un netttoyage (supression des accès aux pdf de plus de 7 jours), cliquez ci-dessous :
-    
-  </p>
-
-  <div style="text-align: center; margin-top: 20px;">
-    <button id="btnNettoyage"
-            style="background-color: #1a73e8; color: white; border: none; 
-                   padding: 12px 28px; border-radius: 8px; font-size: 16px; 
-                   font-weight: 500; cursor: pointer; transition: all 0.3s ease;">
-      🔗 Ouvrir l’outil de nettoyage
-    </button>
+    <div style="text-align:center; margin-top:20px;">
+      <button id="btnNettoyage">🔗 Ouvrir l’outil de nettoyage</button>
+    </div>
   </div>
-</section>
- <section id="nettoyage-section" 
-         style="background: #f8fafc; border-radius: 16px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); 
-                padding: 24px; margin: 20px auto; max-width: 700px;">
+</div>
 
-  <h2 style="font-size: 22px; color: #1a73e8; font-weight: 600; margin-bottom: 10px;">
-    Afficheur salle-attente
-  </h2>
+<div class="section collapsed">
+  <h2 class="section-title">📺 Afficheur salle d’attente</h2>
 
-  <p style="font-size: 15px; color: #555; line-height: 1.6;">
-    Cliquez sur le lien ci-dessous pour ouvrir l'afficheur patient : 
-    IL permet d'afficher le nombre de patients en salle d'attente, en prise ne charge, en urgences vitales,... en fonction des données saisies dans les fiches patients
-    
-  </p>
+  <div class="section-content">
+    <p>
+      Ouvre l’afficheur patient avec les données issues des fiches patients
+      (salle d’attente, urgences vitales, etc.).
+    </p>
 
-  <div style="text-align: center; margin-top: 20px;">
-    <button id="btnAfficheur"
-            style="background-color: #1a73e8; color: white; border: none; 
-                   padding: 12px 28px; border-radius: 8px; font-size: 16px; 
-                   font-weight: 500; cursor: pointer; transition: all 0.3s ease;">
-      🔗 Ouvrir l’afficheur
-    </button>
+    <div style="text-align:center; margin-top:20px;">
+      <button id="btnAfficheur">🔗 Ouvrir l’afficheur</button>
+    </div>
   </div>
-</section>
-<section>
+</div>
+
+
 
 <!-- Modale spécifique pour créer/modifier un bureau -->
 <div class="modal" id="modalBureau">
@@ -971,6 +1019,13 @@ async function saveMessagesAccueil() {
     afficherBulle("❌ Erreur d’enregistrement", "alerte");
   }
 }
+<script>
+document.querySelectorAll(".section-title").forEach(title => {
+  title.addEventListener("click", () => {
+    title.parentElement.classList.toggle("collapsed");
+  });
+});
+</script>
 
 // Charger les messages au démarrage
 loadMessagesAccueil();
