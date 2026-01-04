@@ -2047,6 +2047,50 @@ function logout(){
     });
   }
 }
+let startX = 0;
+let isDragging = false;
+const menu = document.getElementById("menuLateral");
+
+document.addEventListener("touchstart", (e) => {
+  startX = e.touches[0].clientX;
+  isDragging = true;
+});
+
+document.addEventListener("touchmove", (e) => {
+  if (!isDragging) return;
+
+  const currentX = e.touches[0].clientX;
+  const diffX = currentX - startX;
+
+  // Si swipe droit depuis le bord gauche
+  if (startX < 50 && diffX > 30) { 
+    menu.style.transform = "translateX(0)"; // ouvrir menu
+    e.preventDefault(); // empêche retour navigateur
+    isDragging = false;
+  }
+});
+
+document.addEventListener("touchend", () => {
+  isDragging = false;
+});
+const overlay = document.querySelector(".menu-overlay");
+
+function ouvrirMenu() {
+  menu.style.transform = "translateX(0)";
+  overlay.classList.add("active");
+}
+
+function fermerMenu() {
+  menu.style.transform = "translateX(-100%)";
+  overlay.classList.remove("active");
+}
+
+overlay.addEventListener("click", fermerMenu);
+window.addEventListener("touchstart", (e) => {
+  if(e.touches[0].clientX < 30) {
+    e.preventDefault(); // empêche swipe arrière
+  }
+}, { passive: false });
 
 </script>
 
