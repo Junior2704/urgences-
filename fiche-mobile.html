@@ -743,6 +743,131 @@ input:focus {
   font-weight:500;
   color:#0b2240;
 }
+/* ===============================
+   PAGE APPELS – MOBILE FRIENDLY
+================================ */
+
+/* Carte générale */
+#pageAppels .card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 16px;
+  margin: 12px 10px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-size: 15px;
+}
+
+/* Labels et selects */
+#pageAppels label {
+  font-weight: 600;
+  margin-bottom: 4px;
+  display: block;
+  color: #374151;
+}
+
+#pageAppels select {
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  border: 1px solid #d1d5db;
+  background: #fff;
+  font-size: 14px;
+  outline: none;
+  width: 100%;
+  transition: 0.2s;
+}
+
+#pageAppels select:focus {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px rgba(0,120,212,0.2);
+}
+
+/* Bouton appeler */
+#pageAppels .btn-success {
+  background: linear-gradient(135deg, #28a745, #32d067);
+  color: white;
+  font-weight: 600;
+  font-size: 15px;
+  padding: 12px 16px;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+#pageAppels .btn-success:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(40,167,69,0.35);
+}
+
+/* Infos patient appelé */
+#infosAppelMobile {
+  margin-top: 12px;
+  padding: 12px;
+  background: #f9fafb;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 14px;
+}
+
+#infosAppelMobile .numero {
+  font-size: 3rem;
+  font-weight: 700;
+  color: #dc3545;
+  text-align: center;
+  margin-bottom: 6px;
+}
+
+#infosAppelMobile div {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Status général */
+#appelStatusMobile {
+  margin-top: 12px;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* ===== RESPONSIVE MOBILE ===== */
+@media (max-width: 480px) {
+  #pageAppels h2 {
+    font-size: 18px;
+    text-align: center;
+    margin-bottom: 12px;
+  }
+
+  #pageAppels .card {
+    padding: 12px;
+    margin: 10px 6px;
+  }
+
+  #pageAppels select {
+    font-size: 13px;
+    padding: 10px 12px;
+  }
+
+  #pageAppels .btn-success {
+    font-size: 14px;
+    padding: 10px 12px;
+  }
+
+  #infosAppelMobile .numero {
+    font-size: 2.5rem;
+  }
+
+  #infosAppelMobile div {
+    font-size: 13px;
+  }
+}
+
 
 </style>
 </head>
@@ -1608,13 +1733,15 @@ function hideAllPages(){
 function goHome(){
   hideAllPages();
   document.getElementById("pageAccueil").style.display = "block";
-  closeSidebar();
+   sb.classList.remove("open");
+  sbOverlay.classList.remove("show");
 }
 
 function goUrgences(){
   hideAllPages();
   document.getElementById("pageUrgences").style.display = "block";
-  closeSidebar();
+   sb.classList.remove("open");
+  sbOverlay.classList.remove("show");
 }
 
 function goAppels(){
