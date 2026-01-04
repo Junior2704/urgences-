@@ -1797,26 +1797,32 @@ function goAppels() {
   showPage('pageAppels');
 }
 
- async function appelerTicketMobile(){
+ async function appelerTicketMobile() {
   const bureau = document.getElementById("bureauMobile").value;
   const type = document.getElementById("typeAppel").value;
 
-  const status = document.getElementById("appelStatusMobile");
-
-  const numeroDiv  = document.getElementById("numeroAppelMobile");
-  const motifDiv   = document.getElementById("infoMotifMobile");
-  const circuitDiv = document.getElementById("infoCircuitMobile");
-  const attenteDiv = document.getElementById("infoAttenteMobile");
-  const bureauDiv  = document.getElementById("infoBureauMobile");
-  const infosBox   = document.getElementById("infosAppelMobile");
+  const status    = document.getElementById("appelStatusMobile");
+  const numeroDiv = document.getElementById("numeroAppelMobile");
+  const motifDiv  = document.getElementById("infoMotifMobile");
+  const circuitDiv= document.getElementById("infoCircuitMobile");
+  const attenteDiv= document.getElementById("infoAttenteMobile");
+  const bureauDiv = document.getElementById("infoBureauMobile");
+  const infosBox  = document.getElementById("infosAppelMobile");
 
   const snap = await db.collection("accueil-1")
     .where("statut","==","attente")
     .orderBy("dateArriveeClient")
     .get();
 
+  // ======= Aucun patient en attente =======
   if(snap.empty){
-    status.innerText = "Aucun patient en attente";
+    infosBox.style.display = "none";   // cache la carte
+    numeroDiv.innerText = "—";
+    motifDiv.innerText = "📝 Motif : —";
+    circuitDiv.innerText = "🧭 Circuit : —";
+    attenteDiv.innerText = "⏱️ Attente : —";
+    bureauDiv.innerText = "📍 Bureau : —";
+    status.innerText = "⚠️ Aucun patient en attente";
     return;
   }
 
@@ -1830,8 +1836,15 @@ function goAppels() {
     }
   }
 
+  // ======= Aucun patient correspondant =======
   if(!doc){
-    status.innerText = "Aucun patient correspondant";
+    infosBox.style.display = "none";   // cache la carte
+    numeroDiv.innerText = "—";
+    motifDiv.innerText = "📝 Motif : —";
+    circuitDiv.innerText = "🧭 Circuit : —";
+    attenteDiv.innerText = "⏱️ Attente : —";
+    bureauDiv.innerText = "📍 Bureau : —";
+    status.innerText = "⚠️ Aucun patient correspondant";
     return;
   }
 
@@ -1854,35 +1867,29 @@ function goAppels() {
 
   // ================= AFFICHAGE =================
   numeroDiv.innerText = "N° " + (data.numero ?? "—");
-
-  motifDiv.innerText =
-    data.motif ? "📝 Motif : " + data.motif : "📝 Motif : —";
-
-  circuitDiv.innerText =
-    data.circuit ? "🧭 Circuit : " + data.circuit : "🧭 Circuit : —";
-
+  motifDiv.innerText  = data.motif ? "📝 Motif : " + data.motif : "📝 Motif : —";
+  circuitDiv.innerText= data.circuit ? "🧭 Circuit : " + data.circuit : "🧭 Circuit : —";
   bureauDiv.innerText = "📍 Bureau : " + bureau;
 
   // ⏱️ calcul attente
   let attenteMs = null;
   const dateArrivee = data.dateArriveeClient || data.dateArrivee;
-
   if(dateArrivee){
     if(typeof dateArrivee.toMillis === "function"){
       attenteMs = Date.now() - dateArrivee.toMillis();
-    }else{
+    } else {
       attenteMs = Date.now() - new Date(dateArrivee).getTime();
     }
   }
-
   attenteDiv.innerText =
     attenteMs !== null
       ? "⏱️ Attente : " + formatDuree(attenteMs)
       : "⏱️ Attente : —";
 
   infosBox.style.display = "block";
-  status.innerText = "Ticket appelé";
+  status.innerText = "✅ Ticket appelé";
 }
+
 const menuAppels = document.getElementById("menuAppels");
 
 // Par défaut : caché
