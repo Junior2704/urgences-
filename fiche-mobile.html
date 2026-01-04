@@ -2079,7 +2079,8 @@ document.addEventListener("touchstart", (e) => {
   startY = t.clientY;
 
   // 🔒 ZONE ULTRA SÉCURISÉE (évite le back Android)
-  tracking = startX <= 20;
+// ⚠️ NE JAMAIS utiliser x <= 24
+tracking = startX > 24 && startX < 80;
 }, { passive: false });
 
 document.addEventListener("touchmove", (e) => {
