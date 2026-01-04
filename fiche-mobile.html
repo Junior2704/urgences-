@@ -1033,11 +1033,17 @@ input:focus {
 <div id="pageAppels" class="page" style="display:none">
   <h2>📞 Gestion des appels</h2>
 
+  <!-- Carte principale -->
   <div class="card">
-    <label>Bureau</label>
-    <select id="bureauMobile"></select>
+    <label for="bureauMobile">Bureau</label>
+    <select id="bureauMobile">
+      <option value="">Sélectionner</option>
+      <option value="Bureau 1">Bureau 1</option>
+      <option value="Bureau 2">Bureau 2</option>
+      <option value="Bureau 3">Bureau 3</option>
+    </select>
 
-    <label>Type d’appel</label>
+    <label for="typeAppel">Type d’appel</label>
     <select id="typeAppel">
       <option value="">Tous</option>
       <option value="Traumatologie">Traumatologie</option>
@@ -1049,21 +1055,22 @@ input:focus {
     <button class="btn-success" onclick="appelerTicketMobile()">
       📣 Appeler le patient suivant
     </button>
-<!-- INFOS PATIENT APPELÉ -->
-<div id="infosAppelMobile" style="display:none" class="card">
 
-  <div class="numero" id="numeroAppelMobile">—</div>
+    <!-- Infos patient appelé -->
+    <div id="infosAppelMobile" style="display:none" class="card">
+      <div class="numero" id="numeroAppelMobile">—</div>
 
-  <div id="infoMotifMobile">📝 Motif : —</div>
-  <div id="infoCircuitMobile">🧭 Circuit : —</div>
-  <div id="infoAttenteMobile">⏱️ Attente : —</div>
-  <div id="infoBureauMobile">📍 Bureau : —</div>
+      <div id="infoMotifMobile">📝 Motif : —</div>
+      <div id="infoCircuitMobile">🧭 Circuit : —</div>
+      <div id="infoAttenteMobile">⏱️ Attente : —</div>
+      <div id="infoBureauMobile">📍 Bureau : —</div>
+    </div>
 
-</div>
-
+    <!-- Statut -->
     <div class="status" id="appelStatusMobile"></div>
   </div>
 </div>
+
 
 </div>
 
