@@ -2047,51 +2047,57 @@ function logout(){
     });
   }
 }
-let startX = 0;
-let isDragging = false;
-const menu = document.getElementById("menuLateral");
+
+</script>
+<script>
+/* ===============================
+   SWIPE MENU — SAFE MOBILE PWA
+================================ */
+
+const sidebar = document.getElementById("sidebar");
+const sidebarOverlay = document.getElementById("sidebarOverlay");
+
+let touchStartX = 0;
+let touchStartY = 0;
+let isSwiping = false;
 
 document.addEventListener("touchstart", (e) => {
-  startX = e.touches[0].clientX;
-  isDragging = true;
-});
+  // Ne pas déclencher si une modale est ouverte
+  if (document.querySelector(".modal-overlay[style*='flex']")) return;
+
+  const t = e.touches[0];
+  touchStartX = t.clientX;
+  touchStartY = t.clientY;
+
+  // zone bord gauche (sécurité retour système)
+  isSwiping = touchStartX < 30;
+}, { passive: true });
 
 document.addEventListener("touchmove", (e) => {
-  if (!isDragging) return;
+  if (!isSwiping) return;
+  if (sidebar.classList.contains("open")) return;
 
-  const currentX = e.touches[0].clientX;
-  const diffX = currentX - startX;
+  const t = e.touches[0];
+  const dx = t.clientX - touchStartX;
+  const dy = Math.abs(t.clientY - touchStartY);
 
-  // Si swipe droit depuis le bord gauche
-  if (startX < 50 && diffX > 30) { 
-    menu.style.transform = "translateX(0)"; // ouvrir menu
-    e.preventDefault(); // empêche retour navigateur
-    isDragging = false;
+  // priorité au scroll vertical
+  if (dy > 25) {
+    isSwiping = false;
+    return;
   }
-});
 
-document.addEventListener("touchend", () => {
-  isDragging = false;
-});
-const overlay = document.querySelector(".menu-overlay");
-
-function ouvrirMenu() {
-  menu.style.transform = "translateX(0)";
-  overlay.classList.add("active");
-}
-
-function fermerMenu() {
-  menu.style.transform = "translateX(-100%)";
-  overlay.classList.remove("active");
-}
-
-overlay.addEventListener("click", fermerMenu);
-window.addEventListener("touchstart", (e) => {
-  if(e.touches[0].clientX < 30) {
-    e.preventDefault(); // empêche swipe arrière
+  // swipe horizontal suffisant
+  if (dx > 60) {
+    openSidebar();
+    isSwiping = false;
   }
-}, { passive: false });
+}, { passive: true });
 
+function openSidebar() {
+  sidebar.classList.add("open");
+  sidebarOverlay.classList.add("show");
+}
 </script>
 
 
