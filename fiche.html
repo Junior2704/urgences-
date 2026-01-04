@@ -1702,7 +1702,6 @@ nav:hover .nav-item span {
 <div class="nav-item" data-module="documents">📑 <span>Documents</span></div>
 <div class="nav-item" data-module="sortie">🚪 <span>Sortie</span></div>
 <div class="nav-item" data-module="historique">📜 <span>Historique</span></div>
-<div class="nav-item" data-module="compte">🪪 <span>Mon Compte</span></div>
 
 
     </div>
@@ -2233,14 +2232,7 @@ nav:hover .nav-item span {
 
 </section>
 
-<section id="panel-compte" class="panel" style="display:none;">
-    <h3>🪪 Mon compte</h3>
 
-  <iframe
-  id="compteFrame"
-  style="width:100%; height:calc(100vh - 60px); border:none; border-radius:10px; overflow:hidden;">
-</iframe>
-</section>
 
 
 
@@ -4654,10 +4646,7 @@ function openSection(panelId) {
     const url = "medsurgences.html?id=" + patientId;
     document.getElementById("medsurgencesFrame").src = url;
 }
-if (panelId === "panel-compte") {
-    const url = "viewaccount.html";
-    document.getElementById("compteFrame").src = url;
-}
+
     });
 }
 window.openDocumentFromMenu = function(tabId, file) {
