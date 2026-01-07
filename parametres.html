@@ -389,16 +389,24 @@
     </div>
   </div>
 </div>
-<div class="section collapsed" id="sectionBureaux" style="display:none;">
-  <h2 class="section-title">
-    🏢 Bureaux
-  </h2>
-  <div class="section-content">
-    <button class="btn btn-add" onclick="event.stopPropagation(); openModalBureau()">➕ Ajouter</button>
+<div class="section collapsed">
+  <h2 class="section-title">🏢 Module de gestion des bureaux</h2>
 
-    <ul id="bureauxList"></ul>
+  <div class="section-content">
+
+    <label style="display:flex;align-items:center;gap:10px;margin-bottom:15px;">
+      <strong>Activer le module :</strong>
+      <input type="checkbox" id="toggleBureaux">
+    </label>
+
+    <div id="sectionBureaux" style="display:none;">
+      <button class="btn btn-add" onclick="event.stopPropagation(); openModalBureau()">➕ Ajouter</button>
+      <ul id="bureauxList"></ul>
+    </div>
+
   </div>
 </div>
+
 
 </section>
 
@@ -520,6 +528,8 @@ async function saveToFirestore() {
     afficherBulle("❌ Échec de l'enregistrement", "alerte");
   }
 }
+const toggleBureaux = document.getElementById("toggleBureaux");
+let bureauGeneralActive = false;
 
 async function loadData() {
   
@@ -684,16 +694,26 @@ let editingBureau = null;
 async function loadBureaux() {
   const ref = doc(db, "référentiels", "bureau");
   const snap = await getDoc(ref);
+
   if (snap.exists()) {
     const data = snap.data();
-    const generalActive = data.general?.active ?? false;
-    sectionBureaux.style.display = generalActive ? "block" : "none";
-    
-    bureaux = {...data};
-    delete bureaux.general; // enlever le champ general pour ne garder que les bureaux
+
+    bureauGeneralActive = data.general?.active ?? false;
+    toggleBureaux.checked = bureauGeneralActive;
+    sectionBureaux.style.display = bureauGeneralActive ? "block" : "none";
+
+    bureaux = { ...data };
+    delete bureaux.general;
+
     renderBureaux();
   }
 }
+toggleBureaux.addEventListener("change", async () => {
+  bureauGeneralActive = toggleBureaux.checked;
+  sectionBureaux.style.display = bureauGeneralActive ? "block" : "none";
+  await saveBureaux();
+});
+
 
 function renderBureaux() {
   bureauxListEl.innerHTML = "";
@@ -750,13 +770,18 @@ window.deleteBureau = async (name) => {
 // --- Sauvegarde Firestore ---
 async function saveBureaux() {
   try {
-    await setDoc(doc(db, "référentiels", "bureau"), { ...bureaux, general: { active: true } });
-    afficherBulle("✅ Bureaux enregistrés", "administratif");
+    await setDoc(doc(db, "référentiels", "bureau"), {
+      ...bureaux,
+      general: { active: bureauGeneralActive }
+    });
+
+    afficherBulle("✅ Paramètres bureaux enregistrés", "administratif");
   } catch (err) {
     console.error("Erreur enregistrement bureaux :", err);
     afficherBulle("❌ Erreur d’enregistrement", "alerte");
   }
 }
+
 
 // Charger au démarrage
 loadBureaux();
