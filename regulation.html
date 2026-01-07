@@ -802,7 +802,9 @@ async function updateMedicalDashboard() {
       else if (circuitLower.includes('psy')) circuits.psy++;
       else circuits.general++;
 
-      let startMs = null;
+      /* ⏱ TEMPS ÉCOULÉ */
+let tempsEcoule = '—';
+let startMs = null;
 
 if (hosp.dateDebut) {
   if (hosp.dateDebut.seconds) {
@@ -813,6 +815,14 @@ if (hosp.dateDebut) {
     startMs = Date.parse(hosp.dateDebut);
   }
 }
+
+if (startMs) {
+  const diffMs = Date.now() - startMs;
+  const h = Math.floor(diffMs / 3600000);
+  const m = Math.floor((diffMs % 3600000) / 60000);
+  tempsEcoule = `${h}h ${m}m`;
+}
+
 
 
       /* VIGILANCES */
