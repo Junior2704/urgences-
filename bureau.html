@@ -145,6 +145,34 @@ button{font-weight:600;cursor:pointer}
   font-size: 1.1rem;
 }
 
+.attente-stats{
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: #f8fafc;
+  border-radius: 14px;
+  font-size: 14px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.06);
+}
+
+.attente-total{
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.attente-types{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.attente-types span{
+  background: #e8f0ff;
+  color: #1e40af;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
 
 
 </style>
@@ -175,6 +203,10 @@ button{font-weight:600;cursor:pointer}
 </div>
   <button class="btn-success" onclick="appelerTicket()">📣 Appeler le ticket suivant</button>
   <div class="status" id="appelStatus"></div>
+<div id="attenteStats" class="attente-stats">
+  <div class="attente-total">⏳ Patients en attente : —</div>
+  <div id="attenteParType" class="attente-types"></div>
+</div>
 
 <button style="margin-top:10px;" onclick="openParams()">⚙️ Paramètres</button>
 
@@ -282,6 +314,44 @@ function initBureauxListener(){
     });
 }
 
+async function updateAttenteStats() {
+  const totalDiv = document.querySelector(".attente-total");
+  const typesDiv = document.getElementById("attenteParType");
+
+  const snap = await db.collection("accueil-1")
+    .where("statut", "==", "attente")
+    .get();
+
+  // Total
+  totalDiv.textContent = `⏳ Patients en attente : ${snap.size}`;
+
+  // Comptage par motif
+  const counts = {};
+
+  snap.docs.forEach(d => {
+    const motif = d.data().motif || "Autre";
+    counts[motif] = (counts[motif] || 0) + 1;
+  });
+
+  // Affichage
+  typesDiv.innerHTML = "";
+
+  if (snap.size === 0) {
+    typesDiv.innerHTML = `<span>Aucun patient</span>`;
+    return;
+  }
+
+  for (const type in counts) {
+    const pill = document.createElement("span");
+    pill.textContent = `${type} : ${counts[type]}`;
+    typesDiv.appendChild(pill);
+  }
+}
+db.collection("accueil-1")
+  .where("statut", "==", "attente")
+  .onSnapshot(() => {
+    updateAttenteStats();
+  });
 
 
 // ================= CONNEXION =================
