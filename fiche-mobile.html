@@ -882,6 +882,37 @@ input:focus {
   overscroll-behavior-x: none;
   touch-action: pan-y;
 }
+/* ===============================
+   FILE D’ATTENTE – APPELS
+================================ */
+.attente-stats{
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: #f8fafc;
+  border-radius: 14px;
+  font-size: 14px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.06);
+}
+
+.attente-total{
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.attente-types{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.attente-types span{
+  background: #e8f0ff;
+  color: #1e40af;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
 
 </style>
 </head>
@@ -978,6 +1009,11 @@ input:focus {
 
     <!-- Statut -->
     <div class="status" id="appelStatusMobile"></div>
+    <!-- 👇 NOUVEAU : file d’attente -->
+<div id="attenteStats" class="attente-stats">
+  <div class="attente-total">⏳ Patients en attente : —</div>
+  <div id="attenteParType" class="attente-types"></div>
+</div>
   </div>
 </div>
 
@@ -1127,6 +1163,11 @@ const ageFromDOB = dob => {
 };
 const graviteClass = (g) => g ? 'g-' + String(g).replace(/\s+/g,'_') : 'g-Administratif';
 const graviteLabel = (g) => g ? String(g).replace(/_/g,' ') : '—';
+db.collection("accueil-1")
+  .where("statut", "==", "attente")
+  .onSnapshot(() => {
+    updateAttenteStats();
+  });
 
 /* ----------------------
    DOM refs
@@ -1687,6 +1728,38 @@ async function openActe(patientId, acteIndex) {
     alert("Erreur chargement acte");
   }
 }
+async function updateAttenteStats() {
+  const totalDiv = document.querySelector(".attente-total");
+  const typesDiv = document.getElementById("attenteParType");
+
+  const snap = await db.collection("accueil-1")
+    .where("statut", "==", "attente")
+    .get();
+
+  // Total
+  totalDiv.textContent = `⏳ Patients en attente : ${snap.size}`;
+
+  // Comptage par type
+  const counts = {};
+
+  snap.docs.forEach(d => {
+    const motif = d.data().motif || "Autre";
+    counts[motif] = (counts[motif] || 0) + 1;
+  });
+
+  // Affichage
+  typesDiv.innerHTML = "";
+  for (const type in counts) {
+    const pill = document.createElement("span");
+    pill.textContent = `${type} : ${counts[type]}`;
+    typesDiv.appendChild(pill);
+  }
+
+  // Aucun patient
+  if (snap.size === 0) {
+    typesDiv.innerHTML = `<span>Aucun patient</span>`;
+  }
+}
 
 async function openMedicament(patientId, medIndex) {
   try {
@@ -1803,9 +1876,13 @@ function goUrgences() {
 
 function goAppels() {
   showPage('pageAppels');
+  updateAttenteStats();
+
 }
 
  async function appelerTicketMobile() {
+  updateAttenteStats();
+
   const bureau = document.getElementById("bureauMobile").value;
   const type = document.getElementById("typeAppel").value;
 
