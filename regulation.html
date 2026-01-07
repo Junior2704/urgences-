@@ -802,15 +802,18 @@ async function updateMedicalDashboard() {
       else if (circuitLower.includes('psy')) circuits.psy++;
       else circuits.general++;
 
-      /* ⏱ TEMPS ÉCOULÉ */
-      let tempsEcoule = '—';
-      if (hosp.dateDebut?.seconds) {
-        const dateDebut = new Date(hosp.dateDebut.seconds * 1000);
-        const diffMs = Date.now() - dateDebut;
-        const h = Math.floor(diffMs / 3600000);
-        const m = Math.floor((diffMs % 3600000) / 60000);
-        tempsEcoule = `${h}h ${m}m`;
-      }
+      let startMs = null;
+
+if (hosp.dateDebut) {
+  if (hosp.dateDebut.seconds) {
+    startMs = hosp.dateDebut.seconds * 1000;
+  } else if (typeof hosp.dateDebut === 'number') {
+    startMs = hosp.dateDebut;
+  } else if (typeof hosp.dateDebut === 'string') {
+    startMs = Date.parse(hosp.dateDebut);
+  }
+}
+
 
       /* VIGILANCES */
       const vigilances = data.vigilances?.trim() || 'aucune';
@@ -840,8 +843,9 @@ async function updateMedicalDashboard() {
         <td>${circuit}</td>
         <td>${pdcStatut}</td>
         <td>${position}</td>
-<td class="temps-ecoule" data-start="${hosp.dateDebut?.seconds || ''}">${tempsEcoule}</td>
+<td class="temps-ecoule" data-start="${startMs || ''}">${tempsEcoule}</td>
 <td>${formatEquipe(data.equipe)}</td>
+
 
       `;
       // Lors de la création du tr
