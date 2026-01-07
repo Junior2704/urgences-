@@ -812,8 +812,15 @@ if (hosp.dateDebut) {
   } else if (typeof hosp.dateDebut === 'number') {
     startMs = hosp.dateDebut;
   } else if (typeof hosp.dateDebut === 'string') {
-    startMs = Date.parse(hosp.dateDebut);
+  // format attendu : "15/12/2025 18:25:51"
+  const parts = hosp.dateDebut.split(' ');
+  if (parts.length === 2) {
+    const [d, m, y] = parts[0].split('/');
+    const [hh, mm, ss] = parts[1].split(':');
+    startMs = new Date(y, m - 1, d, hh, mm, ss).getTime();
   }
+
+
 }
 
 if (startMs) {
@@ -859,7 +866,7 @@ if (startMs) {
 
       `;
       // Lors de la création du tr
-tr.setAttribute('data-temps', hosp.dateDebut?.seconds || 0);
+tr.setAttribute('data-temps', Math.floor(startMs / 1000) || 0);
 tr.setAttribute('data-equipe', JSON.stringify(data.equipe || {}));
 
 tr.addEventListener('click', () => {
