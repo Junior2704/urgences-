@@ -913,6 +913,27 @@ input:focus {
   font-size: 12px;
   font-weight: 600;
 }
+/* ===============================
+   MODALE DE CHARGEMENT
+================================ */
+.loading-overlay{
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000; /* AU-DESSUS DE TOUT */
+}
+
+.spinner{
+  width: 60px;
+  height: 60px;
+  border: 6px solid rgba(255,255,255,0.3);
+  border-top: 6px solid white;
+  border-radius: 50%;
+  animation: spinAround 0.9s linear infinite;
+}
 
 </style>
 </head>
@@ -1133,6 +1154,10 @@ input:focus {
     <button id="acteClose2" class="btn" style="margin-top:14px">Fermer</button>
   </div>
 </div>
+<!-- MODALE DE CHARGEMENT -->
+<div id="loadingModal" class="loading-overlay">
+  <div class="spinner"></div>
+</div>
 
 <!-- Firebase compat (comme dans tes fichiers existants) -->
 <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
@@ -1344,6 +1369,17 @@ function renderList(arr){
     listEl.appendChild(card);
   });
 }
+function showLoading(){
+  document.getElementById("loadingModal").style.display = "flex";
+  document.body.style.pointerEvents = "none";
+}
+
+function hideLoading(){
+  document.getElementById("loadingModal").style.display = "none";
+  document.body.style.pointerEvents = "auto";
+}
+
+
 function formatDuree(ms) {
   const min = Math.floor(ms / 60000);
   if (min < 1) return "moins d’1 min";
@@ -1885,99 +1921,108 @@ function goAppels() {
 }
 
  async function appelerTicketMobile() {
-  updateAttenteStats();
+  showLoading();
 
-  const bureau = document.getElementById("bureauMobile").value;
-  const type = document.getElementById("typeAppel").value;
+  try {
+    updateAttenteStats();
 
-  const status    = document.getElementById("appelStatusMobile");
-  const numeroDiv = document.getElementById("numeroAppelMobile");
-  const motifDiv  = document.getElementById("infoMotifMobile");
-  const circuitDiv= document.getElementById("infoCircuitMobile");
-  const attenteDiv= document.getElementById("infoAttenteMobile");
-  const bureauDiv = document.getElementById("infoBureauMobile");
-  const infosBox  = document.getElementById("infosAppelMobile");
+    const bureau = document.getElementById("bureauMobile").value;
+    const type = document.getElementById("typeAppel").value;
 
-  const snap = await db.collection("accueil-1")
-    .where("statut","==","attente")
-    .orderBy("dateArriveeClient")
-    .get();
+    const status    = document.getElementById("appelStatusMobile");
+    const numeroDiv = document.getElementById("numeroAppelMobile");
+    const motifDiv  = document.getElementById("infoMotifMobile");
+    const circuitDiv= document.getElementById("infoCircuitMobile");
+    const attenteDiv= document.getElementById("infoAttenteMobile");
+    const bureauDiv = document.getElementById("infoBureauMobile");
+    const infosBox  = document.getElementById("infosAppelMobile");
 
-  // ======= Aucun patient en attente =======
-  if(snap.empty){
-    infosBox.style.display = "none";   // cache la carte
-    numeroDiv.innerText = "—";
-    motifDiv.innerText = "📝 Motif : —";
-    circuitDiv.innerText = "🧭 Circuit : —";
-    attenteDiv.innerText = "⏱️ Attente : —";
-    bureauDiv.innerText = "📍 Bureau : —";
-    status.innerText = "⚠️ Aucun patient en attente";
-    return;
-  }
+    const snap = await db.collection("accueil-1")
+      .where("statut","==","attente")
+      .orderBy("dateArriveeClient")
+      .get();
 
-  // 🔍 filtrage par type
-  let doc = null;
-  for(const d of snap.docs){
-    const data = d.data();
-    if(!type || data.motif === type){
-      doc = d;
-      break;
+    // ======= Aucun patient en attente =======
+    if (snap.empty) {
+      infosBox.style.display = "none";
+      numeroDiv.innerText = "—";
+      motifDiv.innerText = "📝 Motif : —";
+      circuitDiv.innerText = "🧭 Circuit : —";
+      attenteDiv.innerText = "⏱️ Attente : —";
+      bureauDiv.innerText = "📍 Bureau : —";
+      status.innerText = "⚠️ Aucun patient en attente";
+      return;
     }
-  }
 
-  // ======= Aucun patient correspondant =======
-  if(!doc){
-    infosBox.style.display = "none";   // cache la carte
-    numeroDiv.innerText = "—";
-    motifDiv.innerText = "📝 Motif : —";
-    circuitDiv.innerText = "🧭 Circuit : —";
-    attenteDiv.innerText = "⏱️ Attente : —";
-    bureauDiv.innerText = "📍 Bureau : —";
-    status.innerText = "⚠️ Aucun patient correspondant";
-    return;
-  }
-
-  // 🔚 terminer anciens appels du même bureau
-  const anciens = await db.collection("accueil-1")
-    .where("statut","==","appele")
-    .where("bureau","==",bureau)
-    .get();
-
-  anciens.forEach(d=>d.ref.update({statut:"termine"}));
-
-  const data = doc.data();
-
-  await doc.ref.update({
-    statut: "appele",
-    bureau: bureau,
-    dateAppel: firebase.firestore.FieldValue.serverTimestamp(),
-    afficheDepuis: firebase.firestore.FieldValue.serverTimestamp()
-  });
-
-  // ================= AFFICHAGE =================
-  numeroDiv.innerText = "N° " + (data.numero ?? "—");
-  motifDiv.innerText  = data.motif ? "📝 Motif : " + data.motif : "📝 Motif : —";
-  circuitDiv.innerText= data.circuit ? "🧭 Circuit : " + data.circuit : "🧭 Circuit : —";
-  bureauDiv.innerText = "📍 Bureau : " + bureau;
-
-  // ⏱️ calcul attente
-  let attenteMs = null;
-  const dateArrivee = data.dateArriveeClient || data.dateArrivee;
-  if(dateArrivee){
-    if(typeof dateArrivee.toMillis === "function"){
-      attenteMs = Date.now() - dateArrivee.toMillis();
-    } else {
-      attenteMs = Date.now() - new Date(dateArrivee).getTime();
+    // 🔍 filtrage par type
+    let doc = null;
+    for (const d of snap.docs) {
+      const data = d.data();
+      if (!type || data.motif === type) {
+        doc = d;
+        break;
+      }
     }
-  }
-  attenteDiv.innerText =
-    attenteMs !== null
-      ? "⏱️ Attente : " + formatDuree(attenteMs)
-      : "⏱️ Attente : —";
 
-  infosBox.style.display = "block";
-  status.innerText = "✅ Ticket appelé";
+    // ======= Aucun patient correspondant =======
+    if (!doc) {
+      infosBox.style.display = "none";
+      numeroDiv.innerText = "—";
+      motifDiv.innerText = "📝 Motif : —";
+      circuitDiv.innerText = "🧭 Circuit : —";
+      attenteDiv.innerText = "⏱️ Attente : —";
+      bureauDiv.innerText = "📍 Bureau : —";
+      status.innerText = "⚠️ Aucun patient correspondant";
+      return;
+    }
+
+    // 🔚 terminer anciens appels du même bureau
+    const anciens = await db.collection("accueil-1")
+      .where("statut","==","appele")
+      .where("bureau","==",bureau)
+      .get();
+
+    anciens.forEach(d => d.ref.update({ statut:"termine" }));
+
+    const data = doc.data();
+
+    await doc.ref.update({
+      statut: "appele",
+      bureau: bureau,
+      dateAppel: firebase.firestore.FieldValue.serverTimestamp(),
+      afficheDepuis: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    // ================= AFFICHAGE =================
+    numeroDiv.innerText = "N° " + (data.numero ?? "—");
+    motifDiv.innerText  = data.motif ? "📝 Motif : " + data.motif : "📝 Motif : —";
+    circuitDiv.innerText= data.circuit ? "🧭 Circuit : " + data.circuit : "🧭 Circuit : —";
+    bureauDiv.innerText = "📍 Bureau : " + bureau;
+
+    let attenteMs = null;
+    const dateArrivee = data.dateArriveeClient || data.dateArrivee;
+    if (dateArrivee) {
+      attenteMs = typeof dateArrivee.toMillis === "function"
+        ? Date.now() - dateArrivee.toMillis()
+        : Date.now() - new Date(dateArrivee).getTime();
+    }
+
+    attenteDiv.innerText =
+      attenteMs !== null
+        ? "⏱️ Attente : " + formatDuree(attenteMs)
+        : "⏱️ Attente : —";
+
+    infosBox.style.display = "block";
+    status.innerText = "✅ Ticket appelé";
+
+  } catch (e) {
+    console.error(e);
+    document.getElementById("appelStatusMobile").innerText = "❌ Erreur lors de l’appel";
+  } finally {
+    hideLoading(); // ✅ TOUJOURS exécuté
+  }
 }
+
 
 const menuAppels = document.getElementById("menuAppels");
 
