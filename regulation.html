@@ -840,8 +840,9 @@ async function updateMedicalDashboard() {
         <td>${circuit}</td>
         <td>${pdcStatut}</td>
         <td>${position}</td>
-        <td>${tempsEcoule}</td>
-        <td>—</td>
+<td class="temps-ecoule" data-start="${hosp.dateDebut?.seconds || ''}">${tempsEcoule}</td>
+<td>${formatEquipe(data.equipe)}</td>
+
       `;
       // Lors de la création du tr
 tr.setAttribute('data-temps', hosp.dateDebut?.seconds || 0);
@@ -875,6 +876,24 @@ tr.addEventListener('click', () => {
   }
 }
 
+function refreshTempsEcoule() {
+  const now = Date.now();
+
+  document.querySelectorAll('.temps-ecoule').forEach(td => {
+    const startSec = parseInt(td.dataset.start || 0);
+    if (!startSec) {
+      td.textContent = '—';
+      return;
+    }
+
+    const diffMs = now - startSec * 1000;
+    const h = Math.floor(diffMs / 3600000);
+    const m = Math.floor((diffMs % 3600000) / 60000);
+
+    td.textContent = `${h}h ${m}m`;
+  });
+}
+setInterval(refreshTempsEcoule, 60000); // toutes les minutes
 
 
 function isPhaseAttente(pdcStatut) {
