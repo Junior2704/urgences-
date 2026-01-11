@@ -434,6 +434,7 @@ function afficherBulle(msg, type = 'info') {
     el.style.opacity = '1';
     el.style.transform = 'translateY(0)';
   });
+}
 const addDocModal = document.getElementById("addDocModal");
 
 document.getElementById("btnAddDoc").onclick = () => {
@@ -501,7 +502,7 @@ async function enregistrerDocBase64() {
     el.style.transform = 'translateY(-10px)';
     el.addEventListener('transitionend', () => el.remove());
   }, 3000);
-}
+
 /* --- Initialisation compat Firebase (inchangée) --- */
 const firebaseConfig = {
     apiKey: "AIzaSyBKp5-7NNy0Gyl0tNbDgD-BxucYdg8ArWo",
