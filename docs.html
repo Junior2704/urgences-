@@ -473,14 +473,13 @@ async function enregistrerDocBase64() {
       now.toLocaleDateString("fr-FR") + " " +
       now.toLocaleTimeString("fr-FR");
 
+    // 🔥 ENREGISTREMENT COMPATIBLE viewer.html
     await db.collection("documents").add({
       patientId: idPatient,
       type: nom,
       dateCreation,
-      contenu: {
-        pdfBase64: base64,
-        mime: file.type
-      },
+      pdfBase64: base64,       // <-- clé directe attendue par viewer.html
+      mime: file.type,         // type MIME pour référence
       creePar: window.medecinNom || ""
     });
 
@@ -495,6 +494,7 @@ async function enregistrerDocBase64() {
     masquerLoader();
   }
 }
+
 
   // Suppression automatique après 3 secondes
   setTimeout(() => {
