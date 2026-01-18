@@ -607,38 +607,10 @@
   <div class="date" id="date-complete">--</div>
 
 <!-- === MÉTÉO : Widget meteoblue responsive === -->
-<div id="meteo-container">
-  <iframe 
-    src="https://www.meteoblue.com/en/weather/widget/three/%C3%89tampes_france_3019459?geoloc=fixed&nocurrent=0&noforecast=0&days=4&tempunit=CELSIUS&windunit=KILOMETER_PER_HOUR&layout=image&user_key=8d5b4ecca3fd8a5d&embed_key=d77ba0876bcc2a24&sig=84c0c3ed0bae80295caa6946af03c721f4f831536ef792f9796db03341c2d45a" 
-    frameborder="0" 
-    scrolling="NO" 
-    allowtransparency="true" 
-    sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox">
-  </iframe>
-  <div>
-    <!-- DO NOT REMOVE THIS LINK -->
-    <a href="https://www.meteoblue.com/en/weather/week/index" target="_blank" rel="noopener">meteoblue</a>
-  </div>
-</div>
-
-<style>
-/* --- STYLE MÉTÉO --- */
-#meteo-container {
-  width: 100%;
-  max-width: 280px; /* largeur de ton panneau gauche */
-  margin: 0 auto;
-  text-align: center;
-}
-
-#meteo-container iframe {
-  width: 100% !important;   /* force largeur responsive */
-  height: 280px !important; /* ajuste à ton panneau */
-  border: none;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  overflow: hidden;
-}
-</style>
+<a class="weatherwidget-io" href="https://forecast7.com/fr/48d862d35/paris/" data-label_1="Votre météo" data-label_2="propulsée par GestURG2" data-font="Arial Black" data-icons="Climacons Animated" data-theme="blue-mountains" >Votre météo propulsée par GestURG2</a>
+<script>
+!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src='https://weatherwidget.io/js/widget.min.js';fjs.parentNode.insertBefore(js,fjs);}}(document,'script','weatherwidget-io-js');
+</script>
 
 
 
