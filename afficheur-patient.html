@@ -487,15 +487,31 @@
   overflow: visible;
 }
 
-.meteo.actu {
-  width: 100%;
-  min-height: 160px;
+.rss-title {
+  font-weight: 700;
+  font-size: 1rem;
+  color: #003366;
+  margin-bottom: 6px;
+  text-align: center;
 }
 
-#ftviTitlesContainer {
-  width: 100%;
-  font-size: 13px;
+#rss-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: 0.9rem;
+  color: #1f3b70;
 }
+
+#rss-list li {
+  padding: 6px 4px;
+  border-bottom: 1px solid #dbe4f0;
+}
+
+#rss-list li:last-child {
+  border-bottom: none;
+}
+
 
 
   </style>
@@ -633,10 +649,12 @@
 </div>
 
 <div class="meteo actu">
-  <div id="ftviTitlesContainer"></div>
+  <div class="rss-title">📰 Informations santé</div>
+  <ul id="rss-list">
+    <li>Chargement des informations…</li>
+  </ul>
 </div>
 
-<script src="https://mobile.francetvinfo.fr/skin/www/js/externe/widget/titles/block.js"></script>
 
 </section>
 
@@ -971,7 +989,29 @@ updateHorlogeGauche();
 setInterval(updateHorlogeGauche, 1000);
 
 
-!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src='https://weatherwidget.io/js/widget.min.js';fjs.parentNode.insertBefore(js,fjs);}}(document,'script','weatherwidget-io-js');
 </script>
+<script>
+const RSS_URL = "https://www.santepubliquefrance.fr/rss/actualites.xml";
+const API = "https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent(RSS_URL);
+
+fetch(API)
+  .then(res => res.json())
+  .then(data => {
+    const list = document.getElementById("rss-list");
+    list.innerHTML = "";
+
+    data.items.slice(0, 4).forEach(item => {
+      const li = document.createElement("li");
+      li.textContent = item.title;
+      list.appendChild(li);
+    });
+  })
+  .catch(err => {
+    document.getElementById("rss-list").innerHTML =
+      "<li>Informations indisponibles</li>";
+    console.error("RSS error:", err);
+  });
+</script>
+
   </body>
 </html>
