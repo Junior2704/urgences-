@@ -606,20 +606,19 @@
 
   <div class="date" id="date-complete">--</div>
 
-<!-- MÉTÉO – Widget Weatherwidget.io -->
-<!-- === MÉTÉO (à intégrer dans ton panneau gauche) === -->
+<!-- === MÉTÉO : Widget meteoblue === -->
 <div id="meteo-container">
-  <iframe 
-    src="https://www.meteofrance.com/widget/iframe/ville-paris"
-    frameborder="0" 
-    width="280" 
-    height="250" 
-    allowtransparency="true">
-  </iframe>
+  <iframe
+    src="https://www.meteoblue.com/en/weather/widget/three/%c3%89tampes_france_3019459?geoloc=fixed&nocurrent=0&noforecast=0&days=5&tempunit=CELSIUS&windunit=KILOMETER_PER_HOUR&layout=image&user_key=8d5b4ecca3fd8a5d&embed_key=7522b9086f122ec8&sig=ce61ad19bb72f9d7d68c66486f3bfd5600d3c122f5fd04fcb90d2c6850bb726b"
+    frameborder="0"
+    width="280"
+    height="300"
+    allowtransparency="true"
+  ></iframe>
 </div>
 
 <style>
-/* --- MÉTÉO --- */
+/* --- STYLE MÉTÉO --- */
 #meteo-container {
   width: 100%;
   text-align: center;
@@ -627,12 +626,13 @@
 
 #meteo-container iframe {
   width: 100%;
-  height: 250px;
+  height: 300px;
   border: none;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 </style>
+
 
 
 </section>
