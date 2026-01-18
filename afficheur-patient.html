@@ -607,10 +607,32 @@
   <div class="date" id="date-complete">--</div>
 
 <!-- MÉTÉO – Widget Weatherwidget.io -->
-<a class="weatherwidget-io" href="https://forecast7.com/fr/48d862d35/paris/" data-label_1="Votre météo à Paris" data-font="Arial Black" data-icons="Climacons Animated" data-theme="sky" >Votre météo à Paris</a>
-<script>
-!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src='https://weatherwidget.io/js/widget.min.js';fjs.parentNode.insertBefore(js,fjs);}}(document,'script','weatherwidget-io-js');
-</script>
+<!-- === MÉTÉO (à intégrer dans ton panneau gauche) === -->
+<div id="meteo-container">
+  <iframe 
+    src="https://www.meteofrance.com/widget/iframe/ville-paris"
+    frameborder="0" 
+    width="280" 
+    height="250" 
+    allowtransparency="true">
+  </iframe>
+</div>
+
+<style>
+/* --- MÉTÉO --- */
+#meteo-container {
+  width: 100%;
+  text-align: center;
+}
+
+#meteo-container iframe {
+  width: 100%;
+  height: 250px;
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+</style>
 
 
 </section>
