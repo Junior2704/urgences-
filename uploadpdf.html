@@ -312,7 +312,7 @@ footer {
 </head>
 <body>
   <div class="card">
-    <img src="https://junior2704.github.io/urgences-/logo.png" alt="Logo" style="height:60px; margin-bottom:10px;">
+    <img src="https://junior2704.github.io/GestUrg2/logo.png" alt="Logo" style="height:60px; margin-bottom:10px;">
     <h2>Uploader un PDF</h2>
    <label for="pdfInput" class="custom-file-upload">📁 Choisir un fichier PDF</label>
    <br>
@@ -345,7 +345,7 @@ footer {
   <!-- Modale de chargement -->
   <div id="loadingModal">
     <div class="modal-content">
-      <img src="https://junior2704.github.io/urgences-/logo.png" alt="Logo" style="height:60px; margin-bottom:10px;">
+      <img src="https://junior2704.github.io/GestUrg2/logo.png" alt="Logo" style="height:60px; margin-bottom:10px;">
       <div class="loader"></div>
       <p>Envoi de l’e-mail en cours...</p>
     </div>
@@ -527,7 +527,7 @@ document.getElementById("otherEmailCheck").addEventListener("change", (e) => {
         dateCreation: firebase.firestore.FieldValue.serverTimestamp(),
       });
 
-      lienPdf = `https://junior2704.github.io/urgences-/monpdf.html?id=${id}`;
+      lienPdf = `https://junior2704.github.io/GestUrg2/monpdf.html?id=${id}`;
       document.getElementById("linkContainer").innerHTML =
         `<p>✅ Lien valide 7 jours :</p><a href="${lienPdf}" target="_blank">${lienPdf}</a>`;
     });
@@ -601,7 +601,7 @@ document.getElementById("confirmEmails").addEventListener("click", async functio
     });
 
     // 4️⃣ Lien d’accès temporaire
-    const lienPdf = `https://junior2704.github.io/urgences-/monpdf.html?id=${idUnique}`;
+    const lienPdf = `https://junior2704.github.io/GestUrg2/monpdf.html?id=${idUnique}`;
     console.log("✅ Lien Firestore :", lienPdf);
 
     // 5️⃣ Corps du mail dynamique (reprend ton template complet)
@@ -616,7 +616,7 @@ document.getElementById("confirmEmails").addEventListener("click", async functio
   <table width="100%" cellpadding="0" cellspacing="0" style="max-width:640px; margin:auto; background:white; border-radius:10px; box-shadow:0 3px 10px rgba(0,0,0,0.08); overflow:hidden;">
     <tr>
       <td style="background-color:#0057a4; padding:24px; text-align:center;">
-        <img src="https://junior2704.github.io/urgences-/logo.png" alt="Logo Hôpital" style="height:60px; display:block; margin:0 auto 10px auto;">
+        <img src="https://junior2704.github.io/GestUrg2/logo.png" alt="Logo Hôpital" style="height:60px; display:block; margin:0 auto 10px auto;">
         <h1 style="color:white; font-size:22px; margin:0;">Centre Hospitalier</h1>
         <p style="color:#dce6f3; margin:6px 0 0; font-size:14px;">Service des Urgences</p>
       </td>
