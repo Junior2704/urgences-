@@ -348,6 +348,7 @@ iframe{
 
 #tabs {
   overflow: hidden;
+  min-height:32px;
 }
 
 #topbar-main {
@@ -416,6 +417,28 @@ iframe{
   font-weight: 500;
   font-size: 14px;
   color: #374151;
+}
+#tabs {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  padding: 4px 0;
+  min-height: 32px;
+  align-items: center;
+}
+#tabs {
+  z-index: 10001; /* au-dessus des iframes */
+}
+
+#shell-topbar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: auto; /* au lieu de 64px */
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  z-index: 10000;
+  box-shadow: 0 4px 16px rgba(0,0,0,.12);
 }
 
 </style>
