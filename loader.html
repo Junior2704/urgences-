@@ -1,295 +1,189 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <meta charset="UTF-8">
-<title>🚑 GestUrg2</title>
-<link rel="icon" type="image/png" href="logo.png">
-<link rel="manifest" href="manifest.json">
+<title>Chargement...</title>
 
 <style>
-  body {
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap');
+
+* {
+    box-sizing: border-box;
     margin: 0;
     padding: 0;
-    background: #f4f6f8;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at center, #0f2027, #203a43, #2c5364);
+    font-family: 'Inter', sans-serif;
+    overflow: hidden;
+}
+
+.loader-container {
+    width: 100%;
+    height: 100%;
     display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
     flex-direction: column;
-    font-family: "Segoe UI", Roboto, Arial, sans-serif;
-  }
-
-  /* Wrapper principal */
-  .loader-wrapper {
-    position: relative;
-    width: 180px;
-    height: 180px;
-    display: flex;
     justify-content: center;
     align-items: center;
-  }
+    color: #fff;
+}
 
-  /* Halo lumineux */
-  .loader-wrapper::before {
-    content: "";
-    position: absolute;
+/* ===== Logo médical animé ===== */
+
+.heart-container {
+    position: relative;
     width: 140px;
     height: 140px;
-    border-radius: 50%;
-    background: rgba(21,101,192,0.18);
-    filter: blur(22px);
-    animation: glow 2.8s ease-in-out infinite;
-    z-index: 0;
-  }
+    margin-bottom: 15px;
+}
 
-  /* Logo central */
-  #logo {
-    width: 120px;
+.heart {
     position: absolute;
-    z-index: 2;
-    animation: breathe 2.6s ease-in-out infinite;
-  }
-
-  /* Anneau externe */
-  /* Anneau externe – dégradé continu */
-.spinner-ring {
-  position: absolute;
-  width: 180px;
-  height: 180px;
-  border-radius: 50%;
-  background: conic-gradient(
-    from 0deg,
-    #0d47a1,
-    #1565c0,
-    #42a5f5,
-    #90caf9,
-    #42a5f5,
-    #1565c0,
-    #0d47a1
-  );
-  mask: radial-gradient(farthest-side, transparent 72%, #000 73%);
-  -webkit-mask: radial-gradient(farthest-side, transparent 72%, #000 73%);
-  animation: spin 1.3s linear infinite;
-  z-index: 1;
+    width: 60px;
+    height: 60px;
+    background: #ff4b5c;
+    transform: rotate(45deg);
+    animation: beat 1s infinite;
+    left: 40px;
+    top: 40px;
 }
 
-/* Anneau interne – plus doux */
-.spinner-ring.inner {
-  width: 140px;
-  height: 140px;
-  background: conic-gradient(
-    from 180deg,
-    rgba(21,101,192,0.15),
-    rgba(66,165,245,0.6),
-    rgba(144,202,249,0.9),
-    rgba(66,165,245,0.6),
-    rgba(21,101,192,0.15)
-  );
-  mask: radial-gradient(farthest-side, transparent 75%, #000 76%);
-  -webkit-mask: radial-gradient(farthest-side, transparent 75%, #000 76%);
-  animation: spinReverse 0.9s linear infinite;
+.heart::before,
+.heart::after {
+    content: '';
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    background: #ff4b5c;
+    border-radius: 50%;
 }
 
+.heart::before {
+    top: -30px;
+    left: 0;
+}
 
-  /* Texte */
-  .loading-text {
-    margin-top: 30px;
+.heart::after {
+    left: -30px;
+    top: 0;
+}
+
+@keyframes beat {
+    0% { transform: scale(1) rotate(45deg); }
+    20% { transform: scale(1.15) rotate(45deg); }
+    40% { transform: scale(1) rotate(45deg); }
+    60% { transform: scale(1.15) rotate(45deg); }
+    80% { transform: scale(1) rotate(45deg); }
+    100% { transform: scale(1) rotate(45deg); }
+}
+
+/* ===== ECG ===== */
+
+.ecg {
+    width: 280px;
+    height: 60px;
+    margin-top: 20px;
+}
+
+.ecg path {
+    stroke: #00ffcc;
+    stroke-width: 3;
+    fill: none;
+    stroke-dasharray: 500;
+    stroke-dashoffset: 500;
+    animation: ecgMove 2s linear infinite;
+}
+
+@keyframes ecgMove {
+    to { stroke-dashoffset: 0; }
+}
+
+/* ===== Personnage médical ===== */
+
+.doctor {
+    font-size: 52px;
+    animation: bounce 1.5s infinite;
+    margin-bottom: 15px;
+}
+
+@keyframes bounce {
+    0%,100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+/* ===== Texte ===== */
+
+.title {
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    margin-top: 15px;
+}
+
+.subtitle {
     font-size: 14px;
-    color: #1565c0;
-    letter-spacing: 0.6px;
-    animation: fadeText 1.8s ease-in-out infinite;
-  }
+    opacity: 0.8;
+    margin-top: 5px;
+}
 
-  /* Animations */
-  @keyframes spin {
+/* ===== Spinner ===== */
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid rgba(255,255,255,.2);
+    border-top: 4px solid #00ffcc;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-top: 20px;
+}
+
+@keyframes spin {
     to { transform: rotate(360deg); }
-  }
-
-  @keyframes spinReverse {
-    to { transform: rotate(-360deg); }
-  }
-
-  @keyframes breathe {
-    0%, 100% { transform: scale(1); opacity: 1; }
-    50% { transform: scale(1.05); opacity: 0.92; }
-  }
-
-  @keyframes glow {
-    0%, 100% { transform: scale(0.9); opacity: 0.6; }
-    50% { transform: scale(1.1); opacity: 1; }
-  }
-
-  @keyframes fadeText {
-    0%,100% { opacity: 0.4; }
-    50% { opacity: 1; }
-  }
-  body {
-  margin: 0;
-  padding: env(safe-area-inset-top) env(safe-area-inset-right)
-           env(safe-area-inset-bottom) env(safe-area-inset-left);
-  background: #f4f6f8;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  flex-direction: column;
-  font-family: "Segoe UI", Roboto, Arial, sans-serif;
-  text-align: center;
-}
-
-/* Wrapper principal */
-.loader-wrapper {
-  position: relative;
-  width: clamp(140px, 40vw, 200px);
-  height: clamp(140px, 40vw, 200px);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-/* Halo lumineux */
-.loader-wrapper::before {
-  content: "";
-  position: absolute;
-  width: 70%;
-  height: 70%;
-  border-radius: 50%;
-  background: rgba(21,101,192,0.18);
-  filter: blur(22px);
-  animation: glow 2.8s ease-in-out infinite;
-  z-index: 0;
-}
-
-/* Logo central */
-#logo {
-  width: 65%;
-  position: absolute;
-  z-index: 2;
-  animation: breathe 2.6s ease-in-out infinite;
-}
-
-/* Anneau externe */
-.spinner-ring {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  background: conic-gradient(
-    from 0deg,
-    #0d47a1,
-    #1565c0,
-    #42a5f5,
-    #90caf9,
-    #42a5f5,
-    #1565c0,
-    #0d47a1
-  );
-  mask: radial-gradient(farthest-side, transparent 72%, #000 73%);
-  -webkit-mask: radial-gradient(farthest-side, transparent 72%, #000 73%);
-  animation: spin 1.3s linear infinite;
-  z-index: 1;
-}
-
-/* Anneau interne */
-.spinner-ring.inner {
-  width: 78%;
-  height: 78%;
-  background: conic-gradient(
-    from 180deg,
-    rgba(21,101,192,0.15),
-    rgba(66,165,245,0.6),
-    rgba(144,202,249,0.9),
-    rgba(66,165,245,0.6),
-    rgba(21,101,192,0.15)
-  );
-  mask: radial-gradient(farthest-side, transparent 75%, #000 76%);
-  -webkit-mask: radial-gradient(farthest-side, transparent 75%, #000 76%);
-  animation: spinReverse 0.9s linear infinite;
-}
-
-/* Texte */
-.loading-text {
-  margin-top: clamp(20px, 5vh, 35px);
-  font-size: clamp(13px, 2.8vw, 15px);
-  color: #1565c0;
-  letter-spacing: 0.6px;
-  animation: fadeText 1.8s ease-in-out infinite;
-}
-
-/* Animations */
-@keyframes spin { to { transform: rotate(360deg); } }
-@keyframes spinReverse { to { transform: rotate(-360deg); } }
-@keyframes breathe {
-  0%,100% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.05); opacity: 0.92; }
-}
-@keyframes glow {
-  0%,100% { transform: scale(0.9); opacity: 0.6; }
-  50% { transform: scale(1.1); opacity: 1; }
-}
-@keyframes fadeText {
-  0%,100% { opacity: 0.4; }
-  50% { opacity: 1; }
 }
 
 </style>
-
-
 </head>
 
 <body>
 
-  <div class="loader-wrapper">
-    <img id="logo" src="logo.png" alt="Logo">
-    <div class="spinner-ring"></div>
-    <div class="spinner-ring inner"></div>
-  </div>
+<div class="loader-container">
 
-  <div class="loading-text">Connexion à GestUrg2...</div>
-<iframe 
-  id="universalLoader"
-  src="loader.html"
-  style="
-    position: fixed;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    border: none;
-    z-index: 99999;
-    display: none;
-  ">
-</iframe>
+    <div class="doctor">🧑‍⚕️</div>
+
+    <div class="heart-container">
+        <div class="heart"></div>
+    </div>
+
+    <svg class="ecg" viewBox="0 0 300 60">
+        <path d="M0 30 L30 30 L45 10 L60 50 L75 30 L120 30 L140 5 L160 55 L180 30 L300 30"/>
+    </svg>
+
+    <div class="title">Chargement de GestUrg2...</div>
+    <div class="subtitle" id="msg">Initialisation des modules...</div>
+
+    <div class="spinner"></div>
+
+</div>
 
 <script>
-function isMobileDevice() {
-  return (
-    /Android|iPhone|iPad|iPod|webOS|BlackBerry|Windows Phone/i.test(navigator.userAgent)
-    || window.matchMedia("(max-width: 850px)").matches
-  );
-}
+const messages = [
+    "Connexion sécurisée...",
+    "Chargement des patients...",
+    "Synchronisation Firestore...",
+    "Préparation de l'interface...",
+    "Presque prêt..."
+];
 
-window.onload = () => {
-
-  /* Phase 1 : ton splash actuel */
-  setTimeout(() => {
-
-    document.getElementById("universalLoader").style.display = "block";
-
-    /* Phase 2 : loader médical universel */
-    setTimeout(() => {
-
-      window.location.href = isMobileDevice()
-        ? "connexion-mobile.html"
-        : "connexion.html";
-
-    }, 2200);
-
-  }, 800);
-
-};
+let i = 0;
+setInterval(() => {
+    document.getElementById("msg").innerText = messages[i];
+    i = (i + 1) % messages.length;
+}, 1400);
 </script>
-
 
 </body>
 </html>
