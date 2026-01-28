@@ -349,6 +349,34 @@ iframe{
 #tabs {
   overflow: hidden;
 }
+#window-controls {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  display: flex;
+  gap: 6px;
+}
+
+#window-controls button {
+  background: #e6f0fc;
+  border: none;
+  border-radius: 6px;
+  width: 28px;
+  height: 28px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+#window-controls button:hover {
+  background: #0078d4;
+  color: white;
+}
+
+#window-controls button.close:hover {
+  background: #e74c3c;
+  color: white;
+}
 
 </style>
 </head>
@@ -421,7 +449,13 @@ iframe{
 
     </div>
 
+
     <span id="datetime"></span>
+    <div id="window-controls" style="display:none;">
+  <button onclick="electronMinimize()">—</button>
+  <button onclick="electronMaximize()">☐</button>
+  <button class="close" onclick="electronClose()">✕</button>
+</div>
   </div>
 
   <div id="tabs"></div>
@@ -828,5 +862,31 @@ loadHomeMessages();
 
 
 </script>
+<script>
+function isElectron() {
+  return typeof window !== "undefined" && window.process?.type === "renderer";
+}
+
+// Affiche la div seulement sous Electron
+if (isElectron()) {
+  const controls = document.getElementById('window-controls');
+  if (controls) controls.style.display = 'flex';
+}
+
+// Fonctions Electron
+function electronMinimize() {
+  if (!isElectron()) return;
+  window.electronAPI.minimize();
+}
+function electronMaximize() {
+  if (!isElectron()) return;
+  window.electronAPI.maximize();
+}
+function electronClose() {
+  if (!isElectron()) return;
+  window.electronAPI.close();
+}
+</script>
+
 </body>
 </html>
