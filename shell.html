@@ -377,7 +377,23 @@ iframe{
   background: #e74c3c;
   color: white;
 }
+#window-controls {
+  position: absolute;
+  top: 4px; /* plus haut que l'heure */
+  right: 14px;
+  display: flex;
+  gap: 6px;
+  z-index: 10001;
+}
 
+#datetime {
+  position: absolute;
+  top: 36px; /* sous les boutons */
+  right: 14px;
+  font-weight: 500;
+  font-size: 14px;
+  color: #374151;
+}
 </style>
 </head>
 <body>
@@ -450,12 +466,13 @@ iframe{
     </div>
 
 
-    <span id="datetime"></span>
+    
     <div id="window-controls" style="display:none;">
   <button onclick="electronMinimize()">—</button>
   <button onclick="electronMaximize()">☐</button>
   <button class="close" onclick="electronClose()">✕</button>
 </div>
+<span id="datetime"></span>
   </div>
 
   <div id="tabs"></div>
