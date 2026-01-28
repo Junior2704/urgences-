@@ -349,12 +349,46 @@ iframe{
 #tabs {
   overflow: hidden;
 }
+
+#topbar-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* Titre à gauche, centre pour actions, droite pour date */
+  height: 64px;
+  padding: 6px 14px;
+  background: #ffffff;
+  box-shadow: 0 4px 16px rgba(0,0,0,.12);
+  position: relative;
+  z-index: 10000;
+  font-family: Inter, Arial, sans-serif;
+}
+
+/* Titre */
+#app-title {
+  font-weight: bold;
+  font-size: 20px;
+}
+
+/* Boutons d’action centrés */
+#actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex: 1; /* permet de centrer correctement */
+}
+
+/* Conteneur de droite : boutons Electron + heure */
+#right-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end; /* tout aligné à droite */
+}
+
+/* Boutons Electron au-dessus de l’heure */
 #window-controls {
-  position: absolute;
-  top: 10px;
-  right: 14px;
   display: flex;
   gap: 6px;
+  margin-bottom: 2px; /* espace avec l'heure */
 }
 
 #window-controls button {
@@ -375,32 +409,15 @@ iframe{
 
 #window-controls button.close:hover {
   background: #e74c3c;
-  color: white;
-}
-#window-controls {
-  position: absolute;
-  top: 4px; /* plus haut que l'heure */
-  right: 14px;
-  display: flex;
-  gap: 6px;
-  z-index: 10001;
 }
 
+/* Heure */
 #datetime {
-  position: absolute;
-  top: 36px; /* sous les boutons */
-  right: 14px;
   font-weight: 500;
   font-size: 14px;
   color: #374151;
 }
-#topbar-main {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  position: relative; /* important pour les enfants absolus */
-}
+
 </style>
 </head>
 <body>
@@ -472,14 +489,14 @@ iframe{
 
     </div>
 
-
-    
+ <div id="right-container">
     <div id="window-controls" style="display:none;">
-  <button onclick="electronMinimize()">—</button>
-  <button onclick="electronMaximize()">☐</button>
-  <button class="close" onclick="electronClose()">✕</button>
-</div>
-<span id="datetime"></span>
+      <button onclick="electronMinimize()">—</button>
+      <button onclick="electronMaximize()">☐</button>
+      <button class="close" onclick="electronClose()">✕</button>
+    </div>
+    <span id="datetime"></span>
+  </div>
   </div>
 
   <div id="tabs"></div>
