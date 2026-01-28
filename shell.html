@@ -864,13 +864,13 @@ loadHomeMessages();
 </script>
 <script>
 function isElectron() {
-  return typeof window !== "undefined" && window.process?.type === "renderer";
+  return !!window.electronAPI;
 }
 
-// Affiche la div seulement sous Electron
-if (isElectron()) {
-  const controls = document.getElementById('window-controls');
-  if (controls) controls.style.display = 'flex';
+// Affiche les boutons seulement si Electron
+const controls = document.getElementById('window-controls');
+if (controls && isElectron()) {
+  controls.style.display = 'flex';
 }
 
 // Fonctions Electron
@@ -886,6 +886,7 @@ function electronClose() {
   if (!isElectron()) return;
   window.electronAPI.close();
 }
+
 </script>
 
 </body>
