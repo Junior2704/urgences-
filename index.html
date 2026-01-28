@@ -2,273 +2,56 @@
 <html lang="fr">
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-<meta charset="UTF-8">
-<title>🚑 GestUrg2</title>
-<link rel="icon" type="image/png" href="logo.png">
-<link rel="manifest" href="manifest.json">
+  <meta charset="UTF-8">
+  <title>🚑 GestUrg2</title>
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="manifest" href="manifest.json">
 
-<style>
-  body {
-    margin: 0;
-    padding: 0;
-    background: #f4f6f8;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    flex-direction: column;
-    font-family: "Segoe UI", Roboto, Arial, sans-serif;
-  }
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+    }
 
-  /* Wrapper principal */
-  .loader-wrapper {
-    position: relative;
-    width: 180px;
-    height: 180px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-
-  /* Halo lumineux */
-  .loader-wrapper::before {
-    content: "";
-    position: absolute;
-    width: 140px;
-    height: 140px;
-    border-radius: 50%;
-    background: rgba(21,101,192,0.18);
-    filter: blur(22px);
-    animation: glow 2.8s ease-in-out infinite;
-    z-index: 0;
-  }
-
-  /* Logo central */
-  #logo {
-    width: 120px;
-    position: absolute;
-    z-index: 2;
-    animation: breathe 2.6s ease-in-out infinite;
-  }
-
-  /* Anneau externe */
-  /* Anneau externe – dégradé continu */
-.spinner-ring {
-  position: absolute;
-  width: 180px;
-  height: 180px;
-  border-radius: 50%;
-  background: conic-gradient(
-    from 0deg,
-    #0d47a1,
-    #1565c0,
-    #42a5f5,
-    #90caf9,
-    #42a5f5,
-    #1565c0,
-    #0d47a1
-  );
-  mask: radial-gradient(farthest-side, transparent 72%, #000 73%);
-  -webkit-mask: radial-gradient(farthest-side, transparent 72%, #000 73%);
-  animation: spin 1.3s linear infinite;
-  z-index: 1;
-}
-
-/* Anneau interne – plus doux */
-.spinner-ring.inner {
-  width: 140px;
-  height: 140px;
-  background: conic-gradient(
-    from 180deg,
-    rgba(21,101,192,0.15),
-    rgba(66,165,245,0.6),
-    rgba(144,202,249,0.9),
-    rgba(66,165,245,0.6),
-    rgba(21,101,192,0.15)
-  );
-  mask: radial-gradient(farthest-side, transparent 75%, #000 76%);
-  -webkit-mask: radial-gradient(farthest-side, transparent 75%, #000 76%);
-  animation: spinReverse 0.9s linear infinite;
-}
-
-
-  /* Texte */
-  .loading-text {
-    margin-top: 30px;
-    font-size: 14px;
-    color: #1565c0;
-    letter-spacing: 0.6px;
-    animation: fadeText 1.8s ease-in-out infinite;
-  }
-
-  /* Animations */
-  @keyframes spin {
-    to { transform: rotate(360deg); }
-  }
-
-  @keyframes spinReverse {
-    to { transform: rotate(-360deg); }
-  }
-
-  @keyframes breathe {
-    0%, 100% { transform: scale(1); opacity: 1; }
-    50% { transform: scale(1.05); opacity: 0.92; }
-  }
-
-  @keyframes glow {
-    0%, 100% { transform: scale(0.9); opacity: 0.6; }
-    50% { transform: scale(1.1); opacity: 1; }
-  }
-
-  @keyframes fadeText {
-    0%,100% { opacity: 0.4; }
-    50% { opacity: 1; }
-  }
-  body {
-  margin: 0;
-  padding: env(safe-area-inset-top) env(safe-area-inset-right)
-           env(safe-area-inset-bottom) env(safe-area-inset-left);
-  background: #f4f6f8;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  flex-direction: column;
-  font-family: "Segoe UI", Roboto, Arial, sans-serif;
-  text-align: center;
-}
-
-/* Wrapper principal */
-.loader-wrapper {
-  position: relative;
-  width: clamp(140px, 40vw, 200px);
-  height: clamp(140px, 40vw, 200px);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-/* Halo lumineux */
-.loader-wrapper::before {
-  content: "";
-  position: absolute;
-  width: 70%;
-  height: 70%;
-  border-radius: 50%;
-  background: rgba(21,101,192,0.18);
-  filter: blur(22px);
-  animation: glow 2.8s ease-in-out infinite;
-  z-index: 0;
-}
-
-/* Logo central */
-#logo {
-  width: 65%;
-  position: absolute;
-  z-index: 2;
-  animation: breathe 2.6s ease-in-out infinite;
-}
-
-/* Anneau externe */
-.spinner-ring {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  background: conic-gradient(
-    from 0deg,
-    #0d47a1,
-    #1565c0,
-    #42a5f5,
-    #90caf9,
-    #42a5f5,
-    #1565c0,
-    #0d47a1
-  );
-  mask: radial-gradient(farthest-side, transparent 72%, #000 73%);
-  -webkit-mask: radial-gradient(farthest-side, transparent 72%, #000 73%);
-  animation: spin 1.3s linear infinite;
-  z-index: 1;
-}
-
-/* Anneau interne */
-.spinner-ring.inner {
-  width: 78%;
-  height: 78%;
-  background: conic-gradient(
-    from 180deg,
-    rgba(21,101,192,0.15),
-    rgba(66,165,245,0.6),
-    rgba(144,202,249,0.9),
-    rgba(66,165,245,0.6),
-    rgba(21,101,192,0.15)
-  );
-  mask: radial-gradient(farthest-side, transparent 75%, #000 76%);
-  -webkit-mask: radial-gradient(farthest-side, transparent 75%, #000 76%);
-  animation: spinReverse 0.9s linear infinite;
-}
-
-/* Texte */
-.loading-text {
-  margin-top: clamp(20px, 5vh, 35px);
-  font-size: clamp(13px, 2.8vw, 15px);
-  color: #1565c0;
-  letter-spacing: 0.6px;
-  animation: fadeText 1.8s ease-in-out infinite;
-}
-
-/* Animations */
-@keyframes spin { to { transform: rotate(360deg); } }
-@keyframes spinReverse { to { transform: rotate(-360deg); } }
-@keyframes breathe {
-  0%,100% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.05); opacity: 0.92; }
-}
-@keyframes glow {
-  0%,100% { transform: scale(0.9); opacity: 0.6; }
-  50% { transform: scale(1.1); opacity: 1; }
-}
-@keyframes fadeText {
-  0%,100% { opacity: 0.4; }
-  50% { opacity: 1; }
-}
-
-</style>
-
-<script>
-function isMobileDevice() {
-  return (
-    /Android|iPhone|iPad|iPod|webOS|BlackBerry|Windows Phone/i.test(navigator.userAgent)
-    || window.matchMedia("(max-width: 850px)").matches
-  );
-}
-
-window.onload = () => {
-  setTimeout(() => {
-    window.location.href = isMobileDevice()
-      ? "connexion-mobile.html"
-      : "connexion.html";
-  }, 1000);
-};
-</script>
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+    }
+  </style>
 </head>
 
 <body>
 
-  <div class="loader-wrapper">
-    <img id="logo" src="logo.png" alt="Logo">
-    <div class="spinner-ring"></div>
-    <div class="spinner-ring inner"></div>
-  </div>
+  <!-- Loader universel -->
+  <iframe src="loader.html"></iframe>
 
-  <div class="loading-text">Connexion à GestUrg2...</div>
+  <script>
+    function isMobileDevice() {
+      return (
+        /Android|iPhone|iPad|iPod|webOS|BlackBerry|Windows Phone/i.test(navigator.userAgent)
+        || window.matchMedia("(max-width: 850px)").matches
+      );
+    }
 
-<script>
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./service-worker.js')
-    .then(() => console.log("Service Worker enregistré"));
-}
-</script>
+    window.onload = () => {
+      setTimeout(() => {
+        window.location.href = isMobileDevice()
+          ? "connexion-mobile.html"
+          : "connexion.html";
+      }, 2500);
+    };
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./service-worker.js')
+        .then(() => console.log("Service Worker enregistré"));
+    }
+  </script>
 
 </body>
 </html>
