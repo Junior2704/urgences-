@@ -44,8 +44,12 @@ body{margin:0;font-family:Inter,Arial,sans-serif;background:#f0f4f8;height:100vh
 
 /* ===== CONTENU ===== */
 #content{
-  flex:1;margin-top:64px;display:flex;flex-direction:column
+  flex:1;
+  display:flex;
+  flex-direction:column;
+   transition: margin-top 0.15s ease;
 }
+
 iframe{
   border:none;width:100%;height:100%;background:white;display:none
 }
@@ -920,6 +924,24 @@ updateDateTime();
   }
 }
 
+function adjustContentTop() {
+  const topbar = document.getElementById("shell-topbar");
+  const content = document.getElementById("content");
+
+  if (topbar && content) {
+    content.style.marginTop = topbar.offsetHeight + "px";
+  }
+}
+
+// Ajustement au chargement
+window.addEventListener("load", adjustContentTop);
+
+// Ajustement si resize
+window.addEventListener("resize", adjustContentTop);
+
+// Ajustement quand on ajoute/supprime un onglet
+const observer = new MutationObserver(adjustContentTop);
+observer.observe(document.getElementById("tabs"), { childList: true });
 
 // Appel au chargement de la page
 loadHomeMessages();
