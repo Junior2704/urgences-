@@ -156,7 +156,7 @@ if (isMobileDevice()) {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 6px 16px;
+  padding: 6px 20px 6px 16px; /* padding à droite augmenté */
   background: #ffffff;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   width: 100%;
@@ -166,7 +166,29 @@ if (isMobileDevice()) {
   height: 48px;
   font-family: Inter, Arial, sans-serif;
   z-index: 1000;
+  box-sizing: border-box; /* pour inclure le padding dans la largeur */
 }
+
+#topbar-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  margin-right: 8px; /* un petit décalage supplémentaire pour l'ascenseur */
+}
+
+#window-controls {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 4px; /* un peu plus d’espace entre les boutons et l’heure */
+}
+
+#datetime {
+  font-weight: 500;
+  font-size: 14px;
+  color: #374151;
+  line-height: 1.2; /* pour mieux séparer du haut */
+}
+
 
 #topbar-left {
   font-weight: bold;
@@ -178,17 +200,7 @@ if (isMobileDevice()) {
   font-weight: 500;
 }
 
-#topbar-right {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-}
 
-#window-controls {
-  display: flex;
-  gap: 6px;
-  margin-bottom: 2px;
-}
 
 #window-controls button {
   background: #e6f0fc;
@@ -210,11 +222,6 @@ if (isMobileDevice()) {
   background: #e74c3c;
 }
 
-#datetime {
-  font-weight: 500;
-  font-size: 14px;
-  color: #374151;
-}
 
 
   </style>
